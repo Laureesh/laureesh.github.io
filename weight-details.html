@@ -15,7 +15,9 @@
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet">
 
   <!-- Vendor CSS Files -->
   <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -26,6 +28,34 @@
 
   <!-- Main CSS File -->
   <link href="assets/css/main.css" rel="stylesheet">
+  <style>
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .results {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+    }
+  </style>
 
   <!-- =======================================================
   * Template Name: iPortfolio
@@ -161,20 +191,112 @@
 
           <div class="col-lg-4">
             <div class="portfolio-info" data-aos="fade-up" data-aos-delay="200">
-              <h3>Project information</h3>
+              <h3>Body Information</h3>
               <ul>
-                <li><strong>Category</strong>: Web design</li>
-                <li><strong>Client</strong>: ASU Company</li>
-                <li><strong>Project date</strong>: 01 March, 2020</li>
-                <li><strong>Project URL</strong>: <a href="#">www.example.com</a></li>
+                <li><strong>Updated:</strong>
+                  <p id="demo"></p>
+                </li>
+                <script>
+                  function formatEasternTime() {
+                    const options = {
+                      timeZone: 'America/New_York',
+                      hour12: true,
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit'
+                    };
+
+                    // Convert lastModified to a Date object
+                    const lastModifiedDate = new Date(document.lastModified);
+
+                    // Format the date to Eastern Time with AM/PM
+                    const formatter = new Intl.DateTimeFormat('en-US', options);
+                    return formatter.format(lastModifiedDate);
+                  }
+
+                  document.getElementById("demo").innerHTML = formatEasternTime();
+                </script>
               </ul>
+              <form id="healthForm">
+                <label for="age">Age:</label>
+                <input type="number" id="age" placeholder="Enter your age (e.g., 21)" required>
+
+                <label for="gender">Gender:</label>
+                <select id="gender" required>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+
+                <label for="weight">Current Weight (lbs):</label>
+                <input type="number" id="weight" placeholder="Enter your weight (e.g., 289.4)" required>
+
+                <label for="idealWeight">Ideal Weight (lbs):</label>
+                <input type="number" id="idealWeight" placeholder="Enter your ideal weight (e.g., 205)" required>
+
+                <label for="height">Height (inches):</label>
+                <input type="number" id="height" placeholder="Enter your height in inches (e.g., 75.5)" required>
+
+                <button type="button" onclick="calculateResults()">Calculate</button>
+              </form>
             </div>
             <div class="portfolio-description" data-aos="fade-up" data-aos-delay="300">
-              <h2>Exercitationem repudiandae officiis neque suscipit</h2>
-              <p>
-                Autem ipsum nam porro corporis rerum. Quis eos dolorem eos itaque inventore commodi labore quia quia. Exercitationem repudiandae officiis neque suscipit non officia eaque itaque enim. Voluptatem officia accusantium nesciunt est omnis tempora consectetur dignissimos. Sequi nulla at esse enim cum deserunt eius.
-              </p>
+              <div class="results" id="results" style="display: none;">
+                <h2>Results</h2>
+                <p id="bmi"></p>
+                <p id="bodyFat"></p>
+                <p id="calories"></p>
+                <p id="macros"></p>
+                <p id="exercise"></p>
+                <p id="water"></p>
+              </div>
             </div>
+            <script>
+    function calculateResults() {
+      const age = document.getElementById("age").value;
+      const gender = document.getElementById("gender").value;
+      const weight = parseFloat(document.getElementById("weight").value);
+      const idealWeight = parseFloat(document.getElementById("idealWeight").value);
+      const height = parseFloat(document.getElementById("height").value);
+
+      // Calculate BMI
+      const heightInches = height;
+      const bmi = (703 * weight / (heightInches * heightInches)).toFixed(1);
+
+      // Calculate Daily Calorie Needs
+      const dailyCaloriesFor1lbLoss = (weight * 15 - 500).toFixed(0);
+      const dailyCaloriesFor2lbLoss = (weight * 15 - 1000).toFixed(0);
+
+      // Calculate Macronutrients
+      const protein = (weight * 0.8).toFixed(0);
+      const carbs = (dailyCaloriesFor1lbLoss * 0.55 / 4).toFixed(0);
+      const fat = (dailyCaloriesFor1lbLoss * 0.25 / 9).toFixed(0);
+
+      // Calculate Water Intake
+      const waterIntake = (weight * 0.53).toFixed(1);
+
+      // Display Results
+      document.getElementById("bmi").innerHTML = `Body Mass Index (BMI): ${bmi}`;
+      document.getElementById("calories").innerHTML = `
+        Daily Calories to Lose 1 lb/week: ${dailyCaloriesFor1lbLoss} calories<br>
+        Daily Calories to Lose 2 lbs/week: ${dailyCaloriesFor2lbLoss} calories
+      `;
+      document.getElementById("macros").innerHTML = `
+        Macronutrients (1 lb/week loss):<br>
+        Protein: ${protein} g/day<br>
+        Carbs: ${carbs} g/day<br>
+        Fat: ${fat} g/day
+      `;
+      document.getElementById("exercise").innerHTML = `
+        Exercise Recommendation: 150–300 minutes of moderate-intensity exercise weekly.
+      `;
+      document.getElementById("water").innerHTML = `Recommended Water Intake: ${waterIntake} ounces/day`;
+
+      document.getElementById("results").style.display = "block";
+    }
+  </script>
           </div>
 
         </div>
