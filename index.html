@@ -8,6 +8,47 @@
   <title>My Portfolio</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="mediaqueries.css" />
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    input[type=text],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      margin-top: 6px;
+      margin-bottom: 16px;
+      resize: vertical;
+    }
+
+    input[type=submit] {
+      background-color: #000000;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    input[type=submit]:hover {
+      background-color: #45a049;
+    }
+
+    .container {
+      border-radius: 5px;
+      background-color: #f2f2f2;
+      padding: 20px;
+    }
+  </style>
 </head>
 
 <body>
@@ -40,7 +81,7 @@
   </nav>
   <section id="profile">
     <div class="section__pic-container">
-      <img src="./assets/1731442061532.jpg" alt="Laureesh Volmar profile picture" />
+      <img src="./assets/1731442061532.jpg" alt="Profile picture" class="about-pic" />
     </div>
     <div class="section__text">
       <p class="section__text__p1">Hello, I'm</p>
@@ -67,26 +108,30 @@
     <h1 class="title">About Me</h1>
     <div class="section-container">
       <div class="section__pic-container">
-        <img src="./assets/about-pic.png" alt="Profile picture" class="about-pic" />
+        <img src="./assets/1731442061532.jpg" alt="Profile picture" class="about-pic" />
       </div>
       <div class="about-details-container">
         <div class="about-containers">
           <div class="details-container">
             <img src="./assets/experience.png" alt="Experience icon" class="icon" />
             <h3>Experience</h3>
-            <p>2+ years <br />Full Stack Development<br /> Certified Medication Aide<br />Amazon Fulfillment Center Associate<br />Academic Projects: Java, Python, C++, SQL, Cloud </p>
+            <p>2+ years <br />Full Stack Development<br /> Certified Medication Aide<br />Amazon Fulfillment Center
+              Associate<br />Academic Projects: Java, Python, C++, SQL, Cloud </p>
           </div>
           <div class="details-container">
             <img src="./assets/education.png" alt="Education icon" class="icon" />
             <h3>Education</h3>
-            <p>Georgia Gwinnett College,<br>B.Sc. Information Technology (Software Development)<br>Expected Graduation: May 2026<br>GPA: 3.92 / 4.00</p>
+            <p>Georgia Gwinnett College,<br>B.Sc. Information Technology (Software Development)<br>Expected Graduation:
+              May 2026<br>GPA: 3.92 / 4.00</p>
           </div>
         </div>
         <div class="text-container">
           <p>
-            I am a Software Development student at Georgia Gwinnett College with a strong foundation in Java, Python, C++, and
+            I am a Software Development student at Georgia Gwinnett College with a strong foundation in Java, Python,
+            C++, and
             SQL.
-            My experience includes building academic projects such as multithreading programs, memory management systems, and
+            My experience includes building academic projects such as multithreading programs, memory management
+            systems, and
             data-driven applications. I am passionate about applying my technical skills in real-world environments and
             continuously
             expanding my knowledge in cloud computing, web development, and cybersecurity.
@@ -193,7 +238,7 @@
                 <p>Intermediate</p>
               </div>
             </article>
-            
+
           </div>
         </div>
       </div>
@@ -389,6 +434,27 @@
       </div>
     </div>
   </section>
+  <div class="container">
+    <form action="https://formspree.io/f/mgvzgnrl" method="POST">
+      <label for="fname">First Name</label>
+      <input type="text" id="fname" name="firstname" placeholder="Your name..">
+
+      <label for="lname">Last Name</label>
+      <input type="text" id="lname" name="lastname" placeholder="Your last name..">
+
+      <label for="country">Country</label>
+      <select id="country" name="country">
+        <option value="usa">United States</option>
+        <option value="canada">Canada</option>
+        <option value="australia">Australia</option>
+      </select>
+
+      <label for="subject">Subject</label>
+      <textarea id="subject" name="subject" placeholder="Write something.." style="height:200px"></textarea>
+
+      <input type="submit" value="Submit">
+    </form>
+  </div>
   <footer>
     <nav>
       <div class="nav-links-container">
