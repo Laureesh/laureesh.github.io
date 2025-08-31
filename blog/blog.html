@@ -1,14 +1,142 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <title>My Blog</title>
-  <link rel="stylesheet" href="../style.css">
+    <!-- Metas -->
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Laureesh Volmar's Blog" />
+    <!-- Title -->
+    <title>My Blog</title>
+    <!-- Links -->
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../style2.css">
+    <link rel="stylesheet" href="../mediaqueries.css">
+    <link rel="icon" href="../assets/android-chrome-192x192.png" type="image/x-icon">
 </head>
+
 <body>
-  <h1>Blog</h1>
-  <ul>
-    <li><a href="post1.html">My First Post</a></li>
-    <li><a href="post2.html">Second Post</a></li>
-  </ul>
+    <!-- Desktop Nav -->
+    <nav id="desktop-nav">
+        <div class="logo">Laureesh Volmar</div>
+        <div>
+            <ul class="nav-links">
+                <li><a href="../index.html#about">About</a></li>
+                <li><a href="../index.html#experience">Experience</a></li>
+                <li><a href="../index.html#projects">Projects</a></li>
+                <li><a href="../index.html#contact">Contact</a></li>
+                <li><a href="../blog/blog.html">Blog</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Mobile Nav -->
+    <nav id="hamburger-nav">
+        <div class="logo">Laureesh Volmar</div>
+        <div class="hamburger-menu">
+            <div class="hamburger-icon" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="menu-links">
+                <li><a href="../index.html#about" onclick="toggleMenu()">About</a></li>
+                <li><a href="../index.html#experience" onclick="toggleMenu()">Experience</a></li>
+                <li><a href="../index.html#projects" onclick="toggleMenu()">Projects</a></li>
+                <li><a href="../index.html#contact" onclick="toggleMenu()">Contact</a></li>
+                <li><a href="blog.html" onclick="toggleMenu()">Blog</a></li>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Blog Section -->
+    <section id="blog">
+        <p class="section__text__p1">Welcome to My</p>
+        <h1 class="title">Blog</h1>
+        <div class="experience-details-container">
+            <div class="about-containers">
+
+                <!-- Blog Post 3 -->
+                <div class="details-container color-container">
+                    <div class="article-container">
+                        <img src="../assets/android-chrome-512x512.png" alt="Blog Post 1" class="project-img" />
+                    </div>
+
+                    <!-- Category styled like "Studio equipment" -->
+                    <span class="blog-category">Web Development</span>
+
+                    <h2 class="experience-sub-title project-title">My 3rd Blog Post</h2>
+                    <p class="section__text__p2">August 31, 2025</p>
+
+                    <div class="btn-container">
+                        <button class="btn btn-color-3 project-btn" onclick="location.href='../blog/WebDevelopment/post3.html'">
+                            Read More
+                        </button>
+                    </div>
+                </div>
+                <!-- [END of Blog Post 3] -->
+
+                <!-- Blog Post 2 -->
+                <div class="details-container color-container">
+                    <div class="article-container">
+                        <img src="../assets/android-chrome-512x512.png" alt="Blog Post 1" class="project-img" />
+                    </div>
+
+                    <!-- Category styled like "Studio equipment" -->
+                    <span class="blog-category">Web Development</span>
+
+                    <h2 class="experience-sub-title project-title">My 2nd Blog Post</h2>
+                    <p class="section__text__p2">August 31, 2025</p>
+
+                    <div class="btn-container">
+                        <button class="btn btn-color-3 project-btn" onclick="location.href='../blog/WebDevelopment/post2.html'">
+                            Read More
+                        </button>
+                    </div>
+                </div>
+                <!-- [END of Blog Post 2] -->
+
+                <!-- Blog Post 1 -->
+                <div class="details-container color-container">
+                    <div class="article-container">
+                        <img src="../assets/android-chrome-512x512.png" alt="Blog Post 1" class="project-img" />
+                    </div>
+
+                    <!-- Category styled like "Studio equipment" -->
+                    <span class="blog-category">Web Development</span>
+
+                    <h2 class="experience-sub-title project-title">My 1st Blog Post</h2>
+                    <p class="section__text__p2">August 31, 2025</p>
+
+                    <div class="btn-container">
+                        <button class="btn btn-color-3 project-btn" onclick="location.href='../blog/WebDevelopment/post1.html'">
+                            Read More
+                        </button>
+                    </div>
+                </div>
+                <!-- [END of Blog Post 1] -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <nav>
+            <div class="nav-links-container">
+                <ul class="nav-links">
+                    <li><a href="../index.html#about">About</a></li>
+                    <li><a href="../index.html#experience">Experience</a></li>
+                    <li><a href="../index.html#projects">Projects</a></li>
+                    <li><a href="../index.html#contact">Contact</a></li>
+                </ul>
+            </div>
+        </nav>
+        <p>Copyright &#169; 2025 Laureesh Volmar. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Script -->
+    <script src="../script.js"></script>
 </body>
+
 </html>

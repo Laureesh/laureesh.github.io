@@ -1,59 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+  <!-- Metas -->
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="google-site-verification" content="4uPtcau0P-eTS97cgZe1wyphnZBWT03iulwthY4wg80" />
+  <meta name="google-site-verification" content="4uPtcau0P-eTS97cgZe1wyphnZBWT03iulwthY4wg80">
+  <meta name="description" content="Laureesh Volmar's Portfolio Website" />
+  <!-- Title -->
   <title>My Portfolio</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="mediaqueries.css" />
-  <link rel="icon" href="./assets/android-chrome-192x192.png" type="image/x-icon" />
-  
-  <style>
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    input[type=text],
-    select,
-    textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
-      margin-top: 6px;
-      margin-bottom: 16px;
-      resize: vertical;
-    }
-
-    input[type=submit] {
-      background-color: #000000;
-      color: white;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    input[type=submit]:hover {
-      background-color: #45a049;
-    }
-
-    .container {
-      border-radius: 5px;
-      background-color: #f2f2f2;
-      padding: 20px;
-    }
-  </style>
+  <!-- Links -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style2.css">
+  <link rel="stylesheet" href="mediaqueries.css">
+  <link rel="icon" href="./assets/android-chrome-192x192.png" type="image/x-icon">
 </head>
-
 <body>
   <nav id="desktop-nav">
     <div class="logo">Laureesh Volmar</div>
@@ -63,7 +24,7 @@
         <li><a href="#experience">Experience</a></li>
         <li><a href="#projects">Projects</a></li>
         <li><a href="#contact">Contact</a></li>
-        <li><a href="blog.html">Blog</a></li>
+        <li><a href="blog/blog.html">Blog</a></li>
       </ul>
     </div>
   </nav>
@@ -80,7 +41,7 @@
         <li><a href="#experience" onclick="toggleMenu()">Experience</a></li>
         <li><a href="#projects" onclick="toggleMenu()">Projects</a></li>
         <li><a href="#contact" onclick="toggleMenu()">Contact</a></li>
-        <li><a href="blog.html" onclick="toggleMenu()">Blog</a></li>
+        <li><a href="blog/blog.html" onclick="toggleMenu()">Blog</a></li>
       </div>
     </div>
   </nav>
@@ -115,32 +76,38 @@
       <!--<div class="section__pic-container">
         <img src="./assets/1731442061532.jpg" alt="Profile picture" class="about-pic" />
       </div>-->
-      <br>
+      <br />
       <div class="about-details-container">
         <div class="about-containers">
           <div class="details-container">
             <img src="./assets/experience.png" alt="Experience icon" class="icon" />
             <h3>Experience</h3>
-            <p>2+ years <br />Full Stack Development<br /> Certified Medication Aide<br />Amazon Fulfillment Center
-              Associate<br />Academic Projects: Java, Python, C++, SQL, Cloud </p>
+            <p>
+              2+ years <br />Full Stack Development<br />
+              Certified Medication Aide<br />Amazon Fulfillment Center
+              Associate<br />Academic Projects: Java, Python, C++, SQL, Cloud
+            </p>
           </div>
           <div class="details-container">
             <img src="./assets/education.png" alt="Education icon" class="icon" />
             <h3>Education</h3>
-            <p>Georgia Gwinnett College,<br>B.Sc. Information Technology (Software Development)<br>Expected Graduation:
-              May 2026<br>GPA: 3.92 / 4.00</p>
+            <p>
+              Georgia Gwinnett College,<br />B.Sc. Information Technology
+              (Software Development)<br />Expected Graduation: May 2026<br />GPA:
+              3.92 / 4.00
+            </p>
           </div>
         </div>
         <div class="text-container">
           <p>
-            I am a Software Development student at Georgia Gwinnett College with a strong foundation in Java, Python,
-            C++, and
-            SQL.
-            My experience includes building academic projects such as multithreading programs, memory management
-            systems, and
-            data-driven applications. I am passionate about applying my technical skills in real-world environments and
-            continuously
-            expanding my knowledge in cloud computing, web development, and cybersecurity.
+            I am a Software Development student at Georgia Gwinnett College
+            with a strong foundation in Java, Python, C++, and SQL. My
+            experience includes building academic projects such as
+            multithreading programs, memory management systems, and
+            data-driven applications. I am passionate about applying my
+            technical skills in real-world environments and continuously
+            expanding my knowledge in cloud computing, web development, and
+            cybersecurity.
           </p>
         </div>
       </div>
@@ -153,7 +120,9 @@
     <div class="experience-details-container">
       <div class="about-containers">
         <div class="details-container">
-          <h2 class="experience-sub-title">Programming & Frontend/General Dev</h2>
+          <h2 class="experience-sub-title">
+            Programming & Frontend/General Dev
+          </h2>
           <div class="article-container">
             <article>
               <img src="./assets/checkmark.png" alt="Experience icon" class="icon" />
@@ -244,7 +213,6 @@
                 <p>Intermediate</p>
               </div>
             </article>
-
           </div>
         </div>
       </div>
@@ -261,7 +229,9 @@
           <div class="article-container">
             <img src="./assets/yt.jpg" alt="Project 1" class="project-img" />
           </div>
-          <h2 class="experience-sub-title project-title">YouTube Tag Generator</h2>
+          <h2 class="experience-sub-title project-title">
+            YouTube Tag Generator
+          </h2>
           <div class="btn-container">
             <button class="btn btn-color-2 project-btn"
               onclick="location.href='https://lvolmar1.domains.ggc.edu/Projects/YTTags/yt-tags.html'">
@@ -294,7 +264,9 @@
           <div class="article-container">
             <img src="./assets/itec2150.jpg" alt="Project 3" class="project-img" />
           </div>
-          <h2 class="experience-sub-title project-title">ITEC 2150 - Intermediate Programming</h2>
+          <h2 class="experience-sub-title project-title">
+            ITEC 2150 - Intermediate Programming
+          </h2>
           <div class="btn-container">
             <button class="btn btn-color-2 project-btn"
               onclick="location.href='https://laureesh.gitbook.io/laureesh/intermediate-programming-projects/itec-2150-intermediate-programming'">
@@ -311,7 +283,9 @@
           <div class="article-container">
             <img src="./assets/itec3150.jpg" alt="Project 3" class="project-img" />
           </div>
-          <h2 class="experience-sub-title project-title">ITEC 3150 - Advanced Programming</h2>
+          <h2 class="experience-sub-title project-title">
+            ITEC 3150 - Advanced Programming
+          </h2>
           <div class="btn-container">
             <button class="btn btn-color-2 project-btn"
               onclick="location.href='https://laureesh.gitbook.io/laureesh/advanced-programming-projects/itec-3150-advanced-programming'">
@@ -348,10 +322,10 @@
   <div class="container">
     <form action="https://formspree.io/f/mgvzgnrl" method="POST">
       <label for="fname">First Name</label>
-      <input type="text" id="fname" name="firstname" placeholder="Your name..">
+      <input type="text" id="fname" name="firstname" placeholder="Your name.." />
 
       <label for="lname">Last Name</label>
-      <input type="text" id="lname" name="lastname" placeholder="Your last name..">
+      <input type="text" id="lname" name="lastname" placeholder="Your last name.." />
 
       <label for="country">Country</label>
       <select id="country" name="country">
@@ -361,9 +335,9 @@
       </select>
 
       <label for="subject">Subject</label>
-      <textarea id="subject" name="subject" placeholder="Write something.." style="height:200px"></textarea>
+      <textarea id="subject" name="subject" placeholder="Write something.." style="height: 200px"></textarea>
 
-      <input type="submit" value="Submit">
+      <input type="submit" value="Submit" />
     </form>
   </div>
   <footer>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Metas -->
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Another Blog Post - Laureesh Volmar" />
+  <!-- Title -->
+  <title>Another Blog Post</title>
+  <!-- Links -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style2.css">
+  <link rel="stylesheet" href="mediaqueries.css">
+  <link rel="stylesheet" href="../../blog.css">
+  <link rel="icon" href="../assets/android-chrome-192x192.png" type="image/x-icon">
+</head>
+<body>
+  <!-- Nav -->
+  <nav id="desktop-nav">
+    <div class="logo">Laureesh Volmar</div>
+    <div>
+      <ul class="nav-links">
+        <li><a href="../index.html#about">About</a></li>
+        <li><a href="../index.html#experience">Experience</a></li>
+        <li><a href="../index.html#projects">Projects</a></li>
+        <li><a href="../index.html#contact">Contact</a></li>
+        <li><a href="blog.html">Blog</a></li>
+      </ul>
+    </div>
+  </nav>
+  <nav id="hamburger-nav">
+    <div class="logo">Laureesh Volmar</div>
+    <div class="hamburger-menu">
+      <div class="hamburger-icon" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="menu-links">
+        <li><a href="../index.html#about" onclick="toggleMenu()">About</a></li>
+        <li><a href="../index.html#experience" onclick="toggleMenu()">Experience</a></li>
+        <li><a href="../index.html#projects" onclick="toggleMenu()">Projects</a></li>
+        <li><a href="../index.html#contact" onclick="toggleMenu()">Contact</a></li>
+        <li><a href="blog.html" onclick="toggleMenu()">Blog</a></li>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Blog Content -->
+  <section id="blog-post">
+    <div class="section-container">
+      <h1 class="title">Another Blog Post</h1>
+      <p class="section__text__p2">Published: September 1, 2025</p>
+      <span class="blog-category">AI & Cloud</span>
+
+      <div class="text-container">
+        <p>
+          This is my second blog entry where I’ll share insights about learning
+          cloud computing and exploring artificial intelligence. Both are key
+          areas in modern IT and I’m excited to dive deeper into them.
+        </p>
+        <p>
+          Over the coming months, I’ll document projects where I integrate AI
+          tools with cloud-based platforms like AWS and Azure. Expect tutorials,
+          lessons, and practical guides!
+        </p>
+      </div>
+
+      <a href="blog.html" class="btn btn-color-2">← Back to Blog</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <nav>
+      <div class="nav-links-container">
+        <ul class="nav-links">
+          <li><a href="../index.html#about">About</a></li>
+          <li><a href="../index.html#experience">Experience</a></li>
+          <li><a href="../index.html#projects">Projects</a></li>
+          <li><a href="../index.html#contact">Contact</a></li>
+        </ul>
+      </div>
+    </nav>
+    <p>Copyright &#169; 2025 Laureesh Volmar. All Rights Reserved.</p>
+  </footer>
+  <script src="../script.js"></script>
+</body>
+</html>

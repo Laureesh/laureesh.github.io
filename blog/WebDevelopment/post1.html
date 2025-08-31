@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Metas -->
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="My First Blog Post - Laureesh Volmar" />
+  <!-- Title -->
+  <title>My First Blog Post</title>
+  <!-- Links -->
+  <link rel="stylesheet" href="../../style.css">
+  <link rel="stylesheet" href="../../style2.css">
+  <link rel="stylesheet" href="../../mediaqueries.css">
+  <link rel="stylesheet" href="../../blog.css"> <!-- blog-specific -->
+  <link rel="icon" href="../../assets/android-chrome-192x192.png" type="image/x-icon">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav id="desktop-nav">
+    <div class="logo">Laureesh Volmar</div>
+    <div>
+      <ul class="nav-links">
+        <li><a href="../../index.html#about">About</a></li>
+        <li><a href="../../index.html#experience">Experience</a></li>
+        <li><a href="../../index.html#projects">Projects</a></li>
+        <li><a href="../../index.html#contact">Contact</a></li>
+        <li><a href="../blog.html">Blog</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <nav id="hamburger-nav">
+    <div class="logo">Laureesh Volmar</div>
+    <div class="hamburger-menu">
+      <div class="hamburger-icon" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="menu-links">
+        <li><a href="../../index.html#about" onclick="toggleMenu()">About</a></li>
+        <li><a href="../../index.html#experience" onclick="toggleMenu()">Experience</a></li>
+        <li><a href="../../index.html#projects" onclick="toggleMenu()">Projects</a></li>
+        <li><a href="../../index.html#contact" onclick="toggleMenu()">Contact</a></li>
+        <li><a href="../blog.html" onclick="toggleMenu()">Blog</a></li>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Blog Post -->
+  <section id="blog-post">
+    <div class="blog-card">
+      <h1 class="title">My First Blog Post</h1>
+      <p class="date">Published: August 31, 2025</p>
+      <span class="blog-category">Web Development</span>
+
+      <div class="content">
+        <p>
+          Welcome to my very first blog post! This is where I’ll be sharing
+          updates on projects, coding lessons learned, and my overall journey
+          in software development. I hope this series of posts helps other
+          students and developers like me grow their skills and stay motivated.
+        </p>
+        <p>
+          In this first entry, I want to talk about why I started this blog.
+          It’s all about documenting progress, building consistency, and
+          showcasing real-world projects alongside my portfolio.
+        </p>
+      </div>
+      <br>
+      <a href="../blog.html" class="btn btn-color-2">← Back to Blog</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <nav>
+      <div class="nav-links-container">
+        <ul class="nav-links">
+          <li><a href="../../index.html#about">About</a></li>
+          <li><a href="../../index.html#experience">Experience</a></li>
+          <li><a href="../../index.html#projects">Projects</a></li>
+          <li><a href="../../index.html#contact">Contact</a></li>
+        </ul>
+      </div>
+    </nav>
+    <p>Copyright &#169; 2025 Laureesh Volmar. All Rights Reserved.</p>
+  </footer>
+
+  <script src="../../script.js"></script>
+</body>
+</html>
