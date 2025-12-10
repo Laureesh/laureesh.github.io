@@ -7,64 +7,249 @@
     <title>Laureesh Volmar – Skincare Routine</title>
 
     <style>
-        body {
-            font-family: "Roboto", Arial, sans-serif;
-            background: #f7f7f7;
-            color: #222;
+        * {
             margin: 0;
             padding: 0;
-            line-height: 1.6;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", "Roboto", sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding-bottom: 3rem;
         }
 
         header {
-            background: linear-gradient(135deg, #1e3799, #4a69bd);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #fff;
-            padding: 1.5rem;
+            padding: 3rem 1.5rem;
             text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
-            margin: 0;
-            font-size: 1.6rem;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
 
-        h2 {
-            color: #1e3799;
-            margin-top: 1.5rem;
+        .header-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            font-weight: 300;
         }
 
-        .section {
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .schedule-section {
             background: #fff;
-            margin: 1rem auto;
-            padding: 1rem 1.2rem;
-            max-width: 700px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
         }
 
-        ul {
-            margin: 0.5rem 0 0.8rem 1.2rem;
+        .schedule-section h2 {
+            color: #667eea;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #555;
+        }
+
+        .schedule-table th {
+            background: #f0f0f0;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            text-align: left;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .schedule-table td {
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+        }
+
+        .schedule-table tr:nth-child(odd) {
+            background: #f9f9f9;
+        }
+
+        .routine-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .routine-box {
+            background: #fff;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .routine-box h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .routine-box h2.morning {
+            color: #f39c12;
+            border-bottom-color: #f39c12;
+        }
+
+        .routine-box h2.night {
+            color: #667eea;
         }
 
         .step {
-            border-left: 4px solid #1e3799;
-            margin: 1rem 0;
-            padding-left: 0.8rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            font-weight: bold;
+            margin-right: 0.8rem;
+        }
+
+        .step-number.morning {
+            background: #f39c12;
+        }
+
+        .step-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.8rem;
+        }
+
+        .step-content {
+            margin-left: 3rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .step-content.morning {
+            border-left-color: #f39c12;
+        }
+
+        .step-content p {
+            margin: 0.5rem 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #555;
+        }
+
+        .step-content ul {
+            margin: 0.8rem 0 0 1.2rem;
+            padding: 0;
+        }
+
+        .step-content li {
+            margin: 0.6rem 0;
+            color: #555;
+        }
+
+        .product-section {
+            background: #fff;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .product-section h2 {
+            font-size: 1.5rem;
+            color: #764ba2;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid #764ba2;
+        }
+
+        .product-item {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            align-items: center;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .product-item:last-child {
+            margin-bottom: 0;
         }
 
         .product-image {
             width: 100%;
-            max-width: 300px;
             border-radius: 10px;
-            margin: 10px 0;
-            display: block;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-info h3 {
+            color: #667eea;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-info p {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .routine-container {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .product-item {
+                grid-template-columns: 1fr;
+            }
+
+            .step-content {
+                margin-left: 2rem;
+            }
         }
 
         footer {
             text-align: center;
-            padding: 2rem 0;
+            padding: 2rem 1rem;
             color: #777;
             font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.02);
+            margin-top: 3rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
         }
     </style>
 </head>
@@ -73,114 +258,388 @@
 
     <header>
         <h1>Laureesh Volmar</h1>
-        <p>Daily Skincare Routine – Morning & Night</p>
+        <p class="header-subtitle">Daily Face Routine – Morning & Night</p>
     </header>
 
-    <!-- MORNING ROUTINE -->
-    <div class="section">
-        <h2>Morning Routine (Step-by-Step)</h2>
+    <main>
+        <!-- WEEKLY SCHEDULE FEATURED -->
+        <div class="schedule-section">
+            <h2>📅 Weekly Schedule (Easy Chart)</h2>
+            <table class="schedule-table">
+                <tr>
+                    <th>Day</th>
+                    <th>Morning</th>
+                    <th>Night</th>
+                </tr>
+                <tr>
+                    <td><strong>Monday</strong></td>
+                    <td>Foaming Cleanser → SA Lotion</td>
+                    <td>Foaming Cleanser → SA Lotion</td>
+                </tr>
+                <tr>
+                    <td><strong>Tuesday</strong></td>
+                    <td>Foaming Cleanser → SA Lotion</td>
+                    <td><b>PanOxyl Acne Foam → SA Lotion</b></td>
+                </tr>
+                <tr>
+                    <td><strong>Wednesday</strong></td>
+                    <td>Foaming Cleanser → SA Lotion</td>
+                    <td>Foaming Cleanser → SA Lotion</td>
+                </tr>
+                <tr>
+                    <td><strong>Thursday</strong></td>
+                    <td>Foaming Cleanser → SA Lotion</td>
+                    <td><b>PanOxyl Acne Foam → SA Lotion</b></td>
+                </tr>
+                <tr>
+                    <td><strong>Friday</strong></td>
+                    <td>Foaming Cleanser → SA Lotion</td>
+                    <td>Foaming Cleanser → SA Lotion</td>
+                </tr>
+                <tr>
+                    <td><strong>Saturday</strong></td>
+                    <td>Foaming Cleanser → SA Lotion</td>
+                    <td><b>PanOxyl Acne Foam → SA Lotion</b></td>
+                </tr>
+                <tr>
+                    <td><strong>Sunday</strong></td>
+                    <td>Foaming Cleanser → SA Lotion</td>
+                    <td>Foaming Cleanser → SA Lotion</td>
+                </tr>
+            </table>
+        </div>
 
-        <!-- CLEANSE -->
-        <div class="step">
-            <strong>1. Cleanse</strong>
-            <p>Double cleanse to cleanse face thoroughly.</p>
-            <ul>
-                <li><strong>Oil Cleansers:</strong>
+        <!-- ROUTINES SECTION -->
+        <div class="routine-container">
+            <!-- MORNING ROUTINE -->
+            <div class="routine-box">
+                <h2 class="morning">☀️ Morning Routine</h2>
+
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number morning">1</span> Cleanse
+                    </div>
+                    <div class="step-content morning">
+                        <p><strong>Double cleanse to cleanse face thoroughly.</strong></p>
+                        <p><strong>Oil Cleansers:</strong></p>
+                        <ul>
+                            <li><strong>CeraVe Hydrating Foaming Oil Cleanser</strong> - Moisturizing Oil Cleanser for Face & Body with Squalane Oil + Hyaluronic Acid + Ceramides</li>
+                        </ul>
+                        <p><strong>Standard Cleansers:</strong></p>
+                        <ul>
+                            <li><strong>La Roche-Posay Toleriane Purifying Foaming Facial Cleanser</strong> - Oil Free Face Wash with Niacinamide + Ceramides</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number morning">2</span> Exfoliate (2–3× weekly)
+                    </div>
+                    <div class="step-content morning">
+                        <p><strong>How to exfoliate:</strong></p>
+                        <ul>
+                            <li>Use with the Dove Men+Care Deep Clean bar + Silicone scrubber</li>
+                            <li><strong>OR</strong> Apply Paula's Choice 2% BHA Liquid Exfoliant:
+                                <ul>
+                                    <li>Pour a few drops into your palm</li>
+                                    <li>Lightly spread across your face</li>
+                                    <li>Avoid eyes and corners of nose</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number morning">3</span> Moisturizer + SPF
+                    </div>
+                    <div class="step-content morning">
+                        <p><strong>Hydrate and protect with SPF.</strong></p>
+                        <ul>
+                            <li><strong>CeraVe AM Facial Moisturizing Lotion with SPF 30</strong> - Oil-Free with Hyaluronic Acid, Niacinamide & Ceramides</li>
+                            <li><strong>La Roche-Posay Toleriane Double Repair UV SPF 30</strong> - Daily Moisturizer with Sunscreen, Oil Free</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NIGHT ROUTINE -->
+            <div class="routine-box">
+                <h2 class="night">🌙 Night Routine</h2>
+
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number">1</span> Cleanse
+                    </div>
+                    <div class="step-content">
+                        <ul>
+                            <li><strong>La Roche-Posay Toleriane Purifying Foaming Facial Cleanser</strong></li>
+                            <li><strong>PanOxyl Acne Foaming Wash</strong> (Benzoyl Peroxide 10% on acne-prone days)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number">2</span> Vitamin C Serum
+                    </div>
+                    <div class="step-content">
+                        <ul>
+                            <li><strong>CeraVe Vitamin C Serum</strong> - 10% Pure Vitamin C with Hyaluronic Acid for brightening</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-title">
+                        <span class="step-number">3</span> Night Moisturizer
+                    </div>
+                    <div class="step-content">
+                        <ul>
+                            <li><strong>CeraVe PM Facial Moisturizing Lotion</strong> - Hydrating night-time formula</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BODY CARE PRODUCTS -->
+        <div class="product-section">
+            <h2>🧴 Body Care & Tools</h2>
+
+            <div class="product-item">
+                <img src="IMG_482A3541-4F78-46DE-A101-1CAC7EC9CAD2.jpeg" class="product-image"
+                    alt="Dove Men+Care Deep Clean Bar" />
+                <div class="product-info">
+                    <h3>Dove Men+Care Deep Clean Bar</h3>
+                    <p><strong>Use for:</strong> Body cleansing and exfoliating days with your silicone scrubber. Effective for removing impurities while maintaining moisture barrier.</p>
+                </div>
+            </div>
+
+            <div class="product-item">
+                <img src="IMG_9DFFA2A8-52B0-43AF-B955-EDF76D7BC73B.jpeg" class="product-image" alt="Dove Scrubber Front" />
+                <div class="product-info">
+                    <h3>Dove Silicone Scrubber (Front)</h3>
+                    <p><strong>Use for:</strong> Physical exfoliation 2–3× weekly on body areas with texture or bumps. Gentle silicone design is safe for sensitive skin.</p>
+                </div>
+            </div>
+
+            <div class="product-item">
+                <img src="IMG_224E2DF1-8EE8-4D38-94DB-C369569CC8A6.jpeg" class="product-image" alt="Dove Scrubber Back" />
+                <div class="product-info">
+                    <h3>Dove Silicone Scrubber (Back)</h3>
+                    <p><strong>Ergonomic design:</strong> Easy-grip handle for comfortable use. Reversible surface provides varied texture options.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- HOW TO USE PRODUCTS -->
+        <div class="product-section" style="margin-top: 3rem;">
+            <h2>📝 How to Use Each Product</h2>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">1</span> CeraVe Foaming Facial Cleanser
+                </div>
+                <div class="step-content">
+                    <p><strong>When:</strong> Morning every day; Night on non-PanOxyl nights (use PanOxyl instead on Tue/Thu/Sat).</p>
+                    <p><strong>How to use:</strong></p>
                     <ul>
-                        <li><strong>[ $20 ] CeraVe Hydrating Foaming Oil Cleanser</strong><br>, Moisturizing Oil Cleanser for Face & Body, Squalane Oil + Hyaluronic Acid + Ceramides, For Dry to Very Dry Skin, Fragrance Free & Residue Free, 19 FL Oz</li>
+                        <li>Wet your face with lukewarm water</li>
+                        <li>Dispense a nickel-sized amount into your palm</li>
+                        <li>Gently massage over face and neck for 30–45 seconds (no need to scrub)</li>
+                        <li>Rinse thoroughly with lukewarm water until no suds remain</li>
+                        <li>Pat dry with a clean towel</li>
+                        <li>Follow with SA Lotion (morning) or Vitamin C serum → PM moisturizer (night)</li>
                     </ul>
-                </li>
-                <li><strong>Cleansers (Exfoliate with Bar+Scrubber After, then Use CeraVe SA Lotion After):</strong>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">2</span> La Roche-Posay Toleriane Purifying Foaming Facial Cleanser
+                </div>
+                <div class="step-content">
+                    <p><strong>When:</strong> Morning & Night (main cleanser)</p>
+                    <p><strong>How to use:</strong></p>
                     <ul>
-                        <li><strong>[ $20 ] La Roche-Posay Toleriane Purifying Foaming Facial Cleanser</strong><br>, Oil Free Face Wash for Women & Men with Niacinamide + Ceramides, Pore Cleanser Safe For Sensitive Skin, Won’t Dry Out Skin, Soap Free</li>
+                        <li>Wet face with lukewarm water</li>
+                        <li>Pump a small amount (quarter-sized) into your palm</li>
+                        <li>Massage gently over your entire face and neck for 30-45 seconds</li>
+                        <li>Pay extra attention to T-zone and jaw areas</li>
+                        <li>Rinse thoroughly with water until no suds remain</li>
+                        <li>Pat dry with a clean towel</li>
                     </ul>
-                </li>
-                <li><strong>Cleanser (Acne) [Exfoliate with Bar+Scrubber After, then CeraVe AM Facial Moisturizing Lotion with SPF 30]:</strong>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">3</span> PanOxyl Acne Foaming Wash (10% Benzoyl Peroxide)
+                </div>
+                <div class="step-content">
+                    <p><strong>When:</strong> Night routine on Tuesday, Thursday, Saturday (or as needed for breakouts)</p>
+                    <p><strong>How to use:</strong></p>
                     <ul>
-                        <li><strong>[ $10 ] PanOxyl Acne Foaming Wash</strong><br>Benzoyl Peroxide 10% Maximum Strength Antimicrobial, 5.5 Oz</li>
+                        <li>Wet face with lukewarm water</li>
+                        <li>Pump a small amount (pea-sized) onto your fingertips</li>
+                        <li>Gently massage over affected areas and entire face</li>
+                        <li>Leave on for 1-3 minutes to let the benzoyl peroxide work</li>
+                        <li>Rinse thoroughly with water</li>
+                        <li>Pat dry gently</li>
+                        <li><strong>Note:</strong> May cause dryness or irritation – use moisturizer immediately after</li>
                     </ul>
-                </li>
-            </ul>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">4</span> Paula's Choice 2% BHA Liquid Exfoliant
+                </div>
+                <div class="step-content">
+                    <p><strong>When:</strong> Morning routine, 2–3× weekly (on exfoliation days)</p>
+                    <p><strong>How to use:</strong></p>
+                    <ul>
+                        <li>After cleansing, make sure your face is completely dry</li>
+                        <li>Pour 2-3 drops into your palm or apply directly to face</li>
+                        <li>Gently spread across entire face, avoiding eye area and nose corners</li>
+                        <li>Let it absorb for 5-10 minutes (will feel slightly sticky)</li>
+                        <li>Follow with your regular moisturizer and SPF</li>
+                        <li><strong>Frequency:</strong> Start with 2× weekly, can increase to 3× if skin tolerates well</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">5</span> CeraVe SA Lotion (Salicylic Acid)
+                </div>
+                <div class="step-content">
+                    <p><strong>When:</strong> Morning routine (optional, after cleansing)</p>
+                    <p><strong>How to use:</strong></p>
+                    <ul>
+                        <li>Apply to damp or dry skin after cleansing</li>
+                        <li>Use a small amount (quarter-sized) and spread evenly over face</li>
+                        <li>Focus on areas prone to buildup or congestion</li>
+                        <li>Wait 5 minutes before applying other products</li>
+                        <li>Follow with moisturizer and SPF</li>
+                        <li><strong>Option:</strong> Use on body (shoulders, back, chest) instead of face if too strong</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">6</span> CeraVe AM Facial Moisturizing Lotion with SPF 30
+                </div>
+                <div class="step-content">
+                    <p><strong>When:</strong> Morning routine (final step)</p>
+                    <p><strong>How to use:</strong></p>
+                    <ul>
+                        <li>Apply to clean, dry skin after all serums and exfoliants</li>
+                        <li>Use a nickel-sized amount for entire face</li>
+                        <li>Gently massage into skin until absorbed</li>
+                        <li>Allow 2-3 minutes before sun exposure for SPF to set</li>
+                        <li><strong>SPF benefit:</strong> Provides broad-spectrum UVA/UVB protection</li>
+                        <li>Reapply if you'll be outdoors for extended periods</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">7</span> La Roche-Posay Toleriane Double Repair UV SPF 30
+                </div>
+                <div class="step-content">
+                    <p><strong>When:</strong> Morning routine (SPF alternative)</p>
+                    <p><strong>How to use:</strong></p>
+                    <ul>
+                        <li>Apply after cleansing and serums</li>
+                        <li>Use a pump-full for entire face and neck</li>
+                        <li>Massage gently until fully absorbed</li>
+                        <li>Wait 5 minutes before makeup or sun exposure</li>
+                        <li>Can be layered under makeup</li>
+                        <li>Reapply every 2 hours if exposed to direct sun</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">8</span> CeraVe Vitamin C Serum
+                </div>
+                <div class="step-content">
+                    <p><strong>When:</strong> Night routine (step 2)</p>
+                    <p><strong>How to use:</strong></p>
+                    <ul>
+                        <li>Apply to clean, dry skin after cleansing</li>
+                        <li>Dispense 2-3 drops into your palm</li>
+                        <li>Gently press onto face and neck</li>
+                        <li>Allow 1-2 minutes to absorb</li>
+                        <li>Follow with night moisturizer</li>
+                        <li><strong>Benefits:</strong> Brightens skin, reduces hyperpigmentation, antioxidant protection</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">9</span> CeraVe PM Facial Moisturizing Lotion
+                </div>
+                <div class="step-content">
+                    <p><strong>When:</strong> Night routine (final step)</p>
+                    <p><strong>How to use:</strong></p>
+                    <ul>
+                        <li>Apply after all serums have absorbed (vitamin C serum)</li>
+                        <li>Use a nickel to quarter-sized amount</li>
+                        <li>Massage gently into face and neck</li>
+                        <li>Allow to fully absorb before bed (2-3 minutes)</li>
+                        <li><strong>Benefits:</strong> Overnight repair, ceramides restore moisture barrier</li>
+                        <li>Can apply extra amount to dry patches if needed</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">10</span> Dove Men+Care Deep Clean Bar
+                </div>
+                <div class="step-content">
+                    <p><strong>When:</strong> Body cleansing (daily or as needed)</p>
+                    <p><strong>How to use:</strong></p>
+                    <ul>
+                        <li>Wet the bar or your body with warm water</li>
+                        <li>Lather the bar between your hands or use a washcloth</li>
+                        <li>Apply to entire body, focusing on areas prone to sweat or buildup</li>
+                        <li>Rinse thoroughly with water</li>
+                        <li><strong>With exfoliation:</strong> Use silicone scrubber in circular motions on body (2-3× weekly)</li>
+                        <li>Store in a well-draining soap dish to prevent water buildup</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">11</span> Dove Silicone Scrubber
+                </div>
+                <div class="step-content">
+                    <p><strong>When:</strong> Body exfoliation (2–3× weekly)</p>
+                    <p><strong>How to use:</strong></p>
+                    <ul>
+                        <li>Wet your body with warm water</li>
+                        <li>Apply soap or cleanser to the scrubber or body</li>
+                        <li>Use gentle circular motions on areas with texture or bumps</li>
+                        <li><strong>Focus areas:</strong> Shoulders, back, chest, upper arms, legs</li>
+                        <li>Do NOT use on face – too harsh for facial skin</li>
+                        <li>Avoid over-exfoliating – limit to 2-3× weekly to prevent irritation</li>
+                        <li>Rinse thoroughly and allow scrubber to air dry between uses</li>
+                    </ul>
+                </div>
+            </div>
         </div>
-
-        <!-- EXFOLIATE -->
-        <div class="step">
-            <strong>2. Exfoliate (2–3× per week)</strong>
-            <p>How to:</p>
-            <ul>
-                <li>Use with the Dove Men+Care Deep Clean bar w/ Silicone scrubber.</li>
-                <li><strong>OR</strong> Apply a Small Amount of Paula’s Choice 2% BHA Liquid Exfoliant<br> 
-                <ol>
-                    <li>Pour a few drops into your palm</li>
-                    <li>Lightly spread across your face</li>
-                    <li>Avoid eyes and corners of nose</li>
-                </ol>
-                </li>
-            </ul>
-        </div>
-
-        <!-- MOISTURIZER -->
-        <div class="step">
-            <strong>3. Moisturizer</strong>
-            <p>Hydrate and protect the moisture barrier.</p>
-            <ul>
-                <li>Only use CeraVe SA Lotion <br> On the BODY: Shoulders, Back, Chest, Arms, Legs <br>On the Face: If your oily, acne-prone, not using any other acids that day, and dont use strong exfoliants</li>
-                <li><strong>[ $20 ] CeraVe AM Facial Moisturizing Lotion with SPF 30</strong>, Oil-Free Face Moisturizer with SPF, Formulated with Hyaluronic Acid, Niacinamide & Ceramides, Non-Comedogenic, Broad Spectrum Sunscreen, 3 Ounce</li>
-                <li><strong>[ $26 ] La Roche-Posay Toleriane Double Repair UV SPF Moisturizer for Face</strong>, Daily Facial Moisturizer with Sunscreen SPF 30, Niacinamide and Glycerin, Oil Free, Moisturizing Sun Protection</li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- NIGHT ROUTINE -->
-    <div class="section">
-        <h2>Night Routine (Step-by-Step)</h2>
-
-        <!-- CLEANSE -->
-        <div class="step">
-            <strong>1. Cleanse</strong>
-            <ul>
-                <li> La Roche-Posay Toleriane Purifying Foaming Facial Cleanser</li>
-            </ul>
-        </div>
-
-        <!-- VITAMIN C -->
-        <div class="step">
-            <strong>2. Vitamin C Serum</strong>
-            <ul>
-                <li>CeraVe Vitamin C Serum with Hyaluronic Acid, Skin Brightening Serum for Face with 10% Pure Vitamin C, Fragrance Free, 1 Fl. Oz</li>
-            </ul>
-        </div>
-
-        <!-- NIGHT MOISTURIZER -->
-        <div class="step">
-            <strong>3. Night Moisturizer</strong>
-            <ul>
-                <li>CeraVe PM Facial Moisturizing Lotion</li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- BODY PRODUCTS (PLACED WHERE THEY BELONG) -->
-    <div class="section">
-        <h2>Body Care Products You Uploaded</h2>
-
-        <!-- DOVE BAR SOAP -->
-        <div class="step">
-            <strong>Dove Men+Care Deep Clean (Body Cleansing)</strong>
-            <p>Use this bar for body washing and exfoliating days with your silicone scrubber.</p>
-            <img src="IMG_482A3541-4F78-46DE-A101-1CAC7EC9CAD2.jpeg" class="product-image"
-                alt="Dove Men+Care Deep Clean Bar" />
-        </div>
-
-        <!-- SCRUBBER -->
-        <div class="step">
-            <strong>Dove Silicone Scrubber (Exfoliation Tool)</strong>
-            <p>Use 2–3× weekly on body areas with texture or bumps (not face).</p>
-            <img src="IMG_9DFFA2A8-52B0-43AF-B955-EDF76D7BC73B.jpeg" class="product-image" alt="Dove Scrubber Front" />
-            <img src="IMG_224E2DF1-8EE8-4D38-94DB-C369569CC8A6.jpeg" class="product-image" alt="Dove Scrubber Back" />
-        </div>
-
-    </div>
+    </main>
 
     <footer>
         © 2025 Laureesh Volmar | Personalized Skincare Routine
