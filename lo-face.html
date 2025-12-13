@@ -88,6 +88,16 @@
             background: #f9f9f9;
         }
 
+        .schedule-table tr.today {
+            background: #fff3cd !important;
+            border-left: 5px solid #ffc107;
+            font-weight: 600;
+        }
+
+        .schedule-table tr.today td {
+            color: #856404;
+        }
+
         .routine-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -644,6 +654,60 @@
     <footer>
         © 2025 Laureesh Volmar | Personalized Skincare Routine
     </footer>
+
+    <script>
+        // Automatically highlight today's row and add dates
+        const daysInTable = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+        // TEST MODE: Change the date below to test different days (year, monthIndex, day)
+        // Example: new Date(2025, 11, 15) for Monday, December 15, 2025 (month is 0-based: 0 = January)
+        const today = new Date(); // Change this to test: new Date(2025, 11, 15)
+
+        // Always use local time for day calculations
+        const currentDayIndex = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+        // Function to format date as MM/DD
+        function formatDate(date) {
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            return `${month}/${day}`;
+        }
+
+        // Find the Monday of the current week for the test date (local time)
+        // If today is Monday, it's today. If today is Sunday (0), go back 6 days, etc.
+        const mondayDate = new Date(today);
+        const daysSinceMonday = (currentDayIndex + 6) % 7;
+        mondayDate.setDate(today.getDate() - daysSinceMonday);
+
+        const rows = document.querySelectorAll('.schedule-table tr');
+        rows.forEach((row, index) => {
+            // Skip header row
+            if (index === 0) return;
+
+            const dayCell = row.querySelector('td strong');
+            if (dayCell) {
+                const tableRowIndex = index - 1; // 0 = Monday, 1 = Tuesday, etc.
+                const dayName = daysInTable[tableRowIndex];
+
+                // Calculate date for each day (Monday = start of week)
+                let dayDate = new Date(mondayDate);
+                dayDate.setDate(mondayDate.getDate() + tableRowIndex);
+                const dateStr = formatDate(dayDate);
+
+                // Check if this is today (local time, robust)
+                if (
+                    dayDate.getFullYear() === today.getFullYear() &&
+                    dayDate.getMonth() === today.getMonth() &&
+                    dayDate.getDate() === today.getDate()
+                ) {
+                    row.classList.add('today');
+                    dayCell.textContent = `${dayName} (Today) - ${dateStr}`;
+                } else {
+                    dayCell.textContent = `${dayName} - ${dateStr}`;
+                }
+            }
+        });
+    </script>
 
 </body>
 
