@@ -260,12 +260,13 @@
     font-weight: 900;
     text-align: center;
   }
-  .pos-1 .rank-badge { color: var(--gold);   font-size: 20px; }
-  .pos-2 .rank-badge { color: var(--silver); font-size: 18px; }
-  .pos-3 .rank-badge { color: var(--bronze); font-size: 17px; }
+  .pos-1 .rank-badge { color: var(--gold);   font-size: 22px; text-shadow: 0 0 12px rgba(255,215,0,0.8); }
+  .pos-2 .rank-badge { color: var(--silver); font-size: 20px; text-shadow: 0 0 10px rgba(192,192,192,0.6); }
+  .pos-3 .rank-badge { color: var(--bronze); font-size: 18px; text-shadow: 0 0 10px rgba(205,127,50,0.6); }
   .lb-row:not(.pos-1):not(.pos-2):not(.pos-3) .rank-badge {
-    color: rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.75);
     font-size: 13px;
+    text-shadow: 0 0 6px rgba(255,255,255,0.2);
   }
 
   .player-name {
@@ -414,10 +415,10 @@
     font-weight: 900;
     text-align: center;
   }
-  .dv-row.pos-1 .dv-rank { color: var(--gold);   font-size: 26px; }
-  .dv-row.pos-2 .dv-rank { color: var(--silver); font-size: 22px; }
-  .dv-row.pos-3 .dv-rank { color: var(--bronze); font-size: 20px; }
-  .dv-row:not(.pos-1):not(.pos-2):not(.pos-3) .dv-rank { color: rgba(255,255,255,0.2); font-size: 14px; }
+  .dv-row.pos-1 .dv-rank { color: var(--gold);   font-size: 28px; text-shadow: 0 0 16px rgba(255,215,0,0.9); }
+  .dv-row.pos-2 .dv-rank { color: var(--silver); font-size: 24px; text-shadow: 0 0 12px rgba(192,192,192,0.7); }
+  .dv-row.pos-3 .dv-rank { color: var(--bronze); font-size: 22px; text-shadow: 0 0 12px rgba(205,127,50,0.7); }
+  .dv-row:not(.pos-1):not(.pos-2):not(.pos-3) .dv-rank { color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 900; text-shadow: 0 0 6px rgba(255,255,255,0.2); }
 
   .dv-name {
     font-size: 20px;
