@@ -185,6 +185,20 @@
   }
   .btn-reset:hover { background: rgba(255,76,76,0.1); color: var(--red); border-color: var(--red); }
 
+  .btn-remove-all {
+    background: transparent;
+    color: rgba(255,76,76,0.5);
+    border: 1px solid rgba(255,76,76,0.25);
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    padding: 6px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 1px;
+  }
+  .btn-remove-all:hover { background: rgba(255,76,76,0.1); color: var(--red); border-color: var(--red); }
+
   /* Topbar */
   .lb-topbar {
     display: flex;
@@ -430,6 +444,29 @@
     margin: 10px 0 16px;
   }
 
+
+  .dv-header-row {
+    display: grid;
+    grid-template-columns: 64px 1fr 160px;
+    gap: 16px;
+    padding: 10px 20px;
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, rgba(0,207,255,0.08), transparent);
+    border: 1px solid rgba(0,207,255,0.2);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+  }
+  .dv-header-row span {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .dv-header-row span:last-child { text-align: right; }
+  .dv-header-row span:first-child { text-align: center; }
+
   .dv-empty {
     text-align: center;
     padding: 60px 20px;
@@ -485,6 +522,7 @@
       <span class="lb-count" id="lb-count">0 players</span>
       <button class="btn-populate" onclick="populateSample()">⚡ POPULATE</button>
       <button class="btn-reset" id="btn-reset" onclick="resetAll()">RESET ALL</button>
+      <button class="btn-remove-all" id="btn-remove-all" onclick="removeAll()">REMOVE ALL</button>
     </div>
   </div>
 
@@ -718,6 +756,7 @@
       dvList.innerHTML = '<div class="dv-empty">NO PLAYERS YET</div>';
       return;
     }
+    dvList.innerHTML = `<div class="dv-header-row"><span>Rank</span><span>Player</span><span>Score</span></div>`;
     const sorted = [...entries].sort((a, b) => b.score - a.score);
     // Top 3 big rows
     sorted.slice(0, 3).forEach((entry, index) => {
@@ -738,6 +777,33 @@
         dvList.appendChild(row);
       });
     }
+  }
+
+
+  function removeAll() {
+    if (entries.length === 0) return;
+    const btn = document.getElementById('btn-remove-all');
+    if (btn.dataset.confirm !== 'yes') {
+      btn.textContent = 'SURE?';
+      btn.style.color = 'var(--red)';
+      btn.style.borderColor = 'var(--red)';
+      btn.dataset.confirm = 'yes';
+      setTimeout(() => {
+        btn.textContent = 'REMOVE ALL';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+        btn.dataset.confirm = '';
+      }, 2500);
+      return;
+    }
+    btn.textContent = 'REMOVE ALL';
+    btn.style.color = '';
+    btn.style.borderColor = '';
+    btn.dataset.confirm = '';
+    entries = [];
+    nextId = 1;
+    render();
+    showToast('ALL PLAYERS REMOVED');
   }
 
 </script>
