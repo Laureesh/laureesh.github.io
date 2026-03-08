@@ -273,9 +273,9 @@
     font-size: 18px;
     font-weight: 700;
     color: #fff;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
   }
   .player-score {
     font-family: 'Orbitron', monospace;
@@ -488,6 +488,64 @@
     border-radius: 4px;
   }
 
+  /* Rank pill */
+  .player-info { display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
+  .rank-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+    width: fit-content;
+    text-transform: uppercase;
+  }
+  .rank-pill {
+    border: 1px solid var(--rk-color);
+    color: var(--rk-color);
+    background: color-mix(in srgb, var(--rk-color) 12%, transparent);
+  }
+  .rank-glow { text-shadow: 0 0 8px var(--rk-color); }
+
+  /* Ranks page */
+  .ranks-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .rank-tier {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px 14px;
+    transition: border-color 0.2s;
+  }
+  .rank-tier:hover { border-color: rgba(255,165,0,0.4); }
+  .rank-tier-score {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    font-weight: 700;
+  }
+  .ranks-section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin: 18px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ranks-section-title:first-child { margin-top: 0; }
+
   @media (max-width: 520px) {
     .form-row { grid-template-columns: 1fr 1fr; }
     .form-row .btn { grid-column: 1 / -1; }
@@ -508,6 +566,7 @@
   <div class="tab-nav">
     <button class="tab-btn active" onclick="switchTab('manager')">⚙ MANAGER</button>
     <button class="tab-btn" onclick="switchTab('display')">🏆 DISPLAY</button>
+    <button class="tab-btn" onclick="switchTab('ranks')">🎖 RANKS</button>
   </div>
 
   <div id="page-manager" class="page active">
@@ -557,6 +616,17 @@
     </div>
   </div>
 
+  <!-- ── Ranks Page ── -->
+  <div id="page-ranks" class="page">
+    <div class="dv-frame">
+      <div class="display-header">
+        <div class="display-title">RANK<span>S</span></div>
+        <div class="display-subtitle">5 Score Per Kill</div>
+      </div>
+      <div id="ranks-list"></div>
+    </div>
+  </div>
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -564,6 +634,54 @@
 <script>
   let entries = [];   // { id, name, score }
   let nextId = 1;
+
+  const RANK_TIERS = [
+    { min: 1000000, emoji: '🌟', name: 'Omnipotent',      color: '#F1C40F', glow: true,  group: 'Mythic' },
+    { min: 750000,  emoji: '♾️', name: 'Eternal',          color: '#EBA615', glow: true,  group: 'Mythic' },
+    { min: 500000,  emoji: '🌌', name: 'Celestial',        color: '#1966C8', glow: true,  group: 'Mythic' },
+    { min: 250000,  emoji: '✨', name: 'Transcendent',     color: '#F8ECAC', glow: true,  group: 'Mythic' },
+    { min: 100000,  emoji: '💀', name: 'Godlike',          color: '#EFB42A', glow: true,  group: 'Mythic' },
+    { min: 95000,   emoji: '👑', name: 'Immortal III',     color: '#621B96', glow: true,  group: 'Immortal' },
+    { min: 90000,   emoji: '👑', name: 'Immortal II',      color: '#621B96', glow: true,  group: 'Immortal' },
+    { min: 85000,   emoji: '👑', name: 'Immortal I',       color: '#621B96', glow: true,  group: 'Immortal' },
+    { min: 80000,   emoji: '🔱', name: 'Legend III',        color: '#BB0B04', glow: true,  group: 'Legend' },
+    { min: 75000,   emoji: '🔱', name: 'Legend II',         color: '#BB0B04', glow: true,  group: 'Legend' },
+    { min: 70000,   emoji: '🔱', name: 'Legend I',          color: '#BB0B04', glow: true,  group: 'Legend' },
+    { min: 65000,   emoji: '🟢', name: 'Ascendant III',    color: '#136C32', glow: true,  group: 'Ascendant' },
+    { min: 60000,   emoji: '🟢', name: 'Ascendant II',     color: '#136C32', glow: true,  group: 'Ascendant' },
+    { min: 55000,   emoji: '🟢', name: 'Ascendant I',      color: '#136C32', glow: true,  group: 'Ascendant' },
+    { min: 50000,   emoji: '🚀', name: 'Unreal',           color: '#1ABC9C', glow: true,  group: 'Special' },
+    { min: 40000,   emoji: '🔥', name: 'Champion',         color: '#E67E22', glow: true,  group: 'Special' },
+    { min: 30000,   emoji: '⚡', name: 'Elite',            color: '#95A5A6', glow: false, group: 'Special' },
+    { min: 24000,   emoji: '💎', name: 'Diamond III',      color: '#3498DB', glow: false, group: 'Diamond' },
+    { min: 21000,   emoji: '💎', name: 'Diamond II',       color: '#3498DB', glow: false, group: 'Diamond' },
+    { min: 18000,   emoji: '💎', name: 'Diamond I',        color: '#3498DB', glow: false, group: 'Diamond' },
+    { min: 15000,   emoji: '⚙️', name: 'Platinum III',     color: '#1ABC9C', glow: false, group: 'Platinum' },
+    { min: 13000,   emoji: '⚙️', name: 'Platinum II',      color: '#1ABC9C', glow: false, group: 'Platinum' },
+    { min: 11000,   emoji: '⚙️', name: 'Platinum I',       color: '#1ABC9C', glow: false, group: 'Platinum' },
+    { min: 9000,    emoji: '🧈', name: 'Gold III',         color: '#F1C40F', glow: false, group: 'Gold' },
+    { min: 7500,    emoji: '🧈', name: 'Gold II',          color: '#F1C40F', glow: false, group: 'Gold' },
+    { min: 6000,    emoji: '🧈', name: 'Gold I',           color: '#F1C40F', glow: false, group: 'Gold' },
+    { min: 4500,    emoji: '🥈', name: 'Silver III',       color: '#BDC3C7', glow: false, group: 'Silver' },
+    { min: 3500,    emoji: '🥈', name: 'Silver II',        color: '#BDC3C7', glow: false, group: 'Silver' },
+    { min: 2500,    emoji: '🥈', name: 'Silver I',         color: '#BDC3C7', glow: false, group: 'Silver' },
+    { min: 1500,    emoji: '🥉', name: 'Bronze III',       color: '#CD7F32', glow: false, group: 'Bronze' },
+    { min: 1000,    emoji: '🥉', name: 'Bronze II',        color: '#CD7F32', glow: false, group: 'Bronze' },
+    { min: 500,     emoji: '🥉', name: 'Bronze I',         color: '#CD7F32', glow: false, group: 'Bronze' },
+  ];
+
+  function getRank(score) {
+    for (const tier of RANK_TIERS) {
+      if (score >= tier.min) return tier;
+    }
+    return { emoji: '—', name: 'Unranked', color: '#9B59B6', glow: false };
+  }
+
+  function rankHtml(score) {
+    const r = getRank(score);
+    const glow = r.glow ? ' rank-glow' : '';
+    return `<span class="rank-title rank-pill${glow}" style="--rk-color:${r.color}">${r.emoji} ${r.name}</span>`;
+  }
 
   const list    = document.getElementById('lb-list');
   const empty   = document.getElementById('lb-empty');
@@ -615,11 +733,11 @@
     const entry = entries.find(e => e.id === id);
     row.classList.add('editing');
 
-    const nameCell  = row.querySelector('.player-name');
+    const infoCell  = row.querySelector('.player-info');
     const scoreCell = row.querySelector('.player-score');
     const actions   = row.querySelector('.row-actions');
 
-    nameCell.innerHTML  = `<input class="edit-name"  value="${entry.name}"  maxlength="24" autocomplete="off">`;
+    infoCell.innerHTML  = `<input class="edit-name"  value="${entry.name}"  maxlength="24" autocomplete="off">`;
     scoreCell.innerHTML = `<input class="edit-score" type="number" value="${entry.score}" min="0">`;
     actions.innerHTML   = `
       <button class="btn-sm btn-save"   onclick="saveEdit(${id})">SAVE</button>
@@ -714,7 +832,10 @@
 
       row.innerHTML = `
         <div class="rank-badge">${medal}</div>
-        <div class="player-name">${escHtml(entry.name)}</div>
+        <div class="player-info">
+          <div class="player-name">${escHtml(entry.name)}</div>
+          ${rankHtml(entry.score)}
+        </div>
         <div class="player-score">${scoreFormatted} pts</div>
         <div class="row-actions">
           <button class="btn-sm btn-edit" onclick="startEdit(${entry.id})">EDIT</button>
@@ -737,29 +858,34 @@
   }
 
   function populateSample() {
-    const prefixes = ['Snipe','Shadow','Ghost','Blaze','Storm','Frost','Void','Neon','Hyper','Apex','Dark','Steel','Rogue','Swift','Iron','Chaos','Pixel','Nova','Turbo','Night','Toxic','Savage','Silent','Rapid','Lunar','Solar','Cyber','Omega','Alpha','Delta','Echo','Reaper','Phantom','Crimson','Arctic','Blazing','Ultra','Mega','Super','Evil','Deadly','Lucky','Wild','Mystic','Cosmic','Dusk','Dawn','Fury','Grim','Blitz'];
-    const suffixes = ['King','Wolf','Blade','Fox','Eagle','Bear','Tiger','Hawk','Viper','Shark','Rider','Hunt3r','Z3ro','X','Pro','GG','YT','TTV','69','99','Slayer','Sniper','Reaper','Ghost','Storm','Flash','Ninja','Legend','Boss','God','Demon','Angel','Dragon','Phoenix','Cobra','Panther','Falcon','Lynx','Raven','Skull','Fang','Claw','Strike','Burst','Rush','Drift','Ops','Squad','Elite','Force'];
+    const prefixes = ['Snipe','Shadow','Ghost','Blaze','Storm','Frost','Void','Neon','Hyper','Apex','Dark','Steel','Rogue','Swift','Iron','Chaos','Pixel','Nova','Turbo','Night','Toxic','Savage','Silent','Rapid','Lunar','Solar','Cyber','Omega','Alpha','Delta','Echo','Reaper','Phantom','Crimson'];
+    const suffixes = ['King','Wolf','Blade','Fox','Eagle','Bear','Tiger','Hawk','Viper','Shark','Rider','Hunt3r','Z3ro','X','Pro','GG','Slayer','Sniper','Ghost','Storm','Flash','Ninja','Legend','Boss','God','Demon','Angel','Dragon','Phoenix','Cobra','Panther','Falcon','Lynx'];
     const used = new Set(entries.map(e => e.name.toLowerCase()));
+    // One player per rank tier + one Unranked
+    const sampleScores = [...RANK_TIERS.map(t => t.min), 0];
     let added = 0;
-    let attempts = 0;
-    while (added < 100 && attempts < 2000) {
-      attempts++;
-      const name = prefixes[Math.floor(Math.random()*prefixes.length)] + suffixes[Math.floor(Math.random()*suffixes.length)];
-      if (used.has(name.toLowerCase())) continue;
+    sampleScores.forEach(score => {
+      let name, attempts = 0;
+      do {
+        name = prefixes[Math.floor(Math.random()*prefixes.length)] + suffixes[Math.floor(Math.random()*suffixes.length)];
+        attempts++;
+      } while (used.has(name.toLowerCase()) && attempts < 200);
+      if (used.has(name.toLowerCase())) return;
       used.add(name.toLowerCase());
-      const score = Math.floor(Math.random() * 9900) + 100;
       entries.push({ id: nextId++, name, score });
       added++;
-    }
+    });
     render();
     showToast(`${added} PLAYERS ADDED`);
   }
 
   function switchTab(tab) {
-    document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (tab==='manager'&&i===0)||(tab==='display'&&i===1)));
+    document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (tab==='manager'&&i===0)||(tab==='display'&&i===1)||(tab==='ranks'&&i===2)));
     document.getElementById('page-manager').classList.toggle('active', tab === 'manager');
     document.getElementById('page-display').classList.toggle('active', tab === 'display');
+    document.getElementById('page-ranks').classList.toggle('active', tab === 'ranks');
     if (tab === 'display') renderDisplay();
+    if (tab === 'ranks') renderRanks();
   }
 
   function renderDisplay() {
@@ -777,7 +903,7 @@
       const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
       const row = document.createElement('div');
       row.className = `dv-row pos-${pos}`;
-      row.innerHTML = `<div class="dv-rank">${medal}</div><div class="dv-name">${escHtml(entry.name)}</div><div class="dv-score">${entry.score.toLocaleString()} pts</div>`;
+      row.innerHTML = `<div class="dv-rank">${medal}</div><div class="player-info"><div class="dv-name">${escHtml(entry.name)}</div>${rankHtml(entry.score)}</div><div class="dv-score">${entry.score.toLocaleString()} pts</div>`;
       dvList.appendChild(row);
     });
     if (sorted.length > 3) {
@@ -786,12 +912,38 @@
         const pos = index + 4;
         const row = document.createElement('div');
         row.className = 'dv-row';
-        row.innerHTML = `<div class="dv-rank">#${pos}</div><div class="dv-name">${escHtml(entry.name)}</div><div class="dv-score">${entry.score.toLocaleString()} pts</div>`;
+        row.innerHTML = `<div class="dv-rank">#${pos}</div><div class="player-info"><div class="dv-name">${escHtml(entry.name)}</div>${rankHtml(entry.score)}</div><div class="dv-score">${entry.score.toLocaleString()} pts</div>`;
         dvList.appendChild(row);
       });
     }
   }
 
+
+  function renderRanks() {
+    const container = document.getElementById('ranks-list');
+    const groups = [
+      { title: 'Mythic', tiers: RANK_TIERS.filter(t => t.group === 'Mythic') },
+      { title: 'Immortal', tiers: RANK_TIERS.filter(t => t.group === 'Immortal') },
+      { title: 'Legend', tiers: RANK_TIERS.filter(t => t.group === 'Legend') },
+      { title: 'Ascendant', tiers: RANK_TIERS.filter(t => t.group === 'Ascendant') },
+      { title: 'Special', tiers: RANK_TIERS.filter(t => t.group === 'Special') },
+      { title: 'Diamond', tiers: RANK_TIERS.filter(t => t.group === 'Diamond') },
+      { title: 'Platinum', tiers: RANK_TIERS.filter(t => t.group === 'Platinum') },
+      { title: 'Gold', tiers: RANK_TIERS.filter(t => t.group === 'Gold') },
+      { title: 'Silver', tiers: RANK_TIERS.filter(t => t.group === 'Silver') },
+      { title: 'Bronze', tiers: RANK_TIERS.filter(t => t.group === 'Bronze') },
+    ];
+    let html = '';
+    groups.forEach(g => {
+      html += `<div class="ranks-section-title">${g.title}</div><div class="ranks-grid">`;
+      g.tiers.forEach(t => {
+        const glow = t.glow ? ' rank-glow' : '';
+        html += `<div class="rank-tier"><span class="rank-title rank-pill${glow}" style="--rk-color:${t.color};font-size:11px;padding:3px 10px;">${t.emoji} ${t.name}</span><span class="rank-tier-score" style="color:${t.color}">${t.min.toLocaleString()}+ pts</span></div>`;
+      });
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
 
   function removeAll() {
     if (entries.length === 0) return;
