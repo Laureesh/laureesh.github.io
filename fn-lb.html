@@ -39,7 +39,7 @@
   .wrapper {
     position: relative;
     z-index: 1;
-    max-width: 720px;
+    max-width: 1100px;
     margin: 0 auto;
     padding: 40px 20px 60px;
   }
@@ -451,14 +451,14 @@
 
   .dv-score {
     font-family: 'Orbitron', monospace;
-    font-size: 18px;
+    font-size: 27px;
     font-weight: 700;
     color: var(--accent);
     text-align: right;
   }
-  .dv-row.pos-1 .dv-score { color: var(--gold);   font-size: 22px; }
-  .dv-row.pos-2 .dv-score { color: var(--silver); font-size: 20px; }
-  .dv-row.pos-3 .dv-score { color: var(--bronze); }
+  .dv-row.pos-1 .dv-score { color: var(--gold);   font-size: 33px; }
+  .dv-row.pos-2 .dv-score { color: var(--silver); font-size: 30px; }
+  .dv-row.pos-3 .dv-score { color: var(--bronze); font-size: 27px; }
 
   .dv-divider {
     height: 1px;
@@ -880,7 +880,7 @@
       const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
       const row = document.createElement('div');
       row.className = `dv-row pos-${pos}`;
-      row.innerHTML = `<div class="dv-rank">${medal}</div><div class="player-info"><div class="dv-name">${escHtml(entry.name)}</div>${rankHtml(entry.score)}</div><div class="dv-score">${entry.score.toLocaleString()} pts</div>`;
+      row.innerHTML = `<div class="dv-rank">${medal}</div><div class="player-info"><div class="dv-name">${escHtml(entry.name)}</div>${rankHtml(entry.score)}</div><div class="dv-score">${entry.score.toLocaleString()}</div>`;
       dvList.appendChild(row);
     });
     if (sorted.length > 3) {
@@ -889,7 +889,7 @@
         const pos = index + 4;
         const row = document.createElement('div');
         row.className = 'dv-row';
-        row.innerHTML = `<div class="dv-rank">#${pos}</div><div class="player-info"><div class="dv-name">${escHtml(entry.name)}</div>${rankHtml(entry.score)}</div><div class="dv-score">${entry.score.toLocaleString()} pts</div>`;
+        row.innerHTML = `<div class="dv-rank">#${pos}</div><div class="player-info"><div class="dv-name">${escHtml(entry.name)}</div>${rankHtml(entry.score)}</div><div class="dv-score">${entry.score.toLocaleString()}</div>`;
         dvList.appendChild(row);
       });
     }
@@ -954,7 +954,7 @@
       const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
       const row = document.createElement('div');
       row.className = `dv-row pos-${pos}`;
-      row.innerHTML = `<div class="dv-rank">${medal}</div><div class="player-info"><div class="dv-name">${escHtml(entry.name)}</div>${rankHtml(entry.score)}</div><div class="dv-score">${entry.score.toLocaleString()} pts</div>`;
+      row.innerHTML = `<div class="dv-rank">${medal}</div><div class="player-info"><div class="dv-name">${escHtml(entry.name)}</div>${rankHtml(entry.score)}</div><div class="dv-score">${entry.score.toLocaleString()}</div>`;
       dvList.appendChild(row);
     });
     if (sorted.length > 3) {
@@ -963,7 +963,7 @@
         const pos = index + 4;
         const row = document.createElement('div');
         row.className = 'dv-row';
-        row.innerHTML = `<div class="dv-rank">#${pos}</div><div class="player-info"><div class="dv-name">${escHtml(entry.name)}</div>${rankHtml(entry.score)}</div><div class="dv-score">${entry.score.toLocaleString()} pts</div>`;
+        row.innerHTML = `<div class="dv-rank">#${pos}</div><div class="player-info"><div class="dv-name">${escHtml(entry.name)}</div>${rankHtml(entry.score)}</div><div class="dv-score">${entry.score.toLocaleString()}</div>`;
         dvList.appendChild(row);
       });
     }
