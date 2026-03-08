@@ -418,18 +418,23 @@
   .dv-row.pos-1 .dv-rank { color: var(--gold);   font-size: 28px; text-shadow: 0 0 16px rgba(255,215,0,0.9); }
   .dv-row.pos-2 .dv-rank { color: var(--silver); font-size: 24px; text-shadow: 0 0 12px rgba(192,192,192,0.7); }
   .dv-row.pos-3 .dv-rank { color: var(--bronze); font-size: 22px; text-shadow: 0 0 12px rgba(205,127,50,0.7); }
-  .dv-row:not(.pos-1):not(.pos-2):not(.pos-3) .dv-rank { color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 900; text-shadow: 0 0 6px rgba(255,255,255,0.2); }
+  .dv-row:not(.pos-1):not(.pos-2):not(.pos-3) .dv-rank { color: rgba(255,255,255,0.8); font-size: 28px; font-weight: 900; text-shadow: 0 0 6px rgba(255,255,255,0.2); }
 
   .dv-name {
-    font-size: 20px;
+    font-size: 30px;
     font-weight: 700;
     color: #fff;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .dv-row.pos-1 .dv-name { font-size: 24px; }
-  .dv-row.pos-2 .dv-name { font-size: 22px; }
+  .dv-row.pos-1 .dv-name { font-size: 36px; }
+  .dv-row.pos-2 .dv-name { font-size: 33px; }
+
+  .dv-row .rank-title {
+    font-size: 20px;
+    padding: 4px 14px;
+  }
 
   .dv-score {
     font-family: 'Orbitron', monospace;
