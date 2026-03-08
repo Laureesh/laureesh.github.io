@@ -520,6 +520,10 @@
   const inpName  = document.getElementById('inp-name');
   const inpScore = document.getElementById('inp-score');
 
+  // Load saved data on startup
+  loadData();
+  render();
+
   // Allow Enter key to add
   inpName.addEventListener('keydown',  e => { if (e.key === 'Enter') addPlayer(); });
   inpScore.addEventListener('keydown', e => { if (e.key === 'Enter') addPlayer(); });
@@ -617,7 +621,22 @@
     showToast('ALL SCORES RESET');
   }
 
+  function saveData() {
+    localStorage.setItem('lb_entries', JSON.stringify(entries));
+    localStorage.setItem('lb_nextId', nextId);
+  }
+
+  function loadData() {
+    try {
+      const saved = localStorage.getItem('lb_entries');
+      const savedId = localStorage.getItem('lb_nextId');
+      if (saved) entries = JSON.parse(saved);
+      if (savedId) nextId = parseInt(savedId);
+    } catch(e) {}
+  }
+
   function render() {
+    saveData();
     // Remove all existing rows (keep empty placeholder)
     list.querySelectorAll('.lb-row').forEach(r => r.remove());
 
