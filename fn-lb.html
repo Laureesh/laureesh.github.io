@@ -331,9 +331,13 @@
   /* ── Tab Nav ── */
   .tab-nav {
     display: flex;
+    flex-direction: column;
     gap: 4px;
-    justify-content: flex-start;
-    margin-bottom: 36px;
+    position: fixed;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
   }
   .tab-btn {
     font-family: 'Orbitron', monospace;
