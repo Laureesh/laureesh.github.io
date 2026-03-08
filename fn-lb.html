@@ -360,6 +360,11 @@
   .page.active { display: block; }
   #page-display.active {
     display: block;
+    overflow: hidden;
+  }
+  body.display-active {
+    overflow: hidden;
+    height: 100vh;
   }
 
   /* ── Display page ── */
@@ -928,6 +933,7 @@
     document.getElementById('page-manager').classList.toggle('active', tab === 'manager');
     document.getElementById('page-display').classList.toggle('active', tab === 'display');
     document.getElementById('page-ranks').classList.toggle('active', tab === 'ranks');
+    document.body.classList.toggle('display-active', tab === 'display');
     if (tab === 'display') renderDisplay();
     if (tab === 'ranks') renderRanks();
   }
