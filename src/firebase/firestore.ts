@@ -16,10 +16,18 @@ import { db } from "./app";
 export { Timestamp };
 
 export function collectionRef<T extends DocumentData>(path: string) {
+  if (!db) {
+    throw new Error("Firebase Firestore is not configured.");
+  }
+
   return collection(db, path) as CollectionReference<T>;
 }
 
 export function documentRef<T extends DocumentData>(path: string, id: string) {
+  if (!db) {
+    throw new Error("Firebase Firestore is not configured.");
+  }
+
   return doc(db, path, id) as DocumentReference<T>;
 }
 

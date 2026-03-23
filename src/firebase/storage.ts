@@ -18,6 +18,10 @@ export function storagePath(...segments: Array<string | number | null | undefine
 }
 
 export function storageRef(path: string) {
+  if (!storage) {
+    throw new Error("Firebase Storage is not configured.");
+  }
+
   return ref(storage, path);
 }
 

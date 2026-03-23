@@ -5,6 +5,7 @@ import {
   setPersistence,
 } from "firebase/auth";
 import { auth } from "./app";
+import { isFirebaseConfigured } from "./env";
 
 export function createGoogleProvider(options?: {
   loginHint?: string | null;
@@ -28,9 +29,17 @@ export function createGoogleProvider(options?: {
 }
 
 export async function enablePersistentAuthSession() {
+  if (!isFirebaseConfigured || !auth) {
+    return;
+  }
+
   await setPersistence(auth, browserLocalPersistence);
 }
 
 export async function setAuthSessionPersistence(rememberSession: boolean) {
+  if (!isFirebaseConfigured || !auth) {
+    return;
+  }
+
   await setPersistence(auth, rememberSession ? browserLocalPersistence : browserSessionPersistence);
 }

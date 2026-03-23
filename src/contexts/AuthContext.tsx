@@ -12,6 +12,7 @@ import {
 } from "firebase/auth";
 import { ADMIN_IDLE_TIMEOUT_MINUTES, ADMIN_IDLE_TIMEOUT_MS } from "../config/security";
 import { auth } from "../firebase/config";
+import { isFirebaseConfigured } from "../firebase";
 import {
   createGoogleProvider,
   enablePersistentAuthSession,
@@ -145,6 +146,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshUserProfile = useCallback(async () => {
+    if (!isFirebaseConfigured || !auth) {
+      setUserProfile(null);
+      refreshSavedAccounts();
+      return;
+    }
+
     const currentUser = auth.currentUser;
 
     if (!currentUser) {
@@ -163,6 +170,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadAuthorizedUserProfile, refreshSavedAccounts, syncSavedAccountsForUser]);
 
   const refreshAuthUser = useCallback(async () => {
+    if (!isFirebaseConfigured || !auth) {
+      setUser(null);
+      setUserProfile(null);
+      refreshSavedAccounts();
+      return;
+    }
+
     const currentUser = auth.currentUser;
 
     if (!currentUser) {
@@ -178,6 +192,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshSavedAccounts, refreshUserProfile]);
 
   useEffect(() => {
+    if (!isFirebaseConfigured || !auth) {
+      setUser(null);
+      setUserProfile(null);
+      setLoading(false);
+      setError(null);
+      refreshSavedAccounts();
+      return () => undefined;
+    }
+
     let isMounted = true;
     let unsubscribe: () => void = () => undefined;
 
@@ -236,6 +259,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadAuthorizedUserProfile, refreshSavedAccounts, syncSavedAccountsForUser]);
 
   useEffect(() => {
+    if (!isFirebaseConfigured || !auth) {
+      setSubscription(null);
+      setSubscriptionLoading(false);
+      setAdminSessionTimeRemainingMs(null);
+      adminSessionDeadlineRef.current = null;
+      return () => undefined;
+    }
+
     if (!user?.uid) {
       setSubscription(null);
       setSubscriptionLoading(false);
@@ -355,6 +386,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       rememberSession?: boolean;
     },
   ) => {
+    if (!isFirebaseConfigured || !auth) {
+      const message = "Firebase Auth is not configured for this site yet.";
+      setError(message);
+      throw new Error(message);
+    }
+
     setError(null);
     try {
       await setAuthSessionPersistence(options?.rememberSession ?? true);
@@ -379,6 +416,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       phoneNumber?: string | null;
     },
   ) => {
+    if (!isFirebaseConfigured || !auth) {
+      const message = "Firebase Auth is not configured for this site yet.";
+      setError(message);
+      throw new Error(message);
+    }
+
     setError(null);
     try {
       const credential = await createUserWithEmailAndPassword(auth, email, password);
@@ -403,6 +446,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       rememberSession?: boolean;
     },
   ) => {
+    if (!isFirebaseConfigured || !auth) {
+      const message = "Firebase Auth is not configured for this site yet.";
+      setError(message);
+      throw new Error(message);
+    }
+
     setError(null);
     try {
       await setAuthSessionPersistence(options?.rememberSession ?? true);
@@ -420,6 +469,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    if (!isFirebaseConfigured || !auth) {
+      setError(null);
+      setUser(null);
+      setUserProfile(null);
+      setSubscription(null);
+      return;
+    }
+
     setError(null);
     try {
       const currentUser = auth.currentUser;
@@ -439,6 +496,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const sendVerificationEmailForCurrentUser = async () => {
+    if (!isFirebaseConfigured || !auth) {
+      throw new Error("Firebase Auth is not configured for this site yet.");
+    }
+
     setError(null);
 
     const currentUser = auth.currentUser;
