@@ -64,10 +64,10 @@ export type ThemeCustomizationState = {
 };
 
 export const defaultCustomization: ThemeCustomizationState = {
-  style: "default",
+  style: "discord",
   projectsLayout: "standard",
-  accent: "indigo",
-  font: "inter",
+  accent: "amber",
+  font: "discord",
   radius: "balanced",
 };
 
