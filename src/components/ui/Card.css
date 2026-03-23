@@ -1,0 +1,37 @@
+.ui-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.ui-card--padding-sm {
+  padding: 12px;
+}
+
+.ui-card--padding-md {
+  padding: 20px;
+}
+
+.ui-card--padding-lg {
+  padding: 32px;
+}
+
+.ui-card__header {
+  margin-bottom: 12px;
+}
+
+.ui-card__title {
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.ui-card__subtitle {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 4px 0 0;
+}

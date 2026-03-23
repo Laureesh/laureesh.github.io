@@ -1,0 +1,28 @@
+.reading-progress {
+  position: fixed;
+  top: 108px;
+  left: 0;
+  right: 0;
+  z-index: 930;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+}
+
+.reading-progress-bar {
+  height: 100%;
+  width: 100%;
+  background: var(--gradient-1);
+  transform-origin: left center;
+  transition: transform 0.1s linear;
+}
+
+[data-theme="light"] .reading-progress {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+@media (max-width: 768px) {
+  .reading-progress {
+    top: 104px;
+  }
+}

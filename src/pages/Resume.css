@@ -1,0 +1,141 @@
+.resume {
+  padding-top: 120px;
+}
+
+.resume-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 48px;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 36px;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--accent), rgba(139, 92, 246, 0.3), transparent);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 28px;
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+.timeline-item:nth-child(1) { animation-delay: 0s; }
+.timeline-item:nth-child(2) { animation-delay: 0.1s; }
+.timeline-item:nth-child(3) { animation-delay: 0.2s; }
+
+.timeline-dot {
+  position: absolute;
+  left: -36px;
+  top: 28px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gradient-1);
+  border: 3px solid var(--bg-primary);
+  box-shadow: 0 0 0 3px var(--accent-glow), 0 0 12px var(--accent-glow);
+  transition: all 0.3s;
+}
+
+.timeline-item:hover .timeline-dot {
+  box-shadow: 0 0 0 4px var(--accent-glow), 0 0 20px var(--accent-glow);
+  transform: scale(1.2);
+}
+
+.timeline-card {
+  position: relative;
+}
+
+/* Accent left bar on hover */
+.timeline-card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 2px;
+  background: var(--gradient-1);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.timeline-item:hover .timeline-card::after {
+  opacity: 1;
+}
+
+.timeline-type {
+  display: inline-block;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  font-weight: 700;
+  color: var(--bg-primary);
+  background: var(--gradient-1);
+  padding: 3px 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.timeline-card h3 {
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.timeline-org {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.timeline-date {
+  font-size: 0.78rem;
+  color: var(--accent-hover);
+  margin: 8px 0;
+  font-weight: 600;
+}
+
+.timeline-card ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 8px;
+}
+
+.timeline-card ul li {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  padding-left: 16px;
+  position: relative;
+  margin-bottom: 4px;
+}
+
+.timeline-card ul li::before {
+  content: "▹";
+  position: absolute;
+  left: 0;
+  color: var(--accent-hover);
+}
+
+@media (max-width: 768px) {
+  .timeline {
+    padding-left: 28px;
+  }
+
+  .timeline-dot {
+    left: -28px;
+    width: 12px;
+    height: 12px;
+  }
+}

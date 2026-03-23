@@ -1,0 +1,107 @@
+.ui-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  animation: ui-modal-fade-in 0.2s ease forwards;
+}
+
+@keyframes ui-modal-fade-in {
+  to {
+    opacity: 1;
+  }
+}
+
+.ui-modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  width: 90vw;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  transform: translateY(8px) scale(0.98);
+  animation: ui-modal-slide-in 0.2s ease forwards;
+}
+
+@keyframes ui-modal-slide-in {
+  to {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ui-modal--sm {
+  max-width: 400px;
+}
+
+.ui-modal--md {
+  max-width: 560px;
+}
+
+.ui-modal--lg {
+  max-width: 720px;
+}
+
+.ui-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.ui-modal__title {
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.ui-modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.ui-modal__close:hover {
+  background: var(--accent-subtle);
+  color: var(--text-primary);
+}
+
+.ui-modal__body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+.ui-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}

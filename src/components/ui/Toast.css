@@ -1,0 +1,149 @@
+.ui-toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.ui-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 280px;
+  max-width: 400px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  pointer-events: auto;
+  position: relative;
+  overflow: hidden;
+  transform: translateX(120%);
+  animation: ui-toast-slide-in 0.3s ease forwards;
+}
+
+@keyframes ui-toast-slide-in {
+  to {
+    transform: translateX(0);
+  }
+}
+
+.ui-toast--exiting {
+  animation: ui-toast-slide-out 0.25s ease forwards;
+}
+
+@keyframes ui-toast-slide-out {
+  to {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+/* Type accents */
+.ui-toast--success {
+  border-left: 3px solid #22c55e;
+}
+
+.ui-toast--error {
+  border-left: 3px solid #ef4444;
+}
+
+.ui-toast--info {
+  border-left: 3px solid var(--accent);
+}
+
+/* Icon */
+.ui-toast__icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ui-toast--success .ui-toast__icon {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.ui-toast--error .ui-toast__icon {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.ui-toast--info .ui-toast__icon {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+/* Message */
+.ui-toast__message {
+  flex: 1;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  padding-top: 1px;
+}
+
+/* Close */
+.ui-toast__close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ui-toast__close:hover {
+  background: var(--accent-subtle);
+  color: var(--text-primary);
+}
+
+/* Progress bar */
+.ui-toast__progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  animation: ui-toast-progress linear forwards;
+}
+
+@keyframes ui-toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.ui-toast--success .ui-toast__progress {
+  background: #22c55e;
+}
+
+.ui-toast--error .ui-toast__progress {
+  background: #ef4444;
+}
+
+.ui-toast--info .ui-toast__progress {
+  background: var(--accent);
+}

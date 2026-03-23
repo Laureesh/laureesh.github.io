@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Laureesh Blog</title>
+    <link>https://laureesh.github.io/blog</link>
+    <description>Project notes, tutorials, and student software development write-ups from Laureesh.</description>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 20 Nov 2025 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>Getting Started with React &amp; TypeScript</title>
+      <link>https://laureesh.github.io/blog/getting-started-react-typescript</link>
+      <guid>https://laureesh.github.io/blog/getting-started-react-typescript</guid>
+      <pubDate>Thu, 20 Nov 2025 12:00:00 GMT</pubDate>
+      <description>A beginner-friendly guide to setting up a React project with TypeScript, Vite, and modern tooling for a professional development workflow.</description>
+    </item>
+    <item>
+      <title>Why I Chose Firebase for My Portfolio</title>
+      <link>https://laureesh.github.io/blog/why-i-chose-firebase-for-my-portfolio</link>
+      <guid>https://laureesh.github.io/blog/why-i-chose-firebase-for-my-portfolio</guid>
+      <pubDate>Wed, 08 Oct 2025 12:00:00 GMT</pubDate>
+      <description>Exploring the pros and cons of Firebase vs MongoDB for a personal portfolio project, and how Firebase's free tier makes it perfect for students.</description>
+    </item>
+    <item>
+      <title>My Journey into Software Development</title>
+      <link>https://laureesh.github.io/blog/my-journey-into-software-development</link>
+      <guid>https://laureesh.github.io/blog/my-journey-into-software-development</guid>
+      <pubDate>Thu, 18 Sep 2025 12:00:00 GMT</pubDate>
+      <description>From healthcare to tech - how I transitioned into software development and what I've learned along the way as a student at Georgia Gwinnett College.</description>
+    </item>
+    <item>
+      <title>ITEC 3150 - Advanced Programming</title>
+      <link>https://laureesh.gitbook.io/laureesh/advanced-programming-projects/itec-3150-advanced-programming</link>
+      <guid>https://laureesh.gitbook.io/laureesh/advanced-programming-projects/itec-3150-advanced-programming</guid>
+      <pubDate>Fri, 15 Aug 2025 12:00:00 GMT</pubDate>
+      <description>Advanced Java projects covering design patterns, multithreading, and database integration. A deep dive into enterprise-level programming concepts.</description>
+    </item>
+    <item>
+      <title>ITEC 2150 - Intermediate Programming</title>
+      <link>https://laureesh.gitbook.io/laureesh/intermediate-programming-projects/itec-2150-intermediate-programming</link>
+      <guid>https://laureesh.gitbook.io/laureesh/intermediate-programming-projects/itec-2150-intermediate-programming</guid>
+      <pubDate>Thu, 01 May 2025 12:00:00 GMT</pubDate>
+      <description>A collection of Java projects demonstrating object-oriented programming, data structures, and software engineering principles built during my coursework.</description>
+    </item>
+  </channel>
+</rss>

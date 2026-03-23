@@ -1,0 +1,86 @@
+.account-section-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 7.5rem 1rem 4rem;
+}
+
+.account-section-card {
+  display: grid;
+  gap: 1.5rem;
+  padding: 2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 44%),
+    var(--bg-card);
+  box-shadow: var(--shadow);
+}
+
+.account-section-head {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.account-section-eyebrow {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-hover);
+}
+
+.account-section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.account-section-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent-hover);
+}
+
+.account-section-title-row h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.account-section-head p {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.account-section-highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+}
+
+.account-section-highlight {
+  padding: 1rem 1rem 1rem 1.1rem;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  line-height: 1.55;
+}
+
+@media (max-width: 640px) {
+  .account-section-page {
+    padding-top: 6rem;
+  }
+
+  .account-section-card {
+    padding: 1.4rem;
+  }
+}

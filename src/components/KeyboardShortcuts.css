@@ -1,0 +1,116 @@
+.shortcuts-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+  animation: cmdFadeIn 0.15s ease;
+}
+
+.shortcuts-panel {
+  width: min(400px, 100%);
+  max-height: min(80vh, 620px);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-hover);
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: cmdSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.shortcuts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.shortcuts-header h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.shortcuts-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  transition: color 0.15s;
+}
+
+.shortcuts-close:hover {
+  color: var(--text-primary);
+}
+
+.shortcuts-list {
+  padding: 12px 20px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shortcut-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.shortcut-row + .shortcut-row {
+  border-top: 1px solid var(--border);
+}
+
+.shortcut-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  min-width: 0;
+}
+
+.shortcut-keys {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.shortcut-keys kbd {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-weight: 500;
+}
+
+[data-theme="light"] .shortcut-keys kbd {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+@media (max-width: 640px) {
+  .shortcuts-overlay {
+    align-items: flex-start;
+    padding: 16px 12px;
+  }
+
+  .shortcuts-panel {
+    max-height: calc(100vh - 32px);
+    margin: 0 auto;
+  }
+}

@@ -1,0 +1,260 @@
+.yttags {
+  min-height: 100vh;
+  background: #0a0a0a;
+  color: #fff;
+  font-family: 'Inter', Arial, sans-serif;
+  padding-top: 80px;
+}
+
+.yt-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.yt-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.yt-header h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+}
+
+.yt-header h1 span {
+  color: #ff0033;
+}
+
+.yt-header p {
+  color: #71717a;
+  font-size: 1rem;
+}
+
+/* Info Banner */
+.yt-info-banner {
+  background: rgba(255, 0, 51, 0.06);
+  border: 1px solid rgba(255, 0, 51, 0.2);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.88rem;
+  color: #a1a1aa;
+}
+
+.yt-info-banner strong {
+  color: #ff0033;
+}
+
+.yt-info-banner a {
+  color: #ff0033;
+  margin-left: 8px;
+}
+
+/* Input Form */
+.yt-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.yt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.yt-field.full {
+  grid-column: 1 / -1;
+}
+
+.yt-field label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #a1a1aa;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.yt-field input {
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: #fff;
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.yt-field input:focus {
+  border-color: #ff0033;
+}
+
+.yt-field input::placeholder {
+  color: #3f3f46;
+}
+
+/* Generate Button */
+.yt-generate {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 36px;
+}
+
+.yt-generate button {
+  background: #ff0033;
+  color: #fff;
+  border: none;
+  padding: 14px 48px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+}
+
+.yt-generate button:hover {
+  background: #e6002e;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(255, 0, 51, 0.3);
+}
+
+.yt-generate button:disabled {
+  background: #3f3f46;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Output Sections */
+.yt-outputs {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.yt-output-block {
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.yt-output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.yt-output-header h3 {
+  font-size: 0.92rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.yt-copy-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #a1a1aa;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+.yt-copy-btn:hover {
+  background: rgba(255, 0, 51, 0.1);
+  border-color: rgba(255, 0, 51, 0.3);
+  color: #ff0033;
+}
+
+.yt-copy-btn.copied {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.yt-output-body {
+  padding: 16px 18px;
+}
+
+.yt-output-body textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #d4d4d8;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  resize: vertical;
+  min-height: 120px;
+  outline: none;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+.yt-empty {
+  color: #3f3f46;
+  font-size: 0.88rem;
+  text-align: center;
+  padding: 32px 0;
+}
+
+/* Title Preview */
+.yt-title-preview {
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 24px;
+}
+
+.yt-title-preview h3 {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+}
+
+.yt-title-preview p {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.4;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .yt-form {
+    grid-template-columns: 1fr;
+  }
+
+  .yt-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .yt-container {
+    padding: 20px 16px 48px;
+  }
+}

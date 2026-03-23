@@ -1,0 +1,120 @@
+.ui-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-sans);
+}
+
+.ui-input-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.ui-input-container {
+  display: flex;
+  align-items: center;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.ui-input-container:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.ui-input-container--error {
+  border-color: #ef4444;
+}
+
+.ui-input-container--error:focus-within {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.ui-input-prefix,
+.ui-input-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.ui-input-prefix {
+  align-self: stretch;
+  padding: 0 12px;
+  border-right: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-secondary) 82%, transparent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ui-input-icon {
+  padding-left: 12px;
+}
+
+.ui-input-suffix {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding-right: 8px;
+}
+
+.ui-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  padding: 10px 14px;
+  width: 100%;
+}
+
+.ui-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.ui-input--password {
+  font-family: "Courier New", Courier, monospace;
+}
+
+.ui-input-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.ui-input-error {
+  font-size: 0.75rem;
+  color: #ef4444;
+}
+
+.ui-input-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ui-input-action:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.ui-input-action:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 2px;
+}

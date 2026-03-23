@@ -1,0 +1,30 @@
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 16px;
+  z-index: 1200;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--accent);
+  color: var(--text-primary);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  transform: translateY(-140%);
+  transition: transform 0.2s ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.app-main {
+  min-height: calc(100vh - 64px);
+}
+
+.app-main--standalone {
+  min-height: 100vh;
+}
+
+.app-main-with-breadcrumbs {
+  padding-top: 44px;
+}
