@@ -12,6 +12,8 @@ import { formatPhoneNumber, normalizePhoneNumber } from "../../utils/phoneNumber
 import { evaluatePasswordStrength } from "../../utils/passwordSecurity";
 import "./Register.css";
 
+const TURNSTILE_TEST_SITE_KEY = "1x00000000000000000000AA";
+
 export default function Register() {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -29,7 +31,8 @@ export default function Register() {
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string })?.from || "/";
-  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? "";
+  const configuredTurnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? "";
+  const turnstileSiteKey = configuredTurnstileSiteKey || (import.meta.env.DEV ? TURNSTILE_TEST_SITE_KEY : "");
 
   const displayError = localError || authError;
   const passwordStrength = useMemo(() => evaluatePasswordStrength(password), [password]);
@@ -61,6 +64,7 @@ export default function Register() {
   const toggleConfirmLabel = showConfirmPassword ? "Hide confirm password" : "Show confirm password";
   const isTurnstileReady = Boolean(turnstileSiteKey);
   const isTurnstileVerified = Boolean(turnstileToken);
+  const usingTurnstileTestKey = !configuredTurnstileSiteKey && turnstileSiteKey === TURNSTILE_TEST_SITE_KEY;
 
   const handleTurnstileSuccess = useCallback((token: string) => {
     setTurnstileToken(token);
@@ -107,7 +111,7 @@ export default function Register() {
     }
 
     if (!isTurnstileReady) {
-      setLocalError("Turnstile site key missing. Add VITE_TURNSTILE_SITE_KEY to your .env file.");
+      setLocalError("Turnstile site key missing. Add VITE_TURNSTILE_SITE_KEY to your environment configuration.");
       return;
     }
 
@@ -277,15 +281,23 @@ export default function Register() {
           </p>
 
           {isTurnstileReady ? (
-            <TurnstileWidget
-              siteKey={turnstileSiteKey}
-              onSuccess={handleTurnstileSuccess}
-              onExpire={handleTurnstileExpire}
-              onError={handleTurnstileError}
-            />
+            <>
+              <TurnstileWidget
+                siteKey={turnstileSiteKey}
+                onSuccess={handleTurnstileSuccess}
+                onExpire={handleTurnstileExpire}
+                onError={handleTurnstileError}
+              />
+              {usingTurnstileTestKey ? (
+                <p className="auth-turnstile-missing">
+                  Using Cloudflare&apos;s test Turnstile key for local development. Add{" "}
+                  <code>VITE_TURNSTILE_SITE_KEY</code> to your environment configuration before deploying.
+                </p>
+              ) : null}
+            </>
           ) : (
             <p className="auth-turnstile-missing">
-              Turnstile is not configured yet. Add <code>VITE_TURNSTILE_SITE_KEY</code> to your <code>.env</code> file.
+              Turnstile is not configured yet. Add <code>VITE_TURNSTILE_SITE_KEY</code> to your environment configuration.
             </p>
           )}
 
