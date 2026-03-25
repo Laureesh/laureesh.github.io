@@ -601,6 +601,83 @@ const description = [
     },
     relatedIds: ["portfolio-website", "youtube-tag-generator"],
   },
+  {
+    id: "media-converter-suite",
+    title: "Media Converter Suite",
+    tagline: "Browser-first YouTube-to-MP4 and WebM-to-MP4 conversion workflow",
+    desc:
+      "A browser utility focused on converting local WebM files into MP4, paired with a clearly limited YouTube section that explains why direct downloading is intentionally unsupported.",
+    status: "Completed",
+    liveUrl: "/media-converter",
+    category: "JavaScript",
+    type: "Personal",
+    date: "Mar 2026",
+    sortDate: 202603,
+    startMonth: "2026-03",
+    endMonth: "2026-03",
+    estimatedTime: "2 weeks",
+    complexity: 4,
+    comparisonSummary: "Utility-focused build that blends file handling, conversion flow clarity, and format-specific user guidance.",
+    effortLabel: "Solo concept build",
+    effortNote: "Designed as a focused media utility",
+    tags: ["JavaScript", "HTML", "CSS", "Media Conversion", "MP4", "WebM"],
+    stackGroups: [
+      { label: "Interface", items: ["HTML", "CSS", "JavaScript", "Responsive utility layout"] },
+      { label: "Conversion flows", items: ["WebM upload handling", "FFmpeg/WASM transcode", "MP4 export path"] },
+      { label: "UX", items: ["Progress states", "Validation feedback", "Clear unsupported-source guidance"] },
+    ],
+    contributions: {
+      frontend: 52,
+      backend: 23,
+      design: 25,
+    },
+    learned: [
+      "How format-specific tools feel much easier to trust when each input path explains what will happen next.",
+      "Why conversion utilities need clear validation and progress feedback more than decorative UI.",
+      "How combining supported and unsupported source types in one screen requires strong boundaries to avoid confusion.",
+    ],
+    sourcePreview: {
+      title: "Conversion mode guard",
+      language: "js",
+      snippet: `const mode = sourceType === "youtube" ? "remote" : "local";
+
+if (mode === "remote" && !isValidYoutubeUrl(inputValue)) {
+  setStatus("Enter a valid YouTube link before converting.");
+  return;
+}
+
+queueConversion({ mode, inputValue, outputFormat: "mp4" });`,
+    },
+    gallery: [
+      {
+        title: "Dual conversion entry",
+        caption: "The opening view separates the working local conversion flow from the intentionally restricted YouTube area.",
+        bullets: ["WebM upload zone", "Engine loader", "YouTube limitation note"],
+        theme: "rose",
+      },
+      {
+        title: "Progress feedback",
+        caption: "Status messaging keeps the process understandable while the conversion job is running.",
+        bullets: ["Queued state", "Active progress bar", "Success and error messaging"],
+        theme: "cyan",
+      },
+      {
+        title: "Download handoff",
+        caption: "The final state focuses on the finished MP4 file instead of making the user hunt through the interface.",
+        bullets: ["MP4 ready state", "Download CTA", "Reset for next conversion"],
+        theme: "emerald",
+      },
+    ],
+    architecture: {
+      summary: "The interface loads FFmpeg/WASM in the browser, accepts a local WebM upload, and returns an MP4 download without sending the file to a server.",
+      lanes: [
+        { label: "Input", nodes: ["WebM upload", "Validation layer", "Engine load"] },
+        { label: "Conversion", nodes: ["FFmpeg worker", "MP4 transcode flow", "Progress updates"] },
+        { label: "Output", nodes: ["Status state", "Download action", "Reset flow"] },
+      ],
+    },
+    relatedIds: ["youtube-tag-generator", "password-generator"],
+  },
 ];
 
 export const projectCategories = ["All", "React", "Java", "JavaScript"] as const;

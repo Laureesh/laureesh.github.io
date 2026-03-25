@@ -126,6 +126,15 @@ const staticPageMeta: Record<string, PageMeta> = {
     ],
     swipeBasePath: "/projects",
   },
+  "/media-converter": {
+    label: "Media Converter",
+    breadcrumbs: [
+      { label: "Home", path: "/" },
+      { label: "Projects", path: "/projects" },
+      { label: "Media Converter" },
+    ],
+    swipeBasePath: "/projects",
+  },
   "/blog": {
     label: "Blog",
     breadcrumbs: [

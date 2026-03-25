@@ -32,6 +32,7 @@ import MovieApp from "./pages/movie-app/MovieApp";
 import MediaHubPortal from "./pages/mediahub/MediaHubPortal";
 import YTTags from "./pages/yt-tags/YTTags";
 import PasswordGen from "./pages/password-gen/PasswordGen";
+import MediaConverter from "./pages/media-converter/MediaConverter";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import AccountSettingsPage from "./pages/account/AccountSettingsPage";
@@ -72,6 +73,7 @@ export default function App() {
       "/mediahub",
       "/yt-tags",
       "/password-gen",
+      "/media-converter",
       "/admin-dashboard/private-pages/fn-leaderboard",
       "/login",
       "/register",
@@ -197,6 +199,7 @@ export default function App() {
             <Route path="/mediahub" element={<MediaHubPortal />} />
             <Route path="/yt-tags" element={<YTTags />} />
             <Route path="/password-gen" element={<PasswordGen />} />
+            <Route path="/media-converter" element={<MediaConverter />} />
             <Route
               path="/profile"
               element={(

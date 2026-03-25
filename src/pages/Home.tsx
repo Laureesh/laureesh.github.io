@@ -17,10 +17,11 @@ import {
   type GuidedTourStep,
 } from "../components/GuidedTourData";
 import { getPageSection } from "../services/pageContent";
+import { projectShowcase } from "../data/projectShowcase";
 import "./Home.css";
 
 const stats = [
-  { icon: FolderOpen, value: 5, label: "Projects", suffix: "+" },
+  { icon: FolderOpen, value: projectShowcase.length, label: "Projects", suffix: "+" },
   { icon: Code2, value: 8, label: "Technologies" },
   { icon: GitCommit, value: 200, label: "Commits", suffix: "+" },
 ];
