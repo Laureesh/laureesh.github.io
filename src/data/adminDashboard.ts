@@ -6,6 +6,8 @@ import {
   ListTodo,
   SlidersHorizontal,
   Users2,
+  Briefcase,
+  Star,
   type LucideIcon,
 } from "lucide-react";
 
@@ -16,7 +18,9 @@ export type AdminDashboardSectionKey =
   | "users"
   | "tasks"
   | "feature-toggles"
-  | "private-pages";
+  | "private-pages"
+  | "jobs"
+  | "good-jobs";
 
 export interface AdminDashboardSection {
   key: AdminDashboardSectionKey;
@@ -92,6 +96,32 @@ export const adminDashboardSections: AdminDashboardSection[] = [
       "Drag tasks between workflow columns",
       "Add, edit, and delete internal admin work",
       "Persist board state in Firestore",
+    ],
+  },
+  {
+    key: "jobs",
+    path: "/admin-dashboard/jobs",
+    label: "Jobs",
+    eyebrow: "Application Tracker",
+    description: "Track job applications: company, role, recruiter, outreach, follow-ups, and notes. Local-only storage for localhost testing.",
+    icon: Briefcase,
+    highlights: [
+      "Track applied roles and recruiter outreach",
+      "Follow-up scheduling and response tracking",
+      "Local persistence for quick prototyping",
+    ],
+  },
+  {
+    key: "good-jobs",
+    path: "/admin-dashboard/good-jobs",
+    label: "Good Jobs",
+    eyebrow: "Curated Positions",
+    description: "A curated list of high-quality job leads including salary, location, and notes. Designed for hand-picked opportunities.",
+    icon: Star,
+    highlights: [
+      "Salary and compensation notes",
+      "Role suitability and quick links",
+      "Save and curate top leads",
     ],
   },
   {

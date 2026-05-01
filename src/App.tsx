@@ -48,6 +48,8 @@ import AdminPrivatePagesPage from "./pages/admin/AdminPrivatePagesPage";
 import AdminPrivatePageView from "./pages/admin/AdminPrivatePageView";
 import AdminTasksPage from "./pages/admin/AdminTasksPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminJobsPage from "./pages/admin/AdminJobsPage";
+import AdminGoodJobsPage from "./pages/admin/AdminGoodJobsPage";
 import { getSwipeTarget } from "./data/siteNavigation";
 import "./App.css";
 
@@ -268,6 +270,8 @@ export default function App() {
               <Route path="pages" element={<AdminPagesPage />} />
               <Route path="users" element={<AdminUsersPage />} />
               <Route path="tasks" element={<AdminTasksPage />} />
+              <Route path="jobs" element={<AdminJobsPage />} />
+              <Route path="good-jobs" element={<AdminGoodJobsPage />} />
               <Route path="feature-toggles" element={<AdminFeatureTogglesPage />} />
               <Route path="private-pages" element={<AdminPrivatePagesPage />} />
               <Route

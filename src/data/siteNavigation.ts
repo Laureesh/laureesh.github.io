@@ -201,6 +201,24 @@ const staticPageMeta: Record<string, PageMeta> = {
     ],
     trackRecent: false,
   },
+  "/admin-dashboard/jobs": {
+    label: "Jobs",
+    breadcrumbs: [
+      { label: "Home", path: "/" },
+      { label: "Admin Dashboard", path: "/admin-dashboard" },
+      { label: "Jobs" },
+    ],
+    trackRecent: false,
+  },
+  "/admin-dashboard/good-jobs": {
+    label: "Good Jobs",
+    breadcrumbs: [
+      { label: "Home", path: "/" },
+      { label: "Admin Dashboard", path: "/admin-dashboard" },
+      { label: "Good Jobs" },
+    ],
+    trackRecent: false,
+  },
   "/admin-dashboard/private-pages/food-routine": {
     label: "Food Routine",
     breadcrumbs: [
