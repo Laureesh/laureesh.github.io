@@ -64,21 +64,21 @@ export default function AdminJobsPage() {
 
   const columns = [
     { key: "company", label: "Company", sortable: true },
-    { key: "title", label: "Job Title", sortable: true },
+    { key: "title", label: "Role", sortable: true },
     {
       key: "link",
-      label: "Job Link",
+      label: "Link",
       render: (value: unknown) => (
         <a href={String(value ?? "#")} target="_blank" rel="noreferrer">
           Open
         </a>
       ),
     },
-    { key: "applied", label: "Applied?", render: (v: unknown) => (v ? "Yes" : "No") },
-    { key: "recruiterName", label: "Recruiter Name" },
+    { key: "applied", label: "Applied", render: (v: unknown) => (v ? "Yes" : "No") },
+    { key: "recruiterName", label: "Recruiter" },
     {
       key: "recruiterLinkedIn",
-      label: "Recruiter LinkedIn",
+      label: "LinkedIn",
       render: (value: unknown) => (
         value ? (
           <a href={String(value)} target="_blank" rel="noreferrer">
@@ -89,9 +89,9 @@ export default function AdminJobsPage() {
         )
       ),
     },
-    { key: "contacted", label: "Contacted?", render: (v: unknown) => (v ? "Yes" : "No") },
-    { key: "followUpDate", label: "Follow-Up 6 Days Later" },
-    { key: "response", label: "Response" },
+    { key: "contacted", label: "Contacted", render: (v: unknown) => (v ? "Yes" : "No") },
+    { key: "followUpDate", label: "Follow-Up" },
+    { key: "response", label: "Status" },
     { key: "notes", label: "Notes" },
     {
       key: "actions",
@@ -111,7 +111,7 @@ export default function AdminJobsPage() {
         <div className="admin-panel__title-row">
           <h2>Application Tracker</h2>
         </div>
-        <p>Simple local tracker for job applications. Columns: Company | Job Title | Job Link | Applied? | Recruiter Name | Recruiter LinkedIn | Contacted? | Follow-Up Date | Response | Notes</p>
+        <p>Simple local tracker for job applications. Columns: Company | Role | Link | Applied | Recruiter | LinkedIn | Contacted | Follow-Up | Status | Notes</p>
       </section>
 
       <section className="admin-panel">
