@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button, Input, Select, Checkbox, Table } from "../../components/ui";
+import "./AdminJobsPage.css";
 
 type JobEntry = {
   id: number;
@@ -89,7 +90,7 @@ export default function AdminJobsPage() {
       ),
     },
     { key: "contacted", label: "Contacted?", render: (v: unknown) => (v ? "Yes" : "No") },
-    { key: "followUpDate", label: "Follow-Up Date" },
+    { key: "followUpDate", label: "Follow-Up 6 Days Later" },
     { key: "response", label: "Response" },
     { key: "notes", label: "Notes" },
     {
@@ -157,7 +158,12 @@ export default function AdminJobsPage() {
         </div>
 
         <div className="admin-content-list">
-          <Table columns={columns as any} data={jobs as any} emptyMessage="No applications saved" />
+          <Table
+            className="admin-jobs-table"
+            columns={columns as any}
+            data={jobs as any}
+            emptyMessage="No applications saved"
+          />
         </div>
       </section>
     </div>

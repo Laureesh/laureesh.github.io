@@ -13,6 +13,7 @@ interface TableProps {
   data: Record<string, unknown>[];
   emptyMessage?: string;
   onSort?: (key: string, direction: "asc" | "desc") => void;
+  className?: string;
 }
 
 export function Table({
@@ -20,6 +21,7 @@ export function Table({
   data,
   emptyMessage = "No data available",
   onSort,
+  className,
 }: TableProps) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -32,7 +34,7 @@ export function Table({
   };
 
   return (
-    <div className="ui-table-wrapper">
+    <div className={`ui-table-wrapper${className ? ` ${className}` : ""}`}>
       <table className="ui-table">
         <thead>
           <tr>
