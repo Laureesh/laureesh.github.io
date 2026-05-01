@@ -15,6 +15,12 @@
   word-break: break-word;
 }
 
+.admin-jobs-table .ui-table th {
+  text-transform: none; /* avoid full uppercase for compact headers */
+  letter-spacing: normal;
+  font-weight: 700;
+}
+
 .admin-jobs-table .ui-table th:nth-child(1),
 .admin-jobs-table .ui-table td:nth-child(1) {
   width: 11%;

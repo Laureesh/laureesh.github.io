@@ -21,8 +21,16 @@ const STORAGE_KEY = "admin-jobs";
 const DEFAULT_RESPONSE_OPTIONS = ["No response", "Interview", "Rejected"];
 
 export default function AdminJobsPage() {
+  const getDefaultFollowUp = (days = 6) => {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10);
+  };
+
+  const defaultFollowUp = getDefaultFollowUp(6);
+
   const [jobs, setJobs] = useState<JobEntry[]>([]);
-  const [draft, setDraft] = useState<Partial<JobEntry>>({ applied: false, contacted: false, response: "No response" });
+  const [draft, setDraft] = useState<Partial<JobEntry>>({ applied: false, contacted: false, response: "No response", followUpDate: defaultFollowUp });
 
   useEffect(() => {
     try {
@@ -51,13 +59,13 @@ export default function AdminJobsPage() {
       recruiterName: draft.recruiterName ?? "",
       recruiterLinkedIn: draft.recruiterLinkedIn ?? "",
       contacted: !!draft.contacted,
-      followUpDate: draft.followUpDate ?? "",
+      followUpDate: draft.followUpDate ?? defaultFollowUp,
       response: draft.response ?? "No response",
       notes: draft.notes ?? "",
     };
 
     setJobs((cur) => [entry, ...cur]);
-    setDraft({ applied: false, contacted: false, response: "No response" });
+    setDraft({ applied: false, contacted: false, response: "No response", followUpDate: defaultFollowUp });
   };
 
   const handleDelete = (id: number) => setJobs((cur) => cur.filter((j) => j.id !== id));
