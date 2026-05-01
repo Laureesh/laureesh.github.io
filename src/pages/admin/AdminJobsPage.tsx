@@ -129,16 +129,18 @@ export default function AdminJobsPage() {
             <Select label="Response" value={draft.response ?? "No response"} onChange={(e) => setDraft((d) => ({ ...d, response: e.target.value }))} options={DEFAULT_RESPONSE_OPTIONS.map((r) => ({ value: r, label: r }))} />
             <Input label="Notes" value={draft.notes ?? ""} onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))} />
             <div>
-              <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <Checkbox checked={!!draft.applied} onChange={(e) => setDraft((d) => ({ ...d, applied: e.target.checked }))} />
-                Applied?
-              </label>
+              <Checkbox
+                label="Applied?"
+                checked={!!draft.applied}
+                onChange={(e) => setDraft((d) => ({ ...d, applied: e.target.checked }))}
+              />
             </div>
             <div>
-              <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <Checkbox checked={!!draft.contacted} onChange={(e) => setDraft((d) => ({ ...d, contacted: e.target.checked }))} />
-                Contacted?
-              </label>
+              <Checkbox
+                label="Contacted?"
+                checked={!!draft.contacted}
+                onChange={(e) => setDraft((d) => ({ ...d, contacted: e.target.checked }))}
+              />
             </div>
           </div>
 
