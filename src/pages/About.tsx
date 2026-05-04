@@ -236,10 +236,11 @@ const certifications: {
   {
     title: "IT Specialist in Cybersecurity",
     org: "Certiport",
-    date: "Expected April 2026",
-    status: "In Progress",
+    date: "April 2026",
+    status: "Verified",
     note:
       "Next checkpoint in the security track that complements software development and systems coursework.",
+    url: "https://www.credly.com/badges/48f9aeca-e8f0-4731-9320-7df4d9bf98c7",
   },
 ];
 
