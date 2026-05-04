@@ -1,9 +1,10 @@
 .admin-jobs-table {
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 .admin-jobs-table .ui-table {
   table-layout: fixed;
+  min-width: 980px;
 }
 
 .admin-jobs-table .ui-table th,
@@ -11,14 +12,18 @@
   padding: 0.55rem 0.6rem;
   font-size: 0.72rem;
   line-height: 1.35;
-  white-space: normal;
-  word-break: break-word;
+  word-break: normal;
 }
 
 .admin-jobs-table .ui-table th {
   text-transform: none; /* avoid full uppercase for compact headers */
   letter-spacing: normal;
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-jobs-table .ui-table td {
+  overflow-wrap: anywhere;
 }
 
 .admin-jobs-table .ui-table th:nth-child(1),
