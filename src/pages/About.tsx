@@ -29,7 +29,7 @@ import "./About.css";
 const aboutSections = [
   { id: "about-intro", label: "Intro" },
   { id: "about-timeline", label: "Timeline" },
-  { id: "about-credentials", label: "Credentials" },
+  { id: "about-credentials", label: "Certifications" },
   { id: "about-interests", label: "Interests" },
   { id: "about-bookshelf", label: "Bookshelf" },
   { id: "about-journey", label: "Journey" },
@@ -566,7 +566,7 @@ export default function About() {
   const headerSection = getPageSection(aboutPageContent, "header");
   const introSection = getPageSection(aboutPageContent, "intro");
   const timelineSection = getPageSection(aboutPageContent, "timeline");
-  const credentialsSection = getPageSection(aboutPageContent, "credentials");
+  const credentialsSection = getPageSection(aboutPageContent, "certifications");
   const interestsSection = getPageSection(aboutPageContent, "interests");
   const bookshelfSection = getPageSection(aboutPageContent, "bookshelf");
   const journeySection = getPageSection(aboutPageContent, "journey");
@@ -830,7 +830,7 @@ export default function About() {
         <ScrollReveal>
           <div id="about-credentials" className="section-anchor">
             <div className="about-section-heading">
-              <h3>{credentialsSection?.title ?? "Credentials + Favorite Tools"}</h3>
+              <h3>{credentialsSection?.title ?? "Certifications + Favorite Tools"}</h3>
               <p>{credentialsSection?.body ?? "Formal checkpoints, the tools I reach for most often, and the coursework shaping the way I think."}</p>
             </div>
 
