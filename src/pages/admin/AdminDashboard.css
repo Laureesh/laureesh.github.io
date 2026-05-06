@@ -851,7 +851,7 @@
 
 .ps99-inventory__table {
   width: 100%;
-  min-width: 760px;
+  min-width: 980px;
   border-collapse: collapse;
 }
 
@@ -876,8 +876,45 @@
   border-bottom: none;
 }
 
+.ps99-inventory__table tr.is-editing td {
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
 .ps99-inventory__table td strong {
   color: var(--text-primary);
+}
+
+.ps99-inventory__field {
+  width: 100%;
+  min-width: 8.4rem;
+  min-height: 2.35rem;
+  padding: 0.56rem 0.68rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  border-radius: 12px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.ps99-inventory__field:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  outline-offset: 2px;
+}
+
+.ps99-inventory__field--amount {
+  min-width: 5.6rem;
+}
+
+.ps99-inventory__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.ps99-inventory__edit-error {
+  padding: 0.85rem 1rem;
 }
 
 .ps99-rarity {

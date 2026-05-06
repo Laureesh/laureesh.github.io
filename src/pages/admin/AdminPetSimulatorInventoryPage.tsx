@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { ArrowDownUp, Diamond, PackagePlus, Trash2 } from "lucide-react";
+import { ArrowDownUp, Diamond, PackagePlus, Pencil, Save, Trash2, X } from "lucide-react";
 import { Button, Input, Select } from "../../components/ui";
 
 type Rarity =
@@ -38,9 +38,18 @@ interface InventoryItem {
   name: string;
   rarity: Rarity;
   category: Category;
+  amount: number;
   worthInput: string;
   worthValue: number | null;
   createdAt: string;
+}
+
+interface EditDraft {
+  name: string;
+  rarity: Rarity;
+  category: Category;
+  amount: string;
+  worthInput: string;
 }
 
 const storageKey = "admin:ps99-inventory";
@@ -122,10 +131,38 @@ function formatDiamonds(value: number | null, original: string) {
   return `${original} diamonds`;
 }
 
+function formatTotalWorth(item: InventoryItem) {
+  if (item.worthValue === null) {
+    return "Untradable";
+  }
+
+  return `${(item.amount * item.worthValue).toLocaleString()} diamonds`;
+}
+
+function normalizeAmount(value: unknown) {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 1) {
+    return 1;
+  }
+
+  return value;
+}
+
 function loadInventory() {
   try {
     const saved = window.localStorage.getItem(storageKey);
-    return saved ? (JSON.parse(saved) as InventoryItem[]) : [];
+    const parsedItems = saved ? (JSON.parse(saved) as Partial<InventoryItem>[]) : [];
+
+    return parsedItems.map((item) => ({
+      ...item,
+      id: item.id ?? createId(),
+      name: item.name ?? "Unnamed Item",
+      rarity: item.rarity ?? "Celestial",
+      category: item.category ?? "Miscellaneous",
+      amount: normalizeAmount(item.amount),
+      worthInput: item.worthInput ?? "Untradable",
+      worthValue: typeof item.worthValue === "number" ? item.worthValue : null,
+      createdAt: item.createdAt ?? new Date().toISOString(),
+    })) as InventoryItem[];
   } catch {
     return [];
   }
@@ -139,6 +176,9 @@ export default function AdminPetSimulatorInventoryPage() {
   const [category, setCategory] = useState<Category>("Buffs");
   const [sortMode, setSortMode] = useState<SortMode>("none");
   const [formError, setFormError] = useState("");
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
+  const [editError, setEditError] = useState("");
 
   useEffect(() => {
     window.localStorage.setItem(storageKey, JSON.stringify(items));
@@ -158,7 +198,11 @@ export default function AdminPetSimulatorInventoryPage() {
     return ordered;
   }, [items, sortMode]);
 
-  const totalTradableWorth = items.reduce((sum, item) => sum + (item.worthValue ?? 0), 0);
+  const totalTradableWorth = items.reduce(
+    (sum, item) => sum + (item.worthValue === null ? 0 : item.worthValue * item.amount),
+    0,
+  );
+  const totalItemCount = items.reduce((sum, item) => sum + item.amount, 0);
   const untradableCount = items.filter((item) => item.worthValue === null).length;
 
   const handleAddItem = (event: FormEvent<HTMLFormElement>) => {
@@ -188,6 +232,7 @@ export default function AdminPetSimulatorInventoryPage() {
         name: cleanName,
         rarity,
         category,
+        amount: 1,
         worthInput: parsedWorth.label,
         worthValue: parsedWorth.value,
         createdAt: new Date().toISOString(),
@@ -199,6 +244,75 @@ export default function AdminPetSimulatorInventoryPage() {
     setRarity("Celestial");
     setCategory("Buffs");
     setFormError("");
+  };
+
+  const handleStartEdit = (item: InventoryItem) => {
+    setEditingItemId(item.id);
+    setEditDraft({
+      name: item.name,
+      rarity: item.rarity,
+      category: item.category,
+      amount: String(item.amount),
+      worthInput: item.worthInput,
+    });
+    setEditError("");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingItemId(null);
+    setEditDraft(null);
+    setEditError("");
+  };
+
+  const handleSaveEdit = (itemId: string) => {
+    if (!editDraft) {
+      return;
+    }
+
+    const cleanName = editDraft.name.trim();
+    const cleanAmount = Number(editDraft.amount);
+    const parsedWorth = parseWorth(editDraft.worthInput);
+
+    if (!cleanName) {
+      setEditError("Item name cannot be empty.");
+      return;
+    }
+
+    if (!Number.isInteger(cleanAmount) || cleanAmount < 1) {
+      setEditError("Amount must be a whole number of 1 or more.");
+      return;
+    }
+
+    if (
+      items.some(
+        (item) => item.id !== itemId && item.name.toLowerCase() === cleanName.toLowerCase(),
+      )
+    ) {
+      setEditError("Another item already uses that name.");
+      return;
+    }
+
+    if (parsedWorth.error) {
+      setEditError(parsedWorth.error);
+      return;
+    }
+
+    setItems((currentItems) =>
+      currentItems.map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              name: cleanName,
+              rarity: editDraft.rarity,
+              category: editDraft.category,
+              amount: cleanAmount,
+              worthInput: parsedWorth.label,
+              worthValue: parsedWorth.value,
+            }
+          : item,
+      ),
+    );
+    handleCancelEdit();
   };
 
   return (
@@ -217,6 +331,11 @@ export default function AdminPetSimulatorInventoryPage() {
             <span className="admin-stat-card__label">Items</span>
             <strong>{items.length}</strong>
             <span>Total tracked entries</span>
+          </div>
+          <div className="admin-stat-card">
+            <span className="admin-stat-card__label">Amount</span>
+            <strong>{totalItemCount.toLocaleString()}</strong>
+            <span>Total item quantity</span>
           </div>
           <div className="admin-stat-card">
             <span className="admin-stat-card__label">Tradable Worth</span>
@@ -302,39 +421,182 @@ export default function AdminPetSimulatorInventoryPage() {
                   <th>Name</th>
                   <th>Rarity</th>
                   <th>Worth</th>
+                  <th>Amount</th>
+                  <th>Total Worth</th>
                   <th>Category</th>
                   <th aria-label="Actions" />
                 </tr>
               </thead>
               <tbody>
-                {sortedItems.map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <strong>{item.name}</strong>
-                    </td>
-                    <td>
-                      <span className={`ps99-rarity ps99-rarity--${item.rarity.toLowerCase()}`}>
-                        {item.rarity}
-                      </span>
-                    </td>
-                    <td>{formatDiamonds(item.worthValue, item.worthInput)}</td>
-                    <td>{item.category}</td>
-                    <td>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        icon={<Trash2 size={15} />}
-                        aria-label={`Delete ${item.name}`}
-                        onClick={() => setItems((currentItems) => currentItems.filter((currentItem) => currentItem.id !== item.id))}
-                      >
-                        Delete
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                {sortedItems.map((item) => {
+                  const isEditing = editingItemId === item.id && editDraft;
+
+                  return (
+                    <tr key={item.id} className={isEditing ? "is-editing" : undefined}>
+                      <td>
+                        {isEditing ? (
+                          <input
+                            className="ps99-inventory__field"
+                            aria-label="Item name"
+                            value={editDraft.name}
+                            onChange={(event) =>
+                              setEditDraft((currentDraft) =>
+                                currentDraft
+                                  ? { ...currentDraft, name: event.target.value }
+                                  : currentDraft,
+                              )
+                            }
+                          />
+                        ) : (
+                          <strong>{item.name}</strong>
+                        )}
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <select
+                            className="ps99-inventory__field"
+                            aria-label="Item rarity"
+                            value={editDraft.rarity}
+                            onChange={(event) =>
+                              setEditDraft((currentDraft) =>
+                                currentDraft
+                                  ? { ...currentDraft, rarity: event.target.value as Rarity }
+                                  : currentDraft,
+                              )
+                            }
+                          >
+                            {rarityOptions.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className={`ps99-rarity ps99-rarity--${item.rarity.toLowerCase()}`}>
+                            {item.rarity}
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <input
+                            className="ps99-inventory__field"
+                            aria-label="Item worth"
+                            value={editDraft.worthInput}
+                            onChange={(event) =>
+                              setEditDraft((currentDraft) =>
+                                currentDraft
+                                  ? { ...currentDraft, worthInput: event.target.value }
+                                  : currentDraft,
+                              )
+                            }
+                          />
+                        ) : (
+                          formatDiamonds(item.worthValue, item.worthInput)
+                        )}
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <input
+                            className="ps99-inventory__field ps99-inventory__field--amount"
+                            aria-label="Item amount"
+                            type="number"
+                            min="1"
+                            step="1"
+                            value={editDraft.amount}
+                            onChange={(event) =>
+                              setEditDraft((currentDraft) =>
+                                currentDraft
+                                  ? { ...currentDraft, amount: event.target.value }
+                                  : currentDraft,
+                              )
+                            }
+                          />
+                        ) : (
+                          item.amount.toLocaleString()
+                        )}
+                      </td>
+                      <td>{formatTotalWorth(item)}</td>
+                      <td>
+                        {isEditing ? (
+                          <select
+                            className="ps99-inventory__field"
+                            aria-label="Item category"
+                            value={editDraft.category}
+                            onChange={(event) =>
+                              setEditDraft((currentDraft) =>
+                                currentDraft
+                                  ? { ...currentDraft, category: event.target.value as Category }
+                                  : currentDraft,
+                              )
+                            }
+                          >
+                            {categoryOptions.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          item.category
+                        )}
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <div className="ps99-inventory__actions">
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              icon={<Save size={15} />}
+                              onClick={() => handleSaveEdit(item.id)}
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              icon={<X size={15} />}
+                              onClick={handleCancelEdit}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="ps99-inventory__actions">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              icon={<Pencil size={15} />}
+                              onClick={() => handleStartEdit(item)}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              icon={<Trash2 size={15} />}
+                              aria-label={`Delete ${item.name}`}
+                              onClick={() =>
+                                setItems((currentItems) =>
+                                  currentItems.filter((currentItem) => currentItem.id !== item.id),
+                                )
+                              }
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
+            {editError ? <p className="admin-inline-status is-error ps99-inventory__edit-error">{editError}</p> : null}
           </div>
         ) : (
           <div className="admin-empty-state">No Pet Simulator 99 items are tracked yet.</div>
