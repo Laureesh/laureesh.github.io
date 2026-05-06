@@ -221,7 +221,7 @@ function getNameCompletion(input: string, items: InventoryItem[]) {
 }
 
 function normalizeAmount(value: unknown) {
-  if (typeof value !== "number" || !Number.isInteger(value) || value < 1) {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
     return 1;
   }
 
@@ -345,8 +345,8 @@ export default function AdminPetSimulatorInventoryPage() {
       return;
     }
 
-    if (!Number.isInteger(cleanAmount) || cleanAmount < 1) {
-      setFormError("Amount must be a whole number of 1 or more.");
+    if (!Number.isInteger(cleanAmount) || cleanAmount < 0) {
+      setFormError("Amount must be a whole number of 0 or more.");
       return;
     }
 
@@ -411,8 +411,8 @@ export default function AdminPetSimulatorInventoryPage() {
       return;
     }
 
-    if (!Number.isInteger(cleanAmount) || cleanAmount < 1) {
-      setEditError("Amount must be a whole number of 1 or more.");
+    if (!Number.isInteger(cleanAmount) || cleanAmount < 0) {
+      setEditError("Amount must be a whole number of 0 or more.");
       return;
     }
 
@@ -537,7 +537,7 @@ export default function AdminPetSimulatorInventoryPage() {
             <Input
               label="Amount"
               type="number"
-              min="1"
+              min="0"
               step="1"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
@@ -684,7 +684,7 @@ export default function AdminPetSimulatorInventoryPage() {
                             className="ps99-inventory__field ps99-inventory__field--amount"
                             aria-label="Item amount"
                             type="number"
-                            min="1"
+                            min="0"
                             step="1"
                             value={editDraft.amount}
                             onKeyDown={(event) => handleEditKeyDown(event, item.id)}
