@@ -28,8 +28,10 @@ type Category =
   | "Farming"
   | "Potions"
   | "Enchants"
+  | "Hoverboards"
   | "Eggs"
-  | "Booths";
+  | "Booths"
+  | "Pets";
 
 type SortMode = "none" | "worth-highest" | "worth-lowest" | "total-highest" | "total-lowest";
 
