@@ -144,6 +144,67 @@ function getTotalWorthValue(item: InventoryItem) {
   return item.worthValue === null ? null : item.worthValue * item.amount;
 }
 
+function getNameCompletion(input: string, items: InventoryItem[]) {
+  const compactInput = input.replace(/\s+/g, " ");
+  const trimmedInput = compactInput.trimStart();
+
+  if (!trimmedInput) {
+    return null;
+  }
+
+  const phraseCandidates = new Set<string>();
+  const wordCandidates = new Set<string>();
+
+  items.forEach((item) => {
+    const words = item.name.trim().split(/\s+/).filter(Boolean);
+
+    words.forEach((word) => wordCandidates.add(word));
+
+    for (let start = 0; start < words.length; start += 1) {
+      for (let end = start + 1; end <= words.length; end += 1) {
+        phraseCandidates.add(words.slice(start, end).join(" "));
+      }
+    }
+  });
+
+  const inputLower = trimmedInput.toLowerCase();
+  const phraseSuggestion = [...phraseCandidates]
+    .sort((a, b) => a.length - b.length || a.localeCompare(b))
+    .find(
+      (candidate) =>
+        candidate.toLowerCase().startsWith(inputLower) &&
+        candidate.length > trimmedInput.length,
+    );
+
+  if (phraseSuggestion) {
+    return phraseSuggestion;
+  }
+
+  const lastSpaceIndex = compactInput.search(/\S+$/);
+
+  if (lastSpaceIndex < 0) {
+    return null;
+  }
+
+  const leadingText = compactInput.slice(0, lastSpaceIndex);
+  const activeWord = compactInput.slice(lastSpaceIndex);
+  const activeWordLower = activeWord.toLowerCase();
+
+  if (!activeWordLower) {
+    return null;
+  }
+
+  const wordSuggestion = [...wordCandidates]
+    .sort((a, b) => a.length - b.length || a.localeCompare(b))
+    .find(
+      (candidate) =>
+        candidate.toLowerCase().startsWith(activeWordLower) &&
+        candidate.length > activeWord.length,
+    );
+
+  return wordSuggestion ? `${leadingText}${wordSuggestion}` : null;
+}
+
 function normalizeAmount(value: unknown) {
   if (typeof value !== "number" || !Number.isInteger(value) || value < 1) {
     return 1;
@@ -255,6 +316,7 @@ export default function AdminPetSimulatorInventoryPage() {
   );
   const totalItemCount = items.reduce((sum, item) => sum + item.amount, 0);
   const untradableCount = items.filter((item) => item.worthValue === null).length;
+  const nameCompletion = useMemo(() => getNameCompletion(name, items), [name, items]);
 
   const handleAddItem = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -384,6 +446,15 @@ export default function AdminPetSimulatorInventoryPage() {
     }
   };
 
+  const handleNameKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== "Tab" || event.shiftKey || !nameCompletion) {
+      return;
+    }
+
+    event.preventDefault();
+    setName(nameCompletion);
+  };
+
   return (
     <div className="admin-panel-stack ps99-inventory">
       <section className="admin-panel admin-panel--hero">
@@ -431,8 +502,10 @@ export default function AdminPetSimulatorInventoryPage() {
             <Input
               label="Name"
               value={name}
+              onKeyDown={handleNameKeyDown}
               onChange={(event) => setName(event.target.value)}
               placeholder="Huge Hunter Potion"
+              hint={nameCompletion ? `Press Tab to use ${nameCompletion}` : undefined}
             />
             <Select
               label="Rarity"
