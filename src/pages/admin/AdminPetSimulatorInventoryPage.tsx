@@ -3,6 +3,7 @@ import { ArrowDownUp, Diamond, PackagePlus, Pencil, Save, Trash2, X } from "luci
 import { Button, Input, Select } from "../../components/ui";
 
 type Rarity =
+  | "Exclusive"
   | "Celestial"
   | "Superior"
   | "Divine"
@@ -58,6 +59,7 @@ const storageKey = "admin:ps99-inventory";
 const formPreferencesStorageKey = "admin:ps99-inventory:add-form-preferences";
 
 const rarityOptions: Rarity[] = [
+  "Exclusive",
   "Celestial",
   "Superior",
   "Divine",
@@ -84,8 +86,10 @@ const categoryOptions: Category[] = [
   "Farming",
   "Potions",
   "Enchants",
+  "Hoverboards",
   "Eggs",
   "Booths",
+  "Pets",
 ];
 
 const worthMultipliers: Record<string, number> = {
