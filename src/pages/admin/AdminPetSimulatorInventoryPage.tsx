@@ -173,6 +173,7 @@ export default function AdminPetSimulatorInventoryPage() {
   const [name, setName] = useState("");
   const [rarity, setRarity] = useState<Rarity>("Celestial");
   const [worthInput, setWorthInput] = useState("");
+  const [amount, setAmount] = useState("1");
   const [category, setCategory] = useState<Category>("Buffs");
   const [sortMode, setSortMode] = useState<SortMode>("none");
   const [formError, setFormError] = useState("");
@@ -209,10 +210,16 @@ export default function AdminPetSimulatorInventoryPage() {
     event.preventDefault();
 
     const cleanName = name.trim();
+    const cleanAmount = Number(amount);
     const parsedWorth = parseWorth(worthInput);
 
     if (!cleanName) {
       setFormError("Add an item name first.");
+      return;
+    }
+
+    if (!Number.isInteger(cleanAmount) || cleanAmount < 1) {
+      setFormError("Amount must be a whole number of 1 or more.");
       return;
     }
 
@@ -232,7 +239,7 @@ export default function AdminPetSimulatorInventoryPage() {
         name: cleanName,
         rarity,
         category,
-        amount: 1,
+        amount: cleanAmount,
         worthInput: parsedWorth.label,
         worthValue: parsedWorth.value,
         createdAt: new Date().toISOString(),
@@ -241,6 +248,7 @@ export default function AdminPetSimulatorInventoryPage() {
     ]);
     setName("");
     setWorthInput("");
+    setAmount("1");
     setRarity("Celestial");
     setCategory("Buffs");
     setFormError("");
@@ -358,7 +366,7 @@ export default function AdminPetSimulatorInventoryPage() {
           </div>
         </div>
         <form className="admin-content-form" onSubmit={handleAddItem}>
-          <div className="admin-content-form-grid admin-content-form-grid--four">
+          <div className="admin-content-form-grid admin-content-form-grid--five">
             <Input
               label="Name"
               value={name}
@@ -376,6 +384,15 @@ export default function AdminPetSimulatorInventoryPage() {
               value={worthInput}
               onChange={(event) => setWorthInput(event.target.value)}
               placeholder="169k, 1.9m, 745, Untradable"
+            />
+            <Input
+              label="Amount"
+              type="number"
+              min="1"
+              step="1"
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              placeholder="1"
             />
             <Select
               label="Category"

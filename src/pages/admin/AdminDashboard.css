@@ -6,6 +6,10 @@
   gap: 1.2rem;
 }
 
+.admin-shell:has(.ps99-inventory) {
+  max-width: min(1680px, 100%);
+}
+
 .admin-shell__header {
   display: grid;
   gap: 0.6rem;
@@ -441,6 +445,10 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.admin-content-form-grid--five {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .admin-content-form-actions {
   margin-top: 0.35rem;
 }
@@ -843,7 +851,7 @@
 }
 
 .ps99-inventory__table-wrap {
-  overflow-x: auto;
+  overflow-x: hidden;
   border: 1px solid var(--border);
   border-radius: 18px;
   background: var(--bg-secondary);
@@ -851,17 +859,19 @@
 
 .ps99-inventory__table {
   width: 100%;
-  min-width: 980px;
+  min-width: 0;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .ps99-inventory__table th,
 .ps99-inventory__table td {
-  padding: 0.9rem 1rem;
+  padding: 0.82rem 0.78rem;
   border-bottom: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
   color: var(--text-secondary);
   text-align: left;
   vertical-align: middle;
+  overflow-wrap: anywhere;
 }
 
 .ps99-inventory__table th {
@@ -870,6 +880,41 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.ps99-inventory__table th:nth-child(1),
+.ps99-inventory__table td:nth-child(1) {
+  width: 20%;
+}
+
+.ps99-inventory__table th:nth-child(2),
+.ps99-inventory__table td:nth-child(2) {
+  width: 13%;
+}
+
+.ps99-inventory__table th:nth-child(3),
+.ps99-inventory__table td:nth-child(3) {
+  width: 14%;
+}
+
+.ps99-inventory__table th:nth-child(4),
+.ps99-inventory__table td:nth-child(4) {
+  width: 8%;
+}
+
+.ps99-inventory__table th:nth-child(5),
+.ps99-inventory__table td:nth-child(5) {
+  width: 16%;
+}
+
+.ps99-inventory__table th:nth-child(6),
+.ps99-inventory__table td:nth-child(6) {
+  width: 14%;
+}
+
+.ps99-inventory__table th:nth-child(7),
+.ps99-inventory__table td:nth-child(7) {
+  width: 15%;
 }
 
 .ps99-inventory__table tr:last-child td {
@@ -886,7 +931,7 @@
 
 .ps99-inventory__field {
   width: 100%;
-  min-width: 8.4rem;
+  min-width: 0;
   min-height: 2.35rem;
   padding: 0.56rem 0.68rem;
   border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
@@ -903,7 +948,7 @@
 }
 
 .ps99-inventory__field--amount {
-  min-width: 5.6rem;
+  min-width: 0;
 }
 
 .ps99-inventory__actions {
@@ -1469,7 +1514,8 @@
   .admin-users__control-grid,
   .admin-content-form-grid,
   .admin-content-form-grid--three,
-  .admin-content-form-grid--four {
+  .admin-content-form-grid--four,
+  .admin-content-form-grid--five {
     grid-template-columns: 1fr;
   }
 
