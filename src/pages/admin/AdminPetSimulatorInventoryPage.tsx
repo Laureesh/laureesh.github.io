@@ -31,7 +31,7 @@ type Category =
   | "Eggs"
   | "Booths";
 
-type SortMode = "none" | "highest" | "lowest";
+type SortMode = "none" | "worth-highest" | "worth-lowest" | "total-highest" | "total-lowest";
 
 interface InventoryItem {
   id: string;
@@ -140,6 +140,10 @@ function formatTotalWorth(item: InventoryItem) {
   return `${(item.amount * item.worthValue).toLocaleString()} diamonds`;
 }
 
+function getTotalWorthValue(item: InventoryItem) {
+  return item.worthValue === null ? null : item.worthValue * item.amount;
+}
+
 function normalizeAmount(value: unknown) {
   if (typeof value !== "number" || !Number.isInteger(value) || value < 1) {
     return 1;
@@ -222,12 +226,24 @@ export default function AdminPetSimulatorInventoryPage() {
   const sortedItems = useMemo(() => {
     const ordered = [...items];
 
-    if (sortMode === "highest") {
+    if (sortMode === "worth-highest") {
       return ordered.sort((a, b) => (b.worthValue ?? -1) - (a.worthValue ?? -1));
     }
 
-    if (sortMode === "lowest") {
+    if (sortMode === "worth-lowest") {
       return ordered.sort((a, b) => (a.worthValue ?? Number.MAX_SAFE_INTEGER) - (b.worthValue ?? Number.MAX_SAFE_INTEGER));
+    }
+
+    if (sortMode === "total-highest") {
+      return ordered.sort((a, b) => (getTotalWorthValue(b) ?? -1) - (getTotalWorthValue(a) ?? -1));
+    }
+
+    if (sortMode === "total-lowest") {
+      return ordered.sort(
+        (a, b) =>
+          (getTotalWorthValue(a) ?? Number.MAX_SAFE_INTEGER) -
+          (getTotalWorthValue(b) ?? Number.MAX_SAFE_INTEGER),
+      );
     }
 
     return ordered;
@@ -464,13 +480,15 @@ export default function AdminPetSimulatorInventoryPage() {
             </div>
           </div>
           <Select
-            aria-label="Sort by item worth"
+            aria-label="Sort inventory"
             value={sortMode}
             onChange={(event) => setSortMode(event.target.value as SortMode)}
             options={[
               { value: "none", label: "Newest first" },
-              { value: "highest", label: "Worth: high to low" },
-              { value: "lowest", label: "Worth: low to high" },
+              { value: "worth-highest", label: "Item worth: high to low" },
+              { value: "worth-lowest", label: "Item worth: low to high" },
+              { value: "total-highest", label: "Total worth: high to low" },
+              { value: "total-lowest", label: "Total worth: low to high" },
             ]}
           />
         </div>
