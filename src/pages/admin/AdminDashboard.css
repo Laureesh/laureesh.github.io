@@ -976,6 +976,10 @@
   font-weight: 800;
 }
 
+.ps99-rarity--exclusive {
+  --rarity-color: #8b5cf6;
+}
+
 .ps99-rarity--celestial {
   --rarity-color: #8b5cf6;
   border-color: #38bdf8;
