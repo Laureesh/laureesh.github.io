@@ -437,6 +437,10 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.admin-content-form-grid--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .admin-content-form-actions {
   margin-top: 0.35rem;
 }
@@ -836,6 +840,97 @@
   margin: 0;
   color: var(--text-secondary);
   line-height: 1.6;
+}
+
+.ps99-inventory__table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--bg-secondary);
+}
+
+.ps99-inventory__table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.ps99-inventory__table th,
+.ps99-inventory__table td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  color: var(--text-secondary);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.ps99-inventory__table th {
+  color: var(--text-primary);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ps99-inventory__table tr:last-child td {
+  border-bottom: none;
+}
+
+.ps99-inventory__table td strong {
+  color: var(--text-primary);
+}
+
+.ps99-rarity {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 6.4rem;
+  padding: 0.3rem 0.68rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  color: var(--rarity-color);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.ps99-rarity--celestial {
+  --rarity-color: #8b5cf6;
+  border-color: #38bdf8;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.22), rgba(56, 189, 248, 0.18));
+  color: #c4b5fd;
+}
+
+.ps99-rarity--superior {
+  --rarity-color: #67e8f9;
+}
+
+.ps99-rarity--divine {
+  --rarity-color: #fde68a;
+}
+
+.ps99-rarity--exotic {
+  --rarity-color: #f0abfc;
+}
+
+.ps99-rarity--mythical {
+  --rarity-color: #fca5a5;
+}
+
+.ps99-rarity--legendary {
+  --rarity-color: #fb923c;
+}
+
+.ps99-rarity--epic {
+  --rarity-color: #93c5fd;
+}
+
+.ps99-rarity--rare {
+  --rarity-color: #86efac;
+}
+
+.ps99-rarity--basic {
+  --rarity-color: #d1d5db;
 }
 
 .admin-empty-state--compact {
@@ -1336,7 +1431,8 @@
   .admin-users__detail-grid,
   .admin-users__control-grid,
   .admin-content-form-grid,
-  .admin-content-form-grid--three {
+  .admin-content-form-grid--three,
+  .admin-content-form-grid--four {
     grid-template-columns: 1fr;
   }
 

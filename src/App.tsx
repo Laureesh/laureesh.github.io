@@ -46,6 +46,7 @@ import AdminFeatureTogglesPage from "./pages/admin/AdminFeatureTogglesPage";
 import AdminPagesPage from "./pages/admin/AdminPagesPage";
 import AdminPrivatePagesPage from "./pages/admin/AdminPrivatePagesPage";
 import AdminPrivatePageView from "./pages/admin/AdminPrivatePageView";
+import AdminPetSimulatorInventoryPage from "./pages/admin/AdminPetSimulatorInventoryPage";
 import AdminTasksPage from "./pages/admin/AdminTasksPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminJobsPage from "./pages/admin/AdminJobsPage";
@@ -281,6 +282,10 @@ export default function App() {
               <Route
                 path="private-pages/face-routine"
                 element={<AdminPrivatePageView pageKey="face-routine" />}
+              />
+              <Route
+                path="private-pages/ps99-inventory"
+                element={<AdminPetSimulatorInventoryPage />}
               />
             </Route>
             <Route

@@ -1,4 +1,8 @@
-export type AdminPrivateResourceKey = "food-routine" | "face-routine" | "fn-leaderboard";
+export type AdminPrivateResourceKey =
+  | "food-routine"
+  | "face-routine"
+  | "fn-leaderboard"
+  | "ps99-inventory";
 export type AdminPrivateResourceKind = "structured-page" | "standalone-tool";
 
 export interface AdminPrivateResource {
@@ -30,6 +34,13 @@ export const adminPrivateResources: AdminPrivateResource[] = [
     route: "/admin-dashboard/private-pages/fn-leaderboard",
     description: "Admin-only standalone leaderboard manager imported from the supplied HTML tool.",
     kind: "standalone-tool",
+  },
+  {
+    key: "ps99-inventory",
+    label: "Pet Simulator 99 Inventory",
+    route: "/admin-dashboard/private-pages/ps99-inventory",
+    description: "Admin-only tracker for Pet Simulator 99 item rarity, category, and diamond worth.",
+    kind: "structured-page",
   },
 ];
 
