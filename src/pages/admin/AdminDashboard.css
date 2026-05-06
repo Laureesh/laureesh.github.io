@@ -882,43 +882,35 @@
   text-transform: uppercase;
 }
 
-.ps99-inventory__table th:nth-child(1),
-.ps99-inventory__table td:nth-child(1) {
+.ps99-inventory__col-name {
   width: 18%;
 }
 
-.ps99-inventory__table th:nth-child(2),
-.ps99-inventory__table td:nth-child(2) {
+.ps99-inventory__col-rarity {
   width: 12%;
 }
 
-.ps99-inventory__table th:nth-child(3),
-.ps99-inventory__table td:nth-child(3) {
+.ps99-inventory__col-worth {
   width: 12%;
 }
 
-.ps99-inventory__table th:nth-child(4),
-.ps99-inventory__table td:nth-child(4) {
+.ps99-inventory__col-market {
   width: 13%;
 }
 
-.ps99-inventory__table th:nth-child(5),
-.ps99-inventory__table td:nth-child(5) {
+.ps99-inventory__col-amount {
   width: 7%;
 }
 
-.ps99-inventory__table th:nth-child(6),
-.ps99-inventory__table td:nth-child(6) {
+.ps99-inventory__col-total {
   width: 14%;
 }
 
-.ps99-inventory__table th:nth-child(7),
-.ps99-inventory__table td:nth-child(7) {
+.ps99-inventory__col-category {
   width: 12%;
 }
 
-.ps99-inventory__table th:nth-child(8),
-.ps99-inventory__table td:nth-child(8) {
+.ps99-inventory__col-actions {
   width: 12%;
 }
 

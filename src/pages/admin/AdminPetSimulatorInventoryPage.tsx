@@ -584,6 +584,16 @@ export default function AdminPetSimulatorInventoryPage() {
         {sortedItems.length ? (
           <div className="ps99-inventory__table-wrap">
             <table className="ps99-inventory__table">
+              <colgroup>
+                <col className="ps99-inventory__col-name" />
+                <col className="ps99-inventory__col-rarity" />
+                <col className="ps99-inventory__col-worth" />
+                <col className="ps99-inventory__col-market" />
+                <col className="ps99-inventory__col-amount" />
+                <col className="ps99-inventory__col-total" />
+                <col className="ps99-inventory__col-category" />
+                <col className="ps99-inventory__col-actions" />
+              </colgroup>
               <thead>
                 <tr>
                   <th>Name</th>
@@ -621,7 +631,6 @@ export default function AdminPetSimulatorInventoryPage() {
                           <strong>{item.name}</strong>
                         )}
                       </td>
-                      <td>{formatMarketPrice(item)}</td>
                       <td>
                         {isEditing ? (
                           <select
@@ -668,6 +677,7 @@ export default function AdminPetSimulatorInventoryPage() {
                           formatDiamonds(item.worthValue, item.worthInput)
                         )}
                       </td>
+                      <td>{formatMarketPrice(item)}</td>
                       <td>
                         {isEditing ? (
                           <input
