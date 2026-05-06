@@ -53,6 +53,7 @@ interface EditDraft {
 }
 
 const storageKey = "admin:ps99-inventory";
+const formPreferencesStorageKey = "admin:ps99-inventory:add-form-preferences";
 
 const rarityOptions: Rarity[] = [
   "Celestial",
@@ -147,6 +148,14 @@ function normalizeAmount(value: unknown) {
   return value;
 }
 
+function isRarity(value: unknown): value is Rarity {
+  return typeof value === "string" && rarityOptions.includes(value as Rarity);
+}
+
+function isCategory(value: unknown): value is Category {
+  return typeof value === "string" && categoryOptions.includes(value as Category);
+}
+
 function loadInventory() {
   try {
     const saved = window.localStorage.getItem(storageKey);
@@ -168,13 +177,31 @@ function loadInventory() {
   }
 }
 
+function loadFormPreferences() {
+  try {
+    const saved = window.localStorage.getItem(formPreferencesStorageKey);
+    const preferences = saved ? (JSON.parse(saved) as { rarity?: unknown; category?: unknown }) : {};
+
+    return {
+      rarity: isRarity(preferences.rarity) ? preferences.rarity : "Celestial",
+      category: isCategory(preferences.category) ? preferences.category : "Buffs",
+    };
+  } catch {
+    return {
+      rarity: "Celestial" as Rarity,
+      category: "Buffs" as Category,
+    };
+  }
+}
+
 export default function AdminPetSimulatorInventoryPage() {
   const [items, setItems] = useState<InventoryItem[]>(loadInventory);
+  const [formPreferences] = useState(loadFormPreferences);
   const [name, setName] = useState("");
-  const [rarity, setRarity] = useState<Rarity>("Celestial");
+  const [rarity, setRarity] = useState<Rarity>(formPreferences.rarity);
   const [worthInput, setWorthInput] = useState("");
   const [amount, setAmount] = useState("1");
-  const [category, setCategory] = useState<Category>("Buffs");
+  const [category, setCategory] = useState<Category>(formPreferences.category);
   const [sortMode, setSortMode] = useState<SortMode>("none");
   const [formError, setFormError] = useState("");
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -184,6 +211,13 @@ export default function AdminPetSimulatorInventoryPage() {
   useEffect(() => {
     window.localStorage.setItem(storageKey, JSON.stringify(items));
   }, [items]);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      formPreferencesStorageKey,
+      JSON.stringify({ rarity, category }),
+    );
+  }, [rarity, category]);
 
   const sortedItems = useMemo(() => {
     const ordered = [...items];
