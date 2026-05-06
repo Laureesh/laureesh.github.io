@@ -97,6 +97,7 @@ const worthMultipliers: Record<string, number> = {
   m: 1_000_000,
   b: 1_000_000_000,
 };
+const marketPriceMultiplier = 1.1987;
 
 function createId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -148,6 +149,14 @@ function formatTotalWorth(item: InventoryItem) {
 
 function getTotalWorthValue(item: InventoryItem) {
   return item.worthValue === null ? null : item.worthValue * item.amount;
+}
+
+function formatMarketPrice(item: InventoryItem) {
+  if (item.worthValue === null) {
+    return "Untradable";
+  }
+
+  return `${Math.round(item.worthValue * marketPriceMultiplier).toLocaleString()} diamonds`;
 }
 
 function getNameCompletion(input: string, items: InventoryItem[]) {
@@ -580,6 +589,7 @@ export default function AdminPetSimulatorInventoryPage() {
                   <th>Name</th>
                   <th>Rarity</th>
                   <th>Worth</th>
+                  <th>Market Price</th>
                   <th>Amount</th>
                   <th>Total Worth</th>
                   <th>Category</th>
@@ -611,6 +621,7 @@ export default function AdminPetSimulatorInventoryPage() {
                           <strong>{item.name}</strong>
                         )}
                       </td>
+                      <td>{formatMarketPrice(item)}</td>
                       <td>
                         {isEditing ? (
                           <select
