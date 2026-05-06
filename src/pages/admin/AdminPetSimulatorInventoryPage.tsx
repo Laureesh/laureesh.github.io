@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
 import { ArrowDownUp, Diamond, PackagePlus, Pencil, Save, Trash2, X } from "lucide-react";
 import { Button, Input, Select } from "../../components/ui";
 
@@ -249,8 +249,6 @@ export default function AdminPetSimulatorInventoryPage() {
     setName("");
     setWorthInput("");
     setAmount("1");
-    setRarity("Celestial");
-    setCategory("Buffs");
     setFormError("");
   };
 
@@ -321,6 +319,19 @@ export default function AdminPetSimulatorInventoryPage() {
       ),
     );
     handleCancelEdit();
+  };
+
+  const handleEditKeyDown = (event: KeyboardEvent<HTMLInputElement | HTMLSelectElement>, itemId: string) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleSaveEdit(itemId);
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      handleCancelEdit();
+    }
   };
 
   return (
@@ -456,6 +467,7 @@ export default function AdminPetSimulatorInventoryPage() {
                             className="ps99-inventory__field"
                             aria-label="Item name"
                             value={editDraft.name}
+                            onKeyDown={(event) => handleEditKeyDown(event, item.id)}
                             onChange={(event) =>
                               setEditDraft((currentDraft) =>
                                 currentDraft
@@ -474,6 +486,7 @@ export default function AdminPetSimulatorInventoryPage() {
                             className="ps99-inventory__field"
                             aria-label="Item rarity"
                             value={editDraft.rarity}
+                            onKeyDown={(event) => handleEditKeyDown(event, item.id)}
                             onChange={(event) =>
                               setEditDraft((currentDraft) =>
                                 currentDraft
@@ -500,6 +513,7 @@ export default function AdminPetSimulatorInventoryPage() {
                             className="ps99-inventory__field"
                             aria-label="Item worth"
                             value={editDraft.worthInput}
+                            onKeyDown={(event) => handleEditKeyDown(event, item.id)}
                             onChange={(event) =>
                               setEditDraft((currentDraft) =>
                                 currentDraft
@@ -521,6 +535,7 @@ export default function AdminPetSimulatorInventoryPage() {
                             min="1"
                             step="1"
                             value={editDraft.amount}
+                            onKeyDown={(event) => handleEditKeyDown(event, item.id)}
                             onChange={(event) =>
                               setEditDraft((currentDraft) =>
                                 currentDraft
@@ -540,6 +555,7 @@ export default function AdminPetSimulatorInventoryPage() {
                             className="ps99-inventory__field"
                             aria-label="Item category"
                             value={editDraft.category}
+                            onKeyDown={(event) => handleEditKeyDown(event, item.id)}
                             onChange={(event) =>
                               setEditDraft((currentDraft) =>
                                 currentDraft
