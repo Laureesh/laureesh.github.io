@@ -11,6 +11,219 @@
   gap: 0.9rem;
 }
 
+.admin-jobs-calendar-panel {
+  gap: 1rem;
+}
+
+.admin-jobs-calendar-header,
+.admin-jobs-calendar-controls,
+.admin-jobs-focus-grid,
+.admin-jobs-focus-summary {
+  display: flex;
+  gap: 1rem;
+}
+
+.admin-jobs-calendar-header {
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.admin-jobs-calendar-header h3,
+.admin-job-focus-list h4 {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.admin-jobs-calendar-header p {
+  margin: 0.35rem 0 0;
+  color: var(--text-secondary);
+}
+
+.admin-jobs-calendar-controls {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.admin-jobs-focus-grid {
+  align-items: stretch;
+}
+
+.admin-jobs-focus-summary {
+  flex: 0 0 290px;
+  flex-direction: column;
+}
+
+.admin-job-focus-stat {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-secondary);
+}
+
+.admin-job-focus-stat span {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-job-focus-stat strong {
+  color: var(--text-primary);
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.admin-job-focus-stat.is-overdue strong {
+  color: #f87171;
+}
+
+.admin-job-focus-stat.is-today strong {
+  color: #fbbf24;
+}
+
+.admin-job-focus-list {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-secondary);
+}
+
+.admin-job-focus-list p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.admin-job-focus-item {
+  display: grid;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-card);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-job-focus-item span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.admin-job-focus-item strong {
+  color: var(--text-primary);
+}
+
+.admin-job-focus-item small {
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.admin-job-focus-item.is-overdue {
+  border-color: rgba(248, 113, 113, 0.32);
+  background: rgba(248, 113, 113, 0.08);
+}
+
+.admin-job-focus-item.is-today {
+  border-color: rgba(251, 191, 36, 0.32);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.admin-jobs-calendar {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.admin-jobs-calendar__weekday {
+  padding: 0 0.35rem 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-jobs-calendar__day {
+  min-height: 112px;
+  padding: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.admin-jobs-calendar__day.is-muted {
+  opacity: 0.48;
+}
+
+.admin-jobs-calendar__day.is-today {
+  border-color: rgba(251, 191, 36, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.12);
+}
+
+.admin-jobs-calendar__day.is-overdue {
+  border-color: rgba(248, 113, 113, 0.34);
+}
+
+.admin-jobs-calendar__date {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.admin-jobs-calendar__day.is-today .admin-jobs-calendar__date {
+  background: rgba(251, 191, 36, 0.14);
+  color: #fbbf24;
+}
+
+.admin-jobs-calendar__events {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+
+.admin-jobs-calendar__events button {
+  width: 100%;
+  padding: 0.34rem 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-card));
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.admin-jobs-calendar__events small {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
 .admin-job-card {
   display: grid;
   grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.2fr) auto;
@@ -173,11 +386,38 @@
 }
 
 @media (max-width: 1180px) {
+  .admin-jobs-focus-grid,
+  .admin-jobs-calendar-header {
+    flex-direction: column;
+  }
+
+  .admin-jobs-focus-summary {
+    flex: 1 1 auto;
+  }
+
   .admin-job-card {
     grid-template-columns: 1fr;
   }
 
   .admin-job-card__actions {
     justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-jobs-calendar {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-jobs-calendar__weekday {
+    display: none;
+  }
+
+  .admin-jobs-calendar__day {
+    min-height: auto;
+  }
+
+  .admin-jobs-calendar__day.is-muted:not(:has(button)) {
+    display: none;
   }
 }

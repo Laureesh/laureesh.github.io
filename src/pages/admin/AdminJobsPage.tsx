@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  AlertCircle,
   Building2,
   CalendarDays,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   ExternalLink,
   Pencil,
   Save,
@@ -31,6 +34,53 @@ type JobEntry = {
 const STORAGE_KEY = "admin-jobs";
 
 const DEFAULT_RESPONSE_OPTIONS = ["No response", "Interview", "Rejected"];
+const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function toDateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function parseDateKey(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  return new Date(year, month - 1, day);
+}
+
+function getMonthKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function getCalendarDays(month: Date) {
+  const year = month.getFullYear();
+  const monthIndex = month.getMonth();
+  const firstDay = new Date(year, monthIndex, 1);
+  const start = new Date(firstDay);
+  start.setDate(firstDay.getDate() - firstDay.getDay());
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    return date;
+  });
+}
+
+function formatMonthTitle(date: Date) {
+  return new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" }).format(date);
+}
+
+function formatShortDate(value: string) {
+  const date = parseDateKey(value);
+
+  if (!date) {
+    return "No date";
+  }
+
+  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
+}
 
 export default function AdminJobsPage() {
   const getDefaultFollowUp = (days = 6) => {
@@ -46,6 +96,7 @@ export default function AdminJobsPage() {
   const [editingJobId, setEditingJobId] = useState<number | null>(null);
   const [editDraft, setEditDraft] = useState<JobEntry | null>(null);
   const [expandedNotes, setExpandedNotes] = useState<Set<number>>(new Set());
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
 
   useEffect(() => {
     try {
@@ -118,6 +169,36 @@ export default function AdminJobsPage() {
     });
   };
 
+  const todayKey = toDateKey(new Date());
+
+  const jobsByFollowUpDate = useMemo(() => {
+    return jobs.reduce<Record<string, JobEntry[]>>((groups, job) => {
+      if (!job.followUpDate) {
+        return groups;
+      }
+
+      groups[job.followUpDate] = [...(groups[job.followUpDate] ?? []), job];
+      return groups;
+    }, {});
+  }, [jobs]);
+
+  const focusJobs = useMemo(() => {
+    return jobs
+      .filter((job) => job.followUpDate && job.response !== "Rejected")
+      .sort((a, b) => a.followUpDate.localeCompare(b.followUpDate))
+      .slice(0, 6);
+  }, [jobs]);
+
+  const overdueCount = jobs.filter(
+    (job) => job.followUpDate && job.followUpDate < todayKey && job.response !== "Rejected",
+  ).length;
+  const todayCount = jobsByFollowUpDate[todayKey]?.length ?? 0;
+  const calendarDays = getCalendarDays(calendarMonth);
+
+  const shiftCalendarMonth = (amount: number) => {
+    setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + amount, 1));
+  };
+
   return (
     <div className="admin-panel-stack admin-jobs-page">
       <section className="admin-panel admin-panel--hero">
@@ -165,6 +246,117 @@ export default function AdminJobsPage() {
 
           <div style={{ marginTop: 12 }}>
             <Button onClick={handleAdd}>Add application</Button>
+          </div>
+        </div>
+      </section>
+
+      <section className="admin-panel admin-jobs-calendar-panel">
+        <div className="admin-jobs-calendar-header">
+          <div>
+            <p className="admin-panel__eyebrow">Focus Calendar</p>
+            <h3>{formatMonthTitle(calendarMonth)}</h3>
+            <p>Follow-up dates decide which applications need attention first.</p>
+          </div>
+          <div className="admin-jobs-calendar-controls">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              icon={<ChevronLeft size={16} />}
+              onClick={() => shiftCalendarMonth(-1)}
+            >
+              Prev
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              icon={<CalendarDays size={16} />}
+              onClick={() => setCalendarMonth(new Date())}
+            >
+              Today
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              icon={<ChevronRight size={16} />}
+              onClick={() => shiftCalendarMonth(1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+
+        <div className="admin-jobs-focus-grid">
+          <div className="admin-jobs-focus-summary">
+            <div className="admin-job-focus-stat is-overdue">
+              <span>Overdue</span>
+              <strong>{overdueCount}</strong>
+            </div>
+            <div className="admin-job-focus-stat is-today">
+              <span>Today</span>
+              <strong>{todayCount}</strong>
+            </div>
+            <div className="admin-job-focus-list">
+              <h4>Focus next</h4>
+              {focusJobs.length ? (
+                focusJobs.map((job) => {
+                  const isOverdue = job.followUpDate < todayKey;
+                  const isToday = job.followUpDate === todayKey;
+
+                  return (
+                    <button
+                      key={job.id}
+                      type="button"
+                      className={`admin-job-focus-item ${isOverdue ? "is-overdue" : ""} ${isToday ? "is-today" : ""}`}
+                      onClick={() => handleStartEdit(job)}
+                    >
+                      <span>
+                        {isOverdue ? <AlertCircle size={14} /> : <CalendarDays size={14} />}
+                        {isOverdue ? "Overdue" : isToday ? "Today" : formatShortDate(job.followUpDate)}
+                      </span>
+                      <strong>{job.company || "Untitled company"}</strong>
+                      <small>{job.title || "Untitled role"}</small>
+                    </button>
+                  );
+                })
+              ) : (
+                <p>No follow-ups to focus on.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="admin-jobs-calendar">
+            {weekdayLabels.map((day) => (
+              <div key={day} className="admin-jobs-calendar__weekday">
+                {day}
+              </div>
+            ))}
+            {calendarDays.map((date) => {
+              const dateKey = toDateKey(date);
+              const dayJobs = jobsByFollowUpDate[dateKey] ?? [];
+              const isCurrentMonth = getMonthKey(date) === getMonthKey(calendarMonth);
+              const isToday = dateKey === todayKey;
+              const isOverdue = dateKey < todayKey && dayJobs.some((job) => job.response !== "Rejected");
+
+              return (
+                <div
+                  key={dateKey}
+                  className={`admin-jobs-calendar__day ${isCurrentMonth ? "" : "is-muted"} ${isToday ? "is-today" : ""} ${isOverdue ? "is-overdue" : ""}`}
+                >
+                  <span className="admin-jobs-calendar__date">{date.getDate()}</span>
+                  <div className="admin-jobs-calendar__events">
+                    {dayJobs.slice(0, 3).map((job) => (
+                      <button key={job.id} type="button" onClick={() => handleStartEdit(job)}>
+                        {job.company || "Untitled"}
+                      </button>
+                    ))}
+                    {dayJobs.length > 3 ? <small>+{dayJobs.length - 3} more</small> : null}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
