@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { Button, Input, Select, Checkbox, Table } from "../../components/ui";
+import {
+  Building2,
+  CalendarDays,
+  CheckCircle2,
+  ExternalLink,
+  MessageSquareText,
+  Trash2,
+  UserRound,
+} from "lucide-react";
+import { Button, Input, Select, Checkbox, Textarea } from "../../components/ui";
 import "./AdminJobsPage.css";
 
 type JobEntry = {
@@ -70,56 +79,16 @@ export default function AdminJobsPage() {
 
   const handleDelete = (id: number) => setJobs((cur) => cur.filter((j) => j.id !== id));
 
-  const columns = [
-    { key: "company", label: "Company", sortable: true },
-    { key: "title", label: "Role", sortable: true },
-    {
-      key: "link",
-      label: "Link",
-      render: (value: unknown) => (
-        <a href={String(value ?? "#")} target="_blank" rel="noreferrer">
-          Open
-        </a>
-      ),
-    },
-    { key: "applied", label: "Applied", render: (v: unknown) => (v ? "Yes" : "No") },
-    { key: "recruiterName", label: "Recruiter" },
-    {
-      key: "recruiterLinkedIn",
-      label: "LinkedIn",
-      render: (value: unknown) => (
-        value ? (
-          <a href={String(value)} target="_blank" rel="noreferrer">
-            Profile
-          </a>
-        ) : (
-          ""
-        )
-      ),
-    },
-    { key: "contacted", label: "Contacted", render: (v: unknown) => (v ? "Yes" : "No") },
-    { key: "followUpDate", label: "Follow-Up" },
-    { key: "response", label: "Status" },
-    { key: "notes", label: "Notes" },
-    {
-      key: "actions",
-      label: "",
-      render: (_v: unknown, row: Record<string, unknown>) => (
-        <Button variant="secondary" onClick={() => handleDelete(Number(row.id))}>
-          Delete
-        </Button>
-      ),
-    },
-  ];
-
   return (
-    <div className="admin-panel-stack">
+    <div className="admin-panel-stack admin-jobs-page">
       <section className="admin-panel admin-panel--hero">
         <p className="admin-panel__eyebrow">Jobs</p>
         <div className="admin-panel__title-row">
           <h2>Application Tracker</h2>
         </div>
-        <p>Simple local tracker for job applications. Columns: Company | Role | Link | Applied | Recruiter | LinkedIn | Contacted | Follow-Up | Status | Notes</p>
+        <p>
+          Simple local tracker for job applications, recruiters, follow-ups, and notes.
+        </p>
       </section>
 
       <section className="admin-panel">
@@ -136,7 +105,9 @@ export default function AdminJobsPage() {
             <Input label="Recruiter LinkedIn" value={draft.recruiterLinkedIn ?? ""} onChange={(e) => setDraft((d) => ({ ...d, recruiterLinkedIn: e.target.value }))} />
             <Input label="Follow-Up Date" type="date" value={draft.followUpDate ?? ""} onChange={(e) => setDraft((d) => ({ ...d, followUpDate: e.target.value }))} />
             <Select label="Response" value={draft.response ?? "No response"} onChange={(e) => setDraft((d) => ({ ...d, response: e.target.value }))} options={DEFAULT_RESPONSE_OPTIONS.map((r) => ({ value: r, label: r }))} />
-            <Input label="Notes" value={draft.notes ?? ""} onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))} />
+            <div className="admin-jobs-form__notes">
+              <Textarea label="Notes" rows={4} value={draft.notes ?? ""} onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))} />
+            </div>
             <div>
               <Checkbox
                 label="Applied?"
@@ -165,14 +136,81 @@ export default function AdminJobsPage() {
           <p>{jobs.length} saved locally</p>
         </div>
 
-        <div className="admin-content-list">
-          <Table
-            className="admin-jobs-table"
-            columns={columns as any}
-            data={jobs as any}
-            emptyMessage="No applications saved"
-          />
-        </div>
+        {jobs.length ? (
+          <div className="admin-jobs-list">
+            {jobs.map((job) => (
+              <article key={job.id} className="admin-job-card">
+                <div className="admin-job-card__main">
+                  <div className="admin-job-card__title">
+                    <span className="admin-job-card__icon">
+                      <Building2 size={18} />
+                    </span>
+                    <div>
+                      <h3>{job.company || "Untitled company"}</h3>
+                      <p>{job.title || "Untitled role"}</p>
+                    </div>
+                  </div>
+
+                  <div className="admin-job-card__chips">
+                    <span className={`admin-job-chip ${job.applied ? "is-success" : ""}`}>
+                      <CheckCircle2 size={14} />
+                      {job.applied ? "Applied" : "Not applied"}
+                    </span>
+                    <span className={`admin-job-chip ${job.contacted ? "is-success" : ""}`}>
+                      <UserRound size={14} />
+                      {job.contacted ? "Contacted" : "Not contacted"}
+                    </span>
+                    <span className="admin-job-chip">
+                      <MessageSquareText size={14} />
+                      {job.response || "No response"}
+                    </span>
+                    <span className="admin-job-chip">
+                      <CalendarDays size={14} />
+                      {job.followUpDate || "No follow-up"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="admin-job-card__details">
+                  <div className="admin-job-detail">
+                    <span>Recruiter</span>
+                    <strong>{job.recruiterName || "Not added"}</strong>
+                  </div>
+                  <div className="admin-job-detail admin-job-detail--notes">
+                    <span>Notes</span>
+                    <p>{job.notes || "No notes yet."}</p>
+                  </div>
+                </div>
+
+                <div className="admin-job-card__actions">
+                  {job.link ? (
+                    <a className="admin-job-link" href={job.link} target="_blank" rel="noreferrer">
+                      Job
+                      <ExternalLink size={14} />
+                    </a>
+                  ) : null}
+                  {job.recruiterLinkedIn ? (
+                    <a className="admin-job-link" href={job.recruiterLinkedIn} target="_blank" rel="noreferrer">
+                      LinkedIn
+                      <ExternalLink size={14} />
+                    </a>
+                  ) : null}
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    icon={<Trash2 size={15} />}
+                    onClick={() => handleDelete(job.id)}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="admin-empty-state">No applications saved</div>
+        )}
       </section>
     </div>
   );
