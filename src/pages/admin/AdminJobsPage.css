@@ -22,6 +22,13 @@
   background: var(--bg-secondary);
 }
 
+.admin-job-card.is-editing {
+  grid-template-columns: 1fr;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 5%, transparent), transparent 36%),
+    var(--bg-secondary);
+}
+
 .admin-job-card__main,
 .admin-job-card__details,
 .admin-job-card__title > div,
@@ -117,6 +124,27 @@
   overflow: hidden;
 }
 
+.admin-job-detail--notes.is-expanded p {
+  display: block;
+  overflow: visible;
+}
+
+.admin-job-notes-toggle {
+  width: fit-content;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--accent-hover);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-job-notes-toggle:hover {
+  text-decoration: underline;
+}
+
 .admin-job-card__actions {
   display: flex;
   flex-wrap: wrap;
@@ -131,6 +159,17 @@
 
 .admin-job-link:hover {
   text-decoration: underline;
+}
+
+.admin-job-edit {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-job-edit__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
 }
 
 @media (max-width: 1180px) {
