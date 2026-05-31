@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Activity, CalendarDays, Dumbbell, ExternalLink, Flame, Pencil, Save, Scale, Utensils, X } from "lucide-react";
+import { Activity, CalendarDays, ChevronDown, ChevronRight, Dumbbell, ExternalLink, Flame, Pencil, Save, Scale, Utensils, X } from "lucide-react";
 import { Button, Checkbox, Input, Select, Textarea } from "../../components/ui";
 import "./AdminWeightTrackerPage.css";
 
@@ -77,6 +77,7 @@ interface WorkoutOverride {
 const storageKey = "admin:weight-tracker";
 const completionStorageKey = "admin:weight-tracker:completion:v2";
 const workoutOverridesStorageKey = "admin:weight-tracker:workout-overrides:v2";
+const collapsedSectionsStorageKey = "admin:weight-tracker:collapsed-sections";
 
 const defaultSettings: WeightTrackerSettings = {
   age: 23,
@@ -286,6 +287,15 @@ function loadWorkoutOverrides() {
   }
 }
 
+function loadCollapsedSections() {
+  try {
+    const saved = window.localStorage.getItem(collapsedSectionsStorageKey);
+    return saved ? JSON.parse(saved) as Record<string, boolean> : {};
+  } catch {
+    return {};
+  }
+}
+
 function toKg(pounds: number) {
   return pounds * 0.45359237;
 }
@@ -410,6 +420,7 @@ export default function AdminWeightTrackerPage() {
   const [completedWorkouts, setCompletedWorkouts] = useState<Record<number, boolean>>(completion.workouts ?? {});
   const [completedPushups, setCompletedPushups] = useState<Record<number, boolean>>(completion.pushups ?? {});
   const [workoutOverrides, setWorkoutOverrides] = useState<Record<number, WorkoutOverride>>(loadWorkoutOverrides);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(loadCollapsedSections);
   const [editingWorkoutIndex, setEditingWorkoutIndex] = useState<number | null>(null);
   const [workoutDraft, setWorkoutDraft] = useState<WorkoutOverride | null>(null);
 
@@ -427,6 +438,10 @@ export default function AdminWeightTrackerPage() {
   useEffect(() => {
     window.localStorage.setItem(workoutOverridesStorageKey, JSON.stringify(workoutOverrides));
   }, [workoutOverrides]);
+
+  useEffect(() => {
+    window.localStorage.setItem(collapsedSectionsStorageKey, JSON.stringify(collapsedSections));
+  }, [collapsedSections]);
 
   const weightKg = toKg(settings.weight);
   const heightCm = toCm(settings.feet, settings.inches);
@@ -572,6 +587,24 @@ export default function AdminWeightTrackerPage() {
     setSettings((current) => ({ ...current, [key]: value }));
   };
 
+  const isCollapsed = (key: string) => !!collapsedSections[key];
+
+  const toggleCollapsed = (key: string) => {
+    setCollapsedSections((current) => ({ ...current, [key]: !current[key] }));
+  };
+
+  const collapseHeading = (key: string, label: string) => (
+    <button
+      type="button"
+      className="weight-tracker__collapse-heading"
+      aria-expanded={!isCollapsed(key)}
+      onClick={() => toggleCollapsed(key)}
+    >
+      {isCollapsed(key) ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+      <span>{label}</span>
+    </button>
+  );
+
   const ageBreakdown = useMemo(
     () => getAgeBreakdown(settings.birthDate, settings.ageOnDate),
     [settings.ageOnDate, settings.birthDate],
@@ -636,8 +669,8 @@ export default function AdminWeightTrackerPage() {
           </div>
           <div className="weight-tracker__calculator-stack">
             <div className="weight-tracker__calculator-group">
-              <h3>Age Calculator</h3>
-              <div className="weight-tracker__form-grid">
+              {collapseHeading("live-age", "Age Calculator")}
+              {!isCollapsed("live-age") ? <div className="weight-tracker__form-grid">
                 <Select
                   label="Calculate"
                   value={settings.ageMode}
@@ -649,12 +682,12 @@ export default function AdminWeightTrackerPage() {
                 />
                 <Input label="Date of Birth" type="date" value={settings.birthDate} onChange={(event) => updateSetting("birthDate", event.target.value)} />
                 <Input label="Find Age On" type="date" value={settings.ageOnDate} onChange={(event) => updateSetting("ageOnDate", event.target.value)} />
-              </div>
+              </div> : null}
             </div>
 
             <div className="weight-tracker__calculator-group">
-              <h3>Body Details</h3>
-              <div className="weight-tracker__form-grid">
+              {collapseHeading("live-body", "Body Details")}
+              {!isCollapsed("live-body") ? <div className="weight-tracker__form-grid">
                 <Input label="Age" type="number" value={Math.floor(settings.age)} onChange={(event) => updateSetting("age", Math.floor(Number(event.target.value)))} />
                 <div>
                   <span className="ui-input-label">Gender</span>
@@ -668,12 +701,12 @@ export default function AdminWeightTrackerPage() {
                   <Input label="Inches" type="number" value={settings.inches} onChange={(event) => updateSetting("inches", Number(event.target.value))} />
                 </div>
                 <Input label="Weight" type="number" suffix="lb" value={settings.weight} onChange={(event) => updateSetting("weight", Number(event.target.value))} />
-              </div>
+              </div> : null}
             </div>
 
             <div className="weight-tracker__calculator-group">
-              <h3>Calorie Settings</h3>
-              <div className="weight-tracker__form-grid">
+              {collapseHeading("live-calories", "Calorie Settings")}
+              {!isCollapsed("live-calories") ? <div className="weight-tracker__form-grid">
                 <Select label="Activity" value={settings.activity} onChange={(event) => updateSetting("activity", event.target.value)} options={activityOptions} />
                 <Select
                   label="Formula"
@@ -695,12 +728,12 @@ export default function AdminWeightTrackerPage() {
                     { value: "kilojoules", label: "Kilojoules" },
                   ]}
                 />
-              </div>
+              </div> : null}
             </div>
 
             <div className="weight-tracker__calculator-group">
-              <h3>Macros</h3>
-              <div className="weight-tracker__form-grid">
+              {collapseHeading("live-macros", "Macros")}
+              {!isCollapsed("live-macros") ? <div className="weight-tracker__form-grid">
                 <Select
                   label="Macro Plan"
                   value={settings.macroMode}
@@ -714,12 +747,12 @@ export default function AdminWeightTrackerPage() {
                     <Input label="Fat %" type="number" value={settings.customFatPercent} onChange={(event) => updateSetting("customFatPercent", Number(event.target.value))} />
                   </>
                 ) : null}
-              </div>
+              </div> : null}
             </div>
 
             <div className="weight-tracker__calculator-group">
-              <h3>Length Conversion</h3>
-              <div className="weight-tracker__form-grid">
+              {collapseHeading("live-length", "Length Conversion")}
+              {!isCollapsed("live-length") ? <div className="weight-tracker__form-grid">
                 <Input label="Length" type="number" value={settings.lengthAmount} onChange={(event) => updateSetting("lengthAmount", Number(event.target.value))} />
                 <Select
                   label="Convert"
@@ -730,12 +763,12 @@ export default function AdminWeightTrackerPage() {
                     { value: "ft-to-in", label: "Feet to inches" },
                   ]}
                 />
-              </div>
+              </div> : null}
             </div>
 
             <div className="weight-tracker__calculator-group">
-              <h3>Water Intake</h3>
-              <div className="weight-tracker__form-grid">
+              {collapseHeading("live-water", "Water Intake")}
+              {!isCollapsed("live-water") ? <div className="weight-tracker__form-grid">
                 {/* Uses overall `weight` for water calculation */}
                 <Select
                   label="Water Activity"
@@ -749,7 +782,7 @@ export default function AdminWeightTrackerPage() {
                   onChange={(event) => updateSetting("waterClimate", event.target.value as WaterClimate)}
                   options={waterClimateOptions.map((option) => ({ value: option.value, label: option.label }))}
                 />
-              </div>
+              </div> : null}
             </div>
           </div>
         </section>
@@ -760,8 +793,8 @@ export default function AdminWeightTrackerPage() {
             <h2>Real-Time Results</h2>
           </div>
           <div className="weight-tracker__result-group">
-            <h3>Calorie Targets</h3>
-            {calorieTargets.map((target, index) => (
+            {collapseHeading("results-calories", "Calorie Targets")}
+            {!isCollapsed("results-calories") ? calorieTargets.map((target, index) => (
               <div key={target.label} className={`weight-tracker__result-card ${index === 0 ? "is-maintain" : ""}`}>
                 <div>
                   <strong>{Math.max(0, Math.round(target.value * resultMultiplier)).toLocaleString()}</strong>
@@ -770,19 +803,50 @@ export default function AdminWeightTrackerPage() {
                 </div>
                 <span>{target.label}</span>
               </div>
-            ))}
+            )) : null}
           </div>
           <div className="weight-tracker__result-group">
-            <h3>Body Results</h3>
-            <div className="weight-tracker__macro-grid">
+            {collapseHeading("results-body", "Body Results")}
+            {!isCollapsed("results-body") ? <div className="weight-tracker__macro-grid">
               <div className="weight-tracker__macro-card"><strong>{Math.round(bmr).toLocaleString()}</strong><span>BMR calories/day</span></div>
               <div className="weight-tracker__macro-card"><strong>{Math.round(weightKg)}</strong><span>kg body weight</span></div>
               <div className="weight-tracker__macro-card"><strong>{Math.round(heightCm)}</strong><span>cm height</span></div>
-            </div>
+            </div> : null}
           </div>
           <div className="weight-tracker__result-group">
-            <h3>Age Results</h3>
-            <div className="weight-tracker__age-answer">
+            {collapseHeading("results-bmi", "BMI & Ideal Weight")}
+            {!isCollapsed("results-bmi") ? <div className="weight-tracker__body-grid">
+              <div className="weight-tracker__bmi-card">
+                <span>BMI</span>
+                <strong>{bmi.toFixed(1)} kg/m²</strong>
+                <em>{getBmiClassification(bmi)}</em>
+                <div className="weight-tracker__bmi-meter" aria-hidden="true">
+                  <span style={{ left: `${Math.min(Math.max((bmi / 45) * 100, 0), 100)}%` }} />
+                </div>
+                <p>Healthy BMI range: 18.5 - 25 kg/m²</p>
+                <p>Healthy weight for this height: {formatPounds(healthyLow)} - {formatPounds(healthyHigh)}</p>
+                <p>BMI Prime: {bmiPrime.toFixed(2)}</p>
+                <p>Ponderal Index: {ponderalIndexMetric.toFixed(1)} kg/m³</p>
+              </div>
+
+              <div className="weight-tracker__ideal-card">
+                <span>Ideal weight formulas</span>
+                {idealWeights.map((entry) => (
+                  <div key={entry.formula} className="weight-tracker__ideal-row">
+                    <strong>{entry.formula}</strong>
+                    <span>{formatPounds(entry.value)}</span>
+                  </div>
+                ))}
+                <div className="weight-tracker__ideal-row is-range">
+                  <strong>Healthy BMI Range</strong>
+                  <span>{formatPounds(healthyLow)} - {formatPounds(healthyHigh)}</span>
+                </div>
+              </div>
+            </div> : null}
+          </div>
+          <div className="weight-tracker__result-group">
+            {collapseHeading("results-age", "Age Results")}
+            {!isCollapsed("results-age") ? <div className="weight-tracker__age-answer">
               <div>
                 <span>Age</span>
                 <strong>{ageBreakdown.years} years {ageBreakdown.months} months {ageBreakdown.days} days</strong>
@@ -802,11 +866,11 @@ export default function AdminWeightTrackerPage() {
               <hr />
               <strong>{ageBreakdown.daysUntilBirthday.toLocaleString()} days until next birthday or anniversary</strong>
               <p>{ageBreakdown.nextBirthday}</p>
-            </div>
+            </div> : null}
           </div>
           <div className="weight-tracker__result-group">
-            <h3>Macro Targets</h3>
-            <div className="weight-tracker__macro-results">
+            {collapseHeading("results-macros", "Macro Targets")}
+            {!isCollapsed("results-macros") ? <div className="weight-tracker__macro-results">
               {macroTargets.map((target) => (
                 <div key={target.label} className="weight-tracker__macro-result">
                   <span>{target.label}</span>
@@ -814,11 +878,11 @@ export default function AdminWeightTrackerPage() {
                   <small>{target.range}</small>
                 </div>
               ))}
-            </div>
+            </div> : null}
           </div>
           <div className="weight-tracker__result-group">
-            <h3>Utility Results</h3>
-            <div className="weight-tracker__results-row">
+            {collapseHeading("results-utility", "Utility Results")}
+            {!isCollapsed("results-utility") ? <div className="weight-tracker__results-row">
               <div className="weight-tracker__conversion-answer">
                 <span>Length Conversion</span>
                 <strong>{formatFeet(settings.lengthAmount)} {lengthFromLabel} = {formatFeet(lengthConverted)} {lengthToLabel}</strong>
@@ -829,92 +893,70 @@ export default function AdminWeightTrackerPage() {
                 <p><b>{waterLiters.toFixed(1)} litres</b> [{waterOunces.toFixed(1)} ounces] of water.</p>
                 <p>That is about <b>{waterBottles.toLocaleString()} bottles</b> if each bottle is 16.9 oz.</p>
               </div>
-            </div>
+            </div> : null}
           </div>
         </section>
       </div>
 
-      <section className="admin-panel weight-tracker__body-metrics">
-        <div className="admin-panel__title-row">
-          <Scale size={18} />
-          <h2>Body Metrics & Ideal Weight</h2>
-        </div>
-
-        <div className="weight-tracker__body-grid">
-          <div className="weight-tracker__bmi-card">
-            <span>BMI</span>
-            <strong>{bmi.toFixed(1)} kg/m²</strong>
-            <em>{getBmiClassification(bmi)}</em>
-            <div className="weight-tracker__bmi-meter" aria-hidden="true">
-              <span style={{ left: `${Math.min(Math.max((bmi / 45) * 100, 0), 100)}%` }} />
-            </div>
-            <p>Healthy BMI range: 18.5 - 25 kg/m²</p>
-            <p>Healthy weight for this height: {formatPounds(healthyLow)} - {formatPounds(healthyHigh)}</p>
-            <p>BMI Prime: {bmiPrime.toFixed(2)}</p>
-            <p>Ponderal Index: {ponderalIndexMetric.toFixed(1)} kg/m³</p>
+      <section className="admin-panel weight-tracker__references">
+        <div className="weight-tracker__panel-heading">
+          <div className="admin-panel__title-row">
+            <Utensils size={18} />
+            <h2>Food Reference</h2>
           </div>
+          <button type="button" className="weight-tracker__collapse-icon" aria-expanded={!isCollapsed("panel-food")} onClick={() => toggleCollapsed("panel-food")}>
+            {isCollapsed("panel-food") ? <ChevronRight size={18} /> : <ChevronDown size={18} />}
+          </button>
+        </div>
+        {!isCollapsed("panel-food") ? (
+          <>
+            <div className="weight-tracker__reference-controls">
+              <Input label="Search food" value={settings.foodSearch} onChange={(event) => updateSetting("foodSearch", event.target.value)} />
+              <Select label="Category" value={settings.foodCategory} onChange={(event) => updateSetting("foodCategory", event.target.value)} options={foodCategories.map((category) => ({ value: category, label: category }))} />
+            </div>
+            <div className="weight-tracker__food-grid">
+              {filteredFoods.map((food) => (
+                <div key={`${food.category}-${food.name}`} className="weight-tracker__food-card">
+                  <strong>{food.name}</strong>
+                  <span>{food.serving}</span>
+                  <div className="weight-tracker__food-meta">
+                    <span className="weight-tracker__chip">{food.calories} cal</span>
+                    <span className="weight-tracker__chip">{food.kj} kJ</span>
+                    <span className="weight-tracker__chip">{food.category}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : null}
+      </section>
 
-          <div className="weight-tracker__ideal-card">
-            <span>Ideal weight formulas</span>
-            {idealWeights.map((entry) => (
-              <div key={entry.formula} className="weight-tracker__ideal-row">
-                <strong>{entry.formula}</strong>
-                <span>{formatPounds(entry.value)}</span>
+      <section className="admin-panel weight-tracker__references">
+        <div className="weight-tracker__panel-heading">
+          <div className="admin-panel__title-row">
+            <Dumbbell size={18} />
+            <h2>Exercise Burn Estimate</h2>
+          </div>
+          <button type="button" className="weight-tracker__collapse-icon" aria-expanded={!isCollapsed("panel-exercise-burn")} onClick={() => toggleCollapsed("panel-exercise-burn")}>
+            {isCollapsed("panel-exercise-burn") ? <ChevronRight size={18} /> : <ChevronDown size={18} />}
+          </button>
+        </div>
+        {!isCollapsed("panel-exercise-burn") ? (
+          <div className="weight-tracker__exercise-grid">
+            {exercises.map((exercise) => (
+              <div key={exercise.activity} className="weight-tracker__exercise-card">
+                <strong>{exercise.activity}</strong>
+                <span>1 hour estimate at your current weight</span>
+                <div className="weight-tracker__exercise-meta">
+                  <span className="weight-tracker__chip">{interpolateExerciseCalories(exercise, settings.weight).toLocaleString()} cal</span>
+                  <span className="weight-tracker__chip">125 lb: {exercise.calories125}</span>
+                  <span className="weight-tracker__chip">155 lb: {exercise.calories155}</span>
+                  <span className="weight-tracker__chip">185 lb: {exercise.calories185}</span>
+                </div>
               </div>
             ))}
-            <div className="weight-tracker__ideal-row is-range">
-              <strong>Healthy BMI Range</strong>
-              <span>{formatPounds(healthyLow)} - {formatPounds(healthyHigh)}</span>
-            </div>
           </div>
-        </div>
-
-        {/* Extended explanatory cards removed — only core metrics shown above. */}
-      </section>
-
-      <section className="admin-panel weight-tracker__references">
-        <div className="admin-panel__title-row">
-          <Utensils size={18} />
-          <h2>Food Reference</h2>
-        </div>
-        <div className="weight-tracker__reference-controls">
-          <Input label="Search food" value={settings.foodSearch} onChange={(event) => updateSetting("foodSearch", event.target.value)} />
-          <Select label="Category" value={settings.foodCategory} onChange={(event) => updateSetting("foodCategory", event.target.value)} options={foodCategories.map((category) => ({ value: category, label: category }))} />
-        </div>
-        <div className="weight-tracker__food-grid">
-          {filteredFoods.map((food) => (
-            <div key={`${food.category}-${food.name}`} className="weight-tracker__food-card">
-              <strong>{food.name}</strong>
-              <span>{food.serving}</span>
-              <div className="weight-tracker__food-meta">
-                <span className="weight-tracker__chip">{food.calories} cal</span>
-                <span className="weight-tracker__chip">{food.kj} kJ</span>
-                <span className="weight-tracker__chip">{food.category}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="admin-panel weight-tracker__references">
-        <div className="admin-panel__title-row">
-          <Dumbbell size={18} />
-          <h2>Exercise Burn Estimate</h2>
-        </div>
-        <div className="weight-tracker__exercise-grid">
-          {exercises.map((exercise) => (
-            <div key={exercise.activity} className="weight-tracker__exercise-card">
-              <strong>{exercise.activity}</strong>
-              <span>1 hour estimate at your current weight</span>
-              <div className="weight-tracker__exercise-meta">
-                <span className="weight-tracker__chip">{interpolateExerciseCalories(exercise, settings.weight).toLocaleString()} cal</span>
-                <span className="weight-tracker__chip">125 lb: {exercise.calories125}</span>
-                <span className="weight-tracker__chip">155 lb: {exercise.calories155}</span>
-                <span className="weight-tracker__chip">185 lb: {exercise.calories185}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+        ) : null}
       </section>
 
       <section className="admin-panel weight-tracker__plan">

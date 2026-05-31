@@ -55,14 +55,52 @@
   border-top: none;
 }
 
-.weight-tracker__calculator-group h3,
-.weight-tracker__result-group h3 {
+.weight-tracker__collapse-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
   margin: 0 0 0.75rem;
+  padding: 0;
+  border: none;
+  background: transparent;
   color: var(--text-primary);
   font-size: 0.82rem;
   font-weight: 900;
   letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-align: left;
   text-transform: uppercase;
+  cursor: pointer;
+}
+
+.weight-tracker__collapse-heading svg {
+  color: var(--accent-hover);
+  flex: 0 0 auto;
+}
+
+.weight-tracker__panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.weight-tracker__collapse-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.weight-tracker__collapse-icon:hover,
+.weight-tracker__collapse-heading:hover {
+  color: var(--accent-hover);
 }
 
 .weight-tracker__form-row {
