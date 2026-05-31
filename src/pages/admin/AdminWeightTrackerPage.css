@@ -1,0 +1,194 @@
+.admin-shell:has(.weight-tracker) {
+  max-width: min(1560px, 100%);
+}
+
+.weight-tracker {
+  --weight-green: #4d7f2a;
+  --weight-blue: #3b82f6;
+  --weight-red: #ef4444;
+  --weight-yellow: #f59e0b;
+}
+
+.weight-tracker__grid,
+.weight-tracker__results,
+.weight-tracker__references,
+.weight-tracker__plan {
+  display: grid;
+  gap: 1rem;
+}
+
+.weight-tracker__grid {
+  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
+  align-items: start;
+}
+
+.weight-tracker__form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.weight-tracker__form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.weight-tracker__radio-row,
+.weight-tracker__toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.weight-tracker__radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.weight-tracker__result-card,
+.weight-tracker__macro-card,
+.weight-tracker__food-card,
+.weight-tracker__exercise-card,
+.weight-tracker__workout-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-secondary);
+}
+
+.weight-tracker__result-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.weight-tracker__result-card strong {
+  color: var(--text-primary);
+  font-size: 1.55rem;
+}
+
+.weight-tracker__result-card span,
+.weight-tracker__result-card small,
+.weight-tracker__macro-card span,
+.weight-tracker__food-card span,
+.weight-tracker__exercise-card span,
+.weight-tracker__workout-card span,
+.weight-tracker__workout-card p {
+  color: var(--text-secondary);
+}
+
+.weight-tracker__result-card.is-maintain {
+  border-color: color-mix(in srgb, var(--weight-green) 48%, var(--border));
+  background: color-mix(in srgb, var(--weight-green) 12%, var(--bg-secondary));
+}
+
+.weight-tracker__macro-grid,
+.weight-tracker__food-grid,
+.weight-tracker__exercise-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.weight-tracker__reference-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.weight-tracker__reference-controls .ui-input-wrapper,
+.weight-tracker__reference-controls .ui-select-wrapper {
+  flex: 1 1 220px;
+}
+
+.weight-tracker__food-card strong,
+.weight-tracker__exercise-card strong,
+.weight-tracker__workout-card strong {
+  color: var(--text-primary);
+}
+
+.weight-tracker__food-meta,
+.weight-tracker__exercise-meta,
+.weight-tracker__workout-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.weight-tracker__chip {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.24rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.weight-tracker__plan-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: end;
+}
+
+.weight-tracker__plan-head .ui-input-wrapper {
+  min-width: min(100%, 260px);
+}
+
+.weight-tracker__workout-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.weight-tracker__workout-card {
+  grid-template-columns: minmax(110px, 0.3fr) minmax(0, 0.9fr) minmax(0, 1.3fr) minmax(190px, 0.7fr);
+  align-items: start;
+}
+
+.weight-tracker__workout-date {
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.weight-tracker__workout-card p {
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.weight-tracker__level {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.3rem 0.58rem;
+  border-radius: 10px;
+  background: rgba(251, 191, 36, 0.14);
+  color: #fbbf24;
+  font-weight: 900;
+}
+
+@media (max-width: 1040px) {
+  .weight-tracker__grid,
+  .weight-tracker__workout-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .weight-tracker__form-grid,
+  .weight-tracker__form-row {
+    grid-template-columns: 1fr;
+  }
+}

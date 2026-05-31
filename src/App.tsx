@@ -47,6 +47,7 @@ import AdminPagesPage from "./pages/admin/AdminPagesPage";
 import AdminPrivatePagesPage from "./pages/admin/AdminPrivatePagesPage";
 import AdminPrivatePageView from "./pages/admin/AdminPrivatePageView";
 import AdminPetSimulatorInventoryPage from "./pages/admin/AdminPetSimulatorInventoryPage";
+import AdminWeightTrackerPage from "./pages/admin/AdminWeightTrackerPage";
 import AdminTasksPage from "./pages/admin/AdminTasksPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminJobsPage from "./pages/admin/AdminJobsPage";
@@ -286,6 +287,10 @@ export default function App() {
               <Route
                 path="private-pages/ps99-inventory"
                 element={<AdminPetSimulatorInventoryPage />}
+              />
+              <Route
+                path="private-pages/weight-tracker"
+                element={<AdminWeightTrackerPage />}
               />
             </Route>
             <Route
