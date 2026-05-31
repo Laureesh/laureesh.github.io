@@ -580,10 +580,8 @@ export default function AdminWeightTrackerPage() {
   // Sync numeric `age` into the live calculator when ageMode uses dates
   useEffect(() => {
     if (settings.ageMode === "age") {
-      const { years, months, days } = ageBreakdown;
-      const numericAge = years + (months / 12) + (days / 365);
-      if (Math.abs(numericAge - settings.age) > 0.01) {
-        updateSetting("age", Number(numericAge.toFixed(2)));
+      if (settings.age !== ageBreakdown.years) {
+        updateSetting("age", ageBreakdown.years);
       }
     }
   // intentionally depend on these date fields and mode
@@ -638,9 +636,26 @@ export default function AdminWeightTrackerPage() {
           </div>
           <div className="weight-tracker__calculator-stack">
             <div className="weight-tracker__calculator-group">
+              <h3>Age Calculator</h3>
+              <div className="weight-tracker__form-grid">
+                <Select
+                  label="Calculate"
+                  value={settings.ageMode}
+                  onChange={(event) => updateSetting("ageMode", event.target.value as AgeCalculateMode)}
+                  options={[
+                    { value: "age", label: "Age" },
+                    { value: "time-between", label: "Time between dates" },
+                  ]}
+                />
+                <Input label="Date of Birth" type="date" value={settings.birthDate} onChange={(event) => updateSetting("birthDate", event.target.value)} />
+                <Input label="Find Age On" type="date" value={settings.ageOnDate} onChange={(event) => updateSetting("ageOnDate", event.target.value)} />
+              </div>
+            </div>
+
+            <div className="weight-tracker__calculator-group">
               <h3>Body Details</h3>
               <div className="weight-tracker__form-grid">
-                <Input label="Age" type="number" value={settings.age} onChange={(event) => updateSetting("age", Number(event.target.value))} />
+                <Input label="Age" type="number" value={Math.floor(settings.age)} onChange={(event) => updateSetting("age", Math.floor(Number(event.target.value)))} />
                 <div>
                   <span className="ui-input-label">Gender</span>
                   <div className="weight-tracker__radio-row">
@@ -699,23 +714,6 @@ export default function AdminWeightTrackerPage() {
                     <Input label="Fat %" type="number" value={settings.customFatPercent} onChange={(event) => updateSetting("customFatPercent", Number(event.target.value))} />
                   </>
                 ) : null}
-              </div>
-            </div>
-
-            <div className="weight-tracker__calculator-group">
-              <h3>Age Calculator</h3>
-              <div className="weight-tracker__form-grid">
-                <Select
-                  label="Calculate"
-                  value={settings.ageMode}
-                  onChange={(event) => updateSetting("ageMode", event.target.value as AgeCalculateMode)}
-                  options={[
-                    { value: "age", label: "Age" },
-                    { value: "time-between", label: "Time between dates" },
-                  ]}
-                />
-                <Input label="Date of Birth" type="date" value={settings.birthDate} onChange={(event) => updateSetting("birthDate", event.target.value)} />
-                <Input label="Find Age On" type="date" value={settings.ageOnDate} onChange={(event) => updateSetting("ageOnDate", event.target.value)} />
               </div>
             </div>
 
