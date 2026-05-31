@@ -896,12 +896,6 @@ export default function AdminWeightTrackerPage() {
     notes: "",
   });
 
-  const isMealPlanCollapsed = (mealId: MealPlanMealId) => isCollapsed(`meal-${mealId}`);
-
-  const toggleMealPlanCollapsed = (mealId: MealPlanMealId) => {
-    toggleCollapsed(`meal-${mealId}`);
-  };
-
   const toggleMealOptionExpanded = (mealId: MealPlanMealId, optionId: string) => {
     setExpandedMealOptions((current) => ({
       ...current,
