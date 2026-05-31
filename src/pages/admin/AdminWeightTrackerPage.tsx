@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Activity, CalendarDays, Dumbbell, Flame, Scale, Utensils } from "lucide-react";
-import { Checkbox, Input, Select } from "../../components/ui";
+import { Activity, CalendarDays, Dumbbell, ExternalLink, Flame, Pencil, Save, Scale, Utensils, X } from "lucide-react";
+import { Button, Checkbox, Input, Select, Textarea } from "../../components/ui";
 import "./AdminWeightTrackerPage.css";
 
 type Gender = "male" | "female";
@@ -41,13 +41,26 @@ interface WorkoutTemplate {
   offset: number;
   type: string;
   exercises: string;
+  workoutLink?: string;
   variation: string;
   level: string;
   pushups: string;
+  pushupLink?: string;
+}
+
+interface WorkoutOverride {
+  type?: string;
+  exercises?: string;
+  workoutLink?: string;
+  variation?: string;
+  level?: string;
+  pushups?: string;
+  pushupLink?: string;
 }
 
 const storageKey = "admin:weight-tracker";
 const completionStorageKey = "admin:weight-tracker:completion";
+const workoutOverridesStorageKey = "admin:weight-tracker:workout-overrides";
 
 const defaultSettings: WeightTrackerSettings = {
   age: 23,
@@ -181,6 +194,15 @@ function loadCompletion() {
   }
 }
 
+function loadWorkoutOverrides() {
+  try {
+    const saved = window.localStorage.getItem(workoutOverridesStorageKey);
+    return saved ? JSON.parse(saved) as Record<number, WorkoutOverride> : {};
+  } catch {
+    return {};
+  }
+}
+
 function toKg(pounds: number) {
   return pounds * 0.45359237;
 }
@@ -199,6 +221,10 @@ function formatDate(dateKey: string) {
   return new Intl.DateTimeFormat(undefined, { month: "numeric", day: "numeric", year: "numeric" }).format(new Date(`${dateKey}T00:00:00`));
 }
 
+function formatWeekday(dateKey: string) {
+  return new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(new Date(`${dateKey}T00:00:00`));
+}
+
 function interpolateExerciseCalories(entry: ExerciseEntry, weight: number) {
   if (weight <= 125) return Math.round(entry.calories125 * (weight / 125));
   if (weight <= 155) return Math.round(entry.calories125 + ((entry.calories155 - entry.calories125) * (weight - 125)) / 30);
@@ -211,6 +237,9 @@ export default function AdminWeightTrackerPage() {
   const [completion] = useState(loadCompletion);
   const [completedWorkouts, setCompletedWorkouts] = useState<Record<number, boolean>>(completion.workouts ?? {});
   const [completedPushups, setCompletedPushups] = useState<Record<number, boolean>>(completion.pushups ?? {});
+  const [workoutOverrides, setWorkoutOverrides] = useState<Record<number, WorkoutOverride>>(loadWorkoutOverrides);
+  const [editingWorkoutIndex, setEditingWorkoutIndex] = useState<number | null>(null);
+  const [workoutDraft, setWorkoutDraft] = useState<WorkoutOverride | null>(null);
 
   useEffect(() => {
     window.localStorage.setItem(storageKey, JSON.stringify(settings));
@@ -222,6 +251,10 @@ export default function AdminWeightTrackerPage() {
       JSON.stringify({ workouts: completedWorkouts, pushups: completedPushups }),
     );
   }, [completedWorkouts, completedPushups]);
+
+  useEffect(() => {
+    window.localStorage.setItem(workoutOverridesStorageKey, JSON.stringify(workoutOverrides));
+  }, [workoutOverrides]);
 
   const weightKg = toKg(settings.weight);
   const heightCm = toCm(settings.feet, settings.inches);
@@ -260,12 +293,43 @@ export default function AdminWeightTrackerPage() {
 
   const scheduledWorkouts = workoutTemplates.map((workout, index) => ({
     ...workout,
+    ...workoutOverrides[index],
     index,
     date: addDays(settings.startDate, workout.offset),
   }));
 
   const updateSetting = <K extends keyof WeightTrackerSettings>(key: K, value: WeightTrackerSettings[K]) => {
     setSettings((current) => ({ ...current, [key]: value }));
+  };
+
+  const startWorkoutEdit = (workout: WorkoutTemplate & { index: number }) => {
+    setEditingWorkoutIndex(workout.index);
+    setWorkoutDraft({
+      type: workout.type,
+      exercises: workout.exercises,
+      workoutLink: workout.workoutLink ?? "",
+      variation: workout.variation,
+      level: workout.level,
+      pushups: workout.pushups,
+      pushupLink: workout.pushupLink ?? "",
+    });
+  };
+
+  const cancelWorkoutEdit = () => {
+    setEditingWorkoutIndex(null);
+    setWorkoutDraft(null);
+  };
+
+  const saveWorkoutEdit = () => {
+    if (editingWorkoutIndex == null || !workoutDraft) {
+      return;
+    }
+
+    setWorkoutOverrides((current) => ({
+      ...current,
+      [editingWorkoutIndex]: workoutDraft,
+    }));
+    cancelWorkoutEdit();
   };
 
   return (
@@ -400,24 +464,70 @@ export default function AdminWeightTrackerPage() {
           <Input label="Start Date" type="date" value={settings.startDate} onChange={(event) => updateSetting("startDate", event.target.value)} />
         </div>
         <div className="weight-tracker__workout-list">
-          {scheduledWorkouts.map((workout) => (
-            <article key={`${workout.offset}-${workout.variation}`} className="weight-tracker__workout-card">
-              <div className="weight-tracker__workout-date">{formatDate(workout.date)}</div>
-              <div>
-                <strong>{workout.type}</strong>
-                <p>{workout.exercises}</p>
-              </div>
-              <div>
-                <strong>{workout.variation}</strong>
-                <div className="weight-tracker__level">{workout.level}</div>
-                <p>{workout.pushups}</p>
-              </div>
-              <div className="weight-tracker__toggle-row">
-                <Checkbox label="Workout done" checked={!!completedWorkouts[workout.index]} onChange={(event) => setCompletedWorkouts((current) => ({ ...current, [workout.index]: event.target.checked }))} />
-                <Checkbox label="Pushups done" checked={!!completedPushups[workout.index]} onChange={(event) => setCompletedPushups((current) => ({ ...current, [workout.index]: event.target.checked }))} />
-              </div>
-            </article>
-          ))}
+          {scheduledWorkouts.map((workout) => {
+            const isToday = workout.date === new Date().toISOString().slice(0, 10);
+            const workoutDone = !!completedWorkouts[workout.index];
+            const pushupsDone = !!completedPushups[workout.index];
+            const isEditing = editingWorkoutIndex === workout.index && workoutDraft;
+
+            return (
+              <article key={`${workout.offset}-${workout.variation}`} className={`weight-tracker__workout-card ${isToday ? "is-today" : ""}`}>
+                {isEditing ? (
+                  <div className="weight-tracker__workout-edit">
+                    <div className="weight-tracker__form-grid">
+                      <Input label="Workout Type" value={workoutDraft.type ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, type: event.target.value } : draft)} />
+                      <Input label="Workout Link" value={workoutDraft.workoutLink ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, workoutLink: event.target.value } : draft)} />
+                      <Textarea label="Exercises" rows={4} value={workoutDraft.exercises ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, exercises: event.target.value } : draft)} />
+                      <Input label="Pushup Variation" value={workoutDraft.variation ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, variation: event.target.value } : draft)} />
+                      <Input label="Pushup Link" value={workoutDraft.pushupLink ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, pushupLink: event.target.value } : draft)} />
+                      <Input label="Level" value={workoutDraft.level ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, level: event.target.value } : draft)} />
+                      <Textarea label="Pushups" rows={3} value={workoutDraft.pushups ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, pushups: event.target.value } : draft)} />
+                    </div>
+                    <div className="weight-tracker__toggle-row">
+                      <Button type="button" size="sm" icon={<Save size={15} />} onClick={saveWorkoutEdit}>Save</Button>
+                      <Button type="button" size="sm" variant="ghost" icon={<X size={15} />} onClick={cancelWorkoutEdit}>Cancel</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="weight-tracker__workout-date">
+                      <span>{formatWeekday(workout.date)}</span>
+                      <strong>{formatDate(workout.date)}</strong>
+                      {isToday ? <em>Today</em> : null}
+                    </div>
+                    <div className={`weight-tracker__workout-block ${workoutDone ? "is-done" : ""}`}>
+                      <div className="weight-tracker__workout-title-row">
+                        <strong>{workout.type}</strong>
+                        {workout.workoutLink ? (
+                          <a href={workout.workoutLink} target="_blank" rel="noreferrer" aria-label={`${workout.type} link`}>
+                            <ExternalLink size={14} />
+                          </a>
+                        ) : null}
+                      </div>
+                      <p>{workout.exercises}</p>
+                    </div>
+                    <div className={`weight-tracker__workout-block ${pushupsDone ? "is-done" : ""}`}>
+                      <div className="weight-tracker__workout-title-row">
+                        <strong>{workout.variation}</strong>
+                        {workout.pushupLink ? (
+                          <a href={workout.pushupLink} target="_blank" rel="noreferrer" aria-label={`${workout.variation} link`}>
+                            <ExternalLink size={14} />
+                          </a>
+                        ) : null}
+                      </div>
+                      <div className="weight-tracker__level">{workout.level}</div>
+                      <p>{workout.pushups}</p>
+                    </div>
+                    <div className="weight-tracker__toggle-row">
+                      <Button type="button" size="sm" variant="ghost" icon={<Pencil size={15} />} onClick={() => startWorkoutEdit(workout)}>Edit</Button>
+                      <Checkbox label="Workout done" checked={workoutDone} onChange={(event) => setCompletedWorkouts((current) => ({ ...current, [workout.index]: event.target.checked }))} />
+                      <Checkbox label="Pushups done" checked={pushupsDone} onChange={(event) => setCompletedPushups((current) => ({ ...current, [workout.index]: event.target.checked }))} />
+                    </div>
+                  </>
+                )}
+              </article>
+            );
+          })}
         </div>
       </section>
     </div>

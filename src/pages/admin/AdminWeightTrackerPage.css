@@ -157,10 +157,72 @@
   align-items: start;
 }
 
+.weight-tracker__workout-card.is-today {
+  border-color: rgba(251, 191, 36, 0.46);
+  background:
+    linear-gradient(90deg, rgba(251, 191, 36, 0.1), transparent 34%),
+    var(--bg-secondary);
+}
+
 .weight-tracker__workout-date {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--text-primary);
+}
+
+.weight-tracker__workout-date span {
+  color: var(--accent-hover);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.weight-tracker__workout-date strong {
   color: var(--text-primary);
   font-size: 1.05rem;
+}
+
+.weight-tracker__workout-date em {
+  width: fit-content;
+  padding: 0.22rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.14);
+  color: #fbbf24;
+  font-size: 0.72rem;
+  font-style: normal;
   font-weight: 900;
+}
+
+.weight-tracker__workout-block {
+  display: grid;
+  gap: 0.42rem;
+  min-width: 0;
+}
+
+.weight-tracker__workout-block.is-done {
+  opacity: 0.58;
+}
+
+.weight-tracker__workout-block.is-done strong,
+.weight-tracker__workout-block.is-done p,
+.weight-tracker__workout-block.is-done .weight-tracker__level {
+  color: #34d399;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.weight-tracker__workout-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.weight-tracker__workout-title-row a {
+  display: inline-flex;
+  align-items: center;
+  color: var(--accent-hover);
 }
 
 .weight-tracker__workout-card p {
@@ -177,6 +239,16 @@
   background: rgba(251, 191, 36, 0.14);
   color: #fbbf24;
   font-weight: 900;
+}
+
+.weight-tracker__workout-edit {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 1rem;
+}
+
+.weight-tracker__workout-edit .ui-textarea-wrapper {
+  grid-column: 1 / -1;
 }
 
 @media (max-width: 1040px) {
