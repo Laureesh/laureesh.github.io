@@ -585,6 +585,167 @@
   color: var(--text-primary);
 }
 
+.weight-tracker__meal-plan {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.weight-tracker__meal-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.weight-tracker__meal-summary-card {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+}
+
+.weight-tracker__meal-summary-card.is-total {
+  border-color: color-mix(in srgb, var(--accent-hover) 32%, var(--border));
+  background: color-mix(in srgb, var(--accent-hover) 10%, var(--bg-secondary));
+}
+
+.weight-tracker__meal-summary-card strong,
+.weight-tracker__meal-active strong,
+.weight-tracker__meal-option-title {
+  color: var(--text-primary);
+}
+
+.weight-tracker__meal-summary-card span,
+.weight-tracker__meal-card-subtitle,
+.weight-tracker__meal-active span,
+.weight-tracker__meal-option-details {
+  color: var(--text-secondary);
+}
+
+.weight-tracker__meal-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.weight-tracker__meal-card {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-secondary);
+}
+
+.weight-tracker__meal-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.weight-tracker__meal-card-top .ui-input-wrapper,
+.weight-tracker__meal-card-top .ui-select-wrapper {
+  min-width: min(100%, 260px);
+  flex: 1 1 260px;
+}
+
+.weight-tracker__meal-card-subtitle {
+  margin: 0;
+}
+
+.weight-tracker__meal-active {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.weight-tracker__meal-active-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.weight-tracker__meal-active-meta span {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.24rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.weight-tracker__meal-options {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.weight-tracker__meal-options-head,
+.weight-tracker__meal-option {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.4fr) minmax(120px, 1fr) repeat(4, minmax(72px, 0.55fr)) minmax(160px, 1.1fr);
+  gap: 0.6rem;
+  align-items: start;
+}
+
+.weight-tracker__meal-options-head {
+  padding: 0 0.4rem;
+  color: var(--text-secondary);
+  font-size: 0.73rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.weight-tracker__meal-option {
+  padding: 0.75rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.weight-tracker__meal-option.is-selected {
+  border-color: color-mix(in srgb, var(--accent-hover) 48%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-hover) 22%, transparent);
+}
+
+.weight-tracker__meal-option-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.weight-tracker__meal-option-details {
+  grid-column: 1 / -1;
+  padding-top: 0.35rem;
+}
+
+.weight-tracker__meal-option-details p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.weight-tracker__meal-editor {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.85rem;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-card) 85%, transparent);
+}
+
+.weight-tracker__meal-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
 .weight-tracker__workout-list {
   display: grid;
   gap: 1rem;
@@ -757,8 +918,18 @@
   .weight-tracker__age-grid,
   .weight-tracker__body-grid,
   .weight-tracker__info-grid,
-  .weight-tracker__workout-card {
+  .weight-tracker__workout-card,
+  .weight-tracker__meal-options-head,
+  .weight-tracker__meal-option {
     grid-template-columns: 1fr;
+  }
+
+  .weight-tracker__meal-option-actions {
+    padding-top: 0.15rem;
+  }
+
+  .weight-tracker__meal-option-details {
+    grid-column: 1;
   }
 }
 

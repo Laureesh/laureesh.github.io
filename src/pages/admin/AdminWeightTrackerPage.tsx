@@ -12,6 +12,32 @@ type LengthUnit = "in-to-ft" | "ft-to-in";
 type WaterActivity = "sedentary" | "light" | "moderate" | "very-active" | "extremely-active";
 type WaterClimate = "tropical" | "temperate" | "cold";
 type WorkoutPlanMode = "progression" | "circuit";
+type MealPlanMealId = "breakfast" | "lunch" | "snack" | "dinner" | "late-snack";
+
+interface MealPlanOption {
+  id: string;
+  title: string;
+  focus: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  notes?: string;
+}
+
+interface MealPlanMeal {
+  id: MealPlanMealId;
+  title: string;
+  subtitle: string;
+  options: MealPlanOption[];
+  selectedOptionId: string;
+}
+
+interface MealOptionEditor {
+  mealId: MealPlanMealId;
+  optionId?: string;
+  draft: Omit<MealPlanOption, "id">;
+}
 
 interface WeightTrackerSettings {
   age: number;
@@ -82,6 +108,7 @@ const storageKey = "admin:weight-tracker";
 const completionStorageKey = "admin:weight-tracker:completion:v4";
 const workoutOverridesStorageKey = "admin:weight-tracker:workout-overrides:v4";
 const collapsedSectionsStorageKey = "admin:weight-tracker:collapsed-sections";
+const mealPlanStorageKey = "admin:weight-tracker:meal-plan:v1";
 
 const defaultSettings: WeightTrackerSettings = {
   age: 23,
@@ -299,6 +326,154 @@ const circuitWorkoutTemplates: WorkoutTemplate[] = [
 
 const foodCategories = ["All", ...Array.from(new Set(foods.map((food) => food.category)))];
 
+function mealOption(
+  id: string,
+  title: string,
+  focus: string,
+  calories: number,
+  protein: number,
+  carbs: number,
+  fats: number,
+  notes?: string,
+): MealPlanOption {
+  return { id, title, focus, calories, protein, carbs, fats, notes };
+}
+
+const breakfastOptions = [
+  mealOption("breakfast-1", "Greek Yogurt Berry Parfait", "High protein, fast prep", 420, 35, 38, 14),
+  mealOption("breakfast-2", "Veggie Omelet + Toast", "Savory, balanced start", 480, 32, 28, 22),
+  mealOption("breakfast-3", "Oatmeal + Banana + Peanut Butter", "Slow-release energy", 540, 22, 64, 20),
+  mealOption("breakfast-4", "Protein Smoothie Bowl", "Light but filling", 400, 34, 42, 10),
+  mealOption("breakfast-5", "Turkey Breakfast Wrap", "Portable and high protein", 450, 37, 30, 16),
+  mealOption("breakfast-6", "Cottage Cheese + Fruit Bowl", "Creamy, no-cook option", 360, 30, 32, 10),
+  mealOption("breakfast-7", "Avocado Toast + Eggs", "Healthy fats and satiety", 470, 25, 31, 27),
+  mealOption("breakfast-8", "Overnight Oats + Chia", "Meal-prep friendly", 430, 27, 52, 14),
+  mealOption("breakfast-9", "Breakfast Burrito", "Hearty and customizable", 510, 33, 34, 24),
+  mealOption("breakfast-10", "Salmon Toast + Citrus", "Omega-3 rich", 460, 31, 24, 24),
+  mealOption("breakfast-11", "Protein Pancakes", "Sweet but still high protein", 520, 38, 58, 15),
+  mealOption("breakfast-12", "Chicken Hash Bowl", "Great post-workout meal", 560, 42, 40, 20),
+  mealOption("breakfast-13", "Skyr + Granola", "Quick, cold breakfast", 390, 29, 41, 9),
+  mealOption("breakfast-14", "Breakfast Rice Bowl", "Good if you train early", 500, 34, 50, 16),
+  mealOption("breakfast-15", "Tofu Scramble + Potatoes", "Plant-forward option", 440, 26, 36, 18),
+];
+
+const lunchOptions = [
+  mealOption("lunch-1", "Chicken Quinoa Bowl", "Lean protein + grains", 560, 45, 48, 18),
+  mealOption("lunch-2", "Turkey Sandwich + Fruit", "Simple and portable", 520, 40, 50, 14),
+  mealOption("lunch-3", "Tuna Rice Bowl", "Fast pantry-friendly lunch", 500, 38, 44, 16),
+  mealOption("lunch-4", "Salmon Salad + Bread", "Lighter but satisfying", 540, 36, 28, 28),
+  mealOption("lunch-5", "Beef Burrito Bowl", "Higher calorie training fuel", 620, 44, 52, 24),
+  mealOption("lunch-6", "Grilled Chicken Wrap", "Easy desk lunch", 510, 41, 41, 15),
+  mealOption("lunch-7", "Tofu Stir-Fry + Rice", "Vegetarian lunch option", 500, 28, 58, 18),
+  mealOption("lunch-8", "Shrimp Pasta Salad", "Cool and fresh", 480, 34, 45, 14),
+  mealOption("lunch-9", "Turkey Chili + Cornbread", "Comfort food with protein", 600, 43, 55, 18),
+  mealOption("lunch-10", "Chicken Pasta Primavera", "Balanced classic", 580, 40, 62, 17),
+  mealOption("lunch-11", "Steak Salad + Potatoes", "Heavier lunch for training days", 590, 42, 34, 26),
+  mealOption("lunch-12", "Chickpea Grain Bowl", "Fiber-rich plant option", 540, 24, 62, 16),
+  mealOption("lunch-13", "Egg Salad Sandwich", "Quick and filling", 490, 28, 42, 20),
+  mealOption("lunch-14", "Mediterranean Chicken Pita", "Fresh and savory", 530, 39, 50, 16),
+  mealOption("lunch-15", "Cottage Cheese Bowl + Wrap", "High protein and simple", 450, 33, 38, 12),
+];
+
+const snackOptions = [
+  mealOption("snack-1", "Banana + Peanut Butter", "Quick pre-workout fuel", 290, 8, 34, 14),
+  mealOption("snack-2", "Greek Yogurt + Granola", "Creamy and balanced", 260, 20, 28, 6),
+  mealOption("snack-3", "Protein Shake", "Fast recovery snack", 220, 30, 10, 3),
+  mealOption("snack-4", "Apple + Almonds", "Crunchy, easy to pack", 240, 6, 28, 11),
+  mealOption("snack-5", "Rice Cakes + Honey + Turkey", "Light carb + protein combo", 280, 16, 34, 5),
+  mealOption("snack-6", "Dates + Cottage Cheese", "Sweet and filling", 250, 18, 26, 6),
+  mealOption("snack-7", "Hummus + Crackers", "Savory snack plate", 230, 8, 24, 11),
+  mealOption("snack-8", "Edamame + Fruit", "Fiber-rich and portable", 240, 17, 22, 8),
+  mealOption("snack-9", "Cheese Stick + Berries", "Small and easy", 180, 10, 14, 8),
+  mealOption("snack-10", "Oats Bite + Yogurt", "Good if you need more carbs", 300, 18, 36, 8),
+  mealOption("snack-11", "Tuna Packet + Crackers", "Protein-forward snack", 210, 22, 12, 5),
+  mealOption("snack-12", "Fruit Smoothie", "Cool and quick", 270, 24, 30, 4),
+  mealOption("snack-13", "Hard-Boiled Eggs + Toast", "Classic snack plate", 260, 18, 18, 12),
+  mealOption("snack-14", "Protein Bar + Orange", "Convenient on the go", 250, 20, 28, 7),
+  mealOption("snack-15", "Peanut Butter Toast", "Simple energy boost", 280, 10, 30, 12),
+];
+
+const dinnerOptions = [
+  mealOption("dinner-1", "Salmon + Rice + Broccoli", "Balanced recovery meal", 620, 42, 54, 24),
+  mealOption("dinner-2", "Chicken Breast + Sweet Potato", "Lean and reliable", 560, 48, 42, 14),
+  mealOption("dinner-3", "Lean Beef Stir-Fry + Rice", "Higher energy dinner", 680, 45, 58, 26),
+  mealOption("dinner-4", "Turkey Meatballs + Pasta", "Comforting and filling", 640, 40, 70, 18),
+  mealOption("dinner-5", "Tofu Curry + Rice", "Plant-based dinner", 590, 30, 62, 20),
+  mealOption("dinner-6", "Pork Tenderloin + Potatoes", "Simple roasted dinner", 610, 44, 40, 24),
+  mealOption("dinner-7", "Shrimp Tacos + Slaw", "Lighter dinner option", 540, 36, 48, 18),
+  mealOption("dinner-8", "Steak + Veggies + Quinoa", "Higher protein plate", 700, 50, 38, 30),
+  mealOption("dinner-9", "Baked Chicken Thighs + Corn", "Rich and satisfying", 630, 43, 44, 28),
+  mealOption("dinner-10", "Tilapia + Quinoa + Green Beans", "Light and clean", 560, 39, 46, 16),
+  mealOption("dinner-11", "Chicken Fajita Bowl", "Big flavor, easy macros", 600, 45, 52, 20),
+  mealOption("dinner-12", "Lamb Kebab + Rice", "Heavier dinner choice", 720, 42, 54, 32),
+  mealOption("dinner-13", "Spaghetti + Turkey Sauce", "Family-style comfort", 670, 38, 78, 18),
+  mealOption("dinner-14", "Chickpea Curry + Naan", "Vegetarian comfort meal", 610, 28, 76, 18),
+  mealOption("dinner-15", "Sheet-Pan Sausage + Vegetables", "Low-fuss dinner", 650, 35, 34, 36),
+];
+
+const lateSnackOptions = [
+  mealOption("late-snack-1", "Cottage Cheese + Berries", "High protein, light finish", 220, 22, 16, 6),
+  mealOption("late-snack-2", "Casein Shake", "Slow-digesting recovery snack", 190, 30, 6, 2),
+  mealOption("late-snack-3", "Greek Yogurt + Cinnamon", "Simple and calming", 180, 18, 12, 4),
+  mealOption("late-snack-4", "Turkey Roll-Ups", "Low-carb savory bite", 170, 20, 4, 7),
+  mealOption("late-snack-5", "Peanut Butter Toast", "If you need more calories", 230, 10, 22, 11),
+  mealOption("late-snack-6", "Hard-Boiled Eggs", "Minimal prep", 160, 14, 2, 10),
+  mealOption("late-snack-7", "Skyr + Walnuts", "Creamy with healthy fats", 210, 20, 10, 8),
+  mealOption("late-snack-8", "Protein Pudding", "Dessert-style recovery snack", 200, 22, 14, 4),
+  mealOption("late-snack-9", "Edamame Cup", "Warm or cold protein snack", 190, 16, 14, 8),
+  mealOption("late-snack-10", "String Cheese + Apple", "Easy sweet-salty combo", 200, 10, 20, 9),
+  mealOption("late-snack-11", "Tuna Salad Crackers", "Small but filling", 230, 20, 16, 9),
+  mealOption("late-snack-12", "Almond Butter Rice Cake", "Light carb top-off", 210, 7, 22, 10),
+  mealOption("late-snack-13", "Chocolate Milk + Protein", "Good post-training option", 240, 22, 24, 4),
+  mealOption("late-snack-14", "Cottage Cheese + Pineapple", "Sweet, high-protein finish", 210, 20, 18, 4),
+  mealOption("late-snack-15", "Small Smoothie", "Light and easy before bed", 230, 18, 26, 5),
+];
+
+const mealPlanSeed: MealPlanMeal[] = [
+  {
+    id: "breakfast",
+    title: "Meal 1 - Breakfast",
+    subtitle: "High-protein, energizing",
+    options: breakfastOptions,
+    selectedOptionId: "breakfast-1",
+  },
+  {
+    id: "lunch",
+    title: "Meal 2 - Lunch",
+    subtitle: "Balanced and filling",
+    options: lunchOptions,
+    selectedOptionId: "lunch-1",
+  },
+  {
+    id: "snack",
+    title: "Meal 3 - Snack / Pre-Workout",
+    subtitle: "Quick fuel",
+    options: snackOptions,
+    selectedOptionId: "snack-1",
+  },
+  {
+    id: "dinner",
+    title: "Meal 4 - Dinner",
+    subtitle: "High-protein, lower-carb",
+    options: dinnerOptions,
+    selectedOptionId: "dinner-1",
+  },
+  {
+    id: "late-snack",
+    title: "Meal 5 - Late Snack (optional)",
+    subtitle: "Protein-based recovery",
+    options: lateSnackOptions,
+    selectedOptionId: "late-snack-1",
+  },
+];
+
+function createDefaultMealPlan() {
+  return mealPlanSeed.map((meal) => ({
+    ...meal,
+    options: meal.options.map((option) => ({ ...option })),
+  }));
+}
+
 function loadSettings() {
   try {
     const saved = window.localStorage.getItem(storageKey);
@@ -334,6 +509,15 @@ function loadCollapsedSections() {
     return saved ? JSON.parse(saved) as Record<string, boolean> : {};
   } catch {
     return {};
+  }
+}
+
+function loadMealPlan() {
+  try {
+    const saved = window.localStorage.getItem(mealPlanStorageKey);
+    return saved ? JSON.parse(saved) as MealPlanMeal[] : createDefaultMealPlan();
+  } catch {
+    return createDefaultMealPlan();
   }
 }
 
@@ -462,8 +646,11 @@ export default function AdminWeightTrackerPage() {
   const [completedPushups, setCompletedPushups] = useState<Record<number, boolean>>(completion.pushups ?? {});
   const [workoutOverrides, setWorkoutOverrides] = useState<Record<number, WorkoutOverride>>(loadWorkoutOverrides);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(loadCollapsedSections);
+  const [mealPlan, setMealPlan] = useState<MealPlanMeal[]>(loadMealPlan);
   const [editingWorkoutIndex, setEditingWorkoutIndex] = useState<number | null>(null);
   const [workoutDraft, setWorkoutDraft] = useState<WorkoutOverride | null>(null);
+  const [mealOptionEditor, setMealOptionEditor] = useState<MealOptionEditor | null>(null);
+  const [expandedMealOptions, setExpandedMealOptions] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     window.localStorage.setItem(storageKey, JSON.stringify(settings));
@@ -483,6 +670,10 @@ export default function AdminWeightTrackerPage() {
   useEffect(() => {
     window.localStorage.setItem(collapsedSectionsStorageKey, JSON.stringify(collapsedSections));
   }, [collapsedSections]);
+
+  useEffect(() => {
+    window.localStorage.setItem(mealPlanStorageKey, JSON.stringify(mealPlan));
+  }, [mealPlan]);
 
   const weightKg = toKg(settings.weight);
   const heightCm = toCm(settings.feet, settings.inches);
@@ -695,10 +886,118 @@ export default function AdminWeightTrackerPage() {
     </button>
   );
 
+  const createEmptyMealOptionDraft = (): Omit<MealPlanOption, "id"> => ({
+    title: "",
+    focus: "",
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fats: 0,
+    notes: "",
+  });
+
+  const isMealPlanCollapsed = (mealId: MealPlanMealId) => isCollapsed(`meal-${mealId}`);
+
+  const toggleMealPlanCollapsed = (mealId: MealPlanMealId) => {
+    toggleCollapsed(`meal-${mealId}`);
+  };
+
+  const toggleMealOptionExpanded = (mealId: MealPlanMealId, optionId: string) => {
+    setExpandedMealOptions((current) => ({
+      ...current,
+      [`${mealId}:${optionId}`]: !current[`${mealId}:${optionId}`],
+    }));
+  };
+
+  const startMealOptionAdd = (mealId: MealPlanMealId) => {
+    setMealOptionEditor({ mealId, draft: createEmptyMealOptionDraft() });
+  };
+
+  const startMealOptionEdit = (mealId: MealPlanMealId, option: MealPlanOption) => {
+    setMealOptionEditor({
+      mealId,
+      optionId: option.id,
+      draft: {
+        title: option.title,
+        focus: option.focus,
+        calories: option.calories,
+        protein: option.protein,
+        carbs: option.carbs,
+        fats: option.fats,
+        notes: option.notes ?? "",
+      },
+    });
+  };
+
+  const cancelMealOptionEdit = () => {
+    setMealOptionEditor(null);
+  };
+
+  const saveMealOptionEdit = () => {
+    if (!mealOptionEditor || !mealOptionEditor.draft.title.trim()) {
+      return;
+    }
+
+    setMealPlan((current) => current.map((meal) => {
+      if (meal.id !== mealOptionEditor.mealId) {
+        return meal;
+      }
+
+      if (mealOptionEditor.optionId) {
+        return {
+          ...meal,
+          options: meal.options.map((option) => option.id === mealOptionEditor.optionId
+            ? { ...option, ...mealOptionEditor.draft, notes: mealOptionEditor.draft.notes?.trim() || undefined }
+            : option),
+        };
+      }
+
+      const nextId = `${meal.id}-${Date.now().toString(36)}`;
+      return {
+        ...meal,
+        options: [...meal.options, { id: nextId, ...mealOptionEditor.draft, notes: mealOptionEditor.draft.notes?.trim() || undefined }],
+        selectedOptionId: meal.selectedOptionId || nextId,
+      };
+    }));
+
+    setMealOptionEditor(null);
+  };
+
+  const deleteMealOption = (mealId: MealPlanMealId, optionId: string) => {
+    setMealPlan((current) => current.map((meal) => {
+      if (meal.id !== mealId) {
+        return meal;
+      }
+
+      const nextOptions = meal.options.filter((option) => option.id !== optionId);
+      return {
+        ...meal,
+        options: nextOptions,
+        selectedOptionId: meal.selectedOptionId === optionId ? nextOptions[0]?.id ?? "" : meal.selectedOptionId,
+      };
+    }));
+
+    if (mealOptionEditor?.mealId === mealId && mealOptionEditor.optionId === optionId) {
+      cancelMealOptionEdit();
+    }
+  };
+
+  const selectMealOption = (mealId: MealPlanMealId, optionId: string) => {
+    setMealPlan((current) => current.map((meal) => meal.id === mealId ? { ...meal, selectedOptionId: optionId } : meal));
+  };
+
   const ageBreakdown = useMemo(
     () => getAgeBreakdown(settings.birthDate, settings.ageOnDate),
     [settings.ageOnDate, settings.birthDate],
   );
+
+  const mealPlanSelectedOptions = useMemo(() => mealPlan.map((meal) => meal.options.find((option) => option.id === meal.selectedOptionId) ?? meal.options[0]).filter(Boolean) as MealPlanOption[], [mealPlan]);
+  const mealPlanTotals = useMemo(() => mealPlanSelectedOptions.reduce((totals, option) => ({
+    calories: totals.calories + option.calories,
+    protein: totals.protein + option.protein,
+    carbs: totals.carbs + option.carbs,
+    fats: totals.fats + option.fats,
+  }), { calories: 0, protein: 0, carbs: 0, fats: 0 }), [mealPlanSelectedOptions]);
 
   // Sync numeric `age` into the live calculator when ageMode uses dates
   useEffect(() => {
@@ -1059,6 +1358,145 @@ export default function AdminWeightTrackerPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </>
+        ) : null}
+      </section>
+
+      <section className="admin-panel weight-tracker__meal-plan">
+        <div className="weight-tracker__panel-heading">
+          <div className="admin-panel__title-row">
+            <Utensils size={18} />
+            <h2>Meal Plan</h2>
+          </div>
+          <button type="button" className="weight-tracker__collapse-icon" aria-expanded={!isCollapsed("panel-meal-plan")} onClick={() => toggleCollapsed("panel-meal-plan")}>
+            {isCollapsed("panel-meal-plan") ? <ChevronRight size={18} /> : <ChevronDown size={18} />}
+          </button>
+        </div>
+        {!isCollapsed("panel-meal-plan") ? (
+          <>
+            <div className="weight-tracker__meal-summary-grid">
+              <div className="weight-tracker__meal-summary-card is-total">
+                <strong>{mealPlanTotals.calories.toLocaleString()} kcal</strong>
+                <span>Total selected calories</span>
+              </div>
+              <div className="weight-tracker__meal-summary-card">
+                <strong>{mealPlanTotals.protein}g</strong>
+                <span>Protein</span>
+              </div>
+              <div className="weight-tracker__meal-summary-card">
+                <strong>{mealPlanTotals.carbs}g</strong>
+                <span>Carbs</span>
+              </div>
+              <div className="weight-tracker__meal-summary-card">
+                <strong>{mealPlanTotals.fats}g</strong>
+                <span>Fats</span>
+              </div>
+            </div>
+
+            <div className="weight-tracker__meal-grid">
+              {mealPlan.map((meal) => {
+                const activeOption = meal.options.find((option) => option.id === meal.selectedOptionId) ?? meal.options[0];
+                const mealCollapsed = isMealPlanCollapsed(meal.id);
+                const editorIsHere = mealOptionEditor?.mealId === meal.id;
+
+                return (
+                  <article key={meal.id} className={`weight-tracker__meal-card ${mealCollapsed ? "is-collapsed" : ""}`}>
+                    <div className="weight-tracker__meal-card-top">
+                      {collapseHeading(`meal-${meal.id}`, meal.title)}
+                      <Select
+                        label="Current pick"
+                        value={meal.selectedOptionId}
+                        onChange={(event) => selectMealOption(meal.id, event.target.value)}
+                        options={meal.options.map((option) => ({ value: option.id, label: option.title }))}
+                      />
+                    </div>
+                    <p className="weight-tracker__meal-card-subtitle">{meal.subtitle}</p>
+                    {!mealCollapsed ? (
+                      <>
+                        <div className="weight-tracker__meal-active">
+                          <strong>{activeOption.title}</strong>
+                          <span>{activeOption.focus}</span>
+                          <div className="weight-tracker__meal-active-meta">
+                            <span>{activeOption.calories} kcal</span>
+                            <span>{activeOption.protein}g protein</span>
+                            <span>{activeOption.carbs}g carbs</span>
+                            <span>{activeOption.fats}g fats</span>
+                          </div>
+                        </div>
+
+                        <div className="weight-tracker__meal-options">
+                          <div className="weight-tracker__meal-options-head">
+                            <span>Option</span>
+                            <span>Focus</span>
+                            <span>Calories</span>
+                            <span>Protein</span>
+                            <span>Carbs</span>
+                            <span>Fats</span>
+                            <span>Actions</span>
+                          </div>
+                          {meal.options.map((option) => {
+                            const optionKey = `${meal.id}:${option.id}`;
+                            const isExpanded = !!expandedMealOptions[optionKey];
+                            const isSelected = meal.selectedOptionId === option.id;
+
+                            return (
+                              <div key={option.id} className={`weight-tracker__meal-option ${isSelected ? "is-selected" : ""}`}>
+                                <span className="weight-tracker__meal-option-title">{option.title}</span>
+                                <span>{option.focus}</span>
+                                <span>{option.calories} kcal</span>
+                                <span>{option.protein}g</span>
+                                <span>{option.carbs}g</span>
+                                <span>{option.fats}g</span>
+                                <div className="weight-tracker__meal-option-actions">
+                                  <Button type="button" size="sm" variant="ghost" onClick={() => toggleMealOptionExpanded(meal.id, option.id)}>
+                                    {isExpanded ? "Hide" : "View"}
+                                  </Button>
+                                  <Button type="button" size="sm" variant="ghost" onClick={() => startMealOptionEdit(meal.id, option)}>
+                                    Edit
+                                  </Button>
+                                  <Button type="button" size="sm" variant="ghost" onClick={() => deleteMealOption(meal.id, option.id)}>
+                                    Delete
+                                  </Button>
+                                </div>
+                                {isExpanded ? (
+                                  <div className="weight-tracker__meal-option-details">
+                                    <p>{option.notes || "No notes added yet."}</p>
+                                  </div>
+                                ) : null}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {editorIsHere ? (
+                          <div className="weight-tracker__meal-editor">
+                            <div className="weight-tracker__form-grid">
+                              <Input label="Meal option" value={mealOptionEditor.draft.title} onChange={(event) => setMealOptionEditor((current) => current ? { ...current, draft: { ...current.draft, title: event.target.value } } : current)} />
+                              <Input label="Focus" value={mealOptionEditor.draft.focus} onChange={(event) => setMealOptionEditor((current) => current ? { ...current, draft: { ...current.draft, focus: event.target.value } } : current)} />
+                              <Input label="Calories" type="number" value={mealOptionEditor.draft.calories} onChange={(event) => setMealOptionEditor((current) => current ? { ...current, draft: { ...current.draft, calories: Number(event.target.value) } } : current)} />
+                              <Input label="Protein (g)" type="number" value={mealOptionEditor.draft.protein} onChange={(event) => setMealOptionEditor((current) => current ? { ...current, draft: { ...current.draft, protein: Number(event.target.value) } } : current)} />
+                              <Input label="Carbs (g)" type="number" value={mealOptionEditor.draft.carbs} onChange={(event) => setMealOptionEditor((current) => current ? { ...current, draft: { ...current.draft, carbs: Number(event.target.value) } } : current)} />
+                              <Input label="Fats (g)" type="number" value={mealOptionEditor.draft.fats} onChange={(event) => setMealOptionEditor((current) => current ? { ...current, draft: { ...current.draft, fats: Number(event.target.value) } } : current)} />
+                              <Textarea label="Notes" rows={4} value={mealOptionEditor.draft.notes ?? ""} onChange={(event) => setMealOptionEditor((current) => current ? { ...current, draft: { ...current.draft, notes: event.target.value } } : current)} />
+                            </div>
+                            <div className="weight-tracker__toggle-row">
+                              <Button type="button" size="sm" icon={<Save size={15} />} onClick={saveMealOptionEdit}>Save option</Button>
+                              <Button type="button" size="sm" variant="ghost" icon={<X size={15} />} onClick={cancelMealOptionEdit}>Cancel</Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="weight-tracker__meal-actions">
+                            <Button type="button" size="sm" variant="ghost" icon={<Pencil size={15} />} onClick={() => startMealOptionAdd(meal.id)}>
+                              Add option
+                            </Button>
+                          </div>
+                        )}
+                      </>
+                    ) : null}
+                  </article>
+                );
+              })}
             </div>
           </>
         ) : null}
