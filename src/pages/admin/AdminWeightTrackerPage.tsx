@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Activity, CalendarDays, Cake, Dumbbell, ExternalLink, Flame, Pencil, Save, Scale, Utensils, X } from "lucide-react";
+import { Activity, CalendarDays, Dumbbell, ExternalLink, Flame, Pencil, Save, Scale, Utensils, X } from "lucide-react";
 import { Button, Checkbox, Input, Select, Textarea } from "../../components/ui";
 import "./AdminWeightTrackerPage.css";
 
@@ -703,6 +703,23 @@ export default function AdminWeightTrackerPage() {
             </div>
 
             <div className="weight-tracker__calculator-group">
+              <h3>Age Calculator</h3>
+              <div className="weight-tracker__form-grid">
+                <Select
+                  label="Calculate"
+                  value={settings.ageMode}
+                  onChange={(event) => updateSetting("ageMode", event.target.value as AgeCalculateMode)}
+                  options={[
+                    { value: "age", label: "Age" },
+                    { value: "time-between", label: "Time between dates" },
+                  ]}
+                />
+                <Input label="Date of Birth" type="date" value={settings.birthDate} onChange={(event) => updateSetting("birthDate", event.target.value)} />
+                <Input label="Find Age On" type="date" value={settings.ageOnDate} onChange={(event) => updateSetting("ageOnDate", event.target.value)} />
+              </div>
+            </div>
+
+            <div className="weight-tracker__calculator-group">
               <h3>Length Conversion</h3>
               <div className="weight-tracker__form-grid">
                 <Input label="Length" type="number" value={settings.lengthAmount} onChange={(event) => updateSetting("lengthAmount", Number(event.target.value))} />
@@ -763,6 +780,30 @@ export default function AdminWeightTrackerPage() {
               <div className="weight-tracker__macro-card"><strong>{Math.round(bmr).toLocaleString()}</strong><span>BMR calories/day</span></div>
               <div className="weight-tracker__macro-card"><strong>{Math.round(weightKg)}</strong><span>kg body weight</span></div>
               <div className="weight-tracker__macro-card"><strong>{Math.round(heightCm)}</strong><span>cm height</span></div>
+            </div>
+          </div>
+          <div className="weight-tracker__result-group">
+            <h3>Age Results</h3>
+            <div className="weight-tracker__age-answer">
+              <div>
+                <span>Age</span>
+                <strong>{ageBreakdown.years} years {ageBreakdown.months} months {ageBreakdown.days} days</strong>
+              </div>
+              <p>Born on: {ageBreakdown.bornOn}</p>
+              <p>Age on: {ageBreakdown.ageOn}</p>
+              <hr />
+              <p>{ageBreakdown.years + (ageBreakdown.months / 12).toFixed(3).slice(1)} years</p>
+              <p>{ageBreakdown.years} years {ageBreakdown.months} months {ageBreakdown.days} days</p>
+              <p>{ageBreakdown.totalMonths} months {ageBreakdown.days} days</p>
+              <p>{ageBreakdown.weeks.toLocaleString()} weeks {ageBreakdown.weekDays} days</p>
+              <p>{ageBreakdown.totalDays.toLocaleString()} days</p>
+              <hr />
+              <p>≈ {ageBreakdown.hours.toLocaleString()} hours</p>
+              <p>≈ {ageBreakdown.minutes.toLocaleString()} minutes</p>
+              <p>≈ {ageBreakdown.seconds.toLocaleString()} seconds</p>
+              <hr />
+              <strong>{ageBreakdown.daysUntilBirthday.toLocaleString()} days until next birthday or anniversary</strong>
+              <p>{ageBreakdown.nextBirthday}</p>
             </div>
           </div>
           <div className="weight-tracker__result-group">
@@ -831,50 +872,6 @@ export default function AdminWeightTrackerPage() {
         </div>
 
         {/* Extended explanatory cards removed — only core metrics shown above. */}
-      </section>
-
-      <section className="admin-panel weight-tracker__age">
-        <div className="admin-panel__title-row">
-          <Cake size={18} />
-          <h2>Age Calculator</h2>
-        </div>
-        <div className="weight-tracker__age-grid">
-          <div className="weight-tracker__age-form">
-            <Select
-              label="Calculate"
-              value={settings.ageMode}
-              onChange={(event) => updateSetting("ageMode", event.target.value as AgeCalculateMode)}
-              options={[
-                { value: "age", label: "Age" },
-                { value: "time-between", label: "Time between dates" },
-              ]}
-            />
-            <Input label="Date of Birth" type="date" value={settings.birthDate} onChange={(event) => updateSetting("birthDate", event.target.value)} />
-            <Input label="Find Age On" type="date" value={settings.ageOnDate} onChange={(event) => updateSetting("ageOnDate", event.target.value)} />
-          </div>
-
-          <div className="weight-tracker__age-answer">
-            <div>
-              <span>Age</span>
-              <strong>{ageBreakdown.years} years {ageBreakdown.months} months {ageBreakdown.days} days</strong>
-            </div>
-            <p>Born on: {ageBreakdown.bornOn}</p>
-            <p>Age on: {ageBreakdown.ageOn}</p>
-            <hr />
-            <p>{ageBreakdown.years + (ageBreakdown.months / 12).toFixed(3).slice(1)} years</p>
-            <p>{ageBreakdown.years} years {ageBreakdown.months} months {ageBreakdown.days} days</p>
-            <p>{ageBreakdown.totalMonths} months {ageBreakdown.days} days</p>
-            <p>{ageBreakdown.weeks.toLocaleString()} weeks {ageBreakdown.weekDays} days</p>
-            <p>{ageBreakdown.totalDays.toLocaleString()} days</p>
-            <hr />
-            <p>≈ {ageBreakdown.hours.toLocaleString()} hours</p>
-            <p>≈ {ageBreakdown.minutes.toLocaleString()} minutes</p>
-            <p>≈ {ageBreakdown.seconds.toLocaleString()} seconds</p>
-            <hr />
-            <strong>{ageBreakdown.daysUntilBirthday.toLocaleString()} days until next birthday or anniversary</strong>
-            <p>{ageBreakdown.nextBirthday}</p>
-          </div>
-        </div>
       </section>
 
       <section className="admin-panel weight-tracker__references">
