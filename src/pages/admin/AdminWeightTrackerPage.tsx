@@ -1391,7 +1391,7 @@ export default function AdminWeightTrackerPage() {
             <div className="weight-tracker__meal-grid">
               {mealPlan.map((meal) => {
                 const activeOption = meal.options.find((option) => option.id === meal.selectedOptionId) ?? meal.options[0];
-                const mealCollapsed = isMealPlanCollapsed(meal.id);
+                const mealCollapsed = isCollapsed(`meal-${meal.id}`);
                 const editorIsHere = mealOptionEditor?.mealId === meal.id;
 
                 return (
