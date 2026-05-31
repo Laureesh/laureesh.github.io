@@ -75,8 +75,8 @@ interface WorkoutOverride {
 }
 
 const storageKey = "admin:weight-tracker";
-const completionStorageKey = "admin:weight-tracker:completion";
-const workoutOverridesStorageKey = "admin:weight-tracker:workout-overrides";
+const completionStorageKey = "admin:weight-tracker:completion:v2";
+const workoutOverridesStorageKey = "admin:weight-tracker:workout-overrides:v2";
 
 const defaultSettings: WeightTrackerSettings = {
   age: 23,
@@ -197,29 +197,62 @@ const exercises: ExerciseEntry[] = [
 ];
 
 const workoutTemplates: WorkoutTemplate[] = [
-  { offset: 1, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#1 Wall Pushups", level: "Level 1", pushups: "2 Sets of 30 Pushups" },
-  { offset: 3, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#1 Wall Pushups", level: "Level 2", pushups: "2 Sets of 50 Pushups" },
-  { offset: 5, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#1 Wall Pushups", level: "Level 3", pushups: "3 Sets of 50 Pushups" },
-  { offset: 8, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#2 Incline Pushups", level: "Level 1", pushups: "2 Sets of 20 Pushups" },
-  { offset: 10, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#2 Incline Pushups", level: "Level 2", pushups: "2 Sets of 30 Pushups" },
-  { offset: 12, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#2 Incline Pushups", level: "Level 3", pushups: "3 Sets of 40 Pushups" },
-  { offset: 15, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#3 Advanced Incline Pushups", level: "Level 2", pushups: "2 Sets of 30 Pushups" },
-  { offset: 17, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#3 Advanced Incline Pushups", level: "Level 3", pushups: "3 Sets of 35 Pushups" },
-  { offset: 19, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#4 Knee Pushups", level: "Level 1", pushups: "2 Sets of 10 Pushups" },
-  { offset: 22, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#4 Knee Pushups", level: "Level 2", pushups: "2 Sets of 20 Pushups" },
-  { offset: 24, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#4 Knee Pushups", level: "Level 3", pushups: "3 Sets of 30 Pushups" },
-  { offset: 26, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#5 Full Pushups", level: "Level 1", pushups: "2 Sets of 5 Pushups" },
-  { offset: 29, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#5 Full Pushups", level: "Level 2", pushups: "2 Sets of 15 Pushups" },
-  { offset: 31, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#5 Full Pushups", level: "Level 3", pushups: "3 Sets of 25 Pushups" },
-  { offset: 33, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#6 Narrow Pushups", level: "Level 1", pushups: "2 Sets of 5 Pushups" },
-  { offset: 36, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#6 Narrow Pushups", level: "Level 2", pushups: "2 Sets of 10 Pushups" },
-  { offset: 38, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#6 Narrow Pushups", level: "Level 3", pushups: "3 Sets of 20 Pushups" },
-  { offset: 40, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#7 Side Staggered Pushups", level: "Level 1", pushups: "2 Sets of 5 Pushups (Per Side)" },
-  { offset: 43, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#7 Side Staggered Pushups", level: "Level 2", pushups: "2 Sets of 10 Pushups (Per Side)" },
-  { offset: 45, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#7 Side Staggered Pushups", level: "Level 3", pushups: "2 Sets of 20 Pushups (Per Side)" },
-  { offset: 47, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#8 Archer Pushups", level: "Level 1", pushups: "2 Sets of 5 Pushups (Per Side)" },
-  { offset: 50, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#8 Archer Pushups", level: "Level 2", pushups: "2 Sets of 9 Pushups (Per Side)" },
-  { offset: 52, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#8 Archer Pushups", level: "Level 3", pushups: "2 Sets of 12 Pushups (Per Side)" },
+  {
+    offset: 1,
+    type: "Monday - Full Body Circuit",
+    exercises: "Repeat this circuit 3 times\n1. Bodyweight Squats - 20 reps\n2. Mountain Climbers - 30 reps (15 per leg)\n3. Glute Bridges - 20 reps\n4. Plank Hold - 30 seconds\n5. Russian Twists - 40 reps (20 per side)",
+    variation: "PushFit App",
+    level: "15-20 reps",
+    pushups: "Push-Ups on PushFit App - 15-20 reps\nModify by using knees if needed.",
+  },
+  {
+    offset: 3,
+    type: "Wednesday - Lower Body Focus",
+    exercises: "Repeat this circuit 4 times\n1. Lunges - 15 reps per leg\n2. Wall Sits - 45 seconds hold\n3. Calf Raises - 30 reps\n4. Glute Bridges with a Hold - 15 reps (hold the top position for 2 seconds each time)\n5. Squat Pulses - 15 reps",
+    variation: "Lower Body",
+    level: "4 rounds",
+    pushups: "No PushFit set today.",
+  },
+  {
+    offset: 5,
+    type: "Friday - Core and Upper Body",
+    exercises: "Repeat this circuit 3 times\n1. Plank to Push-Up - 10 reps\n2. Russian Twists - 30 reps\n3. Bicycle Crunches - 30 reps\n4. Forearm Plank Hold - 40 seconds\n5. Tricep Dips (use a sturdy chair) - 15 reps",
+    variation: "PushFit App",
+    level: "15 reps",
+    pushups: "Push-Ups on PushFit App - 15 reps",
+  },
+  {
+    offset: 8,
+    type: "Monday - Cardio and Core Burn",
+    exercises: "Perform 5 rounds of the following circuit\n1. Mountain Climbers - 40 reps (20 per leg)\n2. Plank Jacks (modified for low ceilings) - 20 reps\n3. Plank Hold - 30 seconds\n4. Bicycle Crunches - 30 reps\n5. Superman Hold - 30 seconds\n6. Rest for 30-45 seconds between rounds.",
+    variation: "Cardio + Core",
+    level: "5 rounds",
+    pushups: "No PushFit set today.",
+  },
+  {
+    offset: 10,
+    type: "Wednesday - Full Body Power",
+    exercises: "Repeat this circuit 4 times\n1. Squat to Stand (squat, then raise your arms overhead) - 20 reps\n2. Plank to Push-Up - 10 reps\n3. Reverse Lunges - 15 reps per leg\n4. Leg Raises - 20 reps",
+    variation: "PushFit App",
+    level: "15 reps",
+    pushups: "Push-Ups on PushFit App - 15 reps",
+  },
+  {
+    offset: 12,
+    type: "Friday - Low Impact, High Burn",
+    exercises: "Repeat this circuit 3 times\n1. Squat Pulses - 15 reps\n2. Glute Bridges - 20 reps\n3. Plank Hold - 45 seconds\n4. Standing Side Crunch - 20 reps (10 per side)\n5. Lunges - 15 reps per leg\n6. Rest for 30-60 seconds between rounds.",
+    variation: "Low Impact",
+    level: "3 rounds",
+    pushups: "No PushFit set today.",
+  },
+  {
+    offset: 15,
+    type: "Monday - Active Recovery / Stretch",
+    exercises: "Focus on light stretching and mobility work.",
+    variation: "Recovery",
+    level: "Mobility",
+    pushups: "No PushFit set today.",
+  },
 ];
 
 const foodCategories = ["All", ...Array.from(new Set(foods.map((food) => food.category)))];
