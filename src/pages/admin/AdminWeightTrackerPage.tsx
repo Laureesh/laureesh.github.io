@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Activity, CalendarDays, Cake, Droplets, Dumbbell, ExternalLink, Flame, Pencil, Ruler, Save, Scale, Utensils, X } from "lucide-react";
+import { Activity, CalendarDays, Cake, Dumbbell, ExternalLink, Flame, Pencil, Save, Scale, Utensils, X } from "lucide-react";
 import { Button, Checkbox, Input, Select, Textarea } from "../../components/ui";
 import "./AdminWeightTrackerPage.css";
 
@@ -138,8 +138,6 @@ const waterClimateOptions: { value: WaterClimate; label: string; extraMl: number
   { value: "temperate", label: "Temperate", extraMl: 0 },
   { value: "cold", label: "Cold", extraMl: -150 },
 ];
-
-const inchToFootRows = [0.01, 0.1, 1, 2, 3, 5, 10, 20, 50, 100, 1000];
 
 const foods: FoodEntry[] = [
   { category: "Fruit", name: "Apple", serving: "1 (4 oz.)", calories: 59, kj: 247 },
@@ -632,7 +630,60 @@ export default function AdminWeightTrackerPage() {
                 { value: "kilojoules", label: "Kilojoules" },
               ]}
             />
+            <Select
+              label="Macro Plan"
+              value={settings.macroMode}
+              onChange={(event) => updateSetting("macroMode", event.target.value as MacroMode)}
+              options={Object.entries(macroPlans).map(([value, plan]) => ({ value, label: plan.label }))}
+            />
+            <div className="weight-tracker__form-row">
+              <Input label="Length" type="number" value={settings.lengthAmount} onChange={(event) => updateSetting("lengthAmount", Number(event.target.value))} />
+              <Select
+                label="Convert"
+                value={settings.lengthUnit}
+                onChange={(event) => updateSetting("lengthUnit", event.target.value as LengthUnit)}
+                options={[
+                  { value: "in-to-ft", label: "In to ft" },
+                  { value: "ft-to-in", label: "Ft to in" },
+                ]}
+              />
+            </div>
+            <div className="weight-tracker__form-row">
+              <Input label="Water Weight" type="number" value={settings.waterWeight} onChange={(event) => updateSetting("waterWeight", Number(event.target.value))} />
+              <Select
+                label="Water Unit"
+                value={settings.waterWeightUnit}
+                onChange={(event) => updateSetting("waterWeightUnit", event.target.value as WaterWeightUnit)}
+                options={[
+                  { value: "kg", label: "kg" },
+                  { value: "lb", label: "lb" },
+                ]}
+              />
+            </div>
+            <Select
+              label="Water Activity"
+              value={settings.waterActivity}
+              onChange={(event) => updateSetting("waterActivity", event.target.value as WaterActivity)}
+              options={waterActivityOptions.map((option) => ({ value: option.value, label: option.label }))}
+            />
+            <Select
+              label="Water Climate"
+              value={settings.waterClimate}
+              onChange={(event) => updateSetting("waterClimate", event.target.value as WaterClimate)}
+              options={waterClimateOptions.map((option) => ({ value: option.value, label: option.label }))}
+            />
           </div>
+          {settings.macroMode === "custom" ? (
+            <div className="weight-tracker__form-grid weight-tracker__custom-macros">
+              <Input label="Protein %" type="number" value={settings.customProteinPercent} onChange={(event) => updateSetting("customProteinPercent", Number(event.target.value))} />
+              <Input label="Carbs %" type="number" value={settings.customCarbPercent} onChange={(event) => updateSetting("customCarbPercent", Number(event.target.value))} />
+              <Input label="Fat %" type="number" value={settings.customFatPercent} onChange={(event) => updateSetting("customFatPercent", Number(event.target.value))} />
+              <div className="weight-tracker__formula-box">
+                <strong>Total</strong>
+                <span>{macroPercentTotal.toFixed(0)}% gets normalized to 100% automatically.</span>
+              </div>
+            </div>
+          ) : null}
         </section>
 
         <section className="admin-panel weight-tracker__results">
@@ -655,119 +706,25 @@ export default function AdminWeightTrackerPage() {
             <div className="weight-tracker__macro-card"><strong>{Math.round(weightKg)}</strong><span>kg body weight</span></div>
             <div className="weight-tracker__macro-card"><strong>{Math.round(heightCm)}</strong><span>cm height</span></div>
           </div>
-        </section>
-      </div>
-
-      <section className="admin-panel weight-tracker__macro-section">
-        <div className="weight-tracker__section-head">
-          <div className="admin-panel__title-row">
-            <Utensils size={18} />
-            <h2>Macro Calculator</h2>
-          </div>
-          <Select
-            label="Plan"
-            value={settings.macroMode}
-            onChange={(event) => updateSetting("macroMode", event.target.value as MacroMode)}
-            options={Object.entries(macroPlans).map(([value, plan]) => ({ value, label: plan.label }))}
-          />
-        </div>
-
-        {settings.macroMode === "custom" ? (
-          <div className="weight-tracker__form-grid">
-            <Input label="Protein %" type="number" value={settings.customProteinPercent} onChange={(event) => updateSetting("customProteinPercent", Number(event.target.value))} />
-            <Input label="Carbs %" type="number" value={settings.customCarbPercent} onChange={(event) => updateSetting("customCarbPercent", Number(event.target.value))} />
-            <Input label="Fat %" type="number" value={settings.customFatPercent} onChange={(event) => updateSetting("customFatPercent", Number(event.target.value))} />
-            <div className="weight-tracker__formula-box">
-              <strong>Total</strong>
-              <span>{macroPercentTotal.toFixed(0)}% gets normalized to 100% automatically.</span>
-            </div>
-          </div>
-        ) : null}
-
-        <div className="weight-tracker__macro-results">
-          {macroTargets.map((target) => (
-            <div key={target.label} className="weight-tracker__macro-result">
-              <span>{target.label}</span>
-              <strong>{target.value} <em>{target.unit}</em></strong>
-              <small>{target.range}</small>
-            </div>
-          ))}
-        </div>
-        <p className="weight-tracker__hint">Macro ranges use common AMDR-style guidance and update from your current calorie maintenance estimate.</p>
-      </section>
-
-      <div className="weight-tracker__utility-grid">
-        <section className="admin-panel weight-tracker__converter">
-          <div className="admin-panel__title-row">
-            <Ruler size={18} />
-            <h2>Inches & Feet Converter</h2>
-          </div>
-          <div className="weight-tracker__converter-form">
-            <Input label="From" type="number" value={settings.lengthAmount} onChange={(event) => updateSetting("lengthAmount", Number(event.target.value))} />
-            <Select
-              label="Conversion"
-              value={settings.lengthUnit}
-              onChange={(event) => updateSetting("lengthUnit", event.target.value as LengthUnit)}
-              options={[
-                { value: "in-to-ft", label: "Inches to feet" },
-                { value: "ft-to-in", label: "Feet to inches" },
-              ]}
-            />
-            <div className="weight-tracker__conversion-answer">
-              <span>Result</span>
-              <strong>{formatFeet(settings.lengthAmount)} {lengthFromLabel} = {formatFeet(lengthConverted)} {lengthToLabel}</strong>
-            </div>
-          </div>
-          <div className="weight-tracker__formula-box">
-            <strong>Formula</strong>
-            <span>1 inch = 0.0833333333 foot. 1 foot = 12 inches.</span>
-          </div>
-          <div className="weight-tracker__conversion-table">
-            {inchToFootRows.map((inches) => (
-              <div key={inches}>
-                <span>{inches} in</span>
-                <strong>{formatFeet(inches / 12)} ft</strong>
+          <div className="weight-tracker__macro-results">
+            {macroTargets.map((target) => (
+              <div key={target.label} className="weight-tracker__macro-result">
+                <span>{target.label}</span>
+                <strong>{target.value} <em>{target.unit}</em></strong>
+                <small>{target.range}</small>
               </div>
             ))}
           </div>
-        </section>
-
-        <section className="admin-panel weight-tracker__water">
-          <div className="admin-panel__title-row">
-            <Droplets size={18} />
-            <h2>Daily Water Requirement</h2>
-          </div>
-          <div className="weight-tracker__water-form">
-            <div className="weight-tracker__water-row">
-              <Input label="Body Weight" type="number" value={settings.waterWeight} onChange={(event) => updateSetting("waterWeight", Number(event.target.value))} />
-              <Select
-                label="Unit"
-                value={settings.waterWeightUnit}
-                onChange={(event) => updateSetting("waterWeightUnit", event.target.value as WaterWeightUnit)}
-                options={[
-                  { value: "kg", label: "kg" },
-                  { value: "lb", label: "lb (Pound)" },
-                ]}
-              />
+          <div className="weight-tracker__results-row">
+            <div className="weight-tracker__conversion-answer">
+              <span>Length Conversion</span>
+              <strong>{formatFeet(settings.lengthAmount)} {lengthFromLabel} = {formatFeet(lengthConverted)} {lengthToLabel}</strong>
             </div>
-            <Select
-              label="Activity"
-              value={settings.waterActivity}
-              onChange={(event) => updateSetting("waterActivity", event.target.value as WaterActivity)}
-              options={waterActivityOptions.map((option) => ({ value: option.value, label: option.label }))}
-            />
-            <Select
-              label="Climate"
-              value={settings.waterClimate}
-              onChange={(event) => updateSetting("waterClimate", event.target.value as WaterClimate)}
-              options={waterClimateOptions.map((option) => ({ value: option.value, label: option.label }))}
-            />
-          </div>
-          <p className="weight-tracker__hint">This gives a starting point for daily water intake. Food moisture, pregnancy, breastfeeding, exercise, and health conditions can change the right amount.</p>
-          <div className="weight-tracker__water-result">
-            <span>Daily Water Recommendation</span>
-            <strong>You need to drink at least {waterGlasses.toLocaleString()} glasses of water everyday.</strong>
-            <p>This is equivalent to <b>{waterLiters.toFixed(1)} litres</b> [{waterOunces.toFixed(1)} ounces] of water.</p>
+            <div className="weight-tracker__water-result">
+              <span>Daily Water Recommendation</span>
+              <strong>At least {waterGlasses.toLocaleString()} glasses everyday.</strong>
+              <p><b>{waterLiters.toFixed(1)} litres</b> [{waterOunces.toFixed(1)} ounces] of water.</p>
+            </div>
           </div>
         </section>
       </div>

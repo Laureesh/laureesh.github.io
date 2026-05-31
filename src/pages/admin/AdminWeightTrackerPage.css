@@ -33,6 +33,10 @@
   gap: 0.9rem;
 }
 
+.weight-tracker__custom-macros {
+  margin-top: 0.9rem;
+}
+
 .weight-tracker__form-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -253,7 +257,7 @@
 
 .weight-tracker__macro-results {
   display: grid;
-  grid-template-columns: repeat(6, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 0.75rem;
 }
 
@@ -293,6 +297,12 @@
   grid-template-columns: minmax(340px, 0.85fr) minmax(0, 1.15fr);
   gap: 1rem;
   align-items: start;
+}
+
+.weight-tracker__results-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
 }
 
 .weight-tracker__converter-form,
@@ -582,15 +592,12 @@
 @media (max-width: 1040px) {
   .weight-tracker__grid,
   .weight-tracker__utility-grid,
+  .weight-tracker__results-row,
   .weight-tracker__age-grid,
   .weight-tracker__body-grid,
   .weight-tracker__info-grid,
   .weight-tracker__workout-card {
     grid-template-columns: 1fr;
-  }
-
-  .weight-tracker__macro-results {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
