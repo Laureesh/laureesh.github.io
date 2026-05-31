@@ -630,6 +630,17 @@ export default function AdminWeightTrackerPage() {
       return groups;
     }, new Map<string, string>()),
   );
+  const workoutTypeGroups = Array.from(
+    scheduledWorkouts.reduce((groups, workout) => {
+      if (!groups.has(workout.type)) {
+        groups.set(workout.type, {
+          exercises: workout.exercises,
+          workoutLink: workout.workoutLink ?? "",
+        });
+      }
+      return groups;
+    }, new Map<string, { exercises: string; workoutLink: string }>()),
+  );
 
   const updateSetting = <K extends keyof WeightTrackerSettings>(key: K, value: WeightTrackerSettings[K]) => {
     setSettings((current) => ({ ...current, [key]: value }));
@@ -709,6 +720,29 @@ export default function AdminWeightTrackerPage() {
           next[index] = {
             ...current[index],
             pushupLink,
+          };
+        }
+      });
+
+      return next;
+    });
+  };
+
+  const updateWorkoutTypeGroup = (
+    type: string,
+    field: "exercises" | "workoutLink",
+    value: string,
+  ) => {
+    setWorkoutOverrides((current) => {
+      const next = { ...current };
+
+      selectedWorkoutTemplates.forEach((workout, index) => {
+        const currentType = current[index]?.type ?? workout.type;
+
+        if (currentType === type) {
+          next[index] = {
+            ...current[index],
+            [field]: value,
           };
         }
       });
@@ -1042,6 +1076,29 @@ export default function AdminWeightTrackerPage() {
             ]}
           />
           <Input label="Start Date" type="date" value={settings.startDate} onChange={(event) => updateSetting("startDate", event.target.value)} />
+        </div>
+        <div className="weight-tracker__batch-links">
+          {collapseHeading("plan-workout-types", "Batch Edit Workout Types")}
+          {!isCollapsed("plan-workout-types") ? (
+            <div className="weight-tracker__batch-workout-grid">
+              {workoutTypeGroups.map(([type, values]) => (
+                <div key={type} className="weight-tracker__batch-workout-card">
+                  <strong>{type}</strong>
+                  <Input
+                    label="Workout Link"
+                    value={values.workoutLink}
+                    onChange={(event) => updateWorkoutTypeGroup(type, "workoutLink", event.target.value)}
+                  />
+                  <Textarea
+                    label="Exercises"
+                    rows={5}
+                    value={values.exercises}
+                    onChange={(event) => updateWorkoutTypeGroup(type, "exercises", event.target.value)}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div className="weight-tracker__batch-links">
           {collapseHeading("plan-pushup-links", "Batch Edit Pushup Links")}
