@@ -60,6 +60,7 @@ interface WorkoutTemplate {
   type: string;
   exercises: string;
   workoutLink?: string;
+  workoutLink2?: string;
   variation: string;
   level: string;
   pushups: string;
@@ -70,6 +71,7 @@ interface WorkoutOverride {
   type?: string;
   exercises?: string;
   workoutLink?: string;
+  workoutLink2?: string;
   variation?: string;
   level?: string;
   pushups?: string;
@@ -645,10 +647,11 @@ export default function AdminWeightTrackerPage() {
         groups.set(workout.type, {
           exercises: workout.exercises,
           workoutLink: workout.workoutLink ?? "",
+          workoutLink2: workout.workoutLink2 ?? "",
         });
       }
       return groups;
-    }, new Map<string, { exercises: string; workoutLink: string }>()),
+    }, new Map<string, { exercises: string; workoutLink: string; workoutLink2: string }>()),
   );
 
   const updateSetting = <K extends keyof WeightTrackerSettings>(key: K, value: WeightTrackerSettings[K]) => {
@@ -694,6 +697,7 @@ export default function AdminWeightTrackerPage() {
       type: workout.type,
       exercises: workout.exercises,
       workoutLink: workout.workoutLink ?? "",
+      workoutLink2: workout.workoutLink2 ?? "",
       variation: workout.variation,
       level: workout.level,
       pushups: workout.pushups,
@@ -739,7 +743,7 @@ export default function AdminWeightTrackerPage() {
 
   const updateWorkoutTypeGroup = (
     type: string,
-    field: "exercises" | "workoutLink",
+    field: "exercises" | "workoutLink" | "workoutLink2",
     value: string,
   ) => {
     setWorkoutOverrides((current) => {
@@ -1098,6 +1102,11 @@ export default function AdminWeightTrackerPage() {
                     value={values.workoutLink}
                     onChange={(event) => updateWorkoutTypeGroup(type, "workoutLink", event.target.value)}
                   />
+                  <Input
+                    label="Workout Link 2"
+                    value={values.workoutLink2}
+                    onChange={(event) => updateWorkoutTypeGroup(type, "workoutLink2", event.target.value)}
+                  />
                   <Textarea
                     label="Exercises"
                     rows={5}
@@ -1144,6 +1153,7 @@ export default function AdminWeightTrackerPage() {
                         <div className="weight-tracker__form-grid">
                           <Input label="Workout Type" value={workoutDraft.type ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, type: event.target.value } : draft)} />
                           <Input label="Workout Link" value={workoutDraft.workoutLink ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, workoutLink: event.target.value } : draft)} />
+                          <Input label="Workout Link 2" value={workoutDraft.workoutLink2 ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, workoutLink2: event.target.value } : draft)} />
                           <Textarea label="Exercises" rows={4} value={workoutDraft.exercises ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, exercises: event.target.value } : draft)} />
                           <Input label="Pushup Variation" value={workoutDraft.variation ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, variation: event.target.value } : draft)} />
                           <Input label="Pushup Link" value={workoutDraft.pushupLink ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, pushupLink: event.target.value } : draft)} />
@@ -1165,11 +1175,18 @@ export default function AdminWeightTrackerPage() {
                         <div className={`weight-tracker__workout-block ${workoutDone ? "is-done" : ""}`}>
                           <div className="weight-tracker__workout-title-row">
                             <strong>{workout.type}</strong>
-                            {workout.workoutLink ? (
-                              <a href={workout.workoutLink} target="_blank" rel="noreferrer" aria-label={`${workout.type} link`}>
-                                <ExternalLink size={14} />
-                              </a>
-                            ) : null}
+                            <span className="weight-tracker__workout-links">
+                              {workout.workoutLink ? (
+                                <a href={workout.workoutLink} target="_blank" rel="noreferrer" aria-label={`${workout.type} link 1`}>
+                                  <ExternalLink size={14} />
+                                </a>
+                              ) : null}
+                              {workout.workoutLink2 ? (
+                                <a href={workout.workoutLink2} target="_blank" rel="noreferrer" aria-label={`${workout.type} link 2`}>
+                                  <ExternalLink size={14} />
+                                </a>
+                              ) : null}
+                            </span>
                           </div>
                           <p>{workout.exercises}</p>
                         </div>
