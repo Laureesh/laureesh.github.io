@@ -1153,97 +1153,101 @@ export default function AdminWeightTrackerPage() {
           ) : null}
         </div>
         <div className="weight-tracker__workout-list">
-          {workoutWeeks.map(([weekNumber, workouts]) => (
-            <section
-              key={weekNumber}
-              className={`weight-tracker__workout-week ${weekNumber % 2 === 0 ? "is-even" : "is-odd"} ${weekNumber === currentWeekNumber ? "is-current" : ""} ${isWorkoutWeekCollapsed(weekNumber) ? "is-collapsed" : ""}`}
-            >
-              <button
-                type="button"
-                className="weight-tracker__week-divider"
-                aria-expanded={!isWorkoutWeekCollapsed(weekNumber)}
-                onClick={() => toggleCollapsed(`workout-week-${weekNumber}`)}
-              >
-                <span>Week {weekNumber}</span>
-                <strong>{formatDate(workouts[0].date)} - {formatDate(workouts[workouts.length - 1].date)}</strong>
-                <span className="weight-tracker__week-divider-icon" aria-hidden="true">
-                  {isWorkoutWeekCollapsed(weekNumber) ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-                </span>
-              </button>
-              {!isWorkoutWeekCollapsed(weekNumber) ? workouts.map((workout) => {
-                const isToday = workout.date === new Date().toISOString().slice(0, 10);
-                const workoutDone = !!completedWorkouts[workout.index];
-                const pushupsDone = !!completedPushups[workout.index];
-                const isEditing = editingWorkoutIndex === workout.index && workoutDraft;
+          {workoutWeeks.map(([weekNumber, workouts]) => {
+            const collapsed = isWorkoutWeekCollapsed(weekNumber);
 
-                return (
-                  <article key={`${workout.offset}-${workout.variation}`} className={`weight-tracker__workout-card ${isToday ? "is-today" : ""}`}>
-                    {isEditing ? (
-                      <div className="weight-tracker__workout-edit">
-                        <div className="weight-tracker__form-grid">
-                          <Input label="Workout Type" value={workoutDraft.type ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, type: event.target.value } : draft)} />
-                          <Input label="Workout Link" value={workoutDraft.workoutLink ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, workoutLink: event.target.value } : draft)} />
-                          <Input label="Workout Link 2" value={workoutDraft.workoutLink2 ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, workoutLink2: event.target.value } : draft)} />
-                          <Textarea label="Exercises" rows={4} value={workoutDraft.exercises ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, exercises: event.target.value } : draft)} />
-                          <Input label="Pushup Variation" value={workoutDraft.variation ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, variation: event.target.value } : draft)} />
-                          <Input label="Pushup Link" value={workoutDraft.pushupLink ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, pushupLink: event.target.value } : draft)} />
-                          <Input label="Level" value={workoutDraft.level ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, level: event.target.value } : draft)} />
-                          <Textarea label="Pushups" rows={3} value={workoutDraft.pushups ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, pushups: event.target.value } : draft)} />
+            return (
+              <section
+                key={weekNumber}
+                className={`weight-tracker__workout-week ${weekNumber % 2 === 0 ? "is-even" : "is-odd"} ${weekNumber === currentWeekNumber ? "is-current" : ""} ${collapsed ? "is-collapsed" : ""}`}
+              >
+                <button
+                  type="button"
+                  className="weight-tracker__week-divider"
+                  aria-expanded={!collapsed}
+                  onClick={() => toggleCollapsed(`workout-week-${weekNumber}`)}
+                >
+                  <span>Week {weekNumber}</span>
+                  <strong>{formatDate(workouts[0].date)} - {formatDate(workouts[workouts.length - 1].date)}</strong>
+                  <span className="weight-tracker__week-divider-icon" aria-hidden="true">
+                    {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                  </span>
+                </button>
+
+                {!collapsed ? workouts.map((workout) => {
+                  const isToday = workout.date === new Date().toISOString().slice(0, 10);
+                  const workoutDone = !!completedWorkouts[workout.index];
+                  const pushupsDone = !!completedPushups[workout.index];
+                  const isEditing = editingWorkoutIndex === workout.index && workoutDraft;
+
+                  return (
+                    <article key={`${workout.offset}-${workout.variation}`} className={`weight-tracker__workout-card ${isToday ? "is-today" : ""}`}>
+                      {isEditing ? (
+                        <div className="weight-tracker__workout-edit">
+                          <div className="weight-tracker__form-grid">
+                            <Input label="Workout Type" value={workoutDraft.type ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, type: event.target.value } : draft)} />
+                            <Input label="Workout Link" value={workoutDraft.workoutLink ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, workoutLink: event.target.value } : draft)} />
+                            <Input label="Workout Link 2" value={workoutDraft.workoutLink2 ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, workoutLink2: event.target.value } : draft)} />
+                            <Textarea label="Exercises" rows={4} value={workoutDraft.exercises ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, exercises: event.target.value } : draft)} />
+                            <Input label="Pushup Variation" value={workoutDraft.variation ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, variation: event.target.value } : draft)} />
+                            <Input label="Pushup Link" value={workoutDraft.pushupLink ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, pushupLink: event.target.value } : draft)} />
+                            <Input label="Level" value={workoutDraft.level ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, level: event.target.value } : draft)} />
+                            <Textarea label="Pushups" rows={3} value={workoutDraft.pushups ?? ""} onChange={(event) => setWorkoutDraft((draft) => draft ? { ...draft, pushups: event.target.value } : draft)} />
+                          </div>
+                          <div className="weight-tracker__toggle-row">
+                            <Button type="button" size="sm" icon={<Save size={15} />} onClick={saveWorkoutEdit}>Save</Button>
+                            <Button type="button" size="sm" variant="ghost" icon={<X size={15} />} onClick={cancelWorkoutEdit}>Cancel</Button>
+                          </div>
                         </div>
-                        <div className="weight-tracker__toggle-row">
-                          <Button type="button" size="sm" icon={<Save size={15} />} onClick={saveWorkoutEdit}>Save</Button>
-                          <Button type="button" size="sm" variant="ghost" icon={<X size={15} />} onClick={cancelWorkoutEdit}>Cancel</Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="weight-tracker__workout-date">
-                          <span>{formatWeekday(workout.date)}</span>
+                      ) : (
+                        <>
+                          <div className="weight-tracker__workout-date">
+                            <span>{formatWeekday(workout.date)}</span>
+                            {isToday ? <em>Today</em> : null}
+                          </div>
+                          <div className={`weight-tracker__workout-block ${workoutDone ? "is-done" : ""}`}>
+                            <div className="weight-tracker__workout-title-row">
+                              <strong>{workout.type}</strong>
+                              <span className="weight-tracker__workout-links">
+                                {workout.workoutLink ? (
+                                  <a href={workout.workoutLink} target="_blank" rel="noreferrer" aria-label={`${workout.type} link 1`}>
+                                    <ExternalLink size={14} />
+                                  </a>
+                                ) : null}
+                                {workout.workoutLink2 ? (
+                                  <a href={workout.workoutLink2} target="_blank" rel="noreferrer" aria-label={`${workout.type} link 2`}>
+                                    <ExternalLink size={14} />
+                                  </a>
+                                ) : null}
+                              </span>
+                            </div>
+                            <p>{workout.exercises}</p>
+                          </div>
+                          <div className={`weight-tracker__workout-block ${pushupsDone ? "is-done" : ""}`}>
+                            <div className="weight-tracker__workout-title-row">
+                              <strong>{workout.variation}</strong>
+                              {workout.pushupLink ? (
+                                <a href={workout.pushupLink} target="_blank" rel="noreferrer" aria-label={`${workout.variation} link`}>
+                                  <ExternalLink size={14} />
+                                </a>
+                              ) : null}
+                            </div>
+                            <div className="weight-tracker__level">{workout.level}</div>
+                            <p>{workout.pushups}</p>
+                          </div>
+                          <div className="weight-tracker__toggle-row">
+                            <Button type="button" size="sm" variant="ghost" icon={<Pencil size={15} />} onClick={() => startWorkoutEdit(workout)}>Edit</Button>
+                            <Checkbox label="Workout done" checked={workoutDone} onChange={(event) => setCompletedWorkouts((current) => ({ ...current, [workout.index]: event.target.checked }))} />
+                            <Checkbox label="Pushups done" checked={pushupsDone} onChange={(event) => setCompletedPushups((current) => ({ ...current, [workout.index]: event.target.checked }))} />
+                          </div>
+                        </>
+                      )}
+                    </article>
+                  );
                 }) : null}
-                          {isToday ? <em>Today</em> : null}
-                        </div>
-                        <div className={`weight-tracker__workout-block ${workoutDone ? "is-done" : ""}`}>
-                          <div className="weight-tracker__workout-title-row">
-                            <strong>{workout.type}</strong>
-                            <span className="weight-tracker__workout-links">
-                              {workout.workoutLink ? (
-                                <a href={workout.workoutLink} target="_blank" rel="noreferrer" aria-label={`${workout.type} link 1`}>
-                                  <ExternalLink size={14} />
-                                </a>
-                              ) : null}
-                              {workout.workoutLink2 ? (
-                                <a href={workout.workoutLink2} target="_blank" rel="noreferrer" aria-label={`${workout.type} link 2`}>
-                                  <ExternalLink size={14} />
-                                </a>
-                              ) : null}
-                            </span>
-                          </div>
-                          <p>{workout.exercises}</p>
-                        </div>
-                        <div className={`weight-tracker__workout-block ${pushupsDone ? "is-done" : ""}`}>
-                          <div className="weight-tracker__workout-title-row">
-                            <strong>{workout.variation}</strong>
-                            {workout.pushupLink ? (
-                              <a href={workout.pushupLink} target="_blank" rel="noreferrer" aria-label={`${workout.variation} link`}>
-                                <ExternalLink size={14} />
-                              </a>
-                            ) : null}
-                          </div>
-                          <div className="weight-tracker__level">{workout.level}</div>
-                          <p>{workout.pushups}</p>
-                        </div>
-                        <div className="weight-tracker__toggle-row">
-                          <Button type="button" size="sm" variant="ghost" icon={<Pencil size={15} />} onClick={() => startWorkoutEdit(workout)}>Edit</Button>
-                          <Checkbox label="Workout done" checked={workoutDone} onChange={(event) => setCompletedWorkouts((current) => ({ ...current, [workout.index]: event.target.checked }))} />
-                          <Checkbox label="Pushups done" checked={pushupsDone} onChange={(event) => setCompletedPushups((current) => ({ ...current, [workout.index]: event.target.checked }))} />
-                        </div>
-                      </>
-                    )}
-                  </article>
-                );
-              })}
-            </section>
-          ))}
+              </section>
+            );
+          })}
         </div>
       </section>
     </div>
