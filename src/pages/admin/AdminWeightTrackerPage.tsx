@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Activity, CalendarDays, Cake, Dumbbell, ExternalLink, Flame, Pencil, Save, Scale, Utensils, X } from "lucide-react";
+import { Activity, CalendarDays, Cake, Droplets, Dumbbell, ExternalLink, Flame, Pencil, Ruler, Save, Scale, Utensils, X } from "lucide-react";
 import { Button, Checkbox, Input, Select, Textarea } from "../../components/ui";
 import "./AdminWeightTrackerPage.css";
 
@@ -7,6 +7,11 @@ type Gender = "male" | "female";
 type Formula = "mifflin" | "harris" | "katch";
 type ResultUnit = "calories" | "kilojoules";
 type AgeCalculateMode = "age" | "time-between";
+type MacroMode = "balanced" | "low-fat" | "low-carb" | "high-protein" | "custom";
+type LengthUnit = "in-to-ft" | "ft-to-in";
+type WaterWeightUnit = "kg" | "lb";
+type WaterActivity = "sedentary" | "light" | "moderate" | "very-active" | "extremely-active";
+type WaterClimate = "tropical" | "temperate" | "cold";
 
 interface WeightTrackerSettings {
   age: number;
@@ -24,6 +29,16 @@ interface WeightTrackerSettings {
   birthDate: string;
   ageOnDate: string;
   ageMode: AgeCalculateMode;
+  macroMode: MacroMode;
+  customProteinPercent: number;
+  customCarbPercent: number;
+  customFatPercent: number;
+  lengthAmount: number;
+  lengthUnit: LengthUnit;
+  waterWeight: number;
+  waterWeightUnit: WaterWeightUnit;
+  waterActivity: WaterActivity;
+  waterClimate: WaterClimate;
 }
 
 interface FoodEntry {
@@ -82,6 +97,16 @@ const defaultSettings: WeightTrackerSettings = {
   birthDate: "2003-01-31",
   ageOnDate: "2026-05-31",
   ageMode: "age",
+  macroMode: "high-protein",
+  customProteinPercent: 30,
+  customCarbPercent: 40,
+  customFatPercent: 30,
+  lengthAmount: 1,
+  lengthUnit: "in-to-ft",
+  waterWeight: 280,
+  waterWeightUnit: "lb",
+  waterActivity: "moderate",
+  waterClimate: "tropical",
 };
 
 const activityOptions = [
@@ -91,6 +116,30 @@ const activityOptions = [
   { value: "1.725", label: "Active: daily exercise or intense 3-4 times/week" },
   { value: "1.9", label: "Very active: intense exercise 6-7 times/week" },
 ];
+
+const macroPlans: Record<MacroMode, { label: string; protein: number; carbs: number; fat: number }> = {
+  balanced: { label: "Balanced", protein: 25, carbs: 50, fat: 25 },
+  "low-fat": { label: "Low Fat", protein: 25, carbs: 55, fat: 20 },
+  "low-carb": { label: "Low Carb", protein: 30, carbs: 25, fat: 45 },
+  "high-protein": { label: "High Protein", protein: 35, carbs: 45, fat: 20 },
+  custom: { label: "Create Your Own", protein: 30, carbs: 40, fat: 30 },
+};
+
+const waterActivityOptions: { value: WaterActivity; label: string; extraMl: number }[] = [
+  { value: "sedentary", label: "Sedentary", extraMl: 0 },
+  { value: "light", label: "Light Activity", extraMl: 350 },
+  { value: "moderate", label: "Moderately Active", extraMl: 700 },
+  { value: "very-active", label: "Very Active", extraMl: 1000 },
+  { value: "extremely-active", label: "Extremely Active", extraMl: 1400 },
+];
+
+const waterClimateOptions: { value: WaterClimate; label: string; extraMl: number }[] = [
+  { value: "tropical", label: "Tropical", extraMl: 700 },
+  { value: "temperate", label: "Temperate", extraMl: 0 },
+  { value: "cold", label: "Cold", extraMl: -150 },
+];
+
+const inchToFootRows = [0.01, 0.1, 1, 2, 3, 5, 10, 20, 50, 100, 1000];
 
 const foods: FoodEntry[] = [
   { category: "Fruit", name: "Apple", serving: "1 (4 oz.)", calories: 59, kj: 247 },
@@ -224,6 +273,10 @@ function kgToLb(kg: number) {
 
 function formatPounds(value: number) {
   return `${value.toFixed(1)} lbs`;
+}
+
+function formatFeet(value: number) {
+  return Number(value.toFixed(10)).toLocaleString(undefined, { maximumFractionDigits: 10 });
 }
 
 function addDays(dateKey: string, days: number) {
@@ -405,6 +458,69 @@ export default function AdminWeightTrackerPage() {
   const maintenance = Math.round(bmr * Number(settings.activity));
   const resultMultiplier = settings.unit === "kilojoules" ? 4.184 : 1;
   const resultLabel = settings.unit === "kilojoules" ? "kJ/day" : "Calories/day";
+  const selectedMacroPlan = macroPlans[settings.macroMode];
+  const macroPercents = settings.macroMode === "custom"
+    ? {
+        protein: Math.max(0, settings.customProteinPercent),
+        carbs: Math.max(0, settings.customCarbPercent),
+        fat: Math.max(0, settings.customFatPercent),
+      }
+    : selectedMacroPlan;
+  const macroPercentTotal = macroPercents.protein + macroPercents.carbs + macroPercents.fat;
+  const macroScale = macroPercentTotal > 0 ? 100 / macroPercentTotal : 0;
+  const macroCalories = {
+    protein: maintenance * ((macroPercents.protein * macroScale) / 100),
+    carbs: maintenance * ((macroPercents.carbs * macroScale) / 100),
+    fat: maintenance * ((macroPercents.fat * macroScale) / 100),
+  };
+  const macroTargets = [
+    {
+      label: "Protein",
+      value: Math.round(macroCalories.protein / 4),
+      range: `${Math.round((maintenance * 0.1) / 4)} - ${Math.round((maintenance * 0.35) / 4)}`,
+      unit: "grams/day",
+    },
+    {
+      label: "Carbs",
+      value: Math.round(macroCalories.carbs / 4),
+      range: `${Math.round((maintenance * 0.45) / 4)} - ${Math.round((maintenance * 0.65) / 4)}`,
+      unit: "grams/day",
+    },
+    {
+      label: "Fat",
+      value: Math.round(macroCalories.fat / 9),
+      range: `${Math.round((maintenance * 0.2) / 9)} - ${Math.round((maintenance * 0.35) / 9)}`,
+      unit: "grams/day",
+    },
+    {
+      label: "Sugar",
+      value: `<${Math.round((maintenance * 0.1) / 4)}`,
+      range: "added sugar guideline",
+      unit: "grams/day",
+    },
+    {
+      label: "Saturated Fat",
+      value: `<${Math.round((maintenance * 0.1) / 9)}`,
+      range: "daily upper limit",
+      unit: "grams/day",
+    },
+    {
+      label: "Food Energy",
+      value: maintenance.toLocaleString(),
+      range: `${Math.round(maintenance * 4.184).toLocaleString()} kJ/day`,
+      unit: "Calories/day",
+    },
+  ];
+  const lengthConverted = settings.lengthUnit === "in-to-ft" ? settings.lengthAmount / 12 : settings.lengthAmount * 12;
+  const lengthFromLabel = settings.lengthUnit === "in-to-ft" ? "inch" : "foot";
+  const lengthToLabel = settings.lengthUnit === "in-to-ft" ? "foot" : "inch";
+  const waterWeightKg = settings.waterWeightUnit === "kg" ? settings.waterWeight : toKg(settings.waterWeight);
+  const waterActivityExtra = waterActivityOptions.find((option) => option.value === settings.waterActivity)?.extraMl ?? 0;
+  const waterClimateExtra = waterClimateOptions.find((option) => option.value === settings.waterClimate)?.extraMl ?? 0;
+  const waterMl = Math.max(500, Math.round(waterWeightKg * 35 + waterActivityExtra + waterClimateExtra));
+  const waterLiters = waterMl / 1000;
+  const waterOunces = waterMl / 29.5735;
+  const waterGlasses = Math.ceil(waterOunces / 8);
   const calorieTargets = [
     { label: "Maintain weight", note: "100%", value: maintenance },
     { label: "Mild weight loss", note: "0.5 lb/week", value: maintenance - 250 },
@@ -538,6 +654,120 @@ export default function AdminWeightTrackerPage() {
             <div className="weight-tracker__macro-card"><strong>{Math.round(bmr).toLocaleString()}</strong><span>BMR calories/day</span></div>
             <div className="weight-tracker__macro-card"><strong>{Math.round(weightKg)}</strong><span>kg body weight</span></div>
             <div className="weight-tracker__macro-card"><strong>{Math.round(heightCm)}</strong><span>cm height</span></div>
+          </div>
+        </section>
+      </div>
+
+      <section className="admin-panel weight-tracker__macro-section">
+        <div className="weight-tracker__section-head">
+          <div className="admin-panel__title-row">
+            <Utensils size={18} />
+            <h2>Macro Calculator</h2>
+          </div>
+          <Select
+            label="Plan"
+            value={settings.macroMode}
+            onChange={(event) => updateSetting("macroMode", event.target.value as MacroMode)}
+            options={Object.entries(macroPlans).map(([value, plan]) => ({ value, label: plan.label }))}
+          />
+        </div>
+
+        {settings.macroMode === "custom" ? (
+          <div className="weight-tracker__form-grid">
+            <Input label="Protein %" type="number" value={settings.customProteinPercent} onChange={(event) => updateSetting("customProteinPercent", Number(event.target.value))} />
+            <Input label="Carbs %" type="number" value={settings.customCarbPercent} onChange={(event) => updateSetting("customCarbPercent", Number(event.target.value))} />
+            <Input label="Fat %" type="number" value={settings.customFatPercent} onChange={(event) => updateSetting("customFatPercent", Number(event.target.value))} />
+            <div className="weight-tracker__formula-box">
+              <strong>Total</strong>
+              <span>{macroPercentTotal.toFixed(0)}% gets normalized to 100% automatically.</span>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="weight-tracker__macro-results">
+          {macroTargets.map((target) => (
+            <div key={target.label} className="weight-tracker__macro-result">
+              <span>{target.label}</span>
+              <strong>{target.value} <em>{target.unit}</em></strong>
+              <small>{target.range}</small>
+            </div>
+          ))}
+        </div>
+        <p className="weight-tracker__hint">Macro ranges use common AMDR-style guidance and update from your current calorie maintenance estimate.</p>
+      </section>
+
+      <div className="weight-tracker__utility-grid">
+        <section className="admin-panel weight-tracker__converter">
+          <div className="admin-panel__title-row">
+            <Ruler size={18} />
+            <h2>Inches & Feet Converter</h2>
+          </div>
+          <div className="weight-tracker__converter-form">
+            <Input label="From" type="number" value={settings.lengthAmount} onChange={(event) => updateSetting("lengthAmount", Number(event.target.value))} />
+            <Select
+              label="Conversion"
+              value={settings.lengthUnit}
+              onChange={(event) => updateSetting("lengthUnit", event.target.value as LengthUnit)}
+              options={[
+                { value: "in-to-ft", label: "Inches to feet" },
+                { value: "ft-to-in", label: "Feet to inches" },
+              ]}
+            />
+            <div className="weight-tracker__conversion-answer">
+              <span>Result</span>
+              <strong>{formatFeet(settings.lengthAmount)} {lengthFromLabel} = {formatFeet(lengthConverted)} {lengthToLabel}</strong>
+            </div>
+          </div>
+          <div className="weight-tracker__formula-box">
+            <strong>Formula</strong>
+            <span>1 inch = 0.0833333333 foot. 1 foot = 12 inches.</span>
+          </div>
+          <div className="weight-tracker__conversion-table">
+            {inchToFootRows.map((inches) => (
+              <div key={inches}>
+                <span>{inches} in</span>
+                <strong>{formatFeet(inches / 12)} ft</strong>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="admin-panel weight-tracker__water">
+          <div className="admin-panel__title-row">
+            <Droplets size={18} />
+            <h2>Daily Water Requirement</h2>
+          </div>
+          <div className="weight-tracker__water-form">
+            <div className="weight-tracker__water-row">
+              <Input label="Body Weight" type="number" value={settings.waterWeight} onChange={(event) => updateSetting("waterWeight", Number(event.target.value))} />
+              <Select
+                label="Unit"
+                value={settings.waterWeightUnit}
+                onChange={(event) => updateSetting("waterWeightUnit", event.target.value as WaterWeightUnit)}
+                options={[
+                  { value: "kg", label: "kg" },
+                  { value: "lb", label: "lb (Pound)" },
+                ]}
+              />
+            </div>
+            <Select
+              label="Activity"
+              value={settings.waterActivity}
+              onChange={(event) => updateSetting("waterActivity", event.target.value as WaterActivity)}
+              options={waterActivityOptions.map((option) => ({ value: option.value, label: option.label }))}
+            />
+            <Select
+              label="Climate"
+              value={settings.waterClimate}
+              onChange={(event) => updateSetting("waterClimate", event.target.value as WaterClimate)}
+              options={waterClimateOptions.map((option) => ({ value: option.value, label: option.label }))}
+            />
+          </div>
+          <p className="weight-tracker__hint">This gives a starting point for daily water intake. Food moisture, pregnancy, breastfeeding, exercise, and health conditions can change the right amount.</p>
+          <div className="weight-tracker__water-result">
+            <span>Daily Water Recommendation</span>
+            <strong>You need to drink at least {waterGlasses.toLocaleString()} glasses of water everyday.</strong>
+            <p>This is equivalent to <b>{waterLiters.toFixed(1)} litres</b> [{waterOunces.toFixed(1)} ounces] of water.</p>
           </div>
         </section>
       </div>
