@@ -9,7 +9,6 @@ type ResultUnit = "calories" | "kilojoules";
 type AgeCalculateMode = "age" | "time-between";
 type MacroMode = "balanced" | "low-fat" | "low-carb" | "high-protein" | "custom";
 type LengthUnit = "in-to-ft" | "ft-to-in";
-type WaterWeightUnit = "kg" | "lb";
 type WaterActivity = "sedentary" | "light" | "moderate" | "very-active" | "extremely-active";
 type WaterClimate = "tropical" | "temperate" | "cold";
 
@@ -35,8 +34,6 @@ interface WeightTrackerSettings {
   customFatPercent: number;
   lengthAmount: number;
   lengthUnit: LengthUnit;
-  waterWeight: number;
-  waterWeightUnit: WaterWeightUnit;
   waterActivity: WaterActivity;
   waterClimate: WaterClimate;
 }
@@ -103,8 +100,7 @@ const defaultSettings: WeightTrackerSettings = {
   customFatPercent: 30,
   lengthAmount: 1,
   lengthUnit: "in-to-ft",
-  waterWeight: 280,
-  waterWeightUnit: "lb",
+  
   waterActivity: "moderate",
   waterClimate: "tropical",
 };
@@ -512,7 +508,7 @@ export default function AdminWeightTrackerPage() {
   const lengthConverted = settings.lengthUnit === "in-to-ft" ? settings.lengthAmount / 12 : settings.lengthAmount * 12;
   const lengthFromLabel = settings.lengthUnit === "in-to-ft" ? "inch" : "foot";
   const lengthToLabel = settings.lengthUnit === "in-to-ft" ? "foot" : "inch";
-  const waterWeightKg = settings.waterWeightUnit === "kg" ? settings.waterWeight : toKg(settings.waterWeight);
+  const waterWeightKg = toKg(settings.weight);
   const waterActivityExtra = waterActivityOptions.find((option) => option.value === settings.waterActivity)?.extraMl ?? 0;
   const waterClimateExtra = waterClimateOptions.find((option) => option.value === settings.waterClimate)?.extraMl ?? 0;
   const waterMl = Math.max(500, Math.round(waterWeightKg * 35 + waterActivityExtra + waterClimateExtra));
@@ -595,95 +591,107 @@ export default function AdminWeightTrackerPage() {
             <Flame size={18} />
             <h2>Live Calculator</h2>
           </div>
-          <div className="weight-tracker__form-grid">
-            <Input label="Age" type="number" value={settings.age} onChange={(event) => updateSetting("age", Number(event.target.value))} />
-            <Select label="Activity" value={settings.activity} onChange={(event) => updateSetting("activity", event.target.value)} options={activityOptions} />
-            <div>
-              <span className="ui-input-label">Gender</span>
-              <div className="weight-tracker__radio-row">
-                <label className="weight-tracker__radio"><input type="radio" checked={settings.gender === "male"} onChange={() => updateSetting("gender", "male")} /> Male</label>
-                <label className="weight-tracker__radio"><input type="radio" checked={settings.gender === "female"} onChange={() => updateSetting("gender", "female")} /> Female</label>
+          <div className="weight-tracker__calculator-stack">
+            <div className="weight-tracker__calculator-group">
+              <h3>Body Details</h3>
+              <div className="weight-tracker__form-grid">
+                <Input label="Age" type="number" value={settings.age} onChange={(event) => updateSetting("age", Number(event.target.value))} />
+                <div>
+                  <span className="ui-input-label">Gender</span>
+                  <div className="weight-tracker__radio-row">
+                    <label className="weight-tracker__radio"><input type="radio" checked={settings.gender === "male"} onChange={() => updateSetting("gender", "male")} /> Male</label>
+                    <label className="weight-tracker__radio"><input type="radio" checked={settings.gender === "female"} onChange={() => updateSetting("gender", "female")} /> Female</label>
+                  </div>
+                </div>
+                <div className="weight-tracker__form-row">
+                  <Input label="Feet" type="number" value={settings.feet} onChange={(event) => updateSetting("feet", Number(event.target.value))} />
+                  <Input label="Inches" type="number" value={settings.inches} onChange={(event) => updateSetting("inches", Number(event.target.value))} />
+                </div>
+                <Input label="Weight" type="number" suffix="lb" value={settings.weight} onChange={(event) => updateSetting("weight", Number(event.target.value))} />
               </div>
             </div>
-            <Select
-              label="Formula"
-              value={settings.formula}
-              onChange={(event) => updateSetting("formula", event.target.value as Formula)}
-              options={[
-                { value: "mifflin", label: "Mifflin St Jeor" },
-                { value: "harris", label: "Revised Harris-Benedict" },
-                { value: "katch", label: "Katch-McArdle" },
-              ]}
-            />
-            <div className="weight-tracker__form-row">
-              <Input label="Feet" type="number" value={settings.feet} onChange={(event) => updateSetting("feet", Number(event.target.value))} />
-              <Input label="Inches" type="number" value={settings.inches} onChange={(event) => updateSetting("inches", Number(event.target.value))} />
+
+            <div className="weight-tracker__calculator-group">
+              <h3>Calorie Settings</h3>
+              <div className="weight-tracker__form-grid">
+                <Select label="Activity" value={settings.activity} onChange={(event) => updateSetting("activity", event.target.value)} options={activityOptions} />
+                <Select
+                  label="Formula"
+                  value={settings.formula}
+                  onChange={(event) => updateSetting("formula", event.target.value as Formula)}
+                  options={[
+                    { value: "mifflin", label: "Mifflin St Jeor" },
+                    { value: "harris", label: "Revised Harris-Benedict" },
+                    { value: "katch", label: "Katch-McArdle" },
+                  ]}
+                />
+                <Input label="Body Fat" type="number" suffix="%" value={settings.bodyFat} onChange={(event) => updateSetting("bodyFat", Number(event.target.value))} />
+                <Select
+                  label="Result Unit"
+                  value={settings.unit}
+                  onChange={(event) => updateSetting("unit", event.target.value as ResultUnit)}
+                  options={[
+                    { value: "calories", label: "Calories" },
+                    { value: "kilojoules", label: "Kilojoules" },
+                  ]}
+                />
+              </div>
             </div>
-            <Input label="Weight" type="number" suffix="lb" value={settings.weight} onChange={(event) => updateSetting("weight", Number(event.target.value))} />
-            <Input label="Body Fat" type="number" suffix="%" value={settings.bodyFat} onChange={(event) => updateSetting("bodyFat", Number(event.target.value))} />
-            <Select
-              label="Result Unit"
-              value={settings.unit}
-              onChange={(event) => updateSetting("unit", event.target.value as ResultUnit)}
-              options={[
-                { value: "calories", label: "Calories" },
-                { value: "kilojoules", label: "Kilojoules" },
-              ]}
-            />
-            <Select
-              label="Macro Plan"
-              value={settings.macroMode}
-              onChange={(event) => updateSetting("macroMode", event.target.value as MacroMode)}
-              options={Object.entries(macroPlans).map(([value, plan]) => ({ value, label: plan.label }))}
-            />
-            <div className="weight-tracker__form-row">
-              <Input label="Length" type="number" value={settings.lengthAmount} onChange={(event) => updateSetting("lengthAmount", Number(event.target.value))} />
-              <Select
-                label="Convert"
-                value={settings.lengthUnit}
-                onChange={(event) => updateSetting("lengthUnit", event.target.value as LengthUnit)}
-                options={[
-                  { value: "in-to-ft", label: "In to ft" },
-                  { value: "ft-to-in", label: "Ft to in" },
-                ]}
-              />
+
+            <div className="weight-tracker__calculator-group">
+              <h3>Macros</h3>
+              <div className="weight-tracker__form-grid">
+                <Select
+                  label="Macro Plan"
+                  value={settings.macroMode}
+                  onChange={(event) => updateSetting("macroMode", event.target.value as MacroMode)}
+                  options={Object.entries(macroPlans).map(([value, plan]) => ({ value, label: plan.label }))}
+                />
+                {settings.macroMode === "custom" ? (
+                  <>
+                    <Input label="Protein %" type="number" value={settings.customProteinPercent} onChange={(event) => updateSetting("customProteinPercent", Number(event.target.value))} />
+                    <Input label="Carbs %" type="number" value={settings.customCarbPercent} onChange={(event) => updateSetting("customCarbPercent", Number(event.target.value))} />
+                    <Input label="Fat %" type="number" value={settings.customFatPercent} onChange={(event) => updateSetting("customFatPercent", Number(event.target.value))} />
+                  </>
+                ) : null}
+              </div>
             </div>
-            <div className="weight-tracker__form-row">
-              <Input label="Water Weight" type="number" value={settings.waterWeight} onChange={(event) => updateSetting("waterWeight", Number(event.target.value))} />
-              <Select
-                label="Water Unit"
-                value={settings.waterWeightUnit}
-                onChange={(event) => updateSetting("waterWeightUnit", event.target.value as WaterWeightUnit)}
-                options={[
-                  { value: "kg", label: "kg" },
-                  { value: "lb", label: "lb" },
-                ]}
-              />
+
+            <div className="weight-tracker__calculator-group">
+              <h3>Length Conversion</h3>
+              <div className="weight-tracker__form-grid">
+                <Input label="Length" type="number" value={settings.lengthAmount} onChange={(event) => updateSetting("lengthAmount", Number(event.target.value))} />
+                <Select
+                  label="Convert"
+                  value={settings.lengthUnit}
+                  onChange={(event) => updateSetting("lengthUnit", event.target.value as LengthUnit)}
+                  options={[
+                    { value: "in-to-ft", label: "Inches to feet" },
+                    { value: "ft-to-in", label: "Feet to inches" },
+                  ]}
+                />
+              </div>
             </div>
-            <Select
-              label="Water Activity"
-              value={settings.waterActivity}
-              onChange={(event) => updateSetting("waterActivity", event.target.value as WaterActivity)}
-              options={waterActivityOptions.map((option) => ({ value: option.value, label: option.label }))}
-            />
-            <Select
-              label="Water Climate"
-              value={settings.waterClimate}
-              onChange={(event) => updateSetting("waterClimate", event.target.value as WaterClimate)}
-              options={waterClimateOptions.map((option) => ({ value: option.value, label: option.label }))}
-            />
+
+            <div className="weight-tracker__calculator-group">
+              <h3>Water Intake</h3>
+              <div className="weight-tracker__form-grid">
+                {/* Uses overall `weight` for water calculation */}
+                <Select
+                  label="Water Activity"
+                  value={settings.waterActivity}
+                  onChange={(event) => updateSetting("waterActivity", event.target.value as WaterActivity)}
+                  options={waterActivityOptions.map((option) => ({ value: option.value, label: option.label }))}
+                />
+                <Select
+                  label="Water Climate"
+                  value={settings.waterClimate}
+                  onChange={(event) => updateSetting("waterClimate", event.target.value as WaterClimate)}
+                  options={waterClimateOptions.map((option) => ({ value: option.value, label: option.label }))}
+                />
+              </div>
+            </div>
           </div>
-          {settings.macroMode === "custom" ? (
-            <div className="weight-tracker__form-grid weight-tracker__custom-macros">
-              <Input label="Protein %" type="number" value={settings.customProteinPercent} onChange={(event) => updateSetting("customProteinPercent", Number(event.target.value))} />
-              <Input label="Carbs %" type="number" value={settings.customCarbPercent} onChange={(event) => updateSetting("customCarbPercent", Number(event.target.value))} />
-              <Input label="Fat %" type="number" value={settings.customFatPercent} onChange={(event) => updateSetting("customFatPercent", Number(event.target.value))} />
-              <div className="weight-tracker__formula-box">
-                <strong>Total</strong>
-                <span>{macroPercentTotal.toFixed(0)}% gets normalized to 100% automatically.</span>
-              </div>
-            </div>
-          ) : null}
         </section>
 
         <section className="admin-panel weight-tracker__results">
@@ -691,39 +699,51 @@ export default function AdminWeightTrackerPage() {
             <Activity size={18} />
             <h2>Real-Time Results</h2>
           </div>
-          {calorieTargets.map((target, index) => (
-            <div key={target.label} className={`weight-tracker__result-card ${index === 0 ? "is-maintain" : ""}`}>
-              <div>
-                <strong>{Math.max(0, Math.round(target.value * resultMultiplier)).toLocaleString()}</strong>
-                <span> {resultLabel}</span>
-                <small>{target.note}</small>
-              </div>
-              <span>{target.label}</span>
-            </div>
-          ))}
-          <div className="weight-tracker__macro-grid">
-            <div className="weight-tracker__macro-card"><strong>{Math.round(bmr).toLocaleString()}</strong><span>BMR calories/day</span></div>
-            <div className="weight-tracker__macro-card"><strong>{Math.round(weightKg)}</strong><span>kg body weight</span></div>
-            <div className="weight-tracker__macro-card"><strong>{Math.round(heightCm)}</strong><span>cm height</span></div>
-          </div>
-          <div className="weight-tracker__macro-results">
-            {macroTargets.map((target) => (
-              <div key={target.label} className="weight-tracker__macro-result">
+          <div className="weight-tracker__result-group">
+            <h3>Calorie Targets</h3>
+            {calorieTargets.map((target, index) => (
+              <div key={target.label} className={`weight-tracker__result-card ${index === 0 ? "is-maintain" : ""}`}>
+                <div>
+                  <strong>{Math.max(0, Math.round(target.value * resultMultiplier)).toLocaleString()}</strong>
+                  <span> {resultLabel}</span>
+                  <small>{target.note}</small>
+                </div>
                 <span>{target.label}</span>
-                <strong>{target.value} <em>{target.unit}</em></strong>
-                <small>{target.range}</small>
               </div>
             ))}
           </div>
-          <div className="weight-tracker__results-row">
-            <div className="weight-tracker__conversion-answer">
-              <span>Length Conversion</span>
-              <strong>{formatFeet(settings.lengthAmount)} {lengthFromLabel} = {formatFeet(lengthConverted)} {lengthToLabel}</strong>
+          <div className="weight-tracker__result-group">
+            <h3>Body Results</h3>
+            <div className="weight-tracker__macro-grid">
+              <div className="weight-tracker__macro-card"><strong>{Math.round(bmr).toLocaleString()}</strong><span>BMR calories/day</span></div>
+              <div className="weight-tracker__macro-card"><strong>{Math.round(weightKg)}</strong><span>kg body weight</span></div>
+              <div className="weight-tracker__macro-card"><strong>{Math.round(heightCm)}</strong><span>cm height</span></div>
             </div>
-            <div className="weight-tracker__water-result">
-              <span>Daily Water Recommendation</span>
-              <strong>At least {waterGlasses.toLocaleString()} glasses everyday.</strong>
-              <p><b>{waterLiters.toFixed(1)} litres</b> [{waterOunces.toFixed(1)} ounces] of water.</p>
+          </div>
+          <div className="weight-tracker__result-group">
+            <h3>Macro Targets</h3>
+            <div className="weight-tracker__macro-results">
+              {macroTargets.map((target) => (
+                <div key={target.label} className="weight-tracker__macro-result">
+                  <span>{target.label}</span>
+                  <strong>{target.value} <em>{target.unit}</em></strong>
+                  <small>{target.range}</small>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="weight-tracker__result-group">
+            <h3>Utility Results</h3>
+            <div className="weight-tracker__results-row">
+              <div className="weight-tracker__conversion-answer">
+                <span>Length Conversion</span>
+                <strong>{formatFeet(settings.lengthAmount)} {lengthFromLabel} = {formatFeet(lengthConverted)} {lengthToLabel}</strong>
+              </div>
+              <div className="weight-tracker__water-result">
+                <span>Daily Water Recommendation</span>
+                <strong>At least {waterGlasses.toLocaleString()} glasses everyday.</strong>
+                <p><b>{waterLiters.toFixed(1)} litres</b> [{waterOunces.toFixed(1)} ounces] of water.</p>
+              </div>
             </div>
           </div>
         </section>

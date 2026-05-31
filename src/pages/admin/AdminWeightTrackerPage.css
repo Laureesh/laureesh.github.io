@@ -37,6 +37,34 @@
   margin-top: 0.9rem;
 }
 
+.weight-tracker__calculator-stack,
+.weight-tracker__result-group {
+  display: grid;
+  gap: 1rem;
+}
+
+.weight-tracker__calculator-group,
+.weight-tracker__result-group {
+  padding-top: 0.95rem;
+  border-top: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+}
+
+.weight-tracker__calculator-group:first-child,
+.weight-tracker__result-group:first-of-type {
+  padding-top: 0;
+  border-top: none;
+}
+
+.weight-tracker__calculator-group h3,
+.weight-tracker__result-group h3 {
+  margin: 0 0 0.75rem;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .weight-tracker__form-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
