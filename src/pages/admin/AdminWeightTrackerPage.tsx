@@ -354,6 +354,8 @@ export default function AdminWeightTrackerPage() {
   const heightMeters = heightCm / 100;
   const bmi = settings.weight > 0 && heightMeters > 0 ? weightKg / (heightMeters ** 2) : 0;
   const bmiPrime = bmi / 25;
+  const ponderalIndexMetric = heightMeters > 0 ? weightKg / (heightMeters ** 3) : 0;
+  const ponderalIndexUsc = settings.weight > 0 ? totalHeightInches / Math.cbrt(settings.weight) : 0;
   const healthyLow = kgToLb(18.5 * (heightMeters ** 2));
   const healthyHigh = kgToLb(25 * (heightMeters ** 2));
   const inchesOverFiveFeet = Math.max(totalHeightInches - 60, 0);
@@ -557,6 +559,7 @@ export default function AdminWeightTrackerPage() {
             <p>Healthy BMI range: 18.5 - 25 kg/m²</p>
             <p>Healthy weight for this height: {formatPounds(healthyLow)} - {formatPounds(healthyHigh)}</p>
             <p>BMI Prime: {bmiPrime.toFixed(2)}</p>
+            <p>Ponderal Index: {ponderalIndexMetric.toFixed(1)} kg/m³</p>
           </div>
 
           <div className="weight-tracker__ideal-card">
@@ -612,6 +615,20 @@ export default function AdminWeightTrackerPage() {
             <p>USC units: BMI = 703 x mass(lb) / height(in)².</p>
             <p>Metric units: BMI = mass(kg) / height(m)².</p>
             <p>BMI Prime compares BMI to the upper normal limit: BMI / 25. Less than 0.74 is underweight, 0.74 to 1 is normal, 1 to 1.2 is overweight, and higher values indicate obesity classes.</p>
+          </div>
+
+          <div className="weight-tracker__info-card">
+            <h3>Ponderal Index</h3>
+            <p>The Ponderal Index is similar to BMI because it compares body size against height and weight. The key difference is that PI cubes height while BMI squares height.</p>
+            <p>Because it uses height³, PI can be more useful for very tall or very short people, where BMI may record unusually high or low body fat levels near the extremes of height.</p>
+            <div className="weight-tracker__formula-box">
+              <strong>USC Units</strong>
+              <span>PI = height(in) / ∛mass(lb) = {ponderalIndexUsc.toFixed(1)}</span>
+            </div>
+            <div className="weight-tracker__formula-box">
+              <strong>SI, Metric Units</strong>
+              <span>PI = mass(kg) / height(m)³ = {ponderalIndexMetric.toFixed(1)}</span>
+            </div>
           </div>
 
           <div className="weight-tracker__info-card">

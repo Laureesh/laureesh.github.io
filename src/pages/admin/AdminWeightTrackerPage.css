@@ -213,6 +213,21 @@
   display: grid;
 }
 
+.weight-tracker__formula-box {
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.weight-tracker__formula-box span {
+  color: var(--text-secondary);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
 .weight-tracker__age-grid {
   display: grid;
   grid-template-columns: minmax(260px, 0.42fr) minmax(0, 0.58fr);
