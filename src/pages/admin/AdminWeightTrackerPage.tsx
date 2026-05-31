@@ -11,6 +11,7 @@ type MacroMode = "balanced" | "low-fat" | "low-carb" | "high-protein" | "custom"
 type LengthUnit = "in-to-ft" | "ft-to-in";
 type WaterActivity = "sedentary" | "light" | "moderate" | "very-active" | "extremely-active";
 type WaterClimate = "tropical" | "temperate" | "cold";
+type WorkoutPlanMode = "progression" | "circuit";
 
 interface WeightTrackerSettings {
   age: number;
@@ -36,6 +37,7 @@ interface WeightTrackerSettings {
   lengthUnit: LengthUnit;
   waterActivity: WaterActivity;
   waterClimate: WaterClimate;
+  workoutPlan: WorkoutPlanMode;
 }
 
 interface FoodEntry {
@@ -104,6 +106,7 @@ const defaultSettings: WeightTrackerSettings = {
   
   waterActivity: "moderate",
   waterClimate: "tropical",
+  workoutPlan: "progression",
 };
 
 const activityOptions = [
@@ -197,7 +200,33 @@ const exercises: ExerciseEntry[] = [
   { activity: "Soccer (general)", calories125: 397, calories155: 492, calories185: 587 },
 ];
 
-const workoutTemplates: WorkoutTemplate[] = [
+const progressionWorkoutTemplates: WorkoutTemplate[] = [
+  { offset: 1, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#1 Wall Pushups", level: "Level 1", pushups: "2 Sets of 30 Pushups" },
+  { offset: 3, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#1 Wall Pushups", level: "Level 2", pushups: "2 Sets of 50 Pushups" },
+  { offset: 5, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#1 Wall Pushups", level: "Level 3", pushups: "3 Sets of 50 Pushups" },
+  { offset: 8, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#2 Incline Pushups", level: "Level 1", pushups: "2 Sets of 20 Pushups" },
+  { offset: 10, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#2 Incline Pushups", level: "Level 2", pushups: "2 Sets of 30 Pushups" },
+  { offset: 12, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#2 Incline Pushups", level: "Level 3", pushups: "3 Sets of 40 Pushups" },
+  { offset: 15, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#3 Advanced Incline Pushups", level: "Level 2", pushups: "2 Sets of 30 Pushups" },
+  { offset: 17, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#3 Advanced Incline Pushups", level: "Level 3", pushups: "3 Sets of 35 Pushups" },
+  { offset: 19, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#4 Knee Pushups", level: "Level 1", pushups: "2 Sets of 10 Pushups" },
+  { offset: 22, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#4 Knee Pushups", level: "Level 2", pushups: "2 Sets of 20 Pushups" },
+  { offset: 24, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#4 Knee Pushups", level: "Level 3", pushups: "3 Sets of 30 Pushups" },
+  { offset: 26, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#5 Full Pushups", level: "Level 1", pushups: "2 Sets of 5 Pushups" },
+  { offset: 29, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#5 Full Pushups", level: "Level 2", pushups: "2 Sets of 15 Pushups" },
+  { offset: 31, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#5 Full Pushups", level: "Level 3", pushups: "3 Sets of 25 Pushups" },
+  { offset: 33, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#6 Narrow Pushups", level: "Level 1", pushups: "2 Sets of 5 Pushups" },
+  { offset: 36, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#6 Narrow Pushups", level: "Level 2", pushups: "2 Sets of 10 Pushups" },
+  { offset: 38, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#6 Narrow Pushups", level: "Level 3", pushups: "3 Sets of 20 Pushups" },
+  { offset: 40, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#7 Side Staggered Pushups", level: "Level 1", pushups: "2 Sets of 5 Pushups (Per Side)" },
+  { offset: 43, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#7 Side Staggered Pushups", level: "Level 2", pushups: "2 Sets of 10 Pushups (Per Side)" },
+  { offset: 45, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#7 Side Staggered Pushups", level: "Level 3", pushups: "2 Sets of 20 Pushups (Per Side)" },
+  { offset: 47, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#8 Archer Pushups", level: "Level 1", pushups: "2 Sets of 5 Pushups (Per Side)" },
+  { offset: 50, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#8 Archer Pushups", level: "Level 2", pushups: "2 Sets of 9 Pushups (Per Side)" },
+  { offset: 52, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#8 Archer Pushups", level: "Level 3", pushups: "2 Sets of 12 Pushups (Per Side)" },
+];
+
+const circuitWorkoutTemplates: WorkoutTemplate[] = [
   {
     offset: 1,
     type: "Monday - Full Body Circuit",
@@ -576,7 +605,8 @@ export default function AdminWeightTrackerPage() {
     return matchesCategory && matchesSearch;
   });
 
-  const scheduledWorkouts = workoutTemplates.map((workout, index) => ({
+  const selectedWorkoutTemplates = settings.workoutPlan === "circuit" ? circuitWorkoutTemplates : progressionWorkoutTemplates;
+  const scheduledWorkouts = selectedWorkoutTemplates.map((workout, index) => ({
     ...workout,
     ...workoutOverrides[index],
     index,
@@ -965,6 +995,15 @@ export default function AdminWeightTrackerPage() {
             <CalendarDays size={18} />
             <h2>Exercise Plan</h2>
           </div>
+          <Select
+            label="Plan"
+            value={settings.workoutPlan}
+            onChange={(event) => updateSetting("workoutPlan", event.target.value as WorkoutPlanMode)}
+            options={[
+              { value: "progression", label: "Original Dumbbell + Pushup Progression" },
+              { value: "circuit", label: "Bodyweight Circuit Plan" },
+            ]}
+          />
           <Input label="Start Date" type="date" value={settings.startDate} onChange={(event) => updateSetting("startDate", event.target.value)} />
         </div>
         <div className="weight-tracker__workout-list">
