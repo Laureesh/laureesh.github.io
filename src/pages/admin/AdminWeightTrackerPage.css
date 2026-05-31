@@ -13,7 +13,8 @@
 .weight-tracker__results,
 .weight-tracker__references,
 .weight-tracker__plan,
-.weight-tracker__age {
+.weight-tracker__age,
+.weight-tracker__body-metrics {
   display: grid;
   gap: 1rem;
 }
@@ -54,6 +55,9 @@
 .weight-tracker__result-card,
 .weight-tracker__macro-card,
 .weight-tracker__age-answer,
+.weight-tracker__bmi-card,
+.weight-tracker__ideal-card,
+.weight-tracker__info-card,
 .weight-tracker__food-card,
 .weight-tracker__exercise-card,
 .weight-tracker__workout-card {
@@ -80,6 +84,11 @@
 .weight-tracker__macro-card span,
 .weight-tracker__age-answer span,
 .weight-tracker__age-answer p,
+.weight-tracker__bmi-card span,
+.weight-tracker__bmi-card p,
+.weight-tracker__ideal-card > span,
+.weight-tracker__info-card p,
+.weight-tracker__info-card li,
 .weight-tracker__food-card span,
 .weight-tracker__exercise-card span,
 .weight-tracker__workout-card span,
@@ -90,6 +99,118 @@
 .weight-tracker__result-card.is-maintain {
   border-color: color-mix(in srgb, var(--weight-green) 48%, var(--border));
   background: color-mix(in srgb, var(--weight-green) 12%, var(--bg-secondary));
+}
+
+.weight-tracker__body-grid,
+.weight-tracker__info-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.weight-tracker__body-grid {
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1fr);
+}
+
+.weight-tracker__info-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.weight-tracker__bmi-card,
+.weight-tracker__ideal-card,
+.weight-tracker__info-card {
+  align-content: start;
+}
+
+.weight-tracker__bmi-card > span,
+.weight-tracker__ideal-card > span {
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.weight-tracker__bmi-card strong {
+  color: var(--text-primary);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.weight-tracker__bmi-card em {
+  width: fit-content;
+  padding: 0.28rem 0.62rem;
+  border-radius: 999px;
+  background: rgba(52, 211, 153, 0.12);
+  color: #34d399;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.weight-tracker__bmi-meter {
+  position: relative;
+  height: 0.75rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #93c5fd 0 36%, #86efac 36% 56%, #fde68a 56% 67%, #fca5a5 67% 89%, #991b1b 89%);
+}
+
+.weight-tracker__bmi-meter span {
+  position: absolute;
+  top: 50%;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--bg-card);
+  border-radius: 999px;
+  background: var(--text-primary);
+  transform: translate(-50%, -50%);
+}
+
+.weight-tracker__ideal-row,
+.weight-tracker__bmi-table div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.62rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+}
+
+.weight-tracker__ideal-row:last-child,
+.weight-tracker__bmi-table div:last-child {
+  border-bottom: none;
+}
+
+.weight-tracker__ideal-row strong,
+.weight-tracker__info-card h3,
+.weight-tracker__bmi-table strong {
+  color: var(--text-primary);
+}
+
+.weight-tracker__ideal-row span {
+  color: #86efac;
+  font-weight: 900;
+}
+
+.weight-tracker__ideal-row.is-range span {
+  color: #fbbf24;
+}
+
+.weight-tracker__info-card h3 {
+  margin: 0;
+}
+
+.weight-tracker__info-card p,
+.weight-tracker__info-card ul {
+  margin: 0;
+  line-height: 1.58;
+}
+
+.weight-tracker__info-card ul {
+  display: grid;
+  gap: 0.45rem;
+  padding-left: 1.1rem;
+}
+
+.weight-tracker__bmi-table {
+  display: grid;
 }
 
 .weight-tracker__age-grid {
@@ -304,6 +425,8 @@
 @media (max-width: 1040px) {
   .weight-tracker__grid,
   .weight-tracker__age-grid,
+  .weight-tracker__body-grid,
+  .weight-tracker__info-grid,
   .weight-tracker__workout-card {
     grid-template-columns: 1fr;
   }

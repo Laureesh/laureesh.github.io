@@ -218,6 +218,14 @@ function toCm(feet: number, inches: number) {
   return ((feet * 12) + inches) * 2.54;
 }
 
+function kgToLb(kg: number) {
+  return kg / 0.45359237;
+}
+
+function formatPounds(value: number) {
+  return `${value.toFixed(1)} lbs`;
+}
+
 function addDays(dateKey: string, days: number) {
   const date = new Date(`${dateKey}T00:00:00`);
   date.setDate(date.getDate() + days);
@@ -305,6 +313,17 @@ function interpolateExerciseCalories(entry: ExerciseEntry, weight: number) {
   return Math.round(entry.calories185 * (weight / 185));
 }
 
+function getBmiClassification(bmi: number) {
+  if (bmi < 16) return "Severe Thinness";
+  if (bmi < 17) return "Moderate Thinness";
+  if (bmi < 18.5) return "Mild Thinness";
+  if (bmi < 25) return "Normal";
+  if (bmi < 30) return "Overweight";
+  if (bmi < 35) return "Obese Class I";
+  if (bmi < 40) return "Obese Class II";
+  return "Obese Class III";
+}
+
 export default function AdminWeightTrackerPage() {
   const [settings, setSettings] = useState<WeightTrackerSettings>(loadSettings);
   const [completion] = useState(loadCompletion);
@@ -331,6 +350,39 @@ export default function AdminWeightTrackerPage() {
 
   const weightKg = toKg(settings.weight);
   const heightCm = toCm(settings.feet, settings.inches);
+  const totalHeightInches = settings.feet * 12 + settings.inches;
+  const heightMeters = heightCm / 100;
+  const bmi = settings.weight > 0 && heightMeters > 0 ? weightKg / (heightMeters ** 2) : 0;
+  const bmiPrime = bmi / 25;
+  const healthyLow = kgToLb(18.5 * (heightMeters ** 2));
+  const healthyHigh = kgToLb(25 * (heightMeters ** 2));
+  const inchesOverFiveFeet = Math.max(totalHeightInches - 60, 0);
+  const idealWeights = [
+    {
+      formula: "Robinson (1983)",
+      value: settings.gender === "male"
+        ? kgToLb(52 + 1.9 * inchesOverFiveFeet)
+        : kgToLb(49 + 1.7 * inchesOverFiveFeet),
+    },
+    {
+      formula: "Miller (1983)",
+      value: settings.gender === "male"
+        ? kgToLb(56.2 + 1.41 * inchesOverFiveFeet)
+        : kgToLb(53.1 + 1.36 * inchesOverFiveFeet),
+    },
+    {
+      formula: "Devine (1974)",
+      value: settings.gender === "male"
+        ? kgToLb(50 + 2.3 * inchesOverFiveFeet)
+        : kgToLb(45.5 + 2.3 * inchesOverFiveFeet),
+    },
+    {
+      formula: "Hamwi (1964)",
+      value: settings.gender === "male"
+        ? kgToLb(48 + 2.7 * inchesOverFiveFeet)
+        : kgToLb(45.5 + 2.2 * inchesOverFiveFeet),
+    },
+  ];
   const leanBodyMassKg = weightKg * (1 - settings.bodyFat / 100);
   const bmr = useMemo(() => {
     if (settings.formula === "harris") {
@@ -487,6 +539,88 @@ export default function AdminWeightTrackerPage() {
           </div>
         </section>
       </div>
+
+      <section className="admin-panel weight-tracker__body-metrics">
+        <div className="admin-panel__title-row">
+          <Scale size={18} />
+          <h2>Body Metrics & Ideal Weight</h2>
+        </div>
+
+        <div className="weight-tracker__body-grid">
+          <div className="weight-tracker__bmi-card">
+            <span>BMI</span>
+            <strong>{bmi.toFixed(1)} kg/m²</strong>
+            <em>{getBmiClassification(bmi)}</em>
+            <div className="weight-tracker__bmi-meter" aria-hidden="true">
+              <span style={{ left: `${Math.min(Math.max((bmi / 45) * 100, 0), 100)}%` }} />
+            </div>
+            <p>Healthy BMI range: 18.5 - 25 kg/m²</p>
+            <p>Healthy weight for this height: {formatPounds(healthyLow)} - {formatPounds(healthyHigh)}</p>
+            <p>BMI Prime: {bmiPrime.toFixed(2)}</p>
+          </div>
+
+          <div className="weight-tracker__ideal-card">
+            <span>Ideal weight formulas</span>
+            {idealWeights.map((entry) => (
+              <div key={entry.formula} className="weight-tracker__ideal-row">
+                <strong>{entry.formula}</strong>
+                <span>{formatPounds(entry.value)}</span>
+              </div>
+            ))}
+            <div className="weight-tracker__ideal-row is-range">
+              <strong>Healthy BMI Range</strong>
+              <span>{formatPounds(healthyLow)} - {formatPounds(healthyHigh)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="weight-tracker__info-grid">
+          <div className="weight-tracker__info-card">
+            <h3>Ideal Body Weight Formulas</h3>
+            <p>These formulas differ because each uses values from different research. The Devine formula is widely used for IBW in medical dosage contexts.</p>
+            <ul>
+              <li>Hamwi: male 48.0 kg + 2.7 kg/in over 5 ft; female 45.5 kg + 2.2 kg/in.</li>
+              <li>Devine: male 50.0 kg + 2.3 kg/in over 5 ft; female 45.5 kg + 2.3 kg/in.</li>
+              <li>Robinson: male 52 kg + 1.9 kg/in over 5 ft; female 49 kg + 1.7 kg/in.</li>
+              <li>Miller: male 56.2 kg + 1.41 kg/in over 5 ft; female 53.1 kg + 1.36 kg/in.</li>
+            </ul>
+          </div>
+
+          <div className="weight-tracker__info-card">
+            <h3>BMI Table For Adults</h3>
+            <div className="weight-tracker__bmi-table">
+              {[
+                ["Severe Thinness", "< 16"],
+                ["Moderate Thinness", "16 - 17"],
+                ["Mild Thinness", "17 - 18.5"],
+                ["Normal", "18.5 - 25"],
+                ["Overweight", "25 - 30"],
+                ["Obese Class I", "30 - 35"],
+                ["Obese Class II", "35 - 40"],
+                ["Obese Class III", "> 40"],
+              ].map(([label, range]) => (
+                <div key={label}>
+                  <span>{label}</span>
+                  <strong>{range}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="weight-tracker__info-card">
+            <h3>BMI Formula & Prime</h3>
+            <p>USC units: BMI = 703 x mass(lb) / height(in)².</p>
+            <p>Metric units: BMI = mass(kg) / height(m)².</p>
+            <p>BMI Prime compares BMI to the upper normal limit: BMI / 25. Less than 0.74 is underweight, 0.74 to 1 is normal, 1 to 1.2 is overweight, and higher values indicate obesity classes.</p>
+          </div>
+
+          <div className="weight-tracker__info-card">
+            <h3>Limitations</h3>
+            <p>IBW and BMI formulas are broad guidelines. They do not account for every body type, muscle mass, activity level, bone density, or body composition difference.</p>
+            <p>For children and teens, adult formulas are not enough; CDC BMI-for-age charts and percentiles are the right reference.</p>
+          </div>
+        </div>
+      </section>
 
       <section className="admin-panel weight-tracker__age">
         <div className="admin-panel__title-row">
