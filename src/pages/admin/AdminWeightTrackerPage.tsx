@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Activity, CalendarDays, Dumbbell, ExternalLink, Flame, Pencil, Save, Scale, Utensils, X } from "lucide-react";
+import { Activity, CalendarDays, Cake, Dumbbell, ExternalLink, Flame, Pencil, Save, Scale, Utensils, X } from "lucide-react";
 import { Button, Checkbox, Input, Select, Textarea } from "../../components/ui";
 import "./AdminWeightTrackerPage.css";
 
 type Gender = "male" | "female";
 type Formula = "mifflin" | "harris" | "katch";
 type ResultUnit = "calories" | "kilojoules";
+type AgeCalculateMode = "age" | "time-between";
 
 interface WeightTrackerSettings {
   age: number;
@@ -20,6 +21,9 @@ interface WeightTrackerSettings {
   startDate: string;
   foodSearch: string;
   foodCategory: string;
+  birthDate: string;
+  ageOnDate: string;
+  ageMode: AgeCalculateMode;
 }
 
 interface FoodEntry {
@@ -75,6 +79,9 @@ const defaultSettings: WeightTrackerSettings = {
   startDate: "2026-05-24",
   foodSearch: "",
   foodCategory: "All",
+  birthDate: "2003-01-31",
+  ageOnDate: "2026-05-31",
+  ageMode: "age",
 };
 
 const activityOptions = [
@@ -221,8 +228,74 @@ function formatDate(dateKey: string) {
   return new Intl.DateTimeFormat(undefined, { month: "numeric", day: "numeric", year: "numeric" }).format(new Date(`${dateKey}T00:00:00`));
 }
 
+function formatLongDate(dateKey: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(`${dateKey}T00:00:00`));
+}
+
 function formatWeekday(dateKey: string) {
   return new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(new Date(`${dateKey}T00:00:00`));
+}
+
+function daysInMonth(year: number, monthIndex: number) {
+  return new Date(year, monthIndex + 1, 0).getDate();
+}
+
+function diffCalendarDates(startKey: string, endKey: string) {
+  const start = new Date(`${startKey}T00:00:00`);
+  const end = new Date(`${endKey}T00:00:00`);
+  let years = end.getFullYear() - start.getFullYear();
+  let months = end.getMonth() - start.getMonth();
+  let days = end.getDate() - start.getDate();
+
+  if (days < 0) {
+    months -= 1;
+    days += daysInMonth(end.getFullYear(), end.getMonth() - 1);
+  }
+
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  return { years, months, days };
+}
+
+function getAgeBreakdown(birthDate: string, ageOnDate: string) {
+  const birth = new Date(`${birthDate}T00:00:00`);
+  const target = new Date(`${ageOnDate}T00:00:00`);
+  const milliseconds = Math.max(target.getTime() - birth.getTime(), 0);
+  const totalDays = Math.floor(milliseconds / 86_400_000);
+  const calendar = diffCalendarDates(birthDate, ageOnDate);
+  const totalMonths = calendar.years * 12 + calendar.months;
+  const weeks = Math.floor(totalDays / 7);
+  const weekDays = totalDays % 7;
+  let nextBirthday = new Date(target.getFullYear(), birth.getMonth(), birth.getDate());
+
+  if (nextBirthday < target) {
+    nextBirthday = new Date(target.getFullYear() + 1, birth.getMonth(), birth.getDate());
+  }
+
+  const daysUntilBirthday = Math.ceil((nextBirthday.getTime() - target.getTime()) / 86_400_000);
+
+  return {
+    ...calendar,
+    totalMonths,
+    totalDays,
+    weeks,
+    weekDays,
+    hours: totalDays * 24,
+    minutes: totalDays * 24 * 60,
+    seconds: totalDays * 24 * 60 * 60,
+    bornOn: formatLongDate(birthDate),
+    ageOn: formatLongDate(ageOnDate),
+    nextBirthday: formatLongDate(nextBirthday.toISOString().slice(0, 10)),
+    daysUntilBirthday,
+  };
 }
 
 function interpolateExerciseCalories(entry: ExerciseEntry, weight: number) {
@@ -301,6 +374,11 @@ export default function AdminWeightTrackerPage() {
   const updateSetting = <K extends keyof WeightTrackerSettings>(key: K, value: WeightTrackerSettings[K]) => {
     setSettings((current) => ({ ...current, [key]: value }));
   };
+
+  const ageBreakdown = useMemo(
+    () => getAgeBreakdown(settings.birthDate, settings.ageOnDate),
+    [settings.ageOnDate, settings.birthDate],
+  );
 
   const startWorkoutEdit = (workout: WorkoutTemplate & { index: number }) => {
     setEditingWorkoutIndex(workout.index);
@@ -409,6 +487,50 @@ export default function AdminWeightTrackerPage() {
           </div>
         </section>
       </div>
+
+      <section className="admin-panel weight-tracker__age">
+        <div className="admin-panel__title-row">
+          <Cake size={18} />
+          <h2>Age Calculator</h2>
+        </div>
+        <div className="weight-tracker__age-grid">
+          <div className="weight-tracker__age-form">
+            <Select
+              label="Calculate"
+              value={settings.ageMode}
+              onChange={(event) => updateSetting("ageMode", event.target.value as AgeCalculateMode)}
+              options={[
+                { value: "age", label: "Age" },
+                { value: "time-between", label: "Time between dates" },
+              ]}
+            />
+            <Input label="Date of Birth" type="date" value={settings.birthDate} onChange={(event) => updateSetting("birthDate", event.target.value)} />
+            <Input label="Find Age On" type="date" value={settings.ageOnDate} onChange={(event) => updateSetting("ageOnDate", event.target.value)} />
+          </div>
+
+          <div className="weight-tracker__age-answer">
+            <div>
+              <span>Age</span>
+              <strong>{ageBreakdown.years} years {ageBreakdown.months} months {ageBreakdown.days} days</strong>
+            </div>
+            <p>Born on: {ageBreakdown.bornOn}</p>
+            <p>Age on: {ageBreakdown.ageOn}</p>
+            <hr />
+            <p>{ageBreakdown.years + (ageBreakdown.months / 12).toFixed(3).slice(1)} years</p>
+            <p>{ageBreakdown.years} years {ageBreakdown.months} months {ageBreakdown.days} days</p>
+            <p>{ageBreakdown.totalMonths} months {ageBreakdown.days} days</p>
+            <p>{ageBreakdown.weeks.toLocaleString()} weeks {ageBreakdown.weekDays} days</p>
+            <p>{ageBreakdown.totalDays.toLocaleString()} days</p>
+            <hr />
+            <p>≈ {ageBreakdown.hours.toLocaleString()} hours</p>
+            <p>≈ {ageBreakdown.minutes.toLocaleString()} minutes</p>
+            <p>≈ {ageBreakdown.seconds.toLocaleString()} seconds</p>
+            <hr />
+            <strong>{ageBreakdown.daysUntilBirthday.toLocaleString()} days until next birthday or anniversary</strong>
+            <p>{ageBreakdown.nextBirthday}</p>
+          </div>
+        </div>
+      </section>
 
       <section className="admin-panel weight-tracker__references">
         <div className="admin-panel__title-row">

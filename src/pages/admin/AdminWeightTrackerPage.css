@@ -12,7 +12,8 @@
 .weight-tracker__grid,
 .weight-tracker__results,
 .weight-tracker__references,
-.weight-tracker__plan {
+.weight-tracker__plan,
+.weight-tracker__age {
   display: grid;
   gap: 1rem;
 }
@@ -52,6 +53,7 @@
 
 .weight-tracker__result-card,
 .weight-tracker__macro-card,
+.weight-tracker__age-answer,
 .weight-tracker__food-card,
 .weight-tracker__exercise-card,
 .weight-tracker__workout-card {
@@ -76,6 +78,8 @@
 .weight-tracker__result-card span,
 .weight-tracker__result-card small,
 .weight-tracker__macro-card span,
+.weight-tracker__age-answer span,
+.weight-tracker__age-answer p,
 .weight-tracker__food-card span,
 .weight-tracker__exercise-card span,
 .weight-tracker__workout-card span,
@@ -86,6 +90,52 @@
 .weight-tracker__result-card.is-maintain {
   border-color: color-mix(in srgb, var(--weight-green) 48%, var(--border));
   background: color-mix(in srgb, var(--weight-green) 12%, var(--bg-secondary));
+}
+
+.weight-tracker__age-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.42fr) minmax(0, 0.58fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.weight-tracker__age-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.weight-tracker__age-answer {
+  gap: 0.45rem;
+}
+
+.weight-tracker__age-answer div {
+  display: grid;
+  gap: 0.3rem;
+  justify-items: center;
+  padding: 0.5rem 0;
+}
+
+.weight-tracker__age-answer span {
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.weight-tracker__age-answer strong {
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+
+.weight-tracker__age-answer p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.weight-tracker__age-answer hr {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--border);
 }
 
 .weight-tracker__macro-grid,
@@ -253,6 +303,7 @@
 
 @media (max-width: 1040px) {
   .weight-tracker__grid,
+  .weight-tracker__age-grid,
   .weight-tracker__workout-card {
     grid-template-columns: 1fr;
   }
