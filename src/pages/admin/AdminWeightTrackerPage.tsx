@@ -77,8 +77,8 @@ interface WorkoutOverride {
 }
 
 const storageKey = "admin:weight-tracker";
-const completionStorageKey = "admin:weight-tracker:completion:v3";
-const workoutOverridesStorageKey = "admin:weight-tracker:workout-overrides:v3";
+const completionStorageKey = "admin:weight-tracker:completion:v4";
+const workoutOverridesStorageKey = "admin:weight-tracker:workout-overrides:v4";
 const collapsedSectionsStorageKey = "admin:weight-tracker:collapsed-sections";
 
 const defaultSettings: WeightTrackerSettings = {
@@ -225,6 +225,15 @@ const progressionWorkoutTemplates: WorkoutTemplate[] = [
   { offset: 50, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#8 Archer Pushups", level: "Level 1", pushups: "2 Sets of 5 Pushups (Per Side)" },
   { offset: 52, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#8 Archer Pushups", level: "Level 2", pushups: "2 Sets of 9 Pushups (Per Side)" },
   { offset: 54, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#8 Archer Pushups", level: "Level 3", pushups: "2 Sets of 12 Pushups (Per Side)" },
+  { offset: 57, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#9 Sliding One-Arm Pushups", pushupLink: "https://www.hybridcalisthenics.com/sliding-onearm-pushups", level: "Level 1", pushups: "2 Sets of 5 Pushups (Per Side)" },
+  { offset: 59, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#9 Sliding One-Arm Pushups", pushupLink: "https://www.hybridcalisthenics.com/sliding-onearm-pushups", level: "Level 2", pushups: "2 Sets of 9 Pushups (Per Side)" },
+  { offset: 61, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#9 Sliding One-Arm Pushups", pushupLink: "https://www.hybridcalisthenics.com/sliding-onearm-pushups", level: "Level 3", pushups: "2 Sets of 12 Pushups (Per Side)" },
+  { offset: 64, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#10 One-Arm Pushups", pushupLink: "https://www.hybridcalisthenics.com/onearm-pushups", level: "Level 1", pushups: "2 Sets of 3 Pushups (Per Side)" },
+  { offset: 66, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#10 One-Arm Pushups", pushupLink: "https://www.hybridcalisthenics.com/onearm-pushups", level: "Level 2", pushups: "2 Sets of 6 Pushups (Per Side)" },
+  { offset: 68, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#10 One-Arm Pushups", pushupLink: "https://www.hybridcalisthenics.com/onearm-pushups", level: "Level 3", pushups: "2 Sets of 9 Pushups (Per Side)" },
+  { offset: 71, type: "Full-Body Dumbbell Strength", exercises: "20 Min Full Body\nPlank Hold (30 or more)", variation: "#11 Advanced One-Arm Pushups", pushupLink: "https://www.hybridcalisthenics.com/advanced-onearm-pushups", level: "Level 1", pushups: "2 Sets of 3 Pushups (Per Side)" },
+  { offset: 73, type: "Cardio + Core Conditioning", exercises: "60-90 min Ride (10-15 miles)\n10 Min Dumbbell Standing Abs\nRussian Twists (10 per side/30s rest)\nLeg Raises (15 reps/30s rest)\nFlutter Kicks (30s/30s rest)", variation: "#11 Advanced One-Arm Pushups", pushupLink: "https://www.hybridcalisthenics.com/advanced-onearm-pushups", level: "Level 2", pushups: "2 Sets of 6 Pushups (Per Side)" },
+  { offset: 75, type: "Dumbbell Upper + Yoga Mobility", exercises: "20 Min Upper Body Dumbbell Workout At Home\n20 Min Yoga Routine for Athletes", variation: "#11 Advanced One-Arm Pushups", pushupLink: "https://www.hybridcalisthenics.com/advanced-onearm-pushups", level: "Level 3", pushups: "2 Sets of 9 Pushups (Per Side)" },
 ];
 
 const circuitWorkoutTemplates: WorkoutTemplate[] = [
