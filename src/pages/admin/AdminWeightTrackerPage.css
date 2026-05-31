@@ -551,6 +551,21 @@
   min-width: min(100%, 260px);
 }
 
+.weight-tracker__batch-links {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-secondary);
+}
+
+.weight-tracker__batch-link-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+
 .weight-tracker__workout-list {
   display: grid;
   gap: 0.75rem;

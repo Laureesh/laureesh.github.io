@@ -622,6 +622,14 @@ export default function AdminWeightTrackerPage() {
     index,
     date: addDays(settings.startDate, workout.offset),
   }));
+  const pushupLinkGroups = Array.from(
+    scheduledWorkouts.reduce((groups, workout) => {
+      if (!groups.has(workout.variation)) {
+        groups.set(workout.variation, workout.pushupLink ?? "");
+      }
+      return groups;
+    }, new Map<string, string>()),
+  );
 
   const updateSetting = <K extends keyof WeightTrackerSettings>(key: K, value: WeightTrackerSettings[K]) => {
     setSettings((current) => ({ ...current, [key]: value }));
@@ -688,6 +696,25 @@ export default function AdminWeightTrackerPage() {
       [editingWorkoutIndex]: workoutDraft,
     }));
     cancelWorkoutEdit();
+  };
+
+  const updatePushupLinkForVariation = (variation: string, pushupLink: string) => {
+    setWorkoutOverrides((current) => {
+      const next = { ...current };
+
+      selectedWorkoutTemplates.forEach((workout, index) => {
+        const currentVariation = current[index]?.variation ?? workout.variation;
+
+        if (currentVariation === variation) {
+          next[index] = {
+            ...current[index],
+            pushupLink,
+          };
+        }
+      });
+
+      return next;
+    });
   };
 
   return (
@@ -1015,6 +1042,21 @@ export default function AdminWeightTrackerPage() {
             ]}
           />
           <Input label="Start Date" type="date" value={settings.startDate} onChange={(event) => updateSetting("startDate", event.target.value)} />
+        </div>
+        <div className="weight-tracker__batch-links">
+          {collapseHeading("plan-pushup-links", "Batch Edit Pushup Links")}
+          {!isCollapsed("plan-pushup-links") ? (
+            <div className="weight-tracker__batch-link-grid">
+              {pushupLinkGroups.map(([variation, pushupLink]) => (
+                <Input
+                  key={variation}
+                  label={variation}
+                  value={pushupLink}
+                  onChange={(event) => updatePushupLinkForVariation(variation, event.target.value)}
+                />
+              ))}
+            </div>
+          ) : null}
         </div>
         <div className="weight-tracker__workout-list">
           {scheduledWorkouts.map((workout) => {
