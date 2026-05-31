@@ -598,6 +598,14 @@
   border-radius: 14px;
 }
 
+.weight-tracker__workout-week.is-current {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-hover) 30%, transparent);
+}
+
+.weight-tracker__workout-week.is-collapsed {
+  gap: 0;
+}
+
 .weight-tracker__workout-week.is-odd {
   background: color-mix(in srgb, var(--weight-blue) 5%, var(--bg-secondary));
 }
@@ -607,6 +615,10 @@
 }
 
 .weight-tracker__week-divider {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  appearance: none;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -614,6 +626,9 @@
   align-items: center;
   padding-bottom: 0.65rem;
   border-bottom: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .weight-tracker__week-divider span {
@@ -628,6 +643,12 @@
   color: var(--text-secondary);
   font-size: 0.82rem;
   font-weight: 850;
+}
+
+.weight-tracker__week-divider-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--accent-hover);
 }
 
 .weight-tracker__workout-card {

@@ -624,6 +624,15 @@ export default function AdminWeightTrackerPage() {
     index,
     date: addDays(settings.startDate, workout.offset),
   }));
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const currentWeekNumber = useMemo(() => {
+    const start = new Date(`${settings.startDate}T00:00:00`);
+    const today = new Date(`${todayKey}T00:00:00`);
+    const daysSinceStart = Math.floor((today.getTime() - start.getTime()) / 86_400_000);
+    const resolvedWeek = Math.floor(daysSinceStart / 7) + 1;
+    const lastWeek = Math.max(1, Math.max(...selectedWorkoutTemplates.map((workout) => Math.floor((workout.offset - 1) / 7) + 1)));
+    return Math.min(Math.max(resolvedWeek, 1), lastWeek);
+  }, [selectedWorkoutTemplates, settings.startDate, todayKey]);
   const workoutWeeks = Array.from(
     scheduledWorkouts.reduce((weeks, workout) => {
       const weekNumber = Math.floor((workout.offset - 1) / 7) + 1;
@@ -659,6 +668,16 @@ export default function AdminWeightTrackerPage() {
   };
 
   const isCollapsed = (key: string) => !!collapsedSections[key];
+
+  const isWorkoutWeekCollapsed = (weekNumber: number) => {
+    const key = `workout-week-${weekNumber}`;
+    const saved = collapsedSections[key];
+    if (typeof saved === "boolean") {
+      return saved;
+    }
+
+    return weekNumber !== currentWeekNumber;
+  };
 
   const toggleCollapsed = (key: string) => {
     setCollapsedSections((current) => ({ ...current, [key]: !current[key] }));
@@ -1135,12 +1154,23 @@ export default function AdminWeightTrackerPage() {
         </div>
         <div className="weight-tracker__workout-list">
           {workoutWeeks.map(([weekNumber, workouts]) => (
-            <section key={weekNumber} className={`weight-tracker__workout-week ${weekNumber % 2 === 0 ? "is-even" : "is-odd"}`}>
-              <div className="weight-tracker__week-divider">
+            <section
+              key={weekNumber}
+              className={`weight-tracker__workout-week ${weekNumber % 2 === 0 ? "is-even" : "is-odd"} ${weekNumber === currentWeekNumber ? "is-current" : ""} ${isWorkoutWeekCollapsed(weekNumber) ? "is-collapsed" : ""}`}
+            >
+              <button
+                type="button"
+                className="weight-tracker__week-divider"
+                aria-expanded={!isWorkoutWeekCollapsed(weekNumber)}
+                onClick={() => toggleCollapsed(`workout-week-${weekNumber}`)}
+              >
                 <span>Week {weekNumber}</span>
                 <strong>{formatDate(workouts[0].date)} - {formatDate(workouts[workouts.length - 1].date)}</strong>
-              </div>
-              {workouts.map((workout) => {
+                <span className="weight-tracker__week-divider-icon" aria-hidden="true">
+                  {isWorkoutWeekCollapsed(weekNumber) ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                </span>
+              </button>
+              {!isWorkoutWeekCollapsed(weekNumber) ? workouts.map((workout) => {
                 const isToday = workout.date === new Date().toISOString().slice(0, 10);
                 const workoutDone = !!completedWorkouts[workout.index];
                 const pushupsDone = !!completedPushups[workout.index];
@@ -1169,7 +1199,7 @@ export default function AdminWeightTrackerPage() {
                       <>
                         <div className="weight-tracker__workout-date">
                           <span>{formatWeekday(workout.date)}</span>
-                          <strong>{formatDate(workout.date)}</strong>
+                }) : null}
                           {isToday ? <em>Today</em> : null}
                         </div>
                         <div className={`weight-tracker__workout-block ${workoutDone ? "is-done" : ""}`}>
