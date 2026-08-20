@@ -56,11 +56,16 @@ import { getSwipeTarget } from "./data/siteNavigation";
 import "./App.css";
 
 const AdminFnLeaderboardPage = lazy(() => import("./pages/admin/AdminFnLeaderboardPage"));
+const Flashbolt = lazy(() => import("./pages/admin/flashbolt/Flashbolt"));
 
 export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
-  const isStandaloneAdminToolRoute = location.pathname === "/admin-dashboard/private-pages/fn-leaderboard";
+  const standaloneAdminToolRoutes = [
+    "/admin-dashboard/private-pages/fn-leaderboard",
+    "/admin-dashboard/private-pages/flashbolt",
+  ];
+  const isStandaloneAdminToolRoute = standaloneAdminToolRoutes.includes(location.pathname);
   const isAuthRoute = (
     location.pathname === "/login" ||
     location.pathname === "/register" ||
@@ -79,6 +84,7 @@ export default function App() {
       "/password-gen",
       "/media-converter",
       "/admin-dashboard/private-pages/fn-leaderboard",
+      "/admin-dashboard/private-pages/flashbolt",
       "/login",
       "/register",
       "/switch-account",
@@ -255,6 +261,29 @@ export default function App() {
                     )}
                   >
                     <AdminFnLeaderboardPage />
+                  </Suspense>
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/admin-dashboard/private-pages/flashbolt"
+              element={(
+                <ProtectedRoute requiredRole="admin" unauthorizedRedirectTo="/profile">
+                  <Suspense
+                    fallback={(
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          minHeight: "100vh",
+                        }}
+                      >
+                        <div className="auth-spinner" />
+                      </div>
+                    )}
+                  >
+                    <Flashbolt />
                   </Suspense>
                 </ProtectedRoute>
               )}

@@ -2,6 +2,7 @@ export type AdminPrivateResourceKey =
   | "food-routine"
   | "face-routine"
   | "fn-leaderboard"
+  | "flashbolt"
   | "ps99-inventory"
   | "weight-tracker";
 export type AdminPrivateResourceKind = "structured-page" | "standalone-tool";
@@ -34,6 +35,13 @@ export const adminPrivateResources: AdminPrivateResource[] = [
     label: "UEFN Leaderboard Manager",
     route: "/admin-dashboard/private-pages/fn-leaderboard",
     description: "Admin-only standalone leaderboard manager imported from the supplied HTML tool.",
+    kind: "standalone-tool",
+  },
+  {
+    key: "flashbolt",
+    label: "Flashbolt Study App",
+    route: "/admin-dashboard/private-pages/flashbolt",
+    description: "Admin-only flashcards, study guides, Learn mode, practice tests, folders, and local browser backups.",
     kind: "standalone-tool",
   },
   {
