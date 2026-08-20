@@ -165,6 +165,7 @@ async function readImportResponse<T>(response: Response): Promise<T> {
 const STORAGE_KEY = "flashbolt.local.v1";
 const LEGACY_STORAGE_KEY = "studydeck.local.v1";
 const LIBRARY_SORT_KEY = `${STORAGE_KEY}.librarySort`;
+const cloudMigrationKey = (uid: string) => `${STORAGE_KEY}.cloudMigrated.${uid}`;
 const THEME_OPTIONS: Array<{ id: ThemeName; label: string; colors: [string, string] }> = [
   { id: "dark", label: "Dark", colors: ["#0c0c28", "#7b78ff"] },
   { id: "light", label: "Light", colors: ["#f7f7fc", "#5552e9"] },
@@ -473,6 +474,37 @@ function withDataDefaults(value: AppData): AppData {
   };
 }
 
+function mergeLibraries(cloud: AppData, local: AppData): AppData {
+  const sets = new Map(cloud.sets.map((set) => [set.id, set]));
+  local.sets.forEach((localSet) => {
+    const cloudSet = sets.get(localSet.id);
+    if (!cloudSet || Date.parse(localSet.updatedAt) >= Date.parse(cloudSet.updatedAt)) {
+      sets.set(localSet.id, localSet);
+    }
+  });
+
+  const folders = new Map(cloud.folders.map((folder) => [folder.id, folder]));
+  local.folders.forEach((localFolder) => {
+    const cloudFolder = folders.get(localFolder.id);
+    folders.set(localFolder.id, cloudFolder
+      ? { ...localFolder, setIds: [...new Set([...cloudFolder.setIds, ...localFolder.setIds])] }
+      : localFolder);
+  });
+
+  return withDataDefaults({
+    ...cloud,
+    sets: [...sets.values()],
+    folders: [...folders.values()],
+    mastered: Object.fromEntries(
+      [...new Set([...Object.keys(cloud.mastered), ...Object.keys(local.mastered)])]
+        .map((setId) => [setId, [...new Set([...(cloud.mastered[setId] ?? []), ...(local.mastered[setId] ?? [])])]]),
+    ),
+    sessions: Math.max(cloud.sessions, local.sessions),
+    learnProgress: { ...(cloud.learnProgress ?? {}), ...(local.learnProgress ?? {}) },
+    activeLearn: local.activeLearn ?? cloud.activeLearn,
+  });
+}
+
 function applyThemeToDocument(theme: ThemeName) {
   const root = document.documentElement;
   root.dataset.theme = theme;
@@ -607,11 +639,13 @@ export default function Flashbolt() {
       let loadedData = initialData;
       let cloudSyncFailed = false;
       let localData: AppData | null = null;
+      let localAlreadyMigrated = false;
 
       try {
         const saved = window.localStorage.getItem(STORAGE_KEY) ?? window.localStorage.getItem(LEGACY_STORAGE_KEY);
         const savedTheme = window.localStorage.getItem(`${STORAGE_KEY}.theme`) ?? window.localStorage.getItem(`${LEGACY_STORAGE_KEY}.theme`);
         const savedLibrarySort = window.localStorage.getItem(LIBRARY_SORT_KEY) ?? window.localStorage.getItem(`${LEGACY_STORAGE_KEY}.librarySort`);
+        localAlreadyMigrated = window.localStorage.getItem(cloudMigrationKey(syncUserId)) === "true";
         if (saved) {
           const parsed: unknown = JSON.parse(saved);
           if (isValidBackup(parsed)) {
@@ -631,9 +665,19 @@ export default function Flashbolt() {
         const cloudData = await loadFlashboltLibrary(syncUserId);
         if (cancelled) return;
         if (isValidBackup(cloudData)) {
-          loadedData = withDataDefaults(cloudData);
+          loadedData = localData && !localAlreadyMigrated
+            ? mergeLibraries(withDataDefaults(cloudData), localData)
+            : withDataDefaults(cloudData);
+          if (localData && !localAlreadyMigrated) {
+            await saveFlashboltLibrary(syncUserId, loadedData);
+          }
         } else {
           await saveFlashboltLibrary(syncUserId, localData ?? loadedData);
+        }
+        try {
+          window.localStorage.setItem(cloudMigrationKey(syncUserId), "true");
+        } catch {
+          // Sync still works when the browser blocks local storage.
         }
       } catch {
         cloudSyncFailed = true;
