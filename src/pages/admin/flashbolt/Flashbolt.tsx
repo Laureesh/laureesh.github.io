@@ -2201,6 +2201,30 @@ export default function Flashbolt() {
                               </div>
                             </div>
                           </div>
+                          {card.answerChoices && card.answerChoices.length > 1 && (
+                            <div className="card-editor-choices">
+                              <span>Answer choices</span>
+                              <div>
+                                {card.answerChoices.map((choice, choiceIndex) => {
+                                  const cleanDefinition = card.definition.replace(/^[A-F][).:-]\s*/i, "");
+                                  const isCorrect = normalizeAnswer(choice) === normalizeAnswer(cleanDefinition);
+                                  return (
+                                    <label className={isCorrect ? "correct" : ""} key={`${card.id}-choice-${choiceIndex}`}>
+                                      <b>{String.fromCharCode(65 + choiceIndex)}</b>
+                                      <input
+                                        value={choice}
+                                        onChange={(event) => updateDraftCardExtras(card.id, {
+                                          answerChoices: card.answerChoices?.map((item, itemIndex) => itemIndex === choiceIndex ? event.target.value : item),
+                                        })}
+                                        aria-label={`Choice ${String.fromCharCode(65 + choiceIndex)} for card ${index + 1}`}
+                                      />
+                                      {isCorrect && <small>Correct</small>}
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
                           {card.imageData && <div className="card-image-preview"><img width={74} height={58} src={card.imageData} alt={card.imageName ? `Attached ${card.imageName}` : "Attached card image"} /><span>{card.imageName}</span><button onClick={() => updateDraftCardExtras(card.id, { imageData: undefined, imageName: undefined })} aria-label={`Remove image from card ${index + 1}`}>Remove image</button></div>}
                         </article>
                         <button className="insert-card-button" onClick={() => addDraftCard(card.id)} aria-label={`Add a card after card ${index + 1}`}><span>＋</span></button>

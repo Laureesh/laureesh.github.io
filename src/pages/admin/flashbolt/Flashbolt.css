@@ -2732,6 +2732,71 @@ select {
   border-color: var(--yellow);
 }
 
+.card-editor-choices {
+  padding: 0 24px 24px;
+}
+
+.card-editor-choices > span {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--faint);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.card-editor-choices > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.card-editor-choices label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: var(--panel-2);
+}
+
+.card-editor-choices label.correct {
+  border-color: color-mix(in srgb, var(--mint) 55%, var(--line));
+  background: color-mix(in srgb, var(--mint) 9%, var(--panel-2));
+}
+
+.card-editor-choices label b {
+  display: grid;
+  width: 23px;
+  height: 23px;
+  flex: 0 0 23px;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--panel-3);
+  color: var(--primary-strong);
+  font-size: 10px;
+}
+
+.card-editor-choices label input {
+  width: 100%;
+  min-width: 0;
+  height: 29px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+}
+
+.card-editor-choices label small {
+  color: var(--mint);
+  font-size: 8px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
 .card-text-field .field-meta {
   display: flex;
   min-height: 25px;
@@ -5429,6 +5494,10 @@ kbd {
 
   .card-editor-fields > i {
     display: none;
+  }
+
+  .card-editor-choices > div {
+    grid-template-columns: 1fr;
   }
 
   .card-editor header {
