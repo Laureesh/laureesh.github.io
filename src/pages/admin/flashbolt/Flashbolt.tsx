@@ -2,6 +2,8 @@
 import "./Flashbolt.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent, KeyboardEvent } from "react";
+import { useAuth } from "../../../contexts/AuthContext";
+import { loadFlashboltLibrary, saveFlashboltLibrary } from "../../../services/flashboltLibrary";
 import {
   advanceLearnRound,
   chooseAdaptiveQuestionKind,
@@ -139,6 +141,26 @@ type LibrarySort =
   | "mastered-desc" | "mastered-asc"
   | "remaining-desc" | "remaining-asc"
   | "unfiled-first" | "filed-first";
+
+async function readImportResponse<T>(response: Response): Promise<T> {
+  const contentType = response.headers.get("content-type") ?? "";
+  const body = await response.text();
+
+  if (!contentType.includes("application/json")) {
+    if (/^\s*<!doctype html|^\s*<html/i.test(body)) {
+      throw new Error(
+        "This deployment does not provide the server-side import service. Paste cards manually or use a JSON backup instead.",
+      );
+    }
+    throw new Error("The import service returned an unsupported response.");
+  }
+
+  try {
+    return JSON.parse(body) as T;
+  } catch {
+    throw new Error("The import service returned invalid JSON. Please try again later.");
+  }
+}
 
 const STORAGE_KEY = "flashbolt.local.v1";
 const LEGACY_STORAGE_KEY = "studydeck.local.v1";
@@ -509,6 +531,8 @@ function ThemePicker({
 }
 
 export default function Flashbolt() {
+  const { user } = useAuth();
+  const userId = user?.uid;
   const [data, setData] = useState<AppData>(initialData);
   const [ready, setReady] = useState(false);
   const [view, setView] = useState<View>("home");
@@ -572,14 +596,17 @@ export default function Flashbolt() {
   const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
 
   useEffect(() => {
+    if (!userId) return;
+    const syncUserId = userId;
     let cancelled = false;
 
-    async function loadDeviceLibrary() {
+    async function loadLibrary() {
       await Promise.resolve();
       if (cancelled) return;
 
       let loadedData = initialData;
-      let storageReadFailed = false;
+      let cloudSyncFailed = false;
+      let localData: AppData | null = null;
 
       try {
         const saved = window.localStorage.getItem(STORAGE_KEY) ?? window.localStorage.getItem(LEGACY_STORAGE_KEY);
@@ -587,48 +614,71 @@ export default function Flashbolt() {
         const savedLibrarySort = window.localStorage.getItem(LIBRARY_SORT_KEY) ?? window.localStorage.getItem(`${LEGACY_STORAGE_KEY}.librarySort`);
         if (saved) {
           const parsed: unknown = JSON.parse(saved);
-          if (isValidBackup(parsed)) loadedData = withDataDefaults(parsed);
+          if (isValidBackup(parsed)) {
+            localData = withDataDefaults(parsed);
+            loadedData = localData;
+          }
         }
         if (savedTheme && THEME_IDS.includes(savedTheme as ThemeName)) setTheme(savedTheme as ThemeName);
         if (savedLibrarySort && LIBRARY_SORT_VALUES.includes(savedLibrarySort as LibrarySort)) {
           setLibrarySort(savedLibrarySort as LibrarySort);
         }
       } catch {
-        storageReadFailed = true;
-        setToast("Your saved library could not be opened on this device.");
+        setToast("Your local backup could not be opened on this device.");
+      }
+
+      try {
+        const cloudData = await loadFlashboltLibrary(syncUserId);
+        if (cancelled) return;
+        if (isValidBackup(cloudData)) {
+          loadedData = withDataDefaults(cloudData);
+        } else {
+          await saveFlashboltLibrary(syncUserId, localData ?? loadedData);
+        }
+      } catch {
+        cloudSyncFailed = true;
+        setToast("Cloud sync is unavailable. Flashbolt is using this device's local backup.");
       }
 
       if (cancelled) return;
       setData(loadedData);
       setSelectedSetId(loadedData.sets[0]?.id ?? "");
-      setStorageStatus(storageReadFailed ? "error" : "saved");
+      setStorageStatus(cloudSyncFailed ? "error" : "saved");
       setReady(true);
     }
 
-    void loadDeviceLibrary();
+    void loadLibrary();
     return () => { cancelled = true; };
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || !userId) return;
+    const syncUserId = userId;
     let cancelled = false;
 
-    async function saveDeviceLibrary() {
-      await Promise.resolve();
+    async function saveLibrary() {
+      await new Promise((resolve) => window.setTimeout(resolve, 650));
       if (cancelled) return;
 
       try {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch {
+        // Cloud storage remains the source of truth when local storage is unavailable.
+      }
+
+      try {
+        await saveFlashboltLibrary(syncUserId, data);
+        if (cancelled) return;
         setStorageStatus("saved");
       } catch {
         setStorageStatus("error");
-        setToast("This browser could not save your library. Download a backup before leaving this page.");
+        setToast("Cloud sync failed. A local backup was kept when browser storage was available.");
       }
     }
 
-    void saveDeviceLibrary();
+    void saveLibrary();
     return () => { cancelled = true; };
-  }, [data, ready]);
+  }, [data, ready, userId]);
 
   useEffect(() => {
     applyThemeToDocument(theme);
@@ -1061,7 +1111,7 @@ export default function Flashbolt() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ url: quizletUrl.trim() }),
       });
-      const result = await response.json() as QuizletImportSet | { error?: string };
+      const result = await readImportResponse<QuizletImportSet | { error?: string }>(response);
       if (!response.ok || !("cards" in result)) {
         throw new Error("error" in result && result.error ? result.error : "The Quizlet set could not be imported.");
       }
@@ -1109,7 +1159,7 @@ export default function Flashbolt() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ url: kahootReference.trim() }),
       });
-      const result = await response.json() as KahootImportSet | { error?: string };
+      const result = await readImportResponse<KahootImportSet | { error?: string }>(response);
       if (!response.ok || !("cards" in result)) {
         throw new Error("error" in result && result.error ? result.error : "The Kahoot quiz could not be imported.");
       }
@@ -1744,7 +1794,7 @@ export default function Flashbolt() {
 
         <div className="private-card">
           <span className="private-icon">⌁</span>
-          <div><strong>Private by design</strong><p>Your library stays on this device.</p></div>
+          <div><strong>Private by design</strong><p>Your library syncs with your account.</p></div>
         </div>
 
         <div className="sidebar-bottom">
@@ -1761,8 +1811,8 @@ export default function Flashbolt() {
             <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search your sets and cards" aria-label="Search your library" />
             {search && <button onClick={() => setSearch("")} aria-label="Clear search">×</button>}
           </label>
-          <span className={`local-pill ${storageStatus === "error" ? "error" : ""}`} role="status" aria-live="polite" title={storageStatus === "error" ? "This browser could not access device storage. Download a backup before leaving." : "Your library stays in this browser and is not shared with other visitors."}>
-            <i />{storageStatus === "loading" ? "Loading library" : storageStatus === "saved" ? "Saved on this device." : "Storage unavailable"}
+          <span className={`local-pill ${storageStatus === "error" ? "error" : ""}`} role="status" aria-live="polite" title={storageStatus === "error" ? "Cloud sync is unavailable; Flashbolt will keep trying as you make changes." : "Your private library is saved to your signed-in account."}>
+            <i />{storageStatus === "loading" ? "Loading library" : storageStatus === "saved" ? "Synced to your account" : "Sync unavailable"}
           </span>
           <ThemePicker compact theme={theme} onThemeChange={setTheme} />
           <div className="new-menu-wrap">
@@ -1796,7 +1846,7 @@ export default function Flashbolt() {
                 <div>
                   <span className="eyebrow">Your private study space</span>
                   <h1>Good evening.<br /><em>What are we learning?</em></h1>
-                  <p>Everything you make here stays in this browser on this device. Every visitor gets an independent library—no accounts, no shared data, no distractions.</p>
+                  <p>Everything you make here is saved privately to your account, so your library follows you across your signed-in devices.</p>
                 </div>
                 <div className="focus-orbit" aria-hidden="true"><span>15</span><small>day focus</small><i className="orbit-one" /><i className="orbit-two" /></div>
               </section>
@@ -2068,7 +2118,7 @@ export default function Flashbolt() {
                     <textarea value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} placeholder={'Lifecycle :: The stages an activity moves through\nIntent :: A request to perform an action'} rows={7} />
                     <button className="button quiet full" onClick={applyPasteImport}>Add pasted cards</button>
                   </div>
-                  <div className="privacy-note"><span>⌁</span><p><strong>Saved privately.</strong> Imported cards stay in this browser unless you download a backup.</p></div>
+                  <div className="privacy-note"><span>⌁</span><p><strong>Saved privately.</strong> Imported cards sync to your account and remain available as a local backup.</p></div>
                 </aside>
               </div>
             </section>
