@@ -427,6 +427,39 @@ export function parseNotes(text: string): ParsedCard[] {
   return cards.slice(0, 100);
 }
 
+function textFromQuizletSide(side: Element) {
+  const content = side.querySelector(".TermText") ?? side;
+  const clone = content.cloneNode(true) as Element;
+  clone.querySelectorAll("br").forEach((breakElement) => breakElement.replaceWith("\n"));
+  return (clone.textContent ?? "")
+    .replace(/\u00a0/g, " ")
+    .split("\n")
+    .map((line) => line.trim())
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+export function parseQuizletHtml(text: string): ParsedCard[] {
+  if (typeof DOMParser === "undefined" || !/<(?:section|div)\b/i.test(text)) return [];
+
+  const document = new DOMParser().parseFromString(text, "text/html");
+  const cards: ParsedCard[] = [];
+  const rows = document.querySelectorAll('[aria-label="Term"].SetPageTermsList-term');
+
+  rows.forEach((row) => {
+    const sides = row.querySelectorAll('[data-testid="set-page-term-card-side"]');
+    if (sides.length < 2) return;
+    const term = textFromQuizletSide(sides[0]);
+    const definition = textFromQuizletSide(sides[1]);
+    if (!term || !definition) return;
+    const embedded = parseEmbeddedQuestion(term, definition);
+    cards.push(makeCard(embedded.prompt, definition, embedded.choices));
+  });
+
+  return cards.slice(0, 100);
+}
+
 const STOP_WORDS = new Set([
   "about", "after", "again", "allows", "also", "and", "applications", "are", "because",
   "between", "can", "computer", "designed", "does", "each", "etc", "example", "from",

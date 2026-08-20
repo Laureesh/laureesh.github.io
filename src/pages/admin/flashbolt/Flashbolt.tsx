@@ -20,7 +20,7 @@ import {
   type LearnQuestionKind,
 } from "./learn-engine";
 import type { KahootImportSet } from "./kahoot-import";
-import { parseEmbeddedQuestion, parseNotes, suggestNoteTitles } from "./note-parser";
+import { parseEmbeddedQuestion, parseNotes, parseQuizletHtml, suggestNoteTitles } from "./note-parser";
 import type { QuizletImportSet } from "./quizlet-import";
 
 type HighlightColor = "none" | "yellow" | "mint" | "violet";
@@ -1295,9 +1295,10 @@ export default function Flashbolt() {
   }
 
   function applyPasteImport() {
-    const cards = parseNotes(pasteImport);
+    const htmlCards = parseQuizletHtml(pasteImport);
+    const cards = htmlCards.length ? htmlCards : parseNotes(pasteImport);
     if (!cards.length) {
-      notify("Use one line per card, with term :: definition.");
+      notify("Paste Quizlet term-list HTML, or use term :: definition.");
       return;
     }
     setDraft((current) => ({
@@ -1305,7 +1306,7 @@ export default function Flashbolt() {
       cards: [...current.cards.filter((card) => card.term || card.definition), ...cards],
     }));
     setPasteImport("");
-    notify(`${cards.length} card${cards.length === 1 ? "" : "s"} imported.`);
+    notify(`${cards.length} card${cards.length === 1 ? "" : "s"} imported${htmlCards.length ? " from Quizlet HTML" : ""}.`);
   }
 
   function openNewFolderModal() {
@@ -2226,8 +2227,8 @@ export default function Flashbolt() {
                   <div className="import-divider"><span>or paste cards</span></div>
                   <div className="paste-import-block">
                     <h3>Paste a list</h3><p>Put one card on each line and separate the sides with <code>::</code>.</p>
-                    <textarea value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} placeholder={'Lifecycle :: The stages an activity moves through\nIntent :: A request to perform an action'} rows={7} />
-                    <button className="button quiet full" onClick={applyPasteImport}>Add pasted cards</button>
+                    <textarea value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} placeholder={'Paste copied Quizlet term-list HTML, or use:\n\nLifecycle :: The stages an activity moves through\nIntent :: A request to perform an action'} rows={7} />
+                    <button className="button quiet full" onClick={applyPasteImport}>Import pasted cards</button>
                   </div>
                   <div className="privacy-note"><span>⌁</span><p><strong>Saved privately.</strong> Imported cards sync to your account and remain available as a local backup.</p></div>
                 </aside>
