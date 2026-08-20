@@ -456,6 +456,18 @@ function isValidBackup(value: unknown): value is AppData {
   return Array.isArray(data.sets) && Array.isArray(data.folders) && typeof data.mastered === "object";
 }
 
+function describeSyncError(error: unknown) {
+  const candidate = error as { code?: string; message?: string };
+  const code = candidate?.code?.replace(/^firestore\//, "") ?? "unknown";
+  if (code === "permission-denied") return "Permission denied by Firestore rules";
+  if (code === "unauthenticated") return "Firebase sign-in expired";
+  if (code === "resource-exhausted" || candidate?.message?.includes("maximum size")) {
+    return "Library is too large for one cloud document";
+  }
+  if (code === "unavailable") return "Firestore is temporarily unavailable";
+  return `Cloud error: ${code}`;
+}
+
 function withDetectedAnswerChoices(card: Card): Card {
   const embedded = parseEmbeddedQuestion(card.term, card.definition);
   return embedded.choices.length >= 2
@@ -622,6 +634,7 @@ export default function Flashbolt() {
   const [toast, setToast] = useState("");
   const [theme, setTheme] = useState<ThemeName>("dark");
   const [storageStatus, setStorageStatus] = useState<StorageStatus>("loading");
+  const [syncError, setSyncError] = useState("");
   const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
   const [dictationTarget, setDictationTarget] = useState<{ cardId: string; field: "term" | "definition" } | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -679,9 +692,11 @@ export default function Flashbolt() {
         } catch {
           // Sync still works when the browser blocks local storage.
         }
-      } catch {
+      } catch (error) {
         cloudSyncFailed = true;
-        setToast("Cloud sync is unavailable. Flashbolt is using this device's local backup.");
+        const message = describeSyncError(error);
+        setSyncError(message);
+        setToast(`${message}. Flashbolt is using this device's local backup.`);
       }
 
       if (cancelled) return;
@@ -713,10 +728,13 @@ export default function Flashbolt() {
       try {
         await saveFlashboltLibrary(syncUserId, data);
         if (cancelled) return;
+        setSyncError("");
         setStorageStatus("saved");
-      } catch {
+      } catch (error) {
+        const message = describeSyncError(error);
+        setSyncError(message);
         setStorageStatus("error");
-        setToast("Cloud sync failed. A local backup was kept when browser storage was available.");
+        setToast(`${message}. A local backup was kept.`);
       }
     }
 
@@ -1855,8 +1873,8 @@ export default function Flashbolt() {
             <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search your sets and cards" aria-label="Search your library" />
             {search && <button onClick={() => setSearch("")} aria-label="Clear search">×</button>}
           </label>
-          <span className={`local-pill ${storageStatus === "error" ? "error" : ""}`} role="status" aria-live="polite" title={storageStatus === "error" ? "Cloud sync is unavailable; Flashbolt will keep trying as you make changes." : "Your private library is saved to your signed-in account."}>
-            <i />{storageStatus === "loading" ? "Loading library" : storageStatus === "saved" ? "Synced to your account" : "Sync unavailable"}
+          <span className={`local-pill ${storageStatus === "error" ? "error" : ""}`} role="status" aria-live="polite" title={storageStatus === "error" ? syncError : "Your private library is saved to your signed-in account."}>
+            <i />{storageStatus === "loading" ? "Loading library" : storageStatus === "saved" ? "Synced to your account" : syncError || "Sync unavailable"}
           </span>
           <ThemePicker compact theme={theme} onThemeChange={setTheme} />
           <div className="new-menu-wrap">
