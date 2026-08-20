@@ -2666,6 +2666,8 @@ select {
 
 .card-editor textarea {
   min-height: 73px;
+  overflow: hidden;
+  resize: none;
   padding: 8px 3px;
   border: 0;
   border-bottom: 2px solid var(--line);

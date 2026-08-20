@@ -525,6 +525,44 @@ function applyThemeToDocument(theme: ThemeName) {
   document.body.style.backgroundColor = theme === "white" ? "#ffffff" : "";
 }
 
+function AutoResizeTextarea({
+  value,
+  onChange,
+  className,
+  placeholder,
+  rows = 2,
+}: {
+  value: string;
+  onChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
+  className?: string;
+  placeholder?: string;
+  rows?: number;
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [value]);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      className={className}
+      value={value}
+      onChange={(event) => {
+        event.currentTarget.style.height = "auto";
+        event.currentTarget.style.height = `${event.currentTarget.scrollHeight}px`;
+        onChange(event);
+      }}
+      placeholder={placeholder}
+      rows={rows}
+    />
+  );
+}
+
 function ThemePicker({
   theme,
   onThemeChange,
@@ -2136,13 +2174,13 @@ export default function Flashbolt() {
                           </header>
                           <div className="card-editor-fields">
                             <label className="card-text-field">
-                              <textarea className={`highlight-${card.highlight ?? "none"}`} value={card.term} onChange={(event) => updateDraftCard(card.id, "term", event.target.value)} placeholder="Enter term" rows={2} />
+                              <AutoResizeTextarea className={`highlight-${card.highlight ?? "none"}`} value={card.term} onChange={(event) => updateDraftCard(card.id, "term", event.target.value)} placeholder="Enter term" />
                               <span className="field-meta"><b>TERM</b><select aria-label={`Term language for card ${index + 1}`} value={card.termLanguage ?? "auto"} onChange={(event) => updateDraftCardExtras(card.id, { termLanguage: event.target.value })}>{LANGUAGE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></span>
                             </label>
                             <i />
                             <div className="definition-field-wrap">
                               <label className="card-text-field">
-                                <textarea className={`highlight-${card.highlight ?? "none"}`} value={card.definition} onChange={(event) => updateDraftCard(card.id, "definition", event.target.value)} placeholder="Enter definition" rows={2} />
+                                <AutoResizeTextarea className={`highlight-${card.highlight ?? "none"}`} value={card.definition} onChange={(event) => updateDraftCard(card.id, "definition", event.target.value)} placeholder="Enter definition" />
                                 <span className="field-meta"><b>DEFINITION</b><select aria-label={`Definition language for card ${index + 1}`} value={card.definitionLanguage ?? "auto"} onChange={(event) => updateDraftCardExtras(card.id, { definitionLanguage: event.target.value })}>{LANGUAGE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></span>
                               </label>
                               <div className="definition-actions">
