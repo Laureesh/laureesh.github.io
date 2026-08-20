@@ -1,7 +1,7 @@
 
 import "./Flashbolt.css";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ChangeEvent, DragEvent, KeyboardEvent } from "react";
+import type { ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { loadFlashboltLibrary, saveFlashboltLibrary } from "../../../services/flashboltLibrary";
 import {
@@ -630,6 +630,7 @@ export default function Flashbolt() {
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [tileFolderPickerId, setTileFolderPickerId] = useState<string | null>(null);
   const [tileFolderSearch, setTileFolderSearch] = useState("");
+  const [setContextMenu, setSetContextMenu] = useState<{ setId: string; x: number; y: number } | null>(null);
   const [draft, setDraft] = useState<StudySet>(blankDraft);
   const [editingSetId, setEditingSetId] = useState<string | null>(null);
   const [draftFolderIds, setDraftFolderIds] = useState<string[]>([]);
@@ -831,6 +832,24 @@ export default function Flashbolt() {
       window.removeEventListener("keydown", closeOnEscape);
     };
   }, [tileFolderPickerId]);
+
+  useEffect(() => {
+    if (!setContextMenu) return;
+    const close = () => setSetContextMenu(null);
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") close();
+    };
+    window.addEventListener("pointerdown", close);
+    window.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    return () => {
+      window.removeEventListener("pointerdown", close);
+      window.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+    };
+  }, [setContextMenu]);
 
   useEffect(() => () => recognitionRef.current?.stop(), []);
 
@@ -1727,6 +1746,47 @@ export default function Flashbolt() {
     navigate("library");
   }
 
+  function openSetContextMenu(event: ReactMouseEvent, setId: string) {
+    event.preventDefault();
+    setTileFolderPickerId(null);
+    setSetContextMenu({
+      setId,
+      x: Math.min(event.clientX, window.innerWidth - 205),
+      y: Math.min(event.clientY, window.innerHeight - 225),
+    });
+  }
+
+  function duplicateSet(setToDuplicate: StudySet) {
+    const duplicateId = makeId("set");
+    const duplicate: StudySet = {
+      ...setToDuplicate,
+      id: duplicateId,
+      title: `${setToDuplicate.title} copy`,
+      updatedAt: new Date().toISOString(),
+      cards: setToDuplicate.cards.map((card) => ({ ...card, id: makeId("card") })),
+    };
+    setData((current) => ({
+      ...current,
+      sets: [duplicate, ...current.sets],
+      folders: current.folders.map((folderItem) => folderItem.setIds.includes(setToDuplicate.id)
+        ? { ...folderItem, setIds: [...folderItem.setIds, duplicateId] }
+        : folderItem),
+    }));
+    setSelectedSetId(duplicateId);
+    notify("Set duplicated.");
+  }
+
+  function deleteSetFromLibrary(setToDelete: StudySet) {
+    if (!window.confirm(`Delete “${setToDelete.title}”? This cannot be undone.`)) return;
+    setData((current) => ({
+      ...current,
+      sets: current.sets.filter((item) => item.id !== setToDelete.id),
+      folders: current.folders.map((folderItem) => ({ ...folderItem, setIds: folderItem.setIds.filter((id) => id !== setToDelete.id) })),
+    }));
+    if (selectedSetId === setToDelete.id) setSelectedSetId(data.sets.find((item) => item.id !== setToDelete.id)?.id ?? "");
+    notify("Set deleted.");
+  }
+
   function exportLibrary() {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -1789,7 +1849,7 @@ export default function Flashbolt() {
             ? data.folders.filter((folderItem) => folderItem.name.toLocaleLowerCase().includes(normalizedFolderSearch))
             : data.folders;
           return (
-            <article className="set-tile" key={set.id}>
+            <article className="set-tile" key={set.id} onContextMenu={(event) => openSetContextMenu(event, set.id)}>
               <button className="set-tile-open" onClick={() => openSet(set.id)} aria-label={`Open ${set.title}`}><span className="visually-hidden">Open {set.title}</span></button>
               <span className={`set-accent ${set.color}`} />
               <span className="tile-kicker"><span>{set.subject || "General"}</span><span>{formatDate(set.updatedAt)}</span></span>
@@ -1887,6 +1947,20 @@ export default function Flashbolt() {
 
   return (
     <div className={`app-shell theme-${theme}`}>
+      {setContextMenu && (() => {
+        const contextSet = data.sets.find((item) => item.id === setContextMenu.setId);
+        if (!contextSet) return null;
+        return (
+          <div className="set-context-menu" role="menu" aria-label={`Actions for ${contextSet.title}`} style={{ left: setContextMenu.x, top: setContextMenu.y }} onPointerDown={(event) => event.stopPropagation()}>
+            <strong>{contextSet.title}</strong>
+            <button role="menuitem" onClick={() => { setSetContextMenu(null); openSet(contextSet.id); }}><span>▣</span>View set</button>
+            <button role="menuitem" onClick={() => { setSetContextMenu(null); startEdit(contextSet); }}><span>✎</span>Edit set</button>
+            <button role="menuitem" onClick={() => { setSetContextMenu(null); duplicateSet(contextSet); }}><span>⧉</span>Duplicate</button>
+            <i />
+            <button role="menuitem" className="danger" onClick={() => { setSetContextMenu(null); deleteSetFromLibrary(contextSet); }}><span>×</span>Delete set</button>
+          </div>
+        );
+      })()}
       <aside className="sidebar">
         <button className="brand" onClick={() => navigate("home")} aria-label="Flashbolt home">
           <span className="brand-mark"><i /><i /><i /></span>
