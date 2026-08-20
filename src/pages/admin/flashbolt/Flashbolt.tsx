@@ -124,6 +124,7 @@ type AppData = {
   folders: Folder[];
   mastered: Record<string, string[]>;
   sessions: number;
+  lastCreatedFolderIds?: string[];
   learnProgress?: Record<string, LearnSetProgress>;
   activeLearn?: LearnSessionSnapshot;
 };
@@ -984,7 +985,15 @@ export default function Flashbolt() {
   function startCreate() {
     setEditingSetId(null);
     setDraftFolderSearch("");
-    setDraftFolderIds(selectedFolderId ? [selectedFolderId] : []);
+    const validFolderIds = new Set(data.folders.map((folderItem) => folderItem.id));
+    const mostRecentSetId = data.sets[0]?.id;
+    const rememberedFolderIds = data.lastCreatedFolderIds
+      ?? (mostRecentSetId
+        ? data.folders.filter((folderItem) => folderItem.setIds.includes(mostRecentSetId)).map((folderItem) => folderItem.id)
+        : []);
+    setDraftFolderIds(selectedFolderId
+      ? [selectedFolderId]
+      : rememberedFolderIds.filter((folderId) => validFolderIds.has(folderId)));
     setDraft({
       ...blankDraft,
       cards: [
@@ -1050,6 +1059,7 @@ export default function Flashbolt() {
 
     setData((current) => ({
       ...current,
+      lastCreatedFolderIds: editingSetId ? current.lastCreatedFolderIds : [...draftFolderIds],
       sets: editingSetId
         ? current.sets.map((set) => (set.id === editingSetId ? savedSet : set))
         : [savedSet, ...current.sets],
