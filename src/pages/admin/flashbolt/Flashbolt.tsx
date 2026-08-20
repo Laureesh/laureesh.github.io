@@ -632,6 +632,7 @@ export default function Flashbolt() {
   const [draft, setDraft] = useState<StudySet>(blankDraft);
   const [editingSetId, setEditingSetId] = useState<string | null>(null);
   const [draftFolderIds, setDraftFolderIds] = useState<string[]>([]);
+  const [draftFolderSearch, setDraftFolderSearch] = useState("");
   const [pasteImport, setPasteImport] = useState("");
   const [quizletUrl, setQuizletUrl] = useState("");
   const [quizletImporting, setQuizletImporting] = useState(false);
@@ -982,6 +983,7 @@ export default function Flashbolt() {
 
   function startCreate() {
     setEditingSetId(null);
+    setDraftFolderSearch("");
     setDraftFolderIds(selectedFolderId ? [selectedFolderId] : []);
     setDraft({
       ...blankDraft,
@@ -1012,6 +1014,7 @@ export default function Flashbolt() {
 
   function startEdit(set: StudySet) {
     setEditingSetId(set.id);
+    setDraftFolderSearch("");
     setDraftFolderIds(data.folders.filter((folderItem) => folderItem.setIds.includes(set.id)).map((folderItem) => folderItem.id));
     setDraft({ ...set, cards: set.cards.map((card) => ({ ...card })) });
     setPasteImport("");
@@ -2125,8 +2128,14 @@ export default function Flashbolt() {
                         <button className="text-button" onClick={openNewFolderModal}>＋ New folder</button>
                       </div>
                       {data.folders.length ? (
+                        <>
+                        <label className="folder-assignment-search">
+                          <span aria-hidden="true">⌕</span>
+                          <input type="search" value={draftFolderSearch} onChange={(event) => setDraftFolderSearch(event.target.value)} placeholder="Search folders by name or course code" aria-label="Search folders" />
+                          {draftFolderSearch && <button type="button" onClick={() => setDraftFolderSearch("")} aria-label="Clear folder search">×</button>}
+                        </label>
                         <div className="folder-option-grid">
-                          {data.folders.map((folderItem) => {
+                          {data.folders.filter((folderItem) => folderItem.name.toLocaleLowerCase().includes(draftFolderSearch.trim().toLocaleLowerCase())).map((folderItem) => {
                             const checked = draftFolderIds.includes(folderItem.id);
                             return (
                               <label className={`folder-option ${checked ? "checked" : ""}`} key={folderItem.id}>
@@ -2142,7 +2151,9 @@ export default function Flashbolt() {
                               </label>
                             );
                           })}
+                          {draftFolderSearch && !data.folders.some((folderItem) => folderItem.name.toLocaleLowerCase().includes(draftFolderSearch.trim().toLocaleLowerCase())) && <p className="folder-search-empty">No folders match “{draftFolderSearch.trim()}”.</p>}
                         </div>
+                        </>
                       ) : (
                         <p className="folder-assignment-empty">No folders yet. Create one here, then it will be selected automatically.</p>
                       )}
