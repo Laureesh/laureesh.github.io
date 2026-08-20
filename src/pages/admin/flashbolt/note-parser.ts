@@ -225,6 +225,13 @@ export function parseEmbeddedQuestion(term: string, expectedAnswer: string) {
     };
   }
 
+  const firstLabeledChoice = cleanTerm.search(/(?:^|\s)A[).:-]\s*/i);
+  if (firstLabeledChoice > 0) {
+    const prompt = cleanStudyText(cleanTerm.slice(0, firstLabeledChoice));
+    const choices = splitLabeledChoices(cleanTerm.slice(firstLabeledChoice));
+    if (choices.length >= 2) return { prompt, choices };
+  }
+
   return { prompt: cleanStudyText(cleanTerm), choices: [] as string[] };
 }
 
@@ -316,6 +323,22 @@ function isListFragment(value: string) {
 }
 
 export function parseNotes(text: string): ParsedCard[] {
+  const multilineCards: ParsedCard[] = [];
+  let multilineBuffer = "";
+  const paragraphs = text.trim().split(/\r?\n\s*\r?\n+/);
+  for (const paragraph of paragraphs) {
+    multilineBuffer = [multilineBuffer, paragraph.trim()].filter(Boolean).join("\n");
+    const separatorIndex = multilineBuffer.indexOf("::");
+    if (separatorIndex < 0) continue;
+    const term = multilineBuffer.slice(0, separatorIndex).trim();
+    const definition = multilineBuffer.slice(separatorIndex + 2).trim();
+    if (!term || !definition) continue;
+    const embedded = parseEmbeddedQuestion(term, definition);
+    multilineCards.push(makeCard(embedded.prompt, definition, embedded.choices));
+    multilineBuffer = "";
+  }
+  if (multilineCards.length && !multilineBuffer.trim()) return multilineCards.slice(0, 100);
+
   const seen = new Set<string>();
   const lines = text
     .split(/\r?\n/)
