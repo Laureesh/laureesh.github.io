@@ -3969,12 +3969,23 @@ kbd {
 
 .term-review-choices {
   display: grid;
-  grid-column: 2 / 4;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-column: 3;
+  grid-row: 1;
+  grid-template-columns: minmax(0, 1fr);
   gap: 7px;
-  margin: 12px 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.term-list article.multiple-choice-review > strong {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.term-list article.flashcard-review > p {
+  grid-column: 3;
+  grid-row: 1;
 }
 
 .term-review-choices li {
@@ -6273,8 +6284,15 @@ kbd {
 
   .term-review-choices {
     grid-column: 2 / 3;
+    grid-row: auto;
     grid-template-columns: 1fr;
     margin-top: 2px;
+  }
+
+  .term-list article.multiple-choice-review > strong,
+  .term-list article.flashcard-review > p {
+    grid-column: 2;
+    grid-row: auto;
   }
 
   .term-list article button {

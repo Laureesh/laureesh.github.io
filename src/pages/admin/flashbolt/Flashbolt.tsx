@@ -2557,10 +2557,10 @@ export default function Flashbolt() {
               <section className="term-list">
                 <div className="section-heading"><div><span className="eyebrow">Review</span><h2>Terms in this set ({selectedSet.cards.length})</h2></div></div>
                 {selectedSet.cards.map((card, index) => (
-                  <article className={`highlight-${card.highlight ?? "none"}`} key={card.id}>
+                  <article className={`highlight-${card.highlight ?? "none"}${card.answerChoices && card.answerChoices.length > 1 ? " multiple-choice-review" : " flashcard-review"}`} key={card.id}>
                     <span>{index + 1}</span>
                     <strong>{card.term}</strong>
-                    <p>{card.definition}</p>
+                    {(!card.answerChoices || card.answerChoices.length <= 1) && <p>{card.definition}</p>}
                     {card.answerChoices && card.answerChoices.length > 1 && (
                       <ol className="term-review-choices" aria-label={`Answer choices for ${card.term}`}>
                         {card.answerChoices.map((choice, choiceIndex) => {
