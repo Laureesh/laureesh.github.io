@@ -946,6 +946,9 @@ export default function Flashbolt() {
   const draftCompletion = Math.round((draftChecklist.filter((item) => item.complete).length / draftChecklist.length) * 100);
   const masteredCount = Object.values(data.mastered).reduce((total, cards) => total + cards.length, 0);
   const cardCount = data.sets.reduce((total, set) => total + set.cards.length, 0);
+  const foldersBySetCount = useMemo(() => [...data.folders].sort((a, b) =>
+    b.setIds.length - a.setIds.length || LIBRARY_COLLATOR.compare(a.name, b.name),
+  ), [data.folders]);
   const filteredSets = useMemo(() => {
     const query = search.trim().toLowerCase();
     const base = folder ? data.sets.filter((set) => folder.setIds.includes(set.id)) : data.sets;
@@ -2249,7 +2252,7 @@ export default function Flashbolt() {
                       <span className="folder-filter-name">All sets</span>
                       <span className="folder-filter-count">{data.sets.length}</span>
                     </button>
-                    {data.folders.map((item) => (
+                    {foldersBySetCount.map((item) => (
                       <button
                         className={selectedFolderId === item.id ? "active" : ""}
                         aria-pressed={selectedFolderId === item.id}
