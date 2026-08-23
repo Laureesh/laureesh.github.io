@@ -268,6 +268,31 @@ select:focus-visible {
   padding: 0;
 }
 
+.sidebar-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar-collapse-button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  margin: 0 2px 34px 0;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 20px;
+}
+
+.sidebar-collapse-button:hover {
+  border-color: var(--primary-strong);
+  color: var(--ink);
+}
+
 .brand-mark {
   position: relative;
   display: inline-flex;
@@ -601,6 +626,76 @@ select:focus-visible {
 .main-column {
   min-height: 100vh;
   margin-left: 248px;
+}
+
+.app-shell.sidebar-collapsed .sidebar {
+  width: 76px;
+  padding-inline: 12px;
+}
+
+.app-shell.sidebar-collapsed .main-column {
+  margin-left: 76px;
+}
+
+.app-shell.sidebar-collapsed .topbar {
+  padding-inline: max(30px, calc((100vw - 76px - 1240px) / 2));
+}
+
+.app-shell.sidebar-collapsed .sidebar-brand-row {
+  flex-direction: column;
+}
+
+.app-shell.sidebar-collapsed .brand {
+  margin: 0 0 14px;
+}
+
+.app-shell.sidebar-collapsed .brand > span:last-child,
+.app-shell.sidebar-collapsed .nav-label,
+.app-shell.sidebar-collapsed .side-section > p,
+.app-shell.sidebar-collapsed .private-card > div,
+.app-shell.sidebar-collapsed .theme-picker-copy,
+.app-shell.sidebar-collapsed .theme-picker-chevron {
+  display: none;
+}
+
+.app-shell.sidebar-collapsed .sidebar-collapse-button {
+  margin: 0 0 24px;
+}
+
+.app-shell.sidebar-collapsed .main-nav button,
+.app-shell.sidebar-collapsed .side-section button,
+.app-shell.sidebar-collapsed .sidebar-bottom > button {
+  position: relative;
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.app-shell.sidebar-collapsed .main-nav button.active::after {
+  position: absolute;
+  right: -7px;
+  margin-left: 0;
+}
+
+.app-shell.sidebar-collapsed .side-section {
+  margin-top: 20px;
+  padding-top: 18px;
+}
+
+.app-shell.sidebar-collapsed .private-card {
+  justify-content: center;
+  padding: 10px;
+}
+
+.app-shell.sidebar-collapsed .theme-picker > summary {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.app-shell.sidebar-collapsed .theme-picker-menu {
+  right: auto;
+  bottom: 0;
+  left: calc(100% + 10px);
+  width: 220px;
 }
 
 .topbar {
@@ -2480,6 +2575,57 @@ code {
   color: var(--faint);
   font-weight: 500;
   text-transform: none;
+}
+
+.form-card label > span.set-field-label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.set-field-label > b {
+  flex: 0 0 auto;
+  font-size: inherit;
+}
+
+.set-field-label button,
+.recent-folder-button {
+  min-width: 0;
+  overflow: hidden;
+  padding: 4px 7px;
+  border: 1px solid color-mix(in srgb, var(--primary-strong) 35%, var(--line));
+  border-radius: 7px;
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.set-field-label button {
+  max-width: 68%;
+}
+
+.set-field-label button:hover,
+.recent-folder-button:hover {
+  border-color: var(--primary-strong);
+}
+
+.folder-assignment-actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.recent-folder-button {
+  max-width: 310px;
 }
 
 input,
@@ -5286,11 +5432,13 @@ kbd {
     display: none;
   }
 
-  .main-column {
+  .main-column,
+  .app-shell.sidebar-collapsed .main-column {
     margin-left: 0;
   }
 
-  .topbar {
+  .topbar,
+  .app-shell.sidebar-collapsed .topbar {
     height: 68px;
     padding: 0 16px;
   }

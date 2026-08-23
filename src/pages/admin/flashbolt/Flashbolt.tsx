@@ -126,6 +126,7 @@ type AppData = {
   mastered: Record<string, string[]>;
   sessions: number;
   lastCreatedFolderIds?: string[];
+  recentSetValues?: Pick<StudySet, "title" | "subject" | "color" | "description"> & { folderIds: string[] };
   learnProgress?: Record<string, LearnSetProgress>;
   activeLearn?: LearnSessionSnapshot;
 };
@@ -167,6 +168,7 @@ async function readImportResponse<T>(response: Response): Promise<T> {
 const STORAGE_KEY = "flashbolt.local.v1";
 const LEGACY_STORAGE_KEY = "studydeck.local.v1";
 const LIBRARY_SORT_KEY = `${STORAGE_KEY}.librarySort`;
+const SIDEBAR_COLLAPSED_KEY = `${STORAGE_KEY}.sidebarCollapsed`;
 const cloudMigrationKey = (uid: string) => `${STORAGE_KEY}.cloudMigrated.${uid}`;
 const THEME_OPTIONS: Array<{ id: ThemeName; label: string; colors: [string, string] }> = [
   { id: "dark", label: "Dark", colors: ["#0c0c28", "#7b78ff"] },
@@ -625,6 +627,9 @@ export default function Flashbolt() {
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [librarySort, setLibrarySort] = useState<LibrarySort>("updated-desc");
   const [search, setSearch] = useState("");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try { return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true"; } catch { return false; }
+  });
   const [newMenuOpen, setNewMenuOpen] = useState(false);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [folderName, setFolderName] = useState("");
@@ -869,6 +874,17 @@ export default function Flashbolt() {
     ? folderSets[folderSetIndex + 1]
     : undefined;
   const editingFolder = data.folders.find((item) => item.id === editingFolderId);
+  const recentSourceSet = data.sets[0];
+  const recentSetValues = data.recentSetValues ?? (recentSourceSet ? {
+    title: recentSourceSet.title,
+    subject: recentSourceSet.subject,
+    color: recentSourceSet.color,
+    description: recentSourceSet.description,
+    folderIds: data.folders.filter((folderItem) => folderItem.setIds.includes(recentSourceSet.id)).map((folderItem) => folderItem.id),
+  } : undefined);
+  const recentFolderNames = recentSetValues?.folderIds
+    .map((folderId) => data.folders.find((folderItem) => folderItem.id === folderId)?.name)
+    .filter((name): name is string => Boolean(name)) ?? [];
   const masteredCount = Object.values(data.mastered).reduce((total, cards) => total + cards.length, 0);
   const cardCount = data.sets.reduce((total, set) => total + set.cards.length, 0);
   const filteredSets = useMemo(() => {
@@ -997,6 +1013,14 @@ export default function Flashbolt() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function toggleSidebar() {
+    setSidebarCollapsed((collapsed) => {
+      const next = !collapsed;
+      try { window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next)); } catch { /* Keep the in-memory preference. */ }
+      return next;
+    });
+  }
+
   function openSet(setId: string) {
     setSelectedSetId(setId);
     setFlashIndex(0);
@@ -1007,15 +1031,9 @@ export default function Flashbolt() {
   function startCreate() {
     setEditingSetId(null);
     setDraftFolderSearch("");
-    const validFolderIds = new Set(data.folders.map((folderItem) => folderItem.id));
-    const mostRecentSetId = data.sets[0]?.id;
-    const rememberedFolderIds = data.lastCreatedFolderIds
-      ?? (mostRecentSetId
-        ? data.folders.filter((folderItem) => folderItem.setIds.includes(mostRecentSetId)).map((folderItem) => folderItem.id)
-        : []);
     setDraftFolderIds(selectedFolderId
       ? [selectedFolderId]
-      : rememberedFolderIds.filter((folderId) => validFolderIds.has(folderId)));
+      : []);
     setDraft({
       ...blankDraft,
       cards: [
@@ -1082,6 +1100,13 @@ export default function Flashbolt() {
     setData((current) => ({
       ...current,
       lastCreatedFolderIds: editingSetId ? current.lastCreatedFolderIds : [...draftFolderIds],
+      recentSetValues: editingSetId ? current.recentSetValues : {
+        title: savedSet.title,
+        subject: savedSet.subject,
+        color: savedSet.color,
+        description: savedSet.description,
+        folderIds: [...draftFolderIds],
+      },
       sets: editingSetId
         ? current.sets.map((set) => (set.id === editingSetId ? savedSet : set))
         : [savedSet, ...current.sets],
@@ -1952,7 +1977,7 @@ export default function Flashbolt() {
   const isCurrentMastered = Boolean(selectedSet && currentFlashcard && data.mastered[selectedSet.id]?.includes(currentFlashcard.id));
 
   return (
-    <div className={`app-shell theme-${theme}`}>
+    <div className={`app-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       {setContextMenu && (() => {
         const contextSet = data.sets.find((item) => item.id === setContextMenu.setId);
         if (!contextSet) return null;
@@ -1968,22 +1993,25 @@ export default function Flashbolt() {
         );
       })()}
       <aside className="sidebar">
-        <button className="brand" onClick={() => navigate("home")} aria-label="Flashbolt home">
-          <span className="brand-mark"><i /><i /><i /></span>
-          <span>Flashbolt</span>
-        </button>
+        <div className="sidebar-brand-row">
+          <button className="brand" onClick={() => navigate("home")} aria-label="Flashbolt home" title="Flashbolt home">
+            <span className="brand-mark"><i /><i /><i /></span>
+            <span>Flashbolt</span>
+          </button>
+          <button className="sidebar-collapse-button" onClick={toggleSidebar} aria-label={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"} title={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"}>{sidebarCollapsed ? "›" : "‹"}</button>
+        </div>
 
         <nav className="main-nav" aria-label="Main navigation">
-          <button className={view === "home" ? "active" : ""} onClick={() => { setSelectedFolderId(null); navigate("home"); }}><span className="nav-icon">⌂</span>Home</button>
-          <button className={view === "library" ? "active" : ""} onClick={() => { setSelectedFolderId(null); navigate("library"); }}><span className="nav-icon">▤</span>Your library</button>
-          <button className={view === "folders" ? "active" : ""} onClick={() => navigate("folders")}><span className="nav-icon">□</span>Folders</button>
+          <button title="Home" aria-label="Home" className={view === "home" ? "active" : ""} onClick={() => { setSelectedFolderId(null); navigate("home"); }}><span className="nav-icon">⌂</span><span className="nav-label">Home</span></button>
+          <button title="Your library" aria-label="Your library" className={view === "library" ? "active" : ""} onClick={() => { setSelectedFolderId(null); navigate("library"); }}><span className="nav-icon">▤</span><span className="nav-label">Your library</span></button>
+          <button title="Folders" aria-label="Folders" className={view === "folders" ? "active" : ""} onClick={() => navigate("folders")}><span className="nav-icon">□</span><span className="nav-label">Folders</span></button>
         </nav>
 
         <div className="side-section">
           <p>Study tools</p>
-          <button onClick={startCreate}><span className="nav-icon">＋</span>Flashcard set</button>
-          <button onClick={() => navigate("guide")}><span className="nav-icon">≡</span>Study guide</button>
-          <button onClick={() => selectedSet ? startTest() : navigate("library")}><span className="nav-icon">✓</span>Practice test</button>
+          <button title="Flashcard set" aria-label="Create flashcard set" onClick={startCreate}><span className="nav-icon">＋</span><span className="nav-label">Flashcard set</span></button>
+          <button title="Study guide" aria-label="Study guide" onClick={() => navigate("guide")}><span className="nav-icon">≡</span><span className="nav-label">Study guide</span></button>
+          <button title="Practice test" aria-label="Practice test" onClick={() => selectedSet ? startTest() : navigate("library")}><span className="nav-icon">✓</span><span className="nav-label">Practice test</span></button>
         </div>
 
         <div className="private-card">
@@ -1993,7 +2021,7 @@ export default function Flashbolt() {
 
         <div className="sidebar-bottom">
           <ThemePicker theme={theme} onThemeChange={setTheme} />
-          <button onClick={exportLibrary}><span className="nav-icon">⇩</span>Back up library</button>
+          <button title="Back up library" aria-label="Back up library" onClick={exportLibrary}><span className="nav-icon">⇩</span><span className="nav-label">Back up library</span></button>
         </div>
       </aside>
 
@@ -2207,16 +2235,16 @@ export default function Flashbolt() {
               <div className="creator-layout">
                 <div className="creator-main">
                   <article className="form-card set-details">
-                    <label><span>Title</span><input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder="e.g. Biology chapter 4" maxLength={100} /></label>
+                    <label><span className="set-field-label"><b>Title</b>{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, title: recentSetValues.title }))} title={recentSetValues.title}>Use recent: {recentSetValues.title || "Empty"}</button>}</span><input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder="e.g. Biology chapter 4" maxLength={100} /></label>
                     <div className="field-row">
-                      <label><span>Subject</span><input value={draft.subject} onChange={(event) => setDraft({ ...draft, subject: event.target.value })} placeholder="Course or topic" /></label>
-                      <label><span>Color</span><select value={draft.color} onChange={(event) => setDraft({ ...draft, color: event.target.value })}><option value="violet">Violet</option><option value="mint">Mint</option><option value="amber">Amber</option><option value="coral">Coral</option></select></label>
+                      <label><span className="set-field-label"><b>Subject</b>{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, subject: recentSetValues.subject }))} title={recentSetValues.subject}>Use recent: {recentSetValues.subject || "Empty"}</button>}</span><input value={draft.subject} onChange={(event) => setDraft({ ...draft, subject: event.target.value })} placeholder="Course or topic" /></label>
+                      <label><span className="set-field-label"><b>Color</b>{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, color: recentSetValues.color }))}>Use recent: {recentSetValues.color}</button>}</span><select value={draft.color} onChange={(event) => setDraft({ ...draft, color: event.target.value })}><option value="violet">Violet</option><option value="mint">Mint</option><option value="amber">Amber</option><option value="coral">Coral</option></select></label>
                     </div>
-                    <label><span>Description <small>optional</small></span><textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} placeholder="What will this set help you learn?" rows={3} /></label>
+                    <label><span className="set-field-label"><b>Description <small>optional</small></b>{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, description: recentSetValues.description }))} title={recentSetValues.description}>Use recent: {recentSetValues.description || "Empty"}</button>}</span><textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} placeholder="What will this set help you learn?" rows={3} /></label>
                     <div className="folder-assignment">
                       <div className="folder-assignment-heading">
                         <div><span>Folders <small>optional</small></span><p>Add this set to one or more folders.</p></div>
-                        <button className="text-button" onClick={openNewFolderModal}>＋ New folder</button>
+                        <div className="folder-assignment-actions">{!editingSetId && recentSetValues && <button className="recent-folder-button" type="button" onClick={() => setDraftFolderIds(recentSetValues.folderIds.filter((folderId) => data.folders.some((folderItem) => folderItem.id === folderId)))} title={recentFolderNames.join(", ") || "No folders"}>Use recent: {recentFolderNames.join(", ") || "None"}</button>}<button className="text-button" onClick={openNewFolderModal}>＋ New folder</button></div>
                       </div>
                       {data.folders.length ? (
                         <>
