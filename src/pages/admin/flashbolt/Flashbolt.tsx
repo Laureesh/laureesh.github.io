@@ -69,12 +69,17 @@ type Card = {
   term: string;
   definition: string;
   answerChoices?: string[];
+  correctAnswers?: string[];
+  questionType?: "flashcard" | "multiple-choice" | "true-false" | "select-all" | "written" | "matching";
+  matchingPairs?: Array<{ id: string; left: string; right: string }>;
   termLanguage?: string;
   definitionLanguage?: string;
   highlight?: HighlightColor;
   imageData?: string;
   imageName?: string;
 };
+
+type CardQuestionType = NonNullable<Card["questionType"]>;
 
 type SpeechResultEvent = {
   results: {
@@ -427,9 +432,9 @@ function learnChoices(set: StudySet, card: Card, answerSide: "term" | "definitio
       : parseEmbeddedQuestion(card.term, card.definition).choices;
     const suppliedChoices = [...new Set(embeddedChoices.map((choice) => choice.trim()).filter(Boolean))];
     if (suppliedChoices.length >= 2) {
-      return suppliedChoices.some((choice) => normalizeAnswer(choice) === normalizeAnswer(correct))
+      return suppliedChoices.some((choice) => normalizeAnswer(choice) === normalizeAnswer(cleanChoiceAnswer(correct)))
         ? suppliedChoices
-        : [...suppliedChoices, correct];
+        : [...suppliedChoices, cleanChoiceAnswer(correct)];
     }
   }
   const distractors = set.cards
@@ -478,6 +483,18 @@ function withDetectedAnswerChoices(card: Card): Card {
   return embedded.choices.length >= 2
     ? { ...card, term: embedded.prompt, answerChoices: embedded.choices }
     : card;
+}
+
+function cardQuestionType(card: Card): CardQuestionType {
+  return card.questionType ?? (card.answerChoices && card.answerChoices.length > 1 ? "multiple-choice" : "flashcard");
+}
+
+function cleanChoiceAnswer(value: string) {
+  return value.replace(/^[A-K][).:-]\s*/i, "").trim();
+}
+
+function correctAnswersForCard(card: Card) {
+  return (card.correctAnswers?.length ? card.correctAnswers : [cleanChoiceAnswer(card.definition)]).filter((answer) => answer.trim());
 }
 
 function withDataDefaults(value: AppData): AppData {
@@ -903,13 +920,19 @@ export default function Flashbolt() {
     const label = folderIds.map((folderId) => data.folders.find((folderItem) => folderItem.id === folderId)?.name).filter(Boolean).join(" + ");
     return [folderIds.join("|"), { folderIds, label }] as const;
   }).filter(([key]) => key)).values()];
-  const completeDraftCards = draft.cards.filter((card) => card.term.trim() && card.definition.trim());
+  const completeDraftCards = draft.cards.filter((card) => card.term.trim() && (cardQuestionType(card) === "matching"
+    ? Boolean(card.matchingPairs?.length && card.matchingPairs.every((pair) => pair.left.trim() && pair.right.trim()))
+    : Boolean(card.definition.trim())));
   const answerChoicesReady = draft.cards.every((card) => {
-    if (!card.answerChoices?.length) return true;
-    const cleanDefinition = normalizeAnswer(card.definition.replace(/^[A-F][).:-]\s*/i, ""));
+    const type = cardQuestionType(card);
+    if (type === "matching") return Boolean(card.matchingPairs?.length && card.matchingPairs.every((pair) => pair.left.trim() && pair.right.trim()));
+    if (type !== "multiple-choice" && type !== "select-all" && type !== "true-false") return true;
+    if (!card.answerChoices?.length) return false;
+    const correctAnswers = correctAnswersForCard(card).map(normalizeAnswer);
     return card.answerChoices.length >= 2
       && card.answerChoices.every((choice) => choice.trim())
-      && card.answerChoices.some((choice) => normalizeAnswer(choice) === cleanDefinition);
+      && correctAnswers.length > 0
+      && correctAnswers.every((answer) => card.answerChoices?.some((choice) => normalizeAnswer(choice) === answer));
   });
   const draftChecklist = [
     { label: "Add a set title", detail: "Required", complete: Boolean(draft.title.trim()) },
@@ -1122,7 +1145,9 @@ export default function Flashbolt() {
   }
 
   function saveDraft(studyAfter = false) {
-    const cleanCards = draft.cards.filter((card) => card.term.trim() && card.definition.trim());
+    const cleanCards = draft.cards.filter((card) => card.term.trim() && (cardQuestionType(card) === "matching"
+      ? Boolean(card.matchingPairs?.length && card.matchingPairs.every((pair) => pair.left.trim() && pair.right.trim()))
+      : Boolean(card.definition.trim())));
     if (!draft.title.trim() || cleanCards.length === 0) {
       notify("Add a title and at least one complete card.");
       return;
@@ -1138,7 +1163,9 @@ export default function Flashbolt() {
       cards: cleanCards.map((card) => withDetectedAnswerChoices({
         ...card,
         term: card.term.trim(),
-        definition: card.definition.trim(),
+        definition: cardQuestionType(card) === "matching"
+          ? card.matchingPairs?.map((pair) => `${pair.left} → ${pair.right}`).join("; ") ?? ""
+          : card.definition.trim(),
       })),
     };
 
@@ -1189,6 +1216,43 @@ export default function Flashbolt() {
       ...current,
       cards: current.cards.map((card) => (card.id === cardId ? { ...card, ...updates } : card)),
     }));
+  }
+
+  function setDraftCardQuestionType(card: Card, questionType: CardQuestionType) {
+    const updates: Partial<Card> = { questionType };
+    if ((questionType === "multiple-choice" || questionType === "select-all") && (!card.answerChoices || card.answerChoices.length < 2)) {
+      updates.answerChoices = ["", "", "", ""];
+    }
+    if (questionType === "true-false") {
+      updates.answerChoices = ["True", "False"];
+      updates.correctAnswers = /false/i.test(card.definition) ? ["False"] : ["True"];
+      updates.definition = updates.correctAnswers[0];
+    }
+    if (questionType === "matching" && (!card.matchingPairs || card.matchingPairs.length < 2)) {
+      updates.matchingPairs = Array.from({ length: 4 }, () => ({ id: makeId("pair"), left: "", right: "" }));
+    }
+    updateDraftCardExtras(card.id, updates);
+  }
+
+  function updateDraftChoice(card: Card, choiceIndex: number, value: string) {
+    const oldChoice = card.answerChoices?.[choiceIndex] ?? "";
+    const choices = (card.answerChoices ?? []).map((choice, index) => index === choiceIndex ? value : choice);
+    const correctAnswers = correctAnswersForCard(card).map((answer) => normalizeAnswer(answer) === normalizeAnswer(oldChoice) ? value : answer);
+    const updates: Partial<Card> = { answerChoices: choices, correctAnswers };
+    if (cardQuestionType(card) !== "select-all" && correctAnswers.some((answer) => normalizeAnswer(answer) === normalizeAnswer(value))) updates.definition = value;
+    updateDraftCardExtras(card.id, updates);
+  }
+
+  function toggleDraftCorrectAnswer(card: Card, choice: string) {
+    if (!choice.trim()) return;
+    if (cardQuestionType(card) === "select-all") {
+      const current = correctAnswersForCard(card);
+      const selected = current.some((answer) => normalizeAnswer(answer) === normalizeAnswer(choice));
+      const next = selected ? current.filter((answer) => normalizeAnswer(answer) !== normalizeAnswer(choice)) : [...current, choice];
+      updateDraftCardExtras(card.id, { correctAnswers: next, definition: next.join("; ") });
+    } else {
+      updateDraftCardExtras(card.id, { correctAnswers: [choice], definition: choice });
+    }
   }
 
   function addDraftCard(afterCardId?: string) {
@@ -2347,6 +2411,10 @@ export default function Flashbolt() {
                               <button onClick={() => setDraft((current) => ({ ...current, cards: current.cards.filter((item) => item.id !== card.id) }))} disabled={draft.cards.length === 1} aria-label={`Remove card ${index + 1}`} title="Delete card">×</button>
                             </div>
                           </header>
+                          <div className="card-question-type">
+                            <label><span>Question type</span><select value={cardQuestionType(card)} onChange={(event) => setDraftCardQuestionType(card, event.target.value as CardQuestionType)}><option value="flashcard">Flashcard</option><option value="multiple-choice">Multiple choice</option><option value="true-false">True or false</option><option value="select-all">Select all that apply</option><option value="written">Written answer</option><option value="matching">Matching</option></select></label>
+                            <small>{cardQuestionType(card) === "matching" ? "Create pairs learners will match." : cardQuestionType(card) === "written" ? "Learners type the definition." : cardQuestionType(card) === "flashcard" ? "Reveal the definition after recalling it." : "Enter choices and mark the correct answer."}</small>{cardQuestionType(card) === "flashcard" && <button type="button" className="quick-add-choices" onClick={() => setDraftCardQuestionType(card, "multiple-choice")}>＋ Add answer choices</button>}
+                          </div>
                           <div className="card-editor-fields">
                             <label className="card-text-field">
                               <AutoResizeTextarea className={`highlight-${card.highlight ?? "none"}`} value={card.term} onChange={(event) => updateDraftCard(card.id, "term", event.target.value)} placeholder="Enter term" />
@@ -2364,29 +2432,33 @@ export default function Flashbolt() {
                               </div>
                             </div>
                           </div>
-                          {card.answerChoices && card.answerChoices.length > 1 && (
+                          {(cardQuestionType(card) === "multiple-choice" || cardQuestionType(card) === "select-all" || cardQuestionType(card) === "true-false") && card.answerChoices && (
                             <div className="card-editor-choices">
-                              <span>Answer choices</span>
+                              <span>{cardQuestionType(card) === "select-all" ? "Answer choices · select every correct answer" : "Answer choices · select the correct answer"}</span>
                               <div>
                                 {card.answerChoices.map((choice, choiceIndex) => {
-                                  const cleanDefinition = card.definition.replace(/^[A-F][).:-]\s*/i, "");
-                                  const isCorrect = normalizeAnswer(choice) === normalizeAnswer(cleanDefinition);
+                                  const isCorrect = correctAnswersForCard(card).some((answer) => normalizeAnswer(answer) === normalizeAnswer(choice));
                                   return (
                                     <label className={isCorrect ? "correct" : ""} key={`${card.id}-choice-${choiceIndex}`}>
-                                      <b>{String.fromCharCode(65 + choiceIndex)}</b>
+                                      <button type="button" className="choice-correct-toggle" onClick={() => toggleDraftCorrectAnswer(card, choice)} aria-label={`${isCorrect ? "Unmark" : "Mark"} choice ${String.fromCharCode(65 + choiceIndex)} as correct`} aria-pressed={isCorrect}>{isCorrect ? "✓" : String.fromCharCode(65 + choiceIndex)}</button>
                                       <input
                                         value={choice}
-                                        onChange={(event) => updateDraftCardExtras(card.id, {
-                                          answerChoices: card.answerChoices?.map((item, itemIndex) => itemIndex === choiceIndex ? event.target.value : item),
-                                        })}
+                                        onChange={(event) => updateDraftChoice(card, choiceIndex, event.target.value)}
                                         aria-label={`Choice ${String.fromCharCode(65 + choiceIndex)} for card ${index + 1}`}
+                                        placeholder={`Choice ${String.fromCharCode(65 + choiceIndex)}`}
+                                        readOnly={cardQuestionType(card) === "true-false"}
                                       />
                                       {isCorrect && <small>Correct</small>}
+                                      {cardQuestionType(card) !== "true-false" && card.answerChoices && card.answerChoices.length > 2 && <button type="button" className="choice-remove" onClick={() => updateDraftCardExtras(card.id, { answerChoices: card.answerChoices?.filter((_, itemIndex) => itemIndex !== choiceIndex), correctAnswers: correctAnswersForCard(card).filter((answer) => normalizeAnswer(answer) !== normalizeAnswer(choice)) })} aria-label={`Remove choice ${String.fromCharCode(65 + choiceIndex)}`}>×</button>}
                                     </label>
                                   );
                                 })}
                               </div>
+                              {cardQuestionType(card) !== "true-false" && card.answerChoices.length < 11 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { answerChoices: [...(card.answerChoices ?? []), ""] })}>＋ Add answer {String.fromCharCode(65 + card.answerChoices.length)}</button>}
                             </div>
+                          )}
+                          {cardQuestionType(card) === "matching" && (
+                            <div className="matching-pair-editor"><span>Matching pairs</span><div>{(card.matchingPairs ?? []).map((pair, pairIndex) => <div className="matching-pair-row" key={pair.id}><b>{String.fromCharCode(65 + pairIndex)}</b><input value={pair.left} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, left: event.target.value } : item) })} placeholder="Prompt" /><span>↔</span><input value={pair.right} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, right: event.target.value } : item) })} placeholder="Match" /><button type="button" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.filter((item) => item.id !== pair.id) })} disabled={(card.matchingPairs?.length ?? 0) <= 2} aria-label={`Remove matching pair ${pairIndex + 1}`}>×</button></div>)}</div>{(card.matchingPairs?.length ?? 0) < 11 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: [...(card.matchingPairs ?? []), { id: makeId("pair"), left: "", right: "" }] })}>＋ Add matching pair</button>}</div>
                           )}
                           {card.imageData && <div className="card-image-preview"><img width={74} height={58} src={card.imageData} alt={card.imageName ? `Attached ${card.imageName}` : "Attached card image"} /><span>{card.imageName}</span><button onClick={() => updateDraftCardExtras(card.id, { imageData: undefined, imageName: undefined })} aria-label={`Remove image from card ${index + 1}`}>Remove image</button></div>}
                         </article>
@@ -2479,7 +2551,7 @@ export default function Flashbolt() {
                     {card.answerChoices && card.answerChoices.length > 1 && (
                       <ol className="term-review-choices" aria-label={`Answer choices for ${card.term}`}>
                         {card.answerChoices.map((choice, choiceIndex) => {
-                          const isCorrect = normalizeAnswer(choice) === normalizeAnswer(card.definition);
+                          const isCorrect = correctAnswersForCard(card).some((answer) => normalizeAnswer(answer) === normalizeAnswer(choice));
                           return <li className={isCorrect ? "correct" : ""} key={`${card.id}-${choiceIndex}`}><span>{String.fromCharCode(65 + choiceIndex)}</span><b>{choice}</b>{isCorrect && <em>Correct</em>}</li>;
                         })}
                       </ol>
