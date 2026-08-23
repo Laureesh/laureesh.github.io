@@ -1118,12 +1118,11 @@ select:focus-visible {
 }
 
 .card-front b {
-  display: -webkit-box;
-  overflow: hidden;
+  display: block;
+  overflow: visible;
+  overflow-wrap: anywhere;
   font-size: 16px;
   line-height: 1.45;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
 }
 
 .card-front i {
@@ -2593,7 +2592,6 @@ code {
 .set-field-label button,
 .recent-folder-button {
   min-width: 0;
-  overflow: hidden;
   padding: 4px 7px;
   border: 1px solid color-mix(in srgb, var(--primary-strong) 35%, var(--line));
   border-radius: 7px;
@@ -2602,13 +2600,14 @@ code {
   font-size: 8px;
   font-weight: 800;
   letter-spacing: 0;
-  text-overflow: ellipsis;
   text-transform: none;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .set-field-label button {
-  max-width: 68%;
+  max-width: min(68%, 420px);
+  line-height: 1.35;
 }
 
 .set-field-history {
@@ -5629,6 +5628,97 @@ kbd {
 
 .mobile-nav {
   display: none;
+}
+
+/* User-authored content should wrap and grow instead of being silently clipped. */
+.set-tile-title,
+.tile-description {
+  display: block;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: initial;
+  -webkit-line-clamp: unset;
+}
+
+.tile-folder-copy b,
+.tile-folder-option-copy strong,
+.tile-folder-option-copy small,
+.folder-filter-name,
+.folder-option strong,
+.folder-option small,
+.folder-set-button strong,
+.folder-set-position .eyebrow,
+.card-image-preview span,
+.set-context-menu > strong {
+  overflow: visible;
+  max-width: none;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.folder-chips button {
+  height: auto;
+  min-height: 43px;
+}
+
+.folder-filter-name {
+  max-width: 240px;
+  line-height: 1.3;
+  text-align: left;
+}
+
+.tile-folder-badge,
+.folder-option,
+.tile-folder-option {
+  align-items: flex-start;
+}
+
+.set-context-menu {
+  width: min(250px, calc(100vw - 20px));
+}
+
+.set-context-menu > strong {
+  line-height: 1.35;
+}
+
+.folder-set-button,
+.folder-set-position {
+  min-height: 64px;
+}
+
+.folder-set-position .eyebrow {
+  max-width: 240px;
+  line-height: 1.35;
+}
+
+.card-image-preview {
+  flex-wrap: wrap;
+}
+
+.card-image-preview span {
+  min-width: 140px;
+  line-height: 1.4;
+}
+
+.card-question-type {
+  flex-wrap: wrap;
+}
+
+.card-question-type > small {
+  flex: 1 1 180px;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.card-editor-choices label,
+.matching-pair-row {
+  min-height: 42px;
+}
+
+.card-editor-choices label input,
+.matching-pair-row input {
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 1050px) {
