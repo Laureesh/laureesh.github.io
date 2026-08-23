@@ -2434,7 +2434,25 @@ export default function Flashbolt() {
                               <span className="field-meta"><b>TERM</b><select aria-label={`Term language for card ${index + 1}`} value={card.termLanguage ?? "auto"} onChange={(event) => updateDraftCardExtras(card.id, { termLanguage: event.target.value })}>{LANGUAGE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></span>
                             </label>
                             <i />
-                            <div className="definition-field-wrap">
+                            {(cardQuestionType(card) === "multiple-choice" || cardQuestionType(card) === "select-all" || cardQuestionType(card) === "true-false") && card.answerChoices ? (
+                              <div className="card-editor-choices">
+                                <span>{cardQuestionType(card) === "select-all" ? "Answer choices · select every correct answer" : "Answer choices · select the correct answer"}</span>
+                                <div>
+                                  {card.answerChoices.map((choice, choiceIndex) => {
+                                    const isCorrect = correctAnswersForCard(card).some((answer) => normalizeAnswer(answer) === normalizeAnswer(choice));
+                                    return (
+                                      <label className={isCorrect ? "correct" : ""} key={`${card.id}-choice-${choiceIndex}`}>
+                                        <button type="button" className="choice-correct-toggle" onClick={() => toggleDraftCorrectAnswer(card, choice)} aria-label={`${isCorrect ? "Unmark" : "Mark"} choice ${String.fromCharCode(65 + choiceIndex)} as correct`} aria-pressed={isCorrect}>{String.fromCharCode(65 + choiceIndex)}</button>
+                                        <input value={choice} onChange={(event) => updateDraftChoice(card, choiceIndex, event.target.value)} aria-label={`Choice ${String.fromCharCode(65 + choiceIndex)} for card ${index + 1}`} placeholder={`Choice ${String.fromCharCode(65 + choiceIndex)}`} readOnly={cardQuestionType(card) === "true-false"} />
+                                        {isCorrect && <small>Correct</small>}
+                                        {cardQuestionType(card) !== "true-false" && card.answerChoices && card.answerChoices.length > 2 && <button type="button" className="choice-remove" onClick={() => updateDraftCardExtras(card.id, { answerChoices: card.answerChoices?.filter((_, itemIndex) => itemIndex !== choiceIndex), correctAnswers: correctAnswersForCard(card).filter((answer) => normalizeAnswer(answer) !== normalizeAnswer(choice)) })} aria-label={`Remove choice ${String.fromCharCode(65 + choiceIndex)}`}>×</button>}
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                                {cardQuestionType(card) !== "true-false" && card.answerChoices.length < 26 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { answerChoices: [...(card.answerChoices ?? []), ""] })}>＋ Add answer {String.fromCharCode(65 + card.answerChoices.length)}</button>}
+                              </div>
+                            ) : <div className="definition-field-wrap">
                               <label className="card-text-field">
                                 <AutoResizeTextarea className={`highlight-${card.highlight ?? "none"}`} value={card.definition} onChange={(event) => updateDraftCard(card.id, "definition", event.target.value)} placeholder="Enter definition" />
                                 <span className="field-meta"><b>DEFINITION</b><select aria-label={`Definition language for card ${index + 1}`} value={card.definitionLanguage ?? "auto"} onChange={(event) => updateDraftCardExtras(card.id, { definitionLanguage: event.target.value })}>{LANGUAGE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></span>
@@ -2443,33 +2461,8 @@ export default function Flashbolt() {
                                 <button onClick={() => startDictation(card, "definition")} className={dictationTarget?.cardId === card.id && dictationTarget.field === "definition" ? "recording" : ""} aria-label={`Dictate definition for card ${index + 1}`} title="Dictate definition">◉</button>
                                 <label className="image-upload-button" title="Add image"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { void attachCardImage(card.id, event.target.files?.[0]); event.target.value = ""; }} /><span>▧</span>Image</label>
                               </div>
-                            </div>
+                            </div>}
                           </div>
-                          {(cardQuestionType(card) === "multiple-choice" || cardQuestionType(card) === "select-all" || cardQuestionType(card) === "true-false") && card.answerChoices && (
-                            <div className="card-editor-choices">
-                              <span>{cardQuestionType(card) === "select-all" ? "Answer choices · select every correct answer" : "Answer choices · select the correct answer"}</span>
-                              <div>
-                                {card.answerChoices.map((choice, choiceIndex) => {
-                                  const isCorrect = correctAnswersForCard(card).some((answer) => normalizeAnswer(answer) === normalizeAnswer(choice));
-                                  return (
-                                    <label className={isCorrect ? "correct" : ""} key={`${card.id}-choice-${choiceIndex}`}>
-                                      <button type="button" className="choice-correct-toggle" onClick={() => toggleDraftCorrectAnswer(card, choice)} aria-label={`${isCorrect ? "Unmark" : "Mark"} choice ${String.fromCharCode(65 + choiceIndex)} as correct`} aria-pressed={isCorrect}>{isCorrect ? "✓" : String.fromCharCode(65 + choiceIndex)}</button>
-                                      <input
-                                        value={choice}
-                                        onChange={(event) => updateDraftChoice(card, choiceIndex, event.target.value)}
-                                        aria-label={`Choice ${String.fromCharCode(65 + choiceIndex)} for card ${index + 1}`}
-                                        placeholder={`Choice ${String.fromCharCode(65 + choiceIndex)}`}
-                                        readOnly={cardQuestionType(card) === "true-false"}
-                                      />
-                                      {isCorrect && <small>Correct</small>}
-                                      {cardQuestionType(card) !== "true-false" && card.answerChoices && card.answerChoices.length > 2 && <button type="button" className="choice-remove" onClick={() => updateDraftCardExtras(card.id, { answerChoices: card.answerChoices?.filter((_, itemIndex) => itemIndex !== choiceIndex), correctAnswers: correctAnswersForCard(card).filter((answer) => normalizeAnswer(answer) !== normalizeAnswer(choice)) })} aria-label={`Remove choice ${String.fromCharCode(65 + choiceIndex)}`}>×</button>}
-                                    </label>
-                                  );
-                                })}
-                              </div>
-                              {cardQuestionType(card) !== "true-false" && card.answerChoices.length < 26 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { answerChoices: [...(card.answerChoices ?? []), ""] })}>＋ Add answer {String.fromCharCode(65 + card.answerChoices.length)}</button>}
-                            </div>
-                          )}
                           {cardQuestionType(card) === "matching" && (
                             <div className="matching-pair-editor"><span>Matching pairs</span><div>{(card.matchingPairs ?? []).map((pair, pairIndex) => <div className="matching-pair-row" key={pair.id}><b>{String.fromCharCode(65 + pairIndex)}</b><input value={pair.left} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, left: event.target.value } : item) })} placeholder="Prompt" /><span>↔</span><input value={pair.right} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, right: event.target.value } : item) })} placeholder="Match" /><button type="button" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.filter((item) => item.id !== pair.id) })} disabled={(card.matchingPairs?.length ?? 0) <= 2} aria-label={`Remove matching pair ${pairIndex + 1}`}>×</button></div>)}</div>{(card.matchingPairs?.length ?? 0) < 26 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: [...(card.matchingPairs ?? []), { id: makeId("pair"), left: "", right: "" }] })}>＋ Add matching pair</button>}</div>
                           )}
