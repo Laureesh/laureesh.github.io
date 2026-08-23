@@ -65,7 +65,7 @@ export default function App() {
     "/admin-dashboard/private-pages/fn-leaderboard",
     "/admin-dashboard/private-pages/flashbolt",
   ];
-  const isStandaloneAdminToolRoute = standaloneAdminToolRoutes.includes(location.pathname);
+  const isStandaloneAdminToolRoute = standaloneAdminToolRoutes.includes(location.pathname) || location.pathname === "/flashbolt" || location.pathname.startsWith("/flashbolt/");
   const isAuthRoute = (
     location.pathname === "/login" ||
     location.pathname === "/register" ||
@@ -85,6 +85,7 @@ export default function App() {
       "/media-converter",
       "/admin-dashboard/private-pages/fn-leaderboard",
       "/admin-dashboard/private-pages/flashbolt",
+      "/flashbolt",
       "/login",
       "/register",
       "/switch-account",
@@ -283,6 +284,16 @@ export default function App() {
                       </div>
                     )}
                   >
+                    <Flashbolt />
+                  </Suspense>
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/flashbolt/*"
+              element={(
+                <ProtectedRoute requiredRole="admin" unauthorizedRedirectTo="/profile">
+                  <Suspense fallback={<div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}><div className="auth-spinner" /></div>}>
                     <Flashbolt />
                   </Suspense>
                 </ProtectedRoute>

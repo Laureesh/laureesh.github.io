@@ -1,6 +1,7 @@
 
 import "./Flashbolt.css";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import type { CSSProperties, ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { loadFlashboltLibrary, saveFlashboltLibrary } from "../../../services/flashboltLibrary";
@@ -351,6 +352,10 @@ function makeId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2)}`;
 }
 
+function routeSlug(value: string) {
+  return value.toLocaleLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "untitled";
+}
+
 function compressImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const image = new window.Image();
@@ -647,6 +652,8 @@ function ThemePicker({
 
 export default function Flashbolt() {
   const { user } = useAuth();
+  const location = useLocation();
+  const routerNavigate = useNavigate();
   const userId = user?.uid;
   const [data, setData] = useState<AppData>(initialData);
   const [ready, setReady] = useState(false);
@@ -717,6 +724,7 @@ export default function Flashbolt() {
   const [dictationTarget, setDictationTarget] = useState<{ cardId: string; field: "term" | "definition" } | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
+  const handledRouteRef = useRef("");
 
   useEffect(() => {
     if (!userId) return;
@@ -824,6 +832,25 @@ export default function Flashbolt() {
     applyThemeToDocument(theme);
     if (ready) window.localStorage.setItem(`${STORAGE_KEY}.theme`, theme);
   }, [theme, ready]);
+
+  useEffect(() => {
+    if (!ready || handledRouteRef.current === location.pathname) return;
+    const parts = location.pathname.split("/").filter(Boolean);
+    const flashboltIndex = parts.indexOf("flashbolt");
+    const routeParts = flashboltIndex >= 0 ? parts.slice(flashboltIndex + 1) : [];
+    if (routeParts.length < 4) return;
+    const [semesterSlug, folderSlug, setSlug, mode] = routeParts;
+    const routeFolder = data.folders.find((item) => routeSlug(item.semester || "no-semester") === semesterSlug && routeSlug(item.name) === folderSlug);
+    const routeSet = data.sets.find((item) => routeSlug(item.title) === setSlug && (!routeFolder || routeFolder.setIds.includes(item.id)));
+    if (!routeSet || !["flashcards", "learn", "test", "edit"].includes(mode)) return;
+    handledRouteRef.current = location.pathname;
+    setSelectedSetId(routeSet.id);
+    setSelectedFolderId(routeFolder?.id ?? null);
+    if (mode === "edit") startEdit(routeSet);
+    else if (mode === "learn") startLearn(routeSet.id);
+    else if (mode === "test") startTest(routeSet.id);
+    else openSet(routeSet.id);
+  }, [data.folders, data.sets, location.pathname, ready]);
 
   useEffect(() => {
     if (ready) window.localStorage.setItem(LIBRARY_SORT_KEY, librarySort);
@@ -1100,9 +1127,27 @@ export default function Flashbolt() {
     apply(match);
   }
 
-  function navigate(nextView: View) {
+  function setRoutePath(nextView: View, setId = selectedSetId) {
+    if (!["set", "learn", "test", "create"].includes(nextView) || (nextView === "create" && !setId)) {
+      const path = nextView === "home" ? "/flashbolt" : `/flashbolt/${nextView}`;
+      handledRouteRef.current = path;
+      routerNavigate(path);
+      return;
+    }
+    const routeSet = data.sets.find((item) => item.id === setId);
+    if (!routeSet) return;
+    const routeFolder = data.folders.find((item) => item.id === selectedFolderId && item.setIds.includes(routeSet.id))
+      ?? data.folders.find((item) => item.setIds.includes(routeSet.id));
+    const mode = nextView === "set" ? "flashcards" : nextView === "create" ? "edit" : nextView;
+    const path = `/flashbolt/${routeSlug(routeFolder?.semester || "no-semester")}/${routeSlug(routeFolder?.name || "unfiled")}/${routeSlug(routeSet.title)}/${mode}`;
+    handledRouteRef.current = path;
+    routerNavigate(path);
+  }
+
+  function navigate(nextView: View, setId = selectedSetId) {
     setView(nextView);
     setNewMenuOpen(false);
+    setRoutePath(nextView, setId);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -1118,7 +1163,7 @@ export default function Flashbolt() {
     setSelectedSetId(setId);
     setFlashIndex(0);
     setFlipped(false);
-    navigate("set");
+    navigate("set", setId);
   }
 
   function startCreate() {
@@ -1141,7 +1186,7 @@ export default function Flashbolt() {
     setKahootReference("");
     setKahootImportMessage("");
     setKahootImportFailed(false);
-    navigate("create");
+    navigate("create", "");
   }
 
   function startQuizletLinkImport() {
@@ -1166,7 +1211,7 @@ export default function Flashbolt() {
     setKahootReference("");
     setKahootImportMessage("");
     setKahootImportFailed(false);
-    navigate("create");
+    navigate("create", set.id);
   }
 
   function saveDraft(studyAfter = false) {
@@ -1619,7 +1664,8 @@ export default function Flashbolt() {
     });
   }
 
-  function startLearn() {
+  function startLearn(setIdOrEvent?: string | ReactMouseEvent) {
+    const setId = typeof setIdOrEvent === "string" ? setIdOrEvent : selectedSetId;
     const questionFirstOptions = { ...learnOptions, answerTerms: false, answerDefinitions: true };
     setLearnPhase("goal");
     setLearnGoal("memorize");
@@ -1642,7 +1688,7 @@ export default function Flashbolt() {
     setLearnRetypeAnswer("");
     setLearnSelectedAnswers([]);
     setLearnFlashRevealed(false);
-    navigate("learn");
+    navigate("learn", setId);
   }
 
   function beginLearnSession(goal = learnGoal, options = learnOptions) {
@@ -1871,10 +1917,11 @@ export default function Flashbolt() {
     }));
   }
 
-  function startTest() {
+  function startTest(setIdOrEvent?: string | ReactMouseEvent) {
+    const setId = typeof setIdOrEvent === "string" ? setIdOrEvent : selectedSetId;
     setTestAnswers({});
     setTestSubmitted(false);
-    navigate("test");
+    navigate("test", setId);
   }
 
   function submitTest() {
@@ -1926,8 +1973,24 @@ export default function Flashbolt() {
     setSetContextMenu({
       setId,
       x: Math.min(event.clientX, window.innerWidth - 205),
-      y: Math.min(event.clientY, window.innerHeight - 225),
+      y: Math.min(event.clientY, window.innerHeight - 390),
     });
+  }
+
+  function setModeUrl(set: StudySet, mode: "flashcards" | "learn" | "test" | "edit") {
+    const setFolder = data.folders.find((item) => item.setIds.includes(set.id));
+    const path = `/flashbolt/${routeSlug(setFolder?.semester || "no-semester")}/${routeSlug(setFolder?.name || "unfiled")}/${routeSlug(set.title)}/${mode}`;
+    return `${window.location.origin}${path}`;
+  }
+
+  async function copySetModeLink(set: StudySet, mode: "flashcards" | "learn" | "test" | "edit") {
+    try {
+      await navigator.clipboard.writeText(setModeUrl(set, mode));
+      notify(`${mode === "flashcards" ? "Flashcards" : mode[0].toUpperCase() + mode.slice(1)} link copied.`);
+    } catch {
+      notify("The link could not be copied. Open the mode and copy it from the address bar.");
+    }
+    setSetContextMenu(null);
   }
 
   function duplicateSet(setToDuplicate: StudySet) {
@@ -2130,6 +2193,11 @@ export default function Flashbolt() {
             <button role="menuitem" onClick={() => { setSetContextMenu(null); openSet(contextSet.id); }}><span>▣</span>View set</button>
             <button role="menuitem" onClick={() => { setSetContextMenu(null); startEdit(contextSet); }}><span>✎</span>Edit set</button>
             <button role="menuitem" onClick={() => { setSetContextMenu(null); duplicateSet(contextSet); }}><span>⧉</span>Duplicate</button>
+            <i />
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "flashcards")}><span>↗</span>Copy flashcards link</button>
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "learn")}><span>↗</span>Copy learn link</button>
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "test")}><span>↗</span>Copy test link</button>
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "edit")}><span>↗</span>Copy edit link</button>
             <i />
             <button role="menuitem" className="danger" onClick={() => { setSetContextMenu(null); deleteSetFromLibrary(contextSet); }}><span>×</span>Delete set</button>
           </div>
@@ -2390,6 +2458,10 @@ export default function Flashbolt() {
                       </div>
                       {data.folders.length ? (
                         <>
+                        <div className="selected-folder-summary" aria-live="polite">
+                          <span>{draftFolderIds.length === 1 ? "Selected folder" : "Selected folders"}</span>
+                          <div>{draftFolderIds.length ? data.folders.filter((folderItem) => draftFolderIds.includes(folderItem.id)).map((folderItem) => <span className="selected-folder-chip" key={folderItem.id} style={{ "--folder-color": folderItem.color ?? FOLDER_COLORS[0] } as CSSProperties}><i aria-hidden="true" /><b>{folderItem.name}</b>{folderItem.semester && <small>{folderItem.semester}</small>}<button type="button" onClick={() => setDraftFolderIds((ids) => ids.filter((id) => id !== folderItem.id))} aria-label={`Remove ${folderItem.name}`}>×</button></span>) : <small className="no-folder-selected">No folder selected</small>}</div>
+                        </div>
                         <label className="folder-assignment-search">
                           <span aria-hidden="true">⌕</span>
                           <input type="search" value={draftFolderSearch} onChange={(event) => setDraftFolderSearch(event.target.value)} placeholder="Search folders by name or course code" aria-label="Search folders" />
