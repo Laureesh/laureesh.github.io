@@ -885,6 +885,24 @@ export default function Flashbolt() {
   const recentFolderNames = recentSetValues?.folderIds
     .map((folderId) => data.folders.find((folderItem) => folderItem.id === folderId)?.name)
     .filter((name): name is string => Boolean(name)) ?? [];
+  const completeDraftCards = draft.cards.filter((card) => card.term.trim() && card.definition.trim());
+  const answerChoicesReady = draft.cards.every((card) => {
+    if (!card.answerChoices?.length) return true;
+    const cleanDefinition = normalizeAnswer(card.definition.replace(/^[A-F][).:-]\s*/i, ""));
+    return card.answerChoices.length >= 2
+      && card.answerChoices.every((choice) => choice.trim())
+      && card.answerChoices.some((choice) => normalizeAnswer(choice) === cleanDefinition);
+  });
+  const draftChecklist = [
+    { label: "Add a set title", detail: "Required", complete: Boolean(draft.title.trim()) },
+    { label: "Choose a subject", detail: "Recommended", complete: Boolean(draft.subject.trim()) },
+    { label: "Describe what this set covers", detail: "Recommended", complete: Boolean(draft.description.trim()) },
+    { label: "Assign at least one folder", detail: "Optional", complete: draftFolderIds.length > 0 },
+    { label: "Complete at least two cards", detail: `${completeDraftCards.length} ready`, complete: completeDraftCards.length >= 2 },
+    { label: "Finish every card row", detail: `${draft.cards.length - completeDraftCards.length} incomplete`, complete: draft.cards.length >= 2 && completeDraftCards.length === draft.cards.length },
+    { label: "Verify multiple-choice answers", detail: "When included", complete: answerChoicesReady },
+  ];
+  const draftCompletion = Math.round((draftChecklist.filter((item) => item.complete).length / draftChecklist.length) * 100);
   const masteredCount = Object.values(data.mastered).reduce((total, cards) => total + cards.length, 0);
   const cardCount = data.sets.reduce((total, set) => total + set.cards.length, 0);
   const filteredSets = useMemo(() => {
@@ -2353,6 +2371,12 @@ export default function Flashbolt() {
                 </div>
 
                 <aside className="import-panel">
+                  <section className={`creation-checklist ${draftCompletion === 100 ? "complete" : ""}`} aria-label={`Set creation ${draftCompletion}% complete`}>
+                    <div className="creation-checklist-heading"><div><span className="eyebrow">Set checklist</span><h3>{draftCompletion === 100 ? "Ready to study" : "Finish your set"}</h3></div><strong>{draftCompletion}%</strong></div>
+                    <div className="creation-progress" role="progressbar" aria-label="Set completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={draftCompletion}><i style={{ width: `${draftCompletion}%` }} /></div>
+                    <ul>{draftChecklist.map((item) => <li className={item.complete ? "complete" : ""} key={item.label}><span>{item.complete ? "✓" : "○"}</span><div><strong>{item.label}</strong><small>{item.complete ? "Complete" : item.detail}</small></div></li>)}</ul>
+                  </section>
+                  <div className="import-divider"><span>Import tools</span></div>
                   <div className="quizlet-import-block">
                     <span className="eyebrow">From Quizlet</span><h3>Import by link</h3><p>Paste a public flashcard-set link. Its title, description, and cards will fill this editor.</p>
                     <label className="quizlet-link-field"><span className="visually-hidden">Quizlet set link</span><input type="url" value={quizletUrl} onChange={(event) => { setQuizletUrl(event.target.value); setQuizletImportMessage(""); setQuizletImportFailed(false); }} onKeyDown={(event) => { if (event.key === "Enter" && !quizletImporting) void applyQuizletImport(); }} placeholder="https://quizlet.com/123…/flash-cards/" autoComplete="url" /></label>
