@@ -18,7 +18,7 @@ function formatRemainingTime(value: number | null) {
 
 export default function AdminDashboardLayout() {
   const location = useLocation();
-  const { userProfile, adminSessionTimeRemainingMs } = useAuth();
+  const { userProfile, adminSessionTimeRemainingMs, adminSessionTimerEnabled, setAdminSessionTimerEnabled } = useAuth();
   const currentSection = getAdminDashboardSection(location.pathname);
   const sessionCountdown = formatRemainingTime(adminSessionTimeRemainingMs);
 
@@ -35,7 +35,7 @@ export default function AdminDashboardLayout() {
           {userProfile?.role === "admin" ? (
             <span className="admin-shell__badge admin-shell__badge--timer">
               <Clock3 size={14} />
-              Session {sessionCountdown}
+              {adminSessionTimerEnabled ? `Session ${sessionCountdown}` : "Session timer off"}
             </span>
           ) : null}
         </div>
@@ -86,10 +86,17 @@ export default function AdminDashboardLayout() {
               <p className="admin-sidebar__label">Session Timeout</p>
               <div className="admin-sidebar__timer-row">
                 <Clock3 size={16} />
-                <strong>{sessionCountdown}</strong>
+                <strong>{adminSessionTimerEnabled ? sessionCountdown : "Off"}</strong>
+                <label className="admin-session-switch">
+                  <input type="checkbox" checked={adminSessionTimerEnabled} onChange={(event) => setAdminSessionTimerEnabled(event.target.checked)} />
+                  <span aria-hidden="true" />
+                  <b>{adminSessionTimerEnabled ? "On" : "Off"}</b>
+                </label>
               </div>
               <p>
-                Any keyboard, pointer, touch, scroll, or focus activity resets the admin idle timer.
+                {adminSessionTimerEnabled
+                  ? "Any keyboard, pointer, touch, scroll, or focus activity resets the admin idle timer."
+                  : "Automatic idle sign-out is disabled on this browser."}
               </p>
             </div>
           ) : null}

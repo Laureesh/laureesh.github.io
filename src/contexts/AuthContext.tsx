@@ -79,6 +79,8 @@ export interface AuthContextValue {
   loading: boolean;
   error: string | null;
   adminSessionTimeRemainingMs: number | null;
+  adminSessionTimerEnabled: boolean;
+  setAdminSessionTimerEnabled: (enabled: boolean) => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
   hasPremiumAccess: boolean;
@@ -114,6 +116,7 @@ export interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+const ADMIN_SESSION_TIMER_ENABLED_KEY = "admin.sessionTimer.enabled";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -124,8 +127,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [adminSessionTimeRemainingMs, setAdminSessionTimeRemainingMs] = useState<number | null>(null);
+  const [adminSessionTimerEnabled, setAdminSessionTimerEnabledState] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.localStorage.getItem(ADMIN_SESSION_TIMER_ENABLED_KEY) !== "false";
+  });
   const adminSessionTimeoutRef = useRef<number | null>(null);
   const adminSessionDeadlineRef = useRef<number | null>(null);
+
+  const setAdminSessionTimerEnabled = useCallback((enabled: boolean) => {
+    setAdminSessionTimerEnabledState(enabled);
+    try {
+      window.localStorage.setItem(ADMIN_SESSION_TIMER_ENABLED_KEY, String(enabled));
+    } catch {
+      // The setting remains active for this page session when storage is blocked.
+    }
+  }, []);
 
   const refreshSavedAccounts = useCallback(() => {
     setSavedAccounts(mergeSavedAccounts(readSavedAccounts()));
@@ -304,6 +320,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       || !userProfile
       || userProfile.role !== "admin"
       || !hasActiveStatus(userProfile)
+      || !adminSessionTimerEnabled
     ) {
       return () => undefined;
     }
@@ -377,7 +394,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         window.removeEventListener(eventName, resetAdminSessionTimeout);
       });
     };
-  }, [loading, user, userProfile]);
+  }, [adminSessionTimerEnabled, loading, user, userProfile]);
 
   const login = async (
     email: string,
@@ -542,6 +559,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         error,
         adminSessionTimeRemainingMs,
+        adminSessionTimerEnabled,
+        setAdminSessionTimerEnabled,
         isAuthenticated: Boolean(user),
         isAdmin: hasRole(userProfile, "admin"),
         hasPremiumAccess: subscriptionState.hasPremiumAccess,

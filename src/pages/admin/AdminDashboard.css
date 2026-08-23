@@ -131,6 +131,63 @@
   letter-spacing: 0.08em;
 }
 
+.admin-session-switch {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  cursor: pointer;
+}
+
+.admin-session-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-session-switch > span {
+  position: relative;
+  width: 34px;
+  height: 19px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  transition: 160ms ease;
+}
+
+.admin-session-switch > span::after {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  content: "";
+  transition: 160ms ease;
+}
+
+.admin-session-switch input:checked + span {
+  border-color: color-mix(in srgb, var(--accent) 65%, var(--border));
+  background: color-mix(in srgb, var(--accent) 32%, var(--bg-secondary));
+}
+
+.admin-session-switch input:checked + span::after {
+  background: var(--accent);
+  transform: translateX(15px);
+}
+
+.admin-session-switch input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.admin-session-switch b {
+  min-width: 18px;
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+}
+
 .admin-sidebar__nav,
 .admin-panel-stack {
   display: grid;
