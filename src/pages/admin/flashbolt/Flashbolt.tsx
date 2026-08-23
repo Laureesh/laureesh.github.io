@@ -1,7 +1,7 @@
 
 import "./Flashbolt.css";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
+import type { CSSProperties, ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { loadFlashboltLibrary, saveFlashboltLibrary } from "../../../services/flashboltLibrary";
 import {
@@ -117,6 +117,7 @@ type Folder = {
   id: string;
   name: string;
   setIds: string[];
+  color?: string;
 };
 
 type AppData = {
@@ -183,6 +184,7 @@ const LIBRARY_SORT_VALUES: LibrarySort[] = [
 ];
 const LIBRARY_COLLATOR = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
 const HIGHLIGHT_COLORS: HighlightColor[] = ["none", "yellow", "mint", "violet"];
+const FOLDER_COLORS = ["#7773ff", "#55c9f3", "#54d29a", "#f4c84a", "#ff8b9d", "#c98cff", "#ff9f5a", "#9ca8c7"];
 const LANGUAGE_OPTIONS = [
   { value: "auto", label: "Auto-detect", speechCode: "" },
   { value: "en", label: "English", speechCode: "en-US" },
@@ -626,6 +628,7 @@ export default function Flashbolt() {
   const [newMenuOpen, setNewMenuOpen] = useState(false);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [folderName, setFolderName] = useState("");
+  const [folderColor, setFolderColor] = useState(FOLDER_COLORS[0]);
   const [folderSetIds, setFolderSetIds] = useState<string[]>([]);
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [tileFolderPickerId, setTileFolderPickerId] = useState<string | null>(null);
@@ -1341,6 +1344,7 @@ export default function Flashbolt() {
   function openNewFolderModal() {
     setEditingFolderId(null);
     setFolderName("");
+    setFolderColor(FOLDER_COLORS[0]);
     setFolderSetIds([]);
     setFolderModalOpen(true);
   }
@@ -1349,6 +1353,7 @@ export default function Flashbolt() {
     setTileFolderPickerId(null);
     setEditingFolderId(null);
     setFolderName("");
+    setFolderColor(FOLDER_COLORS[0]);
     setFolderSetIds([setId]);
     setFolderModalOpen(true);
   }
@@ -1356,6 +1361,7 @@ export default function Flashbolt() {
   function editFolder(folderToEdit: Folder) {
     setEditingFolderId(folderToEdit.id);
     setFolderName(folderToEdit.name);
+    setFolderColor(folderToEdit.color ?? FOLDER_COLORS[0]);
     setFolderSetIds([...folderToEdit.setIds]);
     setFolderModalOpen(true);
   }
@@ -1377,7 +1383,7 @@ export default function Flashbolt() {
       setData((current) => ({
         ...current,
         folders: current.folders.map((item) => item.id === editingFolderId
-          ? { ...item, name: folderName.trim(), setIds: folderSetIds }
+          ? { ...item, name: folderName.trim(), color: folderColor, setIds: folderSetIds }
           : item),
       }));
       closeFolderModal();
@@ -1385,7 +1391,7 @@ export default function Flashbolt() {
       return;
     }
 
-    const newFolder: Folder = { id: makeId("folder"), name: folderName.trim(), setIds: folderSetIds };
+    const newFolder: Folder = { id: makeId("folder"), name: folderName.trim(), color: folderColor, setIds: folderSetIds };
     setData((current) => ({ ...current, folders: [...current.folders, newFolder] }));
     if (view === "create") {
       setDraftFolderIds((ids) => ids.includes(newFolder.id) ? ids : [...ids, newFolder.id]);
@@ -1849,7 +1855,7 @@ export default function Flashbolt() {
             ? data.folders.filter((folderItem) => folderItem.name.toLocaleLowerCase().includes(normalizedFolderSearch))
             : data.folders;
           return (
-            <article className="set-tile" key={set.id} onContextMenu={(event) => openSetContextMenu(event, set.id)}>
+            <article className={`set-tile ${progress === 100 ? "completed" : ""}`} key={set.id} onContextMenu={(event) => openSetContextMenu(event, set.id)}>
               <button className="set-tile-open" onClick={() => openSet(set.id)} aria-label={`Open ${set.title}`}><span className="visually-hidden">Open {set.title}</span></button>
               <span className={`set-accent ${set.color}`} />
               <span className="tile-kicker"><span>{set.subject || "General"}</span><span>{formatDate(set.updatedAt)}</span></span>
@@ -2115,7 +2121,7 @@ export default function Flashbolt() {
                         key={item.id}
                         onClick={() => setSelectedFolderId(item.id)}
                       >
-                        <span className="folder-filter-icon folder" aria-hidden="true" />
+                        <span className="folder-filter-icon folder" aria-hidden="true" style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} />
                         <span className="folder-filter-name">{item.name}</span>
                         <span className="folder-filter-count">{item.setIds.length}</span>
                       </button>
@@ -2539,6 +2545,7 @@ export default function Flashbolt() {
           <div className="modal" role="dialog" aria-modal="true" aria-labelledby="folder-title">
             <header><div><span className="modal-icon">□</span><span className="eyebrow">{editingFolderId ? "Edit collection" : "New collection"}</span><h2 id="folder-title">{editingFolderId ? "Edit your folder" : "Name your folder"}</h2></div><button className="icon-button" onClick={closeFolderModal} aria-label="Close modal">×</button></header>
             <label className="modal-field"><span>Folder name</span><input value={folderName} onChange={(event) => setFolderName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") saveFolder(); }} placeholder="e.g. Fall semester" maxLength={50} /></label>
+            <fieldset className="folder-color-field"><legend>Folder icon color</legend><div>{FOLDER_COLORS.map((color) => <button type="button" className={folderColor === color ? "selected" : ""} style={{ "--folder-swatch": color } as CSSProperties} onClick={() => setFolderColor(color)} aria-label={`Use folder color ${color}`} aria-pressed={folderColor === color} key={color}><span /></button>)}</div></fieldset>
             <fieldset><legend>Add sets <small>optional</small></legend>{data.sets.map((set) => <label className="set-check" key={set.id}><span className="visually-hidden">Add set to folder</span><input aria-label={`Add ${set.title} to folder`} type="checkbox" checked={folderSetIds.includes(set.id)} onChange={() => setFolderSetIds((ids) => ids.includes(set.id) ? ids.filter((id) => id !== set.id) : [...ids, set.id])} /><span><strong>{set.title}</strong><small>{set.cards.length} terms</small></span></label>)}</fieldset>
             <p className="modal-privacy">⌁ This folder is saved only in this browser on this device.</p>
             <footer>{editingFolder && <button className="button danger" onClick={() => deleteFolder(editingFolder)}>Delete folder</button>}<button className="button quiet" onClick={closeFolderModal}>Cancel</button><button className="button primary" onClick={saveFolder}>{editingFolderId ? "Save changes" : "Create folder"}</button></footer>
