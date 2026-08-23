@@ -2393,9 +2393,6 @@ export default function Flashbolt() {
                       <div className="card-editor-wrap" key={card.id}>
                         <article
                           className={`card-editor ${draggingCardId === card.id ? "dragging" : ""}`}
-                          draggable
-                          onDragStart={() => setDraggingCardId(card.id)}
-                          onDragEnd={() => setDraggingCardId(null)}
                           onDragOver={(event) => event.preventDefault()}
                           onDrop={(event) => dropDraftCard(event, card.id)}
                         >
@@ -2406,7 +2403,20 @@ export default function Flashbolt() {
                               <button onClick={() => startDictation(card, "term")} className={dictationTarget?.cardId === card.id && dictationTarget.field === "term" ? "recording" : ""} aria-label={`Dictate term for card ${index + 1}`} title="Dictate term">◉</button>
                               <button onClick={() => moveDraftCard(card.id, -1)} disabled={index === 0} aria-label={`Move card ${index + 1} up`} title="Move up">↑</button>
                               <button onClick={() => moveDraftCard(card.id, 1)} disabled={index === draft.cards.length - 1} aria-label={`Move card ${index + 1} down`} title="Move down">↓</button>
-                              <button className="drag-handle" aria-label={`Drag card ${index + 1} to reorder`} title="Drag to reorder">☰</button>
+                              <button
+                                type="button"
+                                className="drag-handle"
+                                draggable
+                                onDragStart={(event) => {
+                                  event.stopPropagation();
+                                  event.dataTransfer.effectAllowed = "move";
+                                  event.dataTransfer.setData("text/plain", card.id);
+                                  setDraggingCardId(card.id);
+                                }}
+                                onDragEnd={() => setDraggingCardId(null)}
+                                aria-label={`Drag card ${index + 1} to reorder`}
+                                title="Drag to reorder"
+                              >☰</button>
                               <button onClick={() => duplicateDraftCard(card.id)} aria-label={`Duplicate card ${index + 1}`} title="Duplicate card">⧉</button>
                               <button onClick={() => setDraft((current) => ({ ...current, cards: current.cards.filter((item) => item.id !== card.id) }))} disabled={draft.cards.length === 1} aria-label={`Remove card ${index + 1}`} title="Delete card">×</button>
                             </div>
