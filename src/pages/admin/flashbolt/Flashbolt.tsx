@@ -340,8 +340,8 @@ const blankDraft: StudySet = {
   color: "violet",
   updatedAt: "",
   cards: [
-    { id: "draft-1", term: "", definition: "" },
-    { id: "draft-2", term: "", definition: "" },
+    { id: "draft-1", term: "", definition: "", questionType: "multiple-choice", answerChoices: ["", "", "", ""] },
+    { id: "draft-2", term: "", definition: "", questionType: "multiple-choice", answerChoices: ["", "", "", ""] },
   ],
 };
 
@@ -1108,8 +1108,8 @@ export default function Flashbolt() {
     setDraft({
       ...blankDraft,
       cards: [
-        { id: makeId("card"), term: "", definition: "" },
-        { id: makeId("card"), term: "", definition: "" },
+        { id: makeId("card"), term: "", definition: "", questionType: "multiple-choice", answerChoices: ["", "", "", ""] },
+        { id: makeId("card"), term: "", definition: "", questionType: "multiple-choice", answerChoices: ["", "", "", ""] },
       ],
     });
     setPasteImport("");
@@ -1259,7 +1259,7 @@ export default function Flashbolt() {
   }
 
   function addDraftCard(afterCardId?: string) {
-    const card: Card = { id: makeId("card"), term: "", definition: "" };
+    const card: Card = { id: makeId("card"), term: "", definition: "", questionType: "multiple-choice", answerChoices: ["", "", "", ""] };
     setDraft((current) => {
       if (!afterCardId) return { ...current, cards: [...current.cards, card] };
       const next = [...current.cards];
@@ -2467,11 +2467,11 @@ export default function Flashbolt() {
                                   );
                                 })}
                               </div>
-                              {cardQuestionType(card) !== "true-false" && card.answerChoices.length < 11 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { answerChoices: [...(card.answerChoices ?? []), ""] })}>＋ Add answer {String.fromCharCode(65 + card.answerChoices.length)}</button>}
+                              {cardQuestionType(card) !== "true-false" && card.answerChoices.length < 26 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { answerChoices: [...(card.answerChoices ?? []), ""] })}>＋ Add answer {String.fromCharCode(65 + card.answerChoices.length)}</button>}
                             </div>
                           )}
                           {cardQuestionType(card) === "matching" && (
-                            <div className="matching-pair-editor"><span>Matching pairs</span><div>{(card.matchingPairs ?? []).map((pair, pairIndex) => <div className="matching-pair-row" key={pair.id}><b>{String.fromCharCode(65 + pairIndex)}</b><input value={pair.left} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, left: event.target.value } : item) })} placeholder="Prompt" /><span>↔</span><input value={pair.right} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, right: event.target.value } : item) })} placeholder="Match" /><button type="button" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.filter((item) => item.id !== pair.id) })} disabled={(card.matchingPairs?.length ?? 0) <= 2} aria-label={`Remove matching pair ${pairIndex + 1}`}>×</button></div>)}</div>{(card.matchingPairs?.length ?? 0) < 11 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: [...(card.matchingPairs ?? []), { id: makeId("pair"), left: "", right: "" }] })}>＋ Add matching pair</button>}</div>
+                            <div className="matching-pair-editor"><span>Matching pairs</span><div>{(card.matchingPairs ?? []).map((pair, pairIndex) => <div className="matching-pair-row" key={pair.id}><b>{String.fromCharCode(65 + pairIndex)}</b><input value={pair.left} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, left: event.target.value } : item) })} placeholder="Prompt" /><span>↔</span><input value={pair.right} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, right: event.target.value } : item) })} placeholder="Match" /><button type="button" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.filter((item) => item.id !== pair.id) })} disabled={(card.matchingPairs?.length ?? 0) <= 2} aria-label={`Remove matching pair ${pairIndex + 1}`}>×</button></div>)}</div>{(card.matchingPairs?.length ?? 0) < 26 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: [...(card.matchingPairs ?? []), { id: makeId("pair"), left: "", right: "" }] })}>＋ Add matching pair</button>}</div>
                           )}
                           {card.imageData && <div className="card-image-preview"><img width={74} height={58} src={card.imageData} alt={card.imageName ? `Attached ${card.imageName}` : "Attached card image"} /><span>{card.imageName}</span><button onClick={() => updateDraftCardExtras(card.id, { imageData: undefined, imageName: undefined })} aria-label={`Remove image from card ${index + 1}`}>Remove image</button></div>}
                         </article>
