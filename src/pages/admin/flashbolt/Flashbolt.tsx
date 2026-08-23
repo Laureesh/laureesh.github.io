@@ -123,6 +123,7 @@ type Folder = {
   name: string;
   setIds: string[];
   color?: string;
+  semester?: string;
 };
 
 type AppData = {
@@ -661,6 +662,7 @@ export default function Flashbolt() {
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [folderName, setFolderName] = useState("");
   const [folderColor, setFolderColor] = useState(FOLDER_COLORS[0]);
+  const [folderSemester, setFolderSemester] = useState("");
   const [folderSetIds, setFolderSetIds] = useState<string[]>([]);
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [tileFolderPickerId, setTileFolderPickerId] = useState<string | null>(null);
@@ -953,6 +955,22 @@ export default function Flashbolt() {
       || b.setIds.length - a.setIds.length
       || LIBRARY_COLLATOR.compare(a.name, b.name);
   }), [data.folders]);
+  const folderSemesterGroups = useMemo(() => {
+    const groups = new Map<string, Folder[]>();
+    foldersBySetCount.forEach((item) => {
+      const label = item.semester || "No semester";
+      groups.set(label, [...(groups.get(label) ?? []), item]);
+    });
+    const semesterRank = (label: string) => {
+      const match = /^(Spring|Summer|Fall) (\d{4})$/.exec(label);
+      if (!match) return -1;
+      const termRank = { Spring: 1, Summer: 2, Fall: 3 }[match[1] as "Spring" | "Summer" | "Fall"];
+      return Number(match[2]) * 10 + termRank;
+    };
+    return [...groups.entries()]
+      .sort(([a], [b]) => semesterRank(b) - semesterRank(a))
+      .map(([semester, folders]) => ({ semester, folders }));
+  }, [foldersBySetCount]);
   const filteredSets = useMemo(() => {
     const query = search.trim().toLowerCase();
     const base = folder ? data.sets.filter((set) => folder.setIds.includes(set.id)) : data.sets;
@@ -1486,6 +1504,7 @@ export default function Flashbolt() {
     setEditingFolderId(null);
     setFolderName("");
     setFolderColor(FOLDER_COLORS[0]);
+    setFolderSemester("");
     setFolderSetIds([]);
     setFolderModalOpen(true);
   }
@@ -1495,6 +1514,7 @@ export default function Flashbolt() {
     setEditingFolderId(null);
     setFolderName("");
     setFolderColor(FOLDER_COLORS[0]);
+    setFolderSemester("");
     setFolderSetIds([setId]);
     setFolderModalOpen(true);
   }
@@ -1503,6 +1523,7 @@ export default function Flashbolt() {
     setEditingFolderId(folderToEdit.id);
     setFolderName(folderToEdit.name);
     setFolderColor(folderToEdit.color ?? FOLDER_COLORS[0]);
+    setFolderSemester(folderToEdit.semester ?? "");
     setFolderSetIds([...folderToEdit.setIds]);
     setFolderModalOpen(true);
   }
@@ -1511,6 +1532,7 @@ export default function Flashbolt() {
     setFolderModalOpen(false);
     setEditingFolderId(null);
     setFolderName("");
+    setFolderSemester("");
     setFolderSetIds([]);
   }
 
@@ -1519,12 +1541,17 @@ export default function Flashbolt() {
       notify("Give your folder a name first.");
       return;
     }
+    const semester = folderSemester.trim();
+    if (semester && !/^(Spring|Summer|Fall) \d{4}$/.test(semester)) {
+      notify("Use the semester format Spring 2026, Summer 2026, or Fall 2026.");
+      return;
+    }
 
     if (editingFolderId) {
       setData((current) => ({
         ...current,
         folders: current.folders.map((item) => item.id === editingFolderId
-          ? { ...item, name: folderName.trim(), color: folderColor, setIds: folderSetIds }
+          ? { ...item, name: folderName.trim(), color: folderColor, semester: semester || undefined, setIds: folderSetIds }
           : item),
       }));
       closeFolderModal();
@@ -1532,7 +1559,7 @@ export default function Flashbolt() {
       return;
     }
 
-    const newFolder: Folder = { id: makeId("folder"), name: folderName.trim(), color: folderColor, setIds: folderSetIds };
+    const newFolder: Folder = { id: makeId("folder"), name: folderName.trim(), color: folderColor, semester: semester || undefined, setIds: folderSetIds };
     setData((current) => ({ ...current, folders: [...current.folders, newFolder] }));
     if (view === "create") {
       setDraftFolderIds((ids) => ids.includes(newFolder.id) ? ids : [...ids, newFolder.id]);
@@ -2256,20 +2283,16 @@ export default function Flashbolt() {
                       <span className="folder-filter-name">All sets</span>
                       <span className="folder-filter-count">{data.sets.length}</span>
                     </button>
-                    {foldersBySetCount.map((item) => (
-                      <button
-                        className={selectedFolderId === item.id ? "active" : ""}
-                        aria-pressed={selectedFolderId === item.id}
-                        aria-label={`Show ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`}
-                        title={item.name}
-                        key={item.id}
-                        onClick={() => setSelectedFolderId(item.id)}
-                      >
-                        <span className="folder-filter-icon folder" aria-hidden="true" style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} />
-                        <span className="folder-filter-name">{item.name}</span>
-                        <span className="folder-filter-count">{item.setIds.length}</span>
-                      </button>
-                    ))}
+                    {folderSemesterGroups.map((group) => <section className="folder-semester-group" key={group.semester}>
+                      <h3>{group.semester}<small>{group.folders.length} folder{group.folders.length === 1 ? "" : "s"}</small></h3>
+                      <div className="folder-semester-chips">{group.folders.map((item) => (
+                        <button className={selectedFolderId === item.id ? "active" : ""} aria-pressed={selectedFolderId === item.id} aria-label={`Show ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name} key={item.id} onClick={() => setSelectedFolderId(item.id)}>
+                          <span className="folder-filter-icon folder" aria-hidden="true" style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} />
+                          <span className="folder-filter-name">{item.name}</span>
+                          <span className="folder-filter-count">{item.setIds.length}</span>
+                        </button>
+                      ))}</div>
+                    </section>)}
                   </div>
                 </div>
                 <div className="library-toolbar-actions">
@@ -2320,8 +2343,10 @@ export default function Flashbolt() {
                 <button className="button primary" onClick={openNewFolderModal}>＋ New folder</button>
               </div>
               {data.folders.length ? (
-                <div className="folder-grid">
-                  {data.folders.map((item) => (
+                <div className="folder-semester-sections">
+                  {folderSemesterGroups.map((group) => <section className="folder-page-semester" key={group.semester}>
+                    <div className="folder-semester-title"><div><span className="eyebrow">Semester</span><h2>{group.semester}</h2></div><small>{group.folders.length} folder{group.folders.length === 1 ? "" : "s"}</small></div>
+                    <div className="folder-grid">{group.folders.map((item) => (
                     <article key={item.id} className="folder-tile">
                       <span className="folder-tab" />
                       <div className="folder-tile-actions">
@@ -2330,11 +2355,12 @@ export default function Flashbolt() {
                       </div>
                       <button className="folder-open-button" onClick={() => { setSelectedFolderId(item.id); navigate("library"); }}>
                         <span className="folder-icon">□</span>
-                        <strong>{item.name}</strong><small>{item.setIds.length} set{item.setIds.length === 1 ? "" : "s"}</small><span>Open <b>→</b></span>
+                        <strong>{item.name}</strong><small>{item.semester ? `${item.semester} · ` : ""}{item.setIds.length} set{item.setIds.length === 1 ? "" : "s"}</small><span>Open <b>→</b></span>
                       </button>
                     </article>
-                  ))}
-                  <button className="folder-tile new-folder" onClick={openNewFolderModal}><span className="folder-icon">＋</span><strong>Create a folder</strong><small>Keep a course or topic together</small></button>
+                    ))}</div>
+                  </section>)}
+                  <div className="folder-grid"><button className="folder-tile new-folder" onClick={openNewFolderModal}><span className="folder-icon">＋</span><strong>Create a folder</strong><small>Keep a course or topic together</small></button></div>
                 </div>
               ) : (
                 <div className="empty-state"><div className="empty-mark">□</div><h3>No folders yet</h3><p>Create one to organize related study sets.</p><button className="button primary" onClick={openNewFolderModal}>Create a folder</button></div>
@@ -2706,6 +2732,7 @@ export default function Flashbolt() {
           <div className="modal" role="dialog" aria-modal="true" aria-labelledby="folder-title">
             <header><div><span className="modal-icon">□</span><span className="eyebrow">{editingFolderId ? "Edit collection" : "New collection"}</span><h2 id="folder-title">{editingFolderId ? "Edit your folder" : "Name your folder"}</h2></div><button className="icon-button" onClick={closeFolderModal} aria-label="Close modal">×</button></header>
             <label className="modal-field"><span>Folder name</span><input value={folderName} onChange={(event) => setFolderName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") saveFolder(); }} placeholder="e.g. Fall semester" maxLength={50} /></label>
+            <label className="modal-field"><span>Semester <small>optional</small></span><input value={folderSemester} onChange={(event) => setFolderSemester(event.target.value)} placeholder="e.g. Fall 2026" list="flashbolt-semesters" maxLength={11} /><datalist id="flashbolt-semesters">{[2025, 2026, 2027, 2028, 2029, 2030].flatMap((year) => ["Spring", "Summer", "Fall"].map((term) => <option value={`${term} ${year}`} key={`${term}-${year}`} />))}</datalist></label>
             <fieldset className="folder-color-field"><legend>Folder icon color</legend><div>{FOLDER_COLORS.map((color) => <button type="button" className={folderColor === color ? "selected" : ""} style={{ "--folder-swatch": color } as CSSProperties} onClick={() => setFolderColor(color)} aria-label={`Use folder color ${color}`} aria-pressed={folderColor === color} key={color}><span /></button>)}</div></fieldset>
             <fieldset><legend>Add sets <small>optional</small></legend>{data.sets.map((set) => <label className="set-check" key={set.id}><span className="visually-hidden">Add set to folder</span><input aria-label={`Add ${set.title} to folder`} type="checkbox" checked={folderSetIds.includes(set.id)} onChange={() => setFolderSetIds((ids) => ids.includes(set.id) ? ids.filter((id) => id !== set.id) : [...ids, set.id])} /><span><strong>{set.title}</strong><small>{set.cards.length} terms</small></span></label>)}</fieldset>
             <p className="modal-privacy">⌁ This folder is saved only in this browser on this device.</p>

@@ -2164,6 +2164,37 @@ code {
   padding: 2px 3px 5px;
 }
 
+.folder-semester-group {
+  display: grid;
+  width: 100%;
+  gap: 7px;
+  margin-top: 5px;
+}
+
+.folder-semester-group h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--ink);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.folder-semester-group h3 small {
+  color: var(--faint);
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.folder-semester-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
 .folder-chips button {
   position: relative;
   display: inline-flex;
@@ -2336,6 +2367,14 @@ code {
   white-space: nowrap;
 }
 
+.folder-filter-name small {
+  display: block;
+  margin-top: 2px;
+  color: var(--faint);
+  font-size: 8px;
+  font-weight: 700;
+}
+
 .folder-filter-count {
   display: grid;
   min-width: 23px;
@@ -2397,6 +2436,35 @@ code {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+}
+
+.folder-semester-sections {
+  display: grid;
+  gap: 34px;
+}
+
+.folder-page-semester {
+  display: grid;
+  gap: 13px;
+}
+
+.folder-semester-title {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.folder-semester-title h2 {
+  margin: 4px 0 0;
+  font-size: 20px;
+}
+
+.folder-semester-title > small {
+  color: var(--faint);
+  font-size: 10px;
 }
 
 .folder-tile {
