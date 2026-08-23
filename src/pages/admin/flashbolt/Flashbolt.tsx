@@ -568,6 +568,16 @@ function AutoResizeTextarea({
   );
 }
 
+function PreviousValueSelect({ label, values, onSelect }: { label: string; values: string[]; onSelect: (value: string) => void }) {
+  if (!values.length) return null;
+  return (
+    <select className="previous-value-select" value="" onChange={(event) => { if (event.target.value) onSelect(event.target.value); }} aria-label={`Choose a previous ${label}`}>
+      <option value="">Previous {label}…</option>
+      {values.map((value) => <option value={value} key={value}>{value}</option>)}
+    </select>
+  );
+}
+
 function ThemePicker({
   theme,
   onThemeChange,
@@ -885,6 +895,14 @@ export default function Flashbolt() {
   const recentFolderNames = recentSetValues?.folderIds
     .map((folderId) => data.folders.find((folderItem) => folderItem.id === folderId)?.name)
     .filter((name): name is string => Boolean(name)) ?? [];
+  const previousTitles = [...new Set(data.sets.map((set) => set.title.trim()).filter(Boolean))];
+  const previousSubjects = [...new Set(data.sets.map((set) => set.subject.trim()).filter(Boolean))];
+  const previousDescriptions = [...new Set(data.sets.map((set) => set.description.trim()).filter(Boolean))];
+  const previousFolderSelections = [...new Map(data.sets.map((set) => {
+    const folderIds = data.folders.filter((folderItem) => folderItem.setIds.includes(set.id)).map((folderItem) => folderItem.id).sort();
+    const label = folderIds.map((folderId) => data.folders.find((folderItem) => folderItem.id === folderId)?.name).filter(Boolean).join(" + ");
+    return [folderIds.join("|"), { folderIds, label }] as const;
+  }).filter(([key]) => key)).values()];
   const completeDraftCards = draft.cards.filter((card) => card.term.trim() && card.definition.trim());
   const answerChoicesReady = draft.cards.every((card) => {
     if (!card.answerChoices?.length) return true;
@@ -1023,6 +1041,15 @@ export default function Flashbolt() {
 
   function notify(message: string) {
     setToast(message);
+  }
+
+  function acceptPreviousValueOnTab(event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>, values: string[], apply: (value: string) => void) {
+    if (event.key !== "Tab" || event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
+    const current = event.currentTarget.value.trim().toLocaleLowerCase();
+    const match = values.find((value) => value.toLocaleLowerCase().startsWith(current) && value.toLocaleLowerCase() !== current);
+    if (!match) return;
+    event.preventDefault();
+    apply(match);
   }
 
   function navigate(nextView: View) {
@@ -2253,16 +2280,16 @@ export default function Flashbolt() {
               <div className="creator-layout">
                 <div className="creator-main">
                   <article className="form-card set-details">
-                    <label><span className="set-field-label"><b>Title</b>{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, title: recentSetValues.title }))} title={recentSetValues.title}>Use recent: {recentSetValues.title || "Empty"}</button>}</span><input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder="e.g. Biology chapter 4" maxLength={100} /></label>
+                    <label><span className="set-field-label"><b>Title</b><span className="set-field-history">{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, title: recentSetValues.title }))} title={recentSetValues.title}>Use recent: {recentSetValues.title || "Empty"}</button>}<PreviousValueSelect label="title" values={previousTitles} onSelect={(title) => setDraft((current) => ({ ...current, title }))} /></span></span><input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} onKeyDown={(event) => acceptPreviousValueOnTab(event, previousTitles, (title) => setDraft((current) => ({ ...current, title })))} placeholder="e.g. Biology chapter 4" maxLength={100} /></label>
                     <div className="field-row">
-                      <label><span className="set-field-label"><b>Subject</b>{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, subject: recentSetValues.subject }))} title={recentSetValues.subject}>Use recent: {recentSetValues.subject || "Empty"}</button>}</span><input value={draft.subject} onChange={(event) => setDraft({ ...draft, subject: event.target.value })} placeholder="Course or topic" /></label>
+                      <label><span className="set-field-label"><b>Subject</b><span className="set-field-history">{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, subject: recentSetValues.subject }))} title={recentSetValues.subject}>Use recent: {recentSetValues.subject || "Empty"}</button>}<PreviousValueSelect label="subject" values={previousSubjects} onSelect={(subject) => setDraft((current) => ({ ...current, subject }))} /></span></span><input value={draft.subject} onChange={(event) => setDraft({ ...draft, subject: event.target.value })} onKeyDown={(event) => acceptPreviousValueOnTab(event, previousSubjects, (subject) => setDraft((current) => ({ ...current, subject })))} placeholder="Course or topic" /></label>
                       <label><span className="set-field-label"><b>Color</b>{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, color: recentSetValues.color }))}>Use recent: {recentSetValues.color}</button>}</span><select value={draft.color} onChange={(event) => setDraft({ ...draft, color: event.target.value })}><option value="violet">Violet</option><option value="mint">Mint</option><option value="amber">Amber</option><option value="coral">Coral</option></select></label>
                     </div>
-                    <label><span className="set-field-label"><b>Description <small>optional</small></b>{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, description: recentSetValues.description }))} title={recentSetValues.description}>Use recent: {recentSetValues.description || "Empty"}</button>}</span><textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} placeholder="What will this set help you learn?" rows={3} /></label>
+                    <label><span className="set-field-label"><b>Description <small>optional</small></b><span className="set-field-history">{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, description: recentSetValues.description }))} title={recentSetValues.description}>Use recent: {recentSetValues.description || "Empty"}</button>}<PreviousValueSelect label="description" values={previousDescriptions} onSelect={(description) => setDraft((current) => ({ ...current, description }))} /></span></span><textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} onKeyDown={(event) => acceptPreviousValueOnTab(event, previousDescriptions, (description) => setDraft((current) => ({ ...current, description })))} placeholder="What will this set help you learn?" rows={3} /></label>
                     <div className="folder-assignment">
                       <div className="folder-assignment-heading">
                         <div><span>Folders <small>optional</small></span><p>Add this set to one or more folders.</p></div>
-                        <div className="folder-assignment-actions">{!editingSetId && recentSetValues && <button className="recent-folder-button" type="button" onClick={() => setDraftFolderIds(recentSetValues.folderIds.filter((folderId) => data.folders.some((folderItem) => folderItem.id === folderId)))} title={recentFolderNames.join(", ") || "No folders"}>Use recent: {recentFolderNames.join(", ") || "None"}</button>}<button className="text-button" onClick={openNewFolderModal}>＋ New folder</button></div>
+                        <div className="folder-assignment-actions">{!editingSetId && recentSetValues && <button className="recent-folder-button" type="button" onClick={() => setDraftFolderIds(recentSetValues.folderIds.filter((folderId) => data.folders.some((folderItem) => folderItem.id === folderId)))} title={recentFolderNames.join(", ") || "No folders"}>Use recent: {recentFolderNames.join(", ") || "None"}</button>}{previousFolderSelections.length > 0 && <select className="previous-value-select" value="" onChange={(event) => { const selection = previousFolderSelections[Number(event.target.value)]; if (selection) setDraftFolderIds(selection.folderIds); }} aria-label="Choose folders used by a previous set"><option value="">Previous folders…</option>{previousFolderSelections.map((selection, index) => <option value={index} key={selection.folderIds.join("|")}>{selection.label}</option>)}</select>}<button className="text-button" onClick={openNewFolderModal}>＋ New folder</button></div>
                       </div>
                       {data.folders.length ? (
                         <>

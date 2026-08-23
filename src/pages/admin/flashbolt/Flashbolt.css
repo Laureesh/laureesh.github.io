@@ -2611,6 +2611,29 @@ code {
   max-width: 68%;
 }
 
+.set-field-history {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.previous-value-select {
+  width: auto;
+  max-width: 150px;
+  height: 27px;
+  padding: 0 22px 0 7px;
+  border-color: color-mix(in srgb, var(--primary-strong) 30%, var(--line));
+  border-radius: 7px;
+  background-color: var(--panel-2);
+  color: var(--primary-strong);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .set-field-label button:hover,
 .recent-folder-button:hover {
   border-color: var(--primary-strong);
