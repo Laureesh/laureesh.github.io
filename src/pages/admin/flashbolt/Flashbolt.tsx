@@ -177,6 +177,7 @@ const FLASHBOLT_BASE = "/admin-dashboard/private-pages/flashbolt";
 const LEGACY_STORAGE_KEY = "studydeck.local.v1";
 const LIBRARY_SORT_KEY = `${STORAGE_KEY}.librarySort`;
 const SIDEBAR_COLLAPSED_KEY = `${STORAGE_KEY}.sidebarCollapsed`;
+const EDITOR_PANEL_COLLAPSED_KEY = `${STORAGE_KEY}.editorPanelCollapsed`;
 const cloudMigrationKey = (uid: string) => `${STORAGE_KEY}.cloudMigrated.${uid}`;
 const THEME_OPTIONS: Array<{ id: ThemeName; label: string; colors: [string, string] }> = [
   { id: "dark", label: "Dark", colors: ["#0c0c28", "#7b78ff"] },
@@ -768,6 +769,12 @@ export default function Flashbolt() {
   const [search, setSearch] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try { return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true"; } catch { return false; }
+  });
+  const [collapsedEditorSections, setCollapsedEditorSections] = useState<string[]>(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(EDITOR_PANEL_COLLAPSED_KEY) ?? "[]");
+      return Array.isArray(saved) ? saved.filter((item): item is string => typeof item === "string") : [];
+    } catch { return []; }
   });
   const [newMenuOpen, setNewMenuOpen] = useState(false);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
@@ -1371,6 +1378,14 @@ export default function Flashbolt() {
     setSidebarCollapsed((collapsed) => {
       const next = !collapsed;
       try { window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next)); } catch { /* Keep the in-memory preference. */ }
+      return next;
+    });
+  }
+
+  function toggleEditorSection(section: string) {
+    setCollapsedEditorSections((collapsed) => {
+      const next = collapsed.includes(section) ? collapsed.filter((item) => item !== section) : [...collapsed, section];
+      try { window.localStorage.setItem(EDITOR_PANEL_COLLAPSED_KEY, JSON.stringify(next)); } catch { /* Keep the in-memory preference. */ }
       return next;
     });
   }
@@ -2858,34 +2873,37 @@ export default function Flashbolt() {
                 </div>
 
                 <aside className="import-panel">
-                  <section className={`creation-checklist ${draftCompletion === 100 ? "complete" : ""}`} aria-label={`Set creation ${draftCompletion}% complete`}>
-                    <div className="creation-checklist-heading"><div><span className="eyebrow">Set checklist</span><h3>{draftCompletion === 100 ? "Ready to study" : "Finish your set"}</h3></div><strong>{draftCompletion}%</strong></div>
-                    <div className="creation-card-count" aria-live="polite">
-                      <span>Cards in this set</span>
-                      <strong>{draft.cards.length}</strong>
+                  <section className={`creation-checklist collapsible-panel-section ${collapsedEditorSections.includes("checklist") ? "collapsed" : ""} ${draftCompletion === 100 ? "complete" : ""}`} aria-label={`Set creation ${draftCompletion}% complete`}>
+                    <button className="side-panel-collapse-button creation-checklist-heading" type="button" onClick={() => toggleEditorSection("checklist")} aria-expanded={!collapsedEditorSections.includes("checklist")}><div><span className="eyebrow">Set checklist</span><h3>{draftCompletion === 100 ? "Ready to study" : "Finish your set"}</h3></div><span className="side-panel-heading-value"><strong>{draftCompletion}%</strong><i aria-hidden="true">⌃</i></span></button>
+                    <div className="collapsible-panel-body">
+                      <div className="creation-card-count" aria-live="polite"><span>Cards in this set</span><strong>{draft.cards.length}</strong></div>
+                      <div className="creation-progress" role="progressbar" aria-label="Set completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={draftCompletion}><i style={{ width: `${draftCompletion}%` }} /></div>
+                      <ul>{draftChecklist.map((item) => <li className={item.complete ? "complete" : ""} key={item.label}><span>{item.complete ? "✓" : "○"}</span><div><strong>{item.label}</strong><small>{item.complete ? "Complete" : item.detail}</small></div></li>)}</ul>
                     </div>
-                    <div className="creation-progress" role="progressbar" aria-label="Set completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={draftCompletion}><i style={{ width: `${draftCompletion}%` }} /></div>
-                    <ul>{draftChecklist.map((item) => <li className={item.complete ? "complete" : ""} key={item.label}><span>{item.complete ? "✓" : "○"}</span><div><strong>{item.label}</strong><small>{item.complete ? "Complete" : item.detail}</small></div></li>)}</ul>
                   </section>
                   <div className="import-divider"><span>Import tools</span></div>
-                  <div className="quizlet-import-block">
-                    <span className="eyebrow">From Quizlet</span><h3>Import by link</h3><p>Paste a public flashcard-set link. Its title, description, and cards will fill this editor.</p>
-                    <label className="quizlet-link-field"><span className="visually-hidden">Quizlet set link</span><input type="url" value={quizletUrl} onChange={(event) => { setQuizletUrl(event.target.value); setQuizletImportMessage(""); setQuizletImportFailed(false); }} onKeyDown={(event) => { if (event.key === "Enter" && !quizletImporting) void applyQuizletImport(); }} placeholder="https://quizlet.com/123…/flash-cards/" autoComplete="url" /></label>
-                    <button className="button primary full" onClick={() => void applyQuizletImport()} disabled={quizletImporting}>{quizletImporting ? "Importing…" : "Import Quizlet set"}</button>
-                    {quizletImportMessage && <p className={`import-status ${quizletImportFailed ? "error" : ""}`} role={quizletImportFailed ? "alert" : "status"}>{quizletImportMessage}</p>}
+                  <div className={`quizlet-import-block collapsible-panel-section ${collapsedEditorSections.includes("quizlet") ? "collapsed" : ""}`}>
+                    <button className="side-panel-collapse-button" type="button" onClick={() => toggleEditorSection("quizlet")} aria-expanded={!collapsedEditorSections.includes("quizlet")}><span><small>From Quizlet</small><strong>Import by link</strong></span><i aria-hidden="true">⌃</i></button>
+                    <div className="collapsible-panel-body"><p>Paste a public flashcard-set link. Its title, description, and cards will fill this editor.</p>
+                      <label className="quizlet-link-field"><span className="visually-hidden">Quizlet set link</span><input type="url" value={quizletUrl} onChange={(event) => { setQuizletUrl(event.target.value); setQuizletImportMessage(""); setQuizletImportFailed(false); }} onKeyDown={(event) => { if (event.key === "Enter" && !quizletImporting) void applyQuizletImport(); }} placeholder="https://quizlet.com/123…/flash-cards/" autoComplete="url" /></label>
+                      <button className="button primary full" onClick={() => void applyQuizletImport()} disabled={quizletImporting}>{quizletImporting ? "Importing…" : "Import Quizlet set"}</button>
+                      {quizletImportMessage && <p className={`import-status ${quizletImportFailed ? "error" : ""}`} role={quizletImportFailed ? "alert" : "status"}>{quizletImportMessage}</p>}
+                    </div>
                   </div>
-                  <div className="import-divider"><span>or from Kahoot</span></div>
-                  <div className="kahoot-import-block">
-                    <span className="eyebrow">From Kahoot</span><h3>Import quiz by link or ID</h3><p>Paste a public details link or its quiz ID. Questions, choices, and correct answers will fill this editor.</p>
-                    <label className="quizlet-link-field"><span className="visually-hidden">Kahoot quiz link or ID</span><input type="text" inputMode="url" value={kahootReference} onChange={(event) => { setKahootReference(event.target.value); setKahootImportMessage(""); setKahootImportFailed(false); }} onKeyDown={(event) => { if (event.key === "Enter" && !kahootImporting) void applyKahootImport(); }} placeholder="Kahoot details link or quiz ID" autoComplete="url" /></label>
-                    <button className="button primary full kahoot-import-button" onClick={() => void applyKahootImport()} disabled={kahootImporting}>{kahootImporting ? "Importing…" : "Import Kahoot quiz"}</button>
-                    {kahootImportMessage && <p className={`import-status ${kahootImportFailed ? "error" : ""}`} role={kahootImportFailed ? "alert" : "status"}>{kahootImportMessage}</p>}
+                  <div className={`kahoot-import-block collapsible-panel-section ${collapsedEditorSections.includes("kahoot") ? "collapsed" : ""}`}>
+                    <button className="side-panel-collapse-button" type="button" onClick={() => toggleEditorSection("kahoot")} aria-expanded={!collapsedEditorSections.includes("kahoot")}><span><small>From Kahoot</small><strong>Import by link or ID</strong></span><i aria-hidden="true">⌃</i></button>
+                    <div className="collapsible-panel-body"><p>Paste a public details link or its quiz ID. Questions, choices, and correct answers will fill this editor.</p>
+                      <label className="quizlet-link-field"><span className="visually-hidden">Kahoot quiz link or ID</span><input type="text" inputMode="url" value={kahootReference} onChange={(event) => { setKahootReference(event.target.value); setKahootImportMessage(""); setKahootImportFailed(false); }} onKeyDown={(event) => { if (event.key === "Enter" && !kahootImporting) void applyKahootImport(); }} placeholder="Kahoot details link or quiz ID" autoComplete="url" /></label>
+                      <button className="button primary full kahoot-import-button" onClick={() => void applyKahootImport()} disabled={kahootImporting}>{kahootImporting ? "Importing…" : "Import Kahoot quiz"}</button>
+                      {kahootImportMessage && <p className={`import-status ${kahootImportFailed ? "error" : ""}`} role={kahootImportFailed ? "alert" : "status"}>{kahootImportMessage}</p>}
+                    </div>
                   </div>
-                  <div className="import-divider"><span>or paste cards</span></div>
-                  <div className="paste-import-block">
-                    <h3>Paste a list</h3><p>Put one card on each line and separate the sides with <code>::</code>.</p>
-                    <textarea value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} placeholder={'Paste copied Quizlet term-list HTML, or use:\n\nLifecycle :: The stages an activity moves through\nIntent :: A request to perform an action'} rows={7} />
-                    <button className="button quiet full" onClick={applyPasteImport}>Import pasted cards</button>
+                  <div className={`paste-import-block collapsible-panel-section ${collapsedEditorSections.includes("paste") ? "collapsed" : ""}`}>
+                    <button className="side-panel-collapse-button" type="button" onClick={() => toggleEditorSection("paste")} aria-expanded={!collapsedEditorSections.includes("paste")}><span><small>Manual import</small><strong>Paste a list</strong></span><i aria-hidden="true">⌃</i></button>
+                    <div className="collapsible-panel-body"><p>Put one card on each line and separate the sides with <code>::</code>.</p>
+                      <textarea value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} placeholder={'Paste copied Quizlet term-list HTML, or use:\n\nLifecycle :: The stages an activity moves through\nIntent :: A request to perform an action'} rows={7} />
+                      <button className="button quiet full" onClick={applyPasteImport}>Import pasted cards</button>
+                    </div>
                   </div>
                   <div className="privacy-note"><span>⌁</span><p><strong>Saved privately.</strong> Imported cards sync to your account and remain available as a local backup.</p></div>
                 </aside>

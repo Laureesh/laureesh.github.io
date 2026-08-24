@@ -3694,6 +3694,90 @@ select {
   gap: 15px;
 }
 
+.side-panel-collapse-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.side-panel-collapse-button > span:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.side-panel-collapse-button small {
+  color: var(--primary-strong);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.side-panel-collapse-button > i,
+.side-panel-heading-value > i {
+  color: var(--primary-strong);
+  font-size: 18px;
+  font-style: normal;
+  transition: transform 180ms ease;
+}
+
+.side-panel-heading-value {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.side-panel-heading-value > strong {
+  color: var(--primary-strong);
+  font-size: 25px;
+  letter-spacing: -1px;
+}
+
+.collapsible-panel-body {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.collapsible-panel-section.collapsed .collapsible-panel-body {
+  display: none;
+}
+
+.collapsible-panel-section.collapsed .side-panel-collapse-button > i,
+.collapsible-panel-section.collapsed .side-panel-heading-value > i {
+  transform: rotate(180deg);
+}
+
+.quizlet-import-block,
+.kahoot-import-block,
+.paste-import-block {
+  display: grid;
+  gap: 14px;
+}
+
+.quizlet-import-block + .kahoot-import-block,
+.kahoot-import-block + .paste-import-block {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.collapsible-panel-body > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
 .creation-checklist-heading h3 {
   margin-top: 4px;
 }
@@ -3706,6 +3790,10 @@ select {
 
 .creation-checklist.complete .creation-checklist-heading > strong,
 .creation-checklist.complete .creation-checklist-heading h3 {
+  color: var(--mint);
+}
+
+.creation-checklist.complete .side-panel-heading-value > strong {
   color: var(--mint);
 }
 
