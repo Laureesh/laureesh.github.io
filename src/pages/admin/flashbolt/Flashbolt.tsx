@@ -782,6 +782,7 @@ export default function Flashbolt() {
   const [draft, setDraft] = useState<StudySet>(blankDraft);
   const [editingSetId, setEditingSetId] = useState<string | null>(null);
   const [draftFolderIds, setDraftFolderIds] = useState<string[]>([]);
+  const [createOriginFolderId, setCreateOriginFolderId] = useState<string | null>(null);
   const [draftFolderSearch, setDraftFolderSearch] = useState("");
   const [pasteImport, setPasteImport] = useState("");
   const [quizletUrl, setQuizletUrl] = useState("");
@@ -1353,11 +1354,13 @@ export default function Flashbolt() {
     navigate("set", setId);
   }
 
-  function startCreate() {
+  function startCreate(folderIdOrEvent?: string | ReactMouseEvent) {
+    const originFolderId = typeof folderIdOrEvent === "string" ? folderIdOrEvent : selectedFolderId;
     setEditingSetId(null);
+    setCreateOriginFolderId(originFolderId);
     setDraftFolderSearch("");
-    setDraftFolderIds(selectedFolderId
-      ? [selectedFolderId]
+    setDraftFolderIds(originFolderId
+      ? [originFolderId]
       : []);
     setDraft({
       ...blankDraft,
@@ -1388,6 +1391,7 @@ export default function Flashbolt() {
 
   function startEdit(set: StudySet) {
     setEditingSetId(set.id);
+    setCreateOriginFolderId(null);
     setDraftFolderSearch("");
     setDraftFolderIds(data.folders.filter((folderItem) => folderItem.setIds.includes(set.id)).map((folderItem) => folderItem.id));
     setDraft({ ...set, cards: set.cards.map((card) => ({ ...card })) });
@@ -1457,7 +1461,11 @@ export default function Flashbolt() {
       : draftFolderIds.length
         ? `Set created, added to ${draftFolderIds.length === 1 ? "a folder" : `${draftFolderIds.length} folders`}, and queued for account sync.`
         : "Set created and queued for account sync.");
+    const originFolder = createOriginFolderId && draftFolderIds.includes(createOriginFolderId)
+      ? data.folders.find((folderItem) => folderItem.id === createOriginFolderId)
+      : undefined;
     if (studyAfter) openSet(savedSet.id);
+    else if (originFolder) openFolder(originFolder);
     else navigate("library");
   }
 
@@ -2523,7 +2531,7 @@ export default function Flashbolt() {
                 <div className="heading-actions">
                   {folder && <button className="button quiet" onClick={() => editFolder(folder)}>Edit folder</button>}
                   {!folder && <button className="button quiet" onClick={() => importInputRef.current?.click()}>Restore backup</button>}
-                  <button className="button primary" onClick={startCreate}>＋ Create set</button>
+                  <button className="button primary" onClick={folder ? () => startCreate(folder.id) : startCreate}>＋ Create set</button>
                 </div>
               </div>
               <input ref={importInputRef} className="visually-hidden" type="file" accept="application/json" onChange={importLibrary} />
