@@ -2874,11 +2874,10 @@ export default function Flashbolt() {
 
                 <aside className="import-panel">
                   <section className={`creation-checklist collapsible-panel-section ${collapsedEditorSections.includes("checklist") ? "collapsed" : ""} ${draftCompletion === 100 ? "complete" : ""}`} aria-label={`Set creation ${draftCompletion}% complete`}>
-                    <button className="side-panel-collapse-button creation-checklist-heading" type="button" onClick={() => toggleEditorSection("checklist")} aria-expanded={!collapsedEditorSections.includes("checklist")}><div><span className="eyebrow">Set checklist</span><h3>{draftCompletion === 100 ? "Ready to study" : "Finish your set"}</h3></div><span className="side-panel-heading-value"><strong>{draftCompletion}%</strong><i aria-hidden="true">⌃</i></span></button>
+                    <button className="side-panel-collapse-button creation-checklist-heading" type="button" onClick={() => toggleEditorSection("checklist")} aria-expanded={!collapsedEditorSections.includes("checklist")}><div><span className="eyebrow">Set checklist</span><h3>{draftCompletion === 100 ? "Ready to study" : "Finish your set"}</h3></div><span className="side-panel-heading-value"><span className="live-card-total" aria-live="polite">{draft.cards.length} card{draft.cards.length === 1 ? "" : "s"}</span><strong>{draftCompletion}%</strong><i aria-hidden="true">⌃</i></span></button>
                     <div className="collapsible-panel-body">
-                      <div className="creation-card-count" aria-live="polite"><span>Cards in this set</span><strong>{draft.cards.length}</strong></div>
                       <div className="creation-progress" role="progressbar" aria-label="Set completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={draftCompletion}><i style={{ width: `${draftCompletion}%` }} /></div>
-                      <ul>{draftChecklist.map((item) => <li className={item.complete ? "complete" : ""} key={item.label}><span>{item.complete ? "✓" : "○"}</span><div><strong>{item.label}</strong><small>{item.complete ? "Complete" : item.detail}</small></div></li>)}</ul>
+                      <ul>{draftChecklist.map((item) => <li className={item.complete ? "complete" : ""} key={item.label}><span>{item.complete ? "✓" : "○"}</span><div><strong>{item.label}</strong>{!item.complete && <small>{item.detail}</small>}</div></li>)}</ul>
                     </div>
                   </section>
                   <div className="import-divider"><span>Import tools</span></div>
