@@ -1029,6 +1029,9 @@ export default function Flashbolt() {
     else if (mode === "test") startTest(routeSet.id);
     else openSet(routeSet.id);
     setResolvedRoutePath(location.pathname);
+  // Route handlers are intentionally re-run only when the route or persisted library changes.
+  // Adding the inline navigation helpers would retrigger this effect on every render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.folders, data.sets, location.pathname, ready]);
 
   useEffect(() => {
