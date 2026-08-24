@@ -976,6 +976,20 @@ export default function Flashbolt() {
       setResolvedRoutePath(location.pathname);
       return;
     }
+    if (routeParts.length === 3 && routeParts[2] === "create") {
+      const [semesterSlug, folderSlug] = routeParts;
+      const routeFolder = data.folders.find((item) => routeSlug(item.semester || "no-semester") === semesterSlug && folderRouteSegment(item) === folderSlug);
+      if (!routeFolder) {
+        handledRouteRef.current = location.pathname;
+        setView("folders");
+        setResolvedRoutePath(location.pathname);
+        return;
+      }
+      handledRouteRef.current = location.pathname;
+      startCreate(routeFolder.id);
+      setResolvedRoutePath(location.pathname);
+      return;
+    }
     if (routeParts.length < 4) {
       handledRouteRef.current = location.pathname;
       setView("library");
@@ -1156,6 +1170,9 @@ export default function Flashbolt() {
       .sort(([a], [b]) => semesterRank(b) - semesterRank(a))
       .map(([semester, folders]) => ({ semester, folders }));
   }, [foldersBySetCount]);
+  const draftFolderOptions = useMemo(() => [...data.folders].sort((a, b) =>
+    b.setIds.length - a.setIds.length || LIBRARY_COLLATOR.compare(a.name, b.name),
+  ), [data.folders]);
   const filteredSets = useMemo(() => {
     const query = search.trim().toLowerCase();
     const base = folder ? data.sets.filter((set) => folder.setIds.includes(set.id)) : data.sets;
@@ -1376,6 +1393,19 @@ export default function Flashbolt() {
     setKahootReference("");
     setKahootImportMessage("");
     setKahootImportFailed(false);
+    if (originFolderId) {
+      const originFolder = data.folders.find((folderItem) => folderItem.id === originFolderId);
+      if (originFolder) {
+        const path = `${FLASHBOLT_BASE}/${routeSlug(originFolder.semester || "no-semester")}/${folderRouteSegment(originFolder)}/create`;
+        setView("create");
+        setNewMenuOpen(false);
+        handledRouteRef.current = path;
+        setResolvedRoutePath(path);
+        routerNavigate(path);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+    }
     navigate("create", "");
   }
 
@@ -2695,7 +2725,7 @@ export default function Flashbolt() {
                           {draftFolderSearch && <button type="button" onClick={() => setDraftFolderSearch("")} aria-label="Clear folder search">×</button>}
                         </label>
                         <div className="folder-option-grid">
-                          {data.folders.filter((folderItem) => folderItem.name.toLocaleLowerCase().includes(draftFolderSearch.trim().toLocaleLowerCase())).map((folderItem) => {
+                          {draftFolderOptions.filter((folderItem) => folderItem.name.toLocaleLowerCase().includes(draftFolderSearch.trim().toLocaleLowerCase())).map((folderItem) => {
                             const checked = draftFolderIds.includes(folderItem.id);
                             return (
                               <label className={`folder-option ${checked ? "checked" : ""}`} key={folderItem.id}>
