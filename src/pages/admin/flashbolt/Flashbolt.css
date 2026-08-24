@@ -2071,6 +2071,35 @@ code {
   gap: 17px;
 }
 
+.folder-dedicated-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: -10px 0 25px;
+  padding: 14px 0 20px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.folder-dedicated-toolbar > span {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.folder-dedicated-toolbar > span > i {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  border-radius: 4px;
+  background: var(--folder-color);
+}
+
 .library-sort-control {
   display: flex;
   min-width: 210px;

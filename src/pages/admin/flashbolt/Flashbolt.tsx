@@ -2604,12 +2604,18 @@ export default function Flashbolt() {
                     <option value="title-desc">Title: Z–A</option>
                     <option value="subject-asc">Subject: A–Z</option>
                     <option value="subject-desc">Subject: Z–A</option>
+                    <option value="folder-asc">Folder: A–Z</option>
+                    <option value="folder-desc">Folder: Z–A</option>
                     <option value="terms-desc">Most terms</option>
                     <option value="terms-asc">Fewest terms</option>
                     <option value="progress-desc">Highest mastery %</option>
                     <option value="progress-asc">Lowest mastery %</option>
+                    <option value="mastered-desc">Most mastered cards</option>
+                    <option value="mastered-asc">Fewest mastered cards</option>
                     <option value="remaining-desc">Most cards left</option>
                     <option value="remaining-asc">Fewest cards left</option>
+                    <option value="unfiled-first">Unfiled first</option>
+                    <option value="filed-first">Filed first</option>
                   </select></span>
                 </label>
               </div>}
