@@ -65,7 +65,10 @@ export default function App() {
     "/admin-dashboard/private-pages/fn-leaderboard",
     "/admin-dashboard/private-pages/flashbolt",
   ];
-  const isStandaloneAdminToolRoute = standaloneAdminToolRoutes.includes(location.pathname) || location.pathname === "/flashbolt" || location.pathname.startsWith("/flashbolt/");
+  const isStandaloneAdminToolRoute = standaloneAdminToolRoutes.includes(location.pathname)
+    || location.pathname.startsWith("/admin-dashboard/private-pages/flashbolt/")
+    || location.pathname === "/flashbolt"
+    || location.pathname.startsWith("/flashbolt/");
   const isAuthRoute = (
     location.pathname === "/login" ||
     location.pathname === "/register" ||
@@ -267,7 +270,7 @@ export default function App() {
               )}
             />
             <Route
-              path="/admin-dashboard/private-pages/flashbolt"
+              path="/admin-dashboard/private-pages/flashbolt/*"
               element={(
                 <ProtectedRoute requiredRole="admin" unauthorizedRedirectTo="/profile">
                   <Suspense

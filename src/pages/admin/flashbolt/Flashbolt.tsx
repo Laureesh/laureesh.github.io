@@ -838,6 +838,11 @@ export default function Flashbolt() {
     const parts = location.pathname.split("/").filter(Boolean);
     const flashboltIndex = parts.indexOf("flashbolt");
     const routeParts = flashboltIndex >= 0 ? parts.slice(flashboltIndex + 1) : [];
+    if (routeParts.length === 1 && ["home", "library", "folders", "create", "guide"].includes(routeParts[0])) {
+      handledRouteRef.current = location.pathname;
+      setView(routeParts[0] as View);
+      return;
+    }
     if (routeParts.length < 4) return;
     const [semesterSlug, folderSlug, setSlug, mode] = routeParts;
     const routeFolder = data.folders.find((item) => routeSlug(item.semester || "no-semester") === semesterSlug && routeSlug(item.name) === folderSlug);
@@ -1129,7 +1134,7 @@ export default function Flashbolt() {
 
   function setRoutePath(nextView: View, setId = selectedSetId) {
     if (!["set", "learn", "test", "create"].includes(nextView) || (nextView === "create" && !setId)) {
-      const path = nextView === "home" ? "/flashbolt" : `/flashbolt/${nextView}`;
+      const path = nextView === "home" ? "/admin-dashboard/private-pages/flashbolt" : `/admin-dashboard/private-pages/flashbolt/${nextView}`;
       handledRouteRef.current = path;
       routerNavigate(path);
       return;
@@ -1139,7 +1144,7 @@ export default function Flashbolt() {
     const routeFolder = data.folders.find((item) => item.id === selectedFolderId && item.setIds.includes(routeSet.id))
       ?? data.folders.find((item) => item.setIds.includes(routeSet.id));
     const mode = nextView === "set" ? "flashcards" : nextView === "create" ? "edit" : nextView;
-    const path = `/flashbolt/${routeSlug(routeFolder?.semester || "no-semester")}/${routeSlug(routeFolder?.name || "unfiled")}/${routeSlug(routeSet.title)}/${mode}`;
+    const path = `/admin-dashboard/private-pages/flashbolt/${routeSlug(routeFolder?.semester || "no-semester")}/${routeSlug(routeFolder?.name || "unfiled")}/${routeSlug(routeSet.title)}/${mode}`;
     handledRouteRef.current = path;
     routerNavigate(path);
   }
@@ -1979,7 +1984,7 @@ export default function Flashbolt() {
 
   function setModeUrl(set: StudySet, mode: "flashcards" | "learn" | "test" | "edit") {
     const setFolder = data.folders.find((item) => item.setIds.includes(set.id));
-    const path = `/flashbolt/${routeSlug(setFolder?.semester || "no-semester")}/${routeSlug(setFolder?.name || "unfiled")}/${routeSlug(set.title)}/${mode}`;
+    const path = `/admin-dashboard/private-pages/flashbolt/${routeSlug(setFolder?.semester || "no-semester")}/${routeSlug(setFolder?.name || "unfiled")}/${routeSlug(set.title)}/${mode}`;
     return `${window.location.origin}${path}`;
   }
 
@@ -2233,6 +2238,7 @@ export default function Flashbolt() {
         <div className="sidebar-bottom">
           <ThemePicker theme={theme} onThemeChange={setTheme} />
           <button title="Back up library" aria-label="Back up library" onClick={exportLibrary}><span className="nav-icon">⇩</span><span className="nav-label">Back up library</span></button>
+          <button title="Back to private pages" aria-label="Back to private pages" onClick={() => routerNavigate("/admin-dashboard/private-pages")}><span className="nav-icon">←</span><span className="nav-label">Back to private pages</span></button>
         </div>
       </aside>
 
