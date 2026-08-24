@@ -12,6 +12,12 @@
 .notebook-sidebar nav button.active { background:#282644; color:white; }
 .notebook-sidebar nav button b { margin-left:auto; font-size:12px; }
 .notebook-sidebar nav button i { width:9px; height:9px; flex:0 0 9px; border-radius:3px; }
+.notebook-folder-row { display:grid; grid-template-columns:minmax(0,1fr) 27px; align-items:center; gap:3px; }
+.notebook-folder-row .delete-folder { width:27px; height:27px; display:grid; padding:0; place-items:center; color:#737b98; opacity:0; }
+.notebook-folder-row:hover .delete-folder,.notebook-folder-row:focus-within .delete-folder { opacity:1; }
+.notebook-folder-row .delete-folder:hover { background:#442333; color:#ff829a; }
+.subfolder-row { padding-left:14px; }
+@media (hover:none) { .notebook-folder-row .delete-folder { opacity:1; } }
 .notebook-sidebar .subfolder { padding-left:25px; font-size:13px; }
 .notebook-sidebar .add-subfolder { padding:2px 9px 7px 25px; font-size:12px; opacity:.65; }
 .folder-heading { margin-top:5px; color:var(--nb-muted); font-size:12px; font-weight:900; letter-spacing:1px; text-transform:uppercase; }
