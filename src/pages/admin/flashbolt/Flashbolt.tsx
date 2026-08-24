@@ -2486,15 +2486,15 @@ export default function Flashbolt() {
           {!search && view === "library" && (
             <section>
               <div className="page-heading split">
-                <div><span className="eyebrow">Your library</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} in this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
+                <div>{folder && <button className="back-link" onClick={() => navigate("folders")}>← All folders</button>}<span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
                 <div className="heading-actions">
                   {folder && <button className="button quiet" onClick={() => editFolder(folder)}>Edit folder</button>}
-                  <button className="button quiet" onClick={() => importInputRef.current?.click()}>Restore backup</button>
+                  {!folder && <button className="button quiet" onClick={() => importInputRef.current?.click()}>Restore backup</button>}
                   <button className="button primary" onClick={startCreate}>＋ Create set</button>
                 </div>
               </div>
               <input ref={importInputRef} className="visually-hidden" type="file" accept="application/json" onChange={importLibrary} />
-              <div className="library-toolbar">
+              {!folder && <div className="library-toolbar">
                 <div className="folder-filter-panel">
                   <div className="folder-filter-heading">
                     <span>Browse by folder</span>
@@ -2559,7 +2559,7 @@ export default function Flashbolt() {
                   </label>
                   <button className="text-button" onClick={exportLibrary}>⇩ Download backup</button>
                 </div>
-              </div>
+              </div>}
               {renderSetGrid(filteredSets)}
             </section>
           )}
