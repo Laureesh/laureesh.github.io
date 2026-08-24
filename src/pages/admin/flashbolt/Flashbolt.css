@@ -3709,6 +3709,31 @@ select {
   color: var(--mint);
 }
 
+.creation-card-count {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 13px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.creation-card-count > strong {
+  min-width: 34px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary-strong) 18%, transparent);
+  color: var(--primary-strong);
+  font-size: 19px;
+  line-height: 1.2;
+  text-align: center;
+}
+
 .creation-progress {
   height: 7px;
   overflow: hidden;

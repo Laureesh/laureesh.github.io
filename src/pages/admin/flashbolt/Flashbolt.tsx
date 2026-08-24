@@ -2860,6 +2860,10 @@ export default function Flashbolt() {
                 <aside className="import-panel">
                   <section className={`creation-checklist ${draftCompletion === 100 ? "complete" : ""}`} aria-label={`Set creation ${draftCompletion}% complete`}>
                     <div className="creation-checklist-heading"><div><span className="eyebrow">Set checklist</span><h3>{draftCompletion === 100 ? "Ready to study" : "Finish your set"}</h3></div><strong>{draftCompletion}%</strong></div>
+                    <div className="creation-card-count" aria-live="polite">
+                      <span>Cards in this set</span>
+                      <strong>{draft.cards.length}</strong>
+                    </div>
                     <div className="creation-progress" role="progressbar" aria-label="Set completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={draftCompletion}><i style={{ width: `${draftCompletion}%` }} /></div>
                     <ul>{draftChecklist.map((item) => <li className={item.complete ? "complete" : ""} key={item.label}><span>{item.complete ? "✓" : "○"}</span><div><strong>{item.label}</strong><small>{item.complete ? "Complete" : item.detail}</small></div></li>)}</ul>
                   </section>
