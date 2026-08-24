@@ -585,9 +585,8 @@ select:focus-visible {
 }
 
 .theme-picker-options button > span:nth-child(2) {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .theme-picker-options button > b {
@@ -1458,13 +1457,11 @@ select:focus-visible {
 }
 
 .set-context-menu > strong {
-  overflow: hidden;
   padding: 8px 9px 9px;
   color: var(--faint);
   font-size: 17px;
   letter-spacing: 0.5px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .set-context-menu button {
@@ -1538,12 +1535,10 @@ select:focus-visible {
 }
 
 .set-tile-title {
-  display: -webkit-box;
-  overflow: hidden;
+  display: block;
+  overflow-wrap: anywhere;
   font-size: 18px;
   line-height: 1.35;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 .tile-folder-control {
@@ -1603,12 +1598,11 @@ select:focus-visible {
 }
 
 .tile-folder-copy b {
-  overflow: hidden;
   color: var(--ink);
   font-size: 16px;
   line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .tile-folder-chevron {
@@ -1699,7 +1693,6 @@ select:focus-visible {
   color: var(--faint);
   font-size: 16px;
   font-weight: 850;
-  white-space: nowrap;
 }
 
 .tile-folder-selection-count.has-selection {
@@ -1848,9 +1841,8 @@ select:focus-visible {
 
 .tile-folder-option-copy strong,
 .tile-folder-option-copy small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .tile-folder-option-copy strong {
@@ -1930,14 +1922,12 @@ select:focus-visible {
 }
 
 .tile-description {
-  display: -webkit-box;
-  overflow: hidden;
+  display: block;
+  overflow-wrap: anywhere;
   margin: 11px 0 0;
   color: var(--muted);
   font-size: 16px;
   line-height: 1.5;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 .tile-footer {
@@ -2361,10 +2351,8 @@ code {
 }
 
 .folder-filter-name {
-  max-width: 190px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .folder-filter-name small {
@@ -2481,6 +2469,10 @@ code {
   color: var(--ink);
   text-align: left;
   transition: 180ms ease;
+}
+
+.folder-tile:not(.new-folder) {
+  cursor: pointer;
 }
 
 .folder-tile:hover {
@@ -2686,19 +2678,74 @@ code {
   gap: 6px;
 }
 
-.previous-value-select {
-  width: auto;
-  max-width: 150px;
-  height: 27px;
-  padding: 0 22px 0 7px;
-  border-color: color-mix(in srgb, var(--primary-strong) 30%, var(--line));
+.previous-value-menu {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.previous-value-menu > summary {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  padding: 6px 28px 6px 9px;
+  border: 1px solid color-mix(in srgb, var(--primary-strong) 30%, var(--line));
   border-radius: 7px;
-  background-color: var(--panel-2);
+  background: var(--panel-2);
   color: var(--primary-strong);
   font-size: 16px;
   font-weight: 800;
-  letter-spacing: 0;
-  text-transform: none;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.previous-value-menu > summary::after {
+  position: absolute;
+  top: 50%;
+  right: 9px;
+  content: "⌄";
+  transform: translateY(-55%);
+}
+
+.previous-value-menu > div {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 6px);
+  right: 0;
+  display: grid;
+  width: min(360px, calc(100vw - 48px));
+  max-height: 260px;
+  gap: 4px;
+  padding: 7px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.previous-value-menu > div > button {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 9px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  text-align: left;
+  white-space: normal;
+}
+
+.previous-value-menu > div > button:hover {
+  background: var(--primary-soft);
+}
+
+.previous-folder-menu {
+  flex: 1 1 180px;
 }
 
 .set-field-label button:hover,
@@ -2709,6 +2756,7 @@ code {
 .folder-assignment-actions {
   display: flex;
   min-width: 0;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
@@ -2993,9 +3041,8 @@ select {
 .folder-option strong,
 .folder-option small {
   display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .folder-option small {
@@ -3478,12 +3525,11 @@ select {
 
 .card-image-preview span {
   min-width: 0;
-  overflow: hidden;
   flex: 1;
   color: var(--muted);
   font-size: 18px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .card-image-preview button {
@@ -3797,11 +3843,10 @@ select {
 }
 
 .folder-set-button strong {
-  overflow: hidden;
   color: var(--ink);
   font-size: 17px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .folder-set-position {
@@ -3814,10 +3859,8 @@ select {
 }
 
 .folder-set-position .eyebrow {
-  overflow: hidden;
-  max-width: 180px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .folder-set-position strong {
@@ -4450,7 +4493,8 @@ kbd {
   box-shadow: 0 8px 22px rgba(70, 66, 210, 0.18), inset 0 1px rgba(255, 255, 255, 0.08);
   color: #d8d7ff;
   letter-spacing: 0.15px;
-  white-space: nowrap;
+  flex-wrap: wrap;
+  white-space: normal;
   transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
@@ -5800,13 +5844,12 @@ kbd {
   display: block;
   overflow: visible;
   overflow-wrap: anywhere;
-  -webkit-box-orient: initial;
-  -webkit-line-clamp: unset;
 }
 
 .tile-folder-copy b,
 .tile-folder-option-copy strong,
 .tile-folder-option-copy small,
+.theme-picker-options button > span:nth-child(2),
 .folder-filter-name,
 .folder-option strong,
 .folder-option small,
@@ -5816,9 +5859,57 @@ kbd {
 .set-context-menu > strong {
   overflow: visible;
   max-width: none;
-  text-overflow: clip;
   white-space: normal;
   overflow-wrap: anywhere;
+}
+
+.app-shell :where(p, h1, h2, h3, h4, strong, b, small, span, label, button, a, li, legend) {
+  overflow-wrap: anywhere;
+}
+
+.set-field-label,
+.set-field-history,
+.folder-assignment-heading,
+.heading-actions,
+.library-toolbar-actions {
+  flex-wrap: wrap;
+}
+
+.set-field-label button,
+.recent-folder-button {
+  max-width: 100%;
+}
+
+.previous-value-menu > summary {
+  list-style: none;
+}
+
+.previous-value-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.field-meta {
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.field-meta select {
+  width: auto;
+  max-width: 100%;
+  min-height: 34px;
+  height: auto;
+}
+
+.card-question-type label {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.card-question-type select {
+  width: auto;
+  max-width: 100%;
+  min-height: 40px;
+  height: auto;
 }
 
 .folder-chips button {
@@ -6344,19 +6435,18 @@ kbd {
   }
 
   .learn-session-header {
-    grid-template-columns: 39px minmax(0, 1fr) 39px;
+    grid-template-columns: 39px minmax(0, 1fr) auto;
     margin-bottom: 27px;
   }
 
   .learn-options-button {
-    overflow: hidden;
-    width: 39px;
-    font-size: 0;
+    width: auto;
+    padding-inline: 10px;
+    font-size: 16px;
   }
 
   .learn-options-button::before {
-    content: "⚙";
-    font-size: 16px;
+    content: none;
   }
 
   .learn-round-track {

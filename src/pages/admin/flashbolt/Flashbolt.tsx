@@ -173,6 +173,7 @@ async function readImportResponse<T>(response: Response): Promise<T> {
 }
 
 const STORAGE_KEY = "flashbolt.local.v1";
+const FLASHBOLT_BASE = "/admin-dashboard/private-pages/flashbolt";
 const LEGACY_STORAGE_KEY = "studydeck.local.v1";
 const LIBRARY_SORT_KEY = `${STORAGE_KEY}.librarySort`;
 const SIDEBAR_COLLAPSED_KEY = `${STORAGE_KEY}.sidebarCollapsed`;
@@ -393,7 +394,14 @@ function formatDate(iso: string) {
 }
 
 function answerOptions(set: StudySet, cardIndex: number) {
-  const correct = set.cards[cardIndex]?.definition ?? "";
+  const card = set.cards[cardIndex];
+  const correct = card ? (correctAnswersForCard(card)[0] ?? cleanChoiceAnswer(card.definition)) : "";
+  const suppliedChoices = [...new Set((card?.answerChoices ?? []).map((choice) => choice.trim()).filter(Boolean))];
+  if (suppliedChoices.length >= 2) {
+    return suppliedChoices.some((choice) => normalizeAnswer(choice) === normalizeAnswer(correct))
+      ? suppliedChoices
+      : [...suppliedChoices, correct];
+  }
   const distractors = set.cards
     .filter((_, index) => index !== cardIndex)
     .map((card) => card.definition)
@@ -403,6 +411,10 @@ function answerOptions(set: StudySet, cardIndex: number) {
   const choices = [correct, ...rotated.slice(0, 3)];
   if (choices.length < 4) choices.push("None of these");
   return [...new Set(choices)].sort((a, b) => (a.length + cardIndex) % 7 - (b.length + cardIndex) % 7);
+}
+
+function testCorrectAnswer(card: Card) {
+  return correctAnswersForCard(card)[0] ?? cleanChoiceAnswer(card.definition);
 }
 
 function learnAnswerSide(options: LearnOptions, sequence: number, card?: Card): "term" | "definition" {
@@ -469,7 +481,29 @@ function selectAllChoices(set: StudySet, card: Card, answerSide: "term" | "defin
 function isValidBackup(value: unknown): value is AppData {
   if (!value || typeof value !== "object") return false;
   const data = value as Partial<AppData>;
-  return Array.isArray(data.sets) && Array.isArray(data.folders) && typeof data.mastered === "object";
+  const validCards = Array.isArray(data.sets) && data.sets.every((set) => Boolean(set)
+    && typeof set === "object"
+    && typeof set.id === "string"
+    && typeof set.title === "string"
+    && typeof set.description === "string"
+    && typeof set.subject === "string"
+    && typeof set.color === "string"
+    && typeof set.updatedAt === "string"
+    && Array.isArray(set.cards)
+    && set.cards.every((card) => Boolean(card)
+      && typeof card === "object"
+      && typeof card.id === "string"
+      && typeof card.term === "string"
+      && typeof card.definition === "string"));
+  const validFolders = Array.isArray(data.folders) && data.folders.every((folder) => Boolean(folder)
+    && typeof folder === "object"
+    && typeof folder.id === "string"
+    && typeof folder.name === "string"
+    && Array.isArray(folder.setIds)
+    && folder.setIds.every((setId) => typeof setId === "string"));
+  const validMastery = Boolean(data.mastered) && typeof data.mastered === "object" && !Array.isArray(data.mastered)
+    && Object.values(data.mastered ?? {}).every((cardIds) => Array.isArray(cardIds) && cardIds.every((cardId) => typeof cardId === "string"));
+  return validCards && validFolders && validMastery;
 }
 
 function describeSyncError(error: unknown) {
@@ -496,20 +530,58 @@ function cardQuestionType(card: Card): CardQuestionType {
 }
 
 function cleanChoiceAnswer(value: string) {
-  return value.replace(/^[A-K][).:-]\s*/i, "").trim();
+  return value.replace(/^[A-Z][).:-]\s*/i, "").trim();
 }
 
 function correctAnswersForCard(card: Card) {
   return (card.correctAnswers?.length ? card.correctAnswers : [cleanChoiceAnswer(card.definition)]).filter((answer) => answer.trim());
 }
 
+function prepareDraftCard(card: Card): Card | null {
+  const term = card.term.trim();
+  const type = cardQuestionType(card);
+  if (!term) return null;
+  if (type === "matching") {
+    const matchingPairs = (card.matchingPairs ?? [])
+      .map((pair) => ({ ...pair, left: pair.left.trim(), right: pair.right.trim() }))
+      .filter((pair) => pair.left || pair.right);
+    if (matchingPairs.length < 2 || matchingPairs.some((pair) => !pair.left || !pair.right)) return null;
+    return { ...card, term, matchingPairs, definition: matchingPairs.map((pair) => `${pair.left} → ${pair.right}`).join("; ") };
+  }
+  if (type === "multiple-choice" || type === "select-all" || type === "true-false") {
+    const answerChoices = [...new Set((card.answerChoices ?? []).map((choice) => choice.trim()).filter(Boolean))];
+    const selectedAnswers = correctAnswersForCard(card)
+      .map((answer) => answer.trim())
+      .filter((answer) => answerChoices.some((choice) => normalizeAnswer(choice) === normalizeAnswer(answer)));
+    if (answerChoices.length <= 1) {
+      const definition = card.definition.trim() || answerChoices[0] || "";
+      return definition ? { ...card, term, definition, questionType: "flashcard", answerChoices } : null;
+    }
+    if (!selectedAnswers.length) return null;
+    const correctAnswers = type === "select-all" ? selectedAnswers : [selectedAnswers[0]];
+    return { ...card, term, answerChoices, correctAnswers, definition: correctAnswers.join("; ") };
+  }
+  const definition = card.definition.trim();
+  return definition ? { ...card, term, definition } : null;
+}
+
 function withDataDefaults(value: AppData): AppData {
+  const normalizedSets = value.sets.map((set) => ({
+    ...set,
+    cards: set.cards.map(withDetectedAnswerChoices),
+  }));
+  const setIds = new Set(normalizedSets.map((set) => set.id));
+  const cardIdsBySet = new Map(normalizedSets.map((set) => [set.id, new Set(set.cards.map((card) => card.id))]));
   return {
     ...value,
-    sets: value.sets.map((set) => ({
-      ...set,
-      cards: set.cards.map(withDetectedAnswerChoices),
+    sets: normalizedSets,
+    folders: value.folders.map((folder) => ({
+      ...folder,
+      setIds: [...new Set(folder.setIds)].filter((setId) => setIds.has(setId)),
     })),
+    mastered: Object.fromEntries(Object.entries(value.mastered ?? {})
+      .filter(([setId]) => setIds.has(setId))
+      .map(([setId, cardIds]) => [setId, [...new Set(cardIds)].filter((cardId) => cardIdsBySet.get(setId)?.has(cardId))])),
     learnProgress: value.learnProgress ?? {},
   };
 }
@@ -545,6 +617,21 @@ function mergeLibraries(cloud: AppData, local: AppData): AppData {
   });
 }
 
+function removeSetFromLibraryData(data: AppData, setId: string): AppData {
+  const mastered = { ...data.mastered };
+  const learnProgress = { ...(data.learnProgress ?? {}) };
+  delete mastered[setId];
+  delete learnProgress[setId];
+  return {
+    ...data,
+    sets: data.sets.filter((item) => item.id !== setId),
+    folders: data.folders.map((folder) => ({ ...folder, setIds: folder.setIds.filter((id) => id !== setId) })),
+    mastered,
+    learnProgress,
+    activeLearn: data.activeLearn?.setId === setId ? undefined : data.activeLearn,
+  };
+}
+
 function applyThemeToDocument(theme: ThemeName) {
   const root = document.documentElement;
   root.dataset.theme = theme;
@@ -575,6 +662,23 @@ function AutoResizeTextarea({
     textarea.style.height = `${textarea.scrollHeight}px`;
   }, [value]);
 
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    const container = textarea?.parentElement;
+    if (!textarea || !container) return;
+    const resize = () => {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    };
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(resize);
+    observer?.observe(container);
+    window.addEventListener("resize", resize);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
   return (
     <textarea
       ref={textareaRef}
@@ -594,10 +698,10 @@ function AutoResizeTextarea({
 function PreviousValueSelect({ label, values, onSelect }: { label: string; values: string[]; onSelect: (value: string) => void }) {
   if (!values.length) return null;
   return (
-    <select className="previous-value-select" value="" onChange={(event) => { if (event.target.value) onSelect(event.target.value); }} aria-label={`Choose a previous ${label}`}>
-      <option value="">Previous {label}…</option>
-      {values.map((value) => <option value={value} key={value}>{value}</option>)}
-    </select>
+    <details className="previous-value-menu">
+      <summary aria-label={`Choose a previous ${label}`}>Previous {label}…</summary>
+      <div>{values.map((value) => <button type="button" key={value} onClick={(event) => { onSelect(value); event.currentTarget.closest("details")?.removeAttribute("open"); }}>{value}</button>)}</div>
+    </details>
   );
 }
 
@@ -782,7 +886,7 @@ export default function Flashbolt() {
         cloudSyncFailed = true;
         const message = describeSyncError(error);
         setSyncError(message);
-        setToast(`${message}. Flashbolt is using this device's local backup.`);
+        setToast(`${message}. Flashbolt is temporarily using this device's local backup.`);
       }
 
       if (cancelled) return;
@@ -835,18 +939,40 @@ export default function Flashbolt() {
 
   useEffect(() => {
     if (!ready || handledRouteRef.current === location.pathname) return;
+    if (location.pathname === "/flashbolt" || location.pathname.startsWith("/flashbolt/")) {
+      routerNavigate(`${FLASHBOLT_BASE}${location.pathname.slice("/flashbolt".length)}`, { replace: true });
+      return;
+    }
     const parts = location.pathname.split("/").filter(Boolean);
     const flashboltIndex = parts.indexOf("flashbolt");
     const routeParts = flashboltIndex >= 0 ? parts.slice(flashboltIndex + 1) : [];
+    if (routeParts.length === 0) {
+      handledRouteRef.current = location.pathname;
+      setView("home");
+      return;
+    }
     if (routeParts.length === 1 && ["home", "library", "folders", "create", "guide"].includes(routeParts[0])) {
       handledRouteRef.current = location.pathname;
       setView(routeParts[0] as View);
       return;
     }
+    if (routeParts.length === 2) {
+      const [semesterSlug, folderSlug] = routeParts;
+      const routeFolder = data.folders.find((item) => routeSlug(item.semester || "no-semester") === semesterSlug && folderRouteSegment(item) === folderSlug);
+      if (!routeFolder) return;
+      handledRouteRef.current = location.pathname;
+      setSelectedFolderId(routeFolder.id);
+      setView("library");
+      return;
+    }
     if (routeParts.length < 4) return;
     const [semesterSlug, folderSlug, setSlug, mode] = routeParts;
-    const routeFolder = data.folders.find((item) => routeSlug(item.semester || "no-semester") === semesterSlug && routeSlug(item.name) === folderSlug);
-    const routeSet = data.sets.find((item) => routeSlug(item.title) === setSlug && (!routeFolder || routeFolder.setIds.includes(item.id)));
+    const isUnfiledRoute = semesterSlug === "no-semester" && folderSlug === "unfiled";
+    const routeFolder = data.folders.find((item) => routeSlug(item.semester || "no-semester") === semesterSlug && folderRouteSegment(item) === folderSlug);
+    if (!routeFolder && !isUnfiledRoute) return;
+    const routeSet = data.sets.find((item) => setRouteSegment(item, routeFolder) === setSlug && (routeFolder
+      ? routeFolder.setIds.includes(item.id)
+      : !data.folders.some((folderItem) => folderItem.setIds.includes(item.id))));
     if (!routeSet || !["flashcards", "learn", "test", "edit"].includes(mode)) return;
     handledRouteRef.current = location.pathname;
     setSelectedSetId(routeSet.id);
@@ -1061,7 +1187,7 @@ export default function Flashbolt() {
   }, [data.folders, data.mastered, data.sets, folder, librarySort, search]);
 
   const testCards = selectedSet?.cards.slice(0, 8) ?? [];
-  const testScore = testCards.filter((card) => testAnswers[card.id] === card.definition).length;
+  const testScore = testCards.filter((card) => normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card))).length;
   const guideTitleSuggestions = useMemo(() => suggestNoteTitles(guideNotes), [guideNotes]);
   const currentLearnCard = selectedSet?.cards.find((card) => card.id === learnRoundIds[learnIndex]);
   const currentLearnAnswerSide = learnAnswerSide(learnOptions, learnSequence, currentLearnCard);
@@ -1134,7 +1260,7 @@ export default function Flashbolt() {
 
   function setRoutePath(nextView: View, setId = selectedSetId) {
     if (!["set", "learn", "test", "create"].includes(nextView) || (nextView === "create" && !setId)) {
-      const path = nextView === "home" ? "/admin-dashboard/private-pages/flashbolt" : `/admin-dashboard/private-pages/flashbolt/${nextView}`;
+      const path = nextView === "home" ? FLASHBOLT_BASE : `${FLASHBOLT_BASE}/${nextView}`;
       handledRouteRef.current = path;
       routerNavigate(path);
       return;
@@ -1144,7 +1270,7 @@ export default function Flashbolt() {
     const routeFolder = data.folders.find((item) => item.id === selectedFolderId && item.setIds.includes(routeSet.id))
       ?? data.folders.find((item) => item.setIds.includes(routeSet.id));
     const mode = nextView === "set" ? "flashcards" : nextView === "create" ? "edit" : nextView;
-    const path = `/admin-dashboard/private-pages/flashbolt/${routeSlug(routeFolder?.semester || "no-semester")}/${routeSlug(routeFolder?.name || "unfiled")}/${routeSlug(routeSet.title)}/${mode}`;
+    const path = `${FLASHBOLT_BASE}/${routeSlug(routeFolder?.semester || "no-semester")}/${routeFolder ? folderRouteSegment(routeFolder) : "unfiled"}/${setRouteSegment(routeSet, routeFolder)}/${mode}`;
     handledRouteRef.current = path;
     routerNavigate(path);
   }
@@ -1154,6 +1280,33 @@ export default function Flashbolt() {
     setNewMenuOpen(false);
     setRoutePath(nextView, setId);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function openFolder(folderItem: Folder) {
+    const path = `${FLASHBOLT_BASE}/${routeSlug(folderItem.semester || "no-semester")}/${folderRouteSegment(folderItem)}`;
+    setSelectedFolderId(folderItem.id);
+    setView("library");
+    setNewMenuOpen(false);
+    handledRouteRef.current = path;
+    routerNavigate(path);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function folderRouteSegment(folderItem: Folder) {
+    const base = routeSlug(folderItem.name);
+    const collision = data.folders.some((item) => item.id !== folderItem.id
+      && (item.semester ?? "") === (folderItem.semester ?? "")
+      && routeSlug(item.name) === base);
+    return collision ? `${base}--${routeSlug(folderItem.id).slice(-8)}` : base;
+  }
+
+  function setRouteSegment(setItem: StudySet, folderItem?: Folder) {
+    const base = routeSlug(setItem.title);
+    const scopedSets = folderItem
+      ? data.sets.filter((item) => folderItem.setIds.includes(item.id))
+      : data.sets.filter((item) => !data.folders.some((folder) => folder.setIds.includes(item.id)));
+    const collision = scopedSets.some((item) => item.id !== setItem.id && routeSlug(item.title) === base);
+    return collision ? `${base}--${routeSlug(setItem.id).slice(-8)}` : base;
   }
 
   function toggleSidebar() {
@@ -1220,11 +1373,17 @@ export default function Flashbolt() {
   }
 
   function saveDraft(studyAfter = false) {
-    const cleanCards = draft.cards.filter((card) => card.term.trim() && (cardQuestionType(card) === "matching"
-      ? Boolean(card.matchingPairs?.length && card.matchingPairs.every((pair) => pair.left.trim() && pair.right.trim()))
-      : Boolean(card.definition.trim())));
+    const startedCards = draft.cards.filter((card) => card.term.trim()
+      || card.definition.trim()
+      || card.answerChoices?.some((choice) => choice.trim())
+      || card.matchingPairs?.some((pair) => pair.left.trim() || pair.right.trim()));
+    const cleanCards = startedCards.map(prepareDraftCard).filter((card): card is Card => Boolean(card));
     if (!draft.title.trim() || cleanCards.length === 0) {
       notify("Add a title and at least one complete card.");
+      return;
+    }
+    if (cleanCards.length !== startedCards.length) {
+      notify("Finish every started card and mark the correct answer before saving.");
       return;
     }
 
@@ -1235,13 +1394,7 @@ export default function Flashbolt() {
       description: draft.description.trim(),
       subject: draft.subject.trim() || "General",
       updatedAt: new Date().toISOString(),
-      cards: cleanCards.map((card) => withDetectedAnswerChoices({
-        ...card,
-        term: card.term.trim(),
-        definition: cardQuestionType(card) === "matching"
-          ? card.matchingPairs?.map((pair) => `${pair.left} → ${pair.right}`).join("; ") ?? ""
-          : card.definition.trim(),
-      })),
+      cards: cleanCards.map(withDetectedAnswerChoices),
     };
 
     setData((current) => ({
@@ -1273,8 +1426,8 @@ export default function Flashbolt() {
     notify(editingSetId
       ? "Set and folder assignments updated."
       : draftFolderIds.length
-        ? `Set created, added to ${draftFolderIds.length === 1 ? "a folder" : `${draftFolderIds.length} folders`}, and saved on this device.`
-        : "Set created and saved on this device.");
+        ? `Set created, added to ${draftFolderIds.length === 1 ? "a folder" : `${draftFolderIds.length} folders`}, and queued for account sync.`
+        : "Set created and queued for account sync.");
     if (studyAfter) openSet(savedSet.id);
     else navigate("library");
   }
@@ -1400,7 +1553,7 @@ export default function Flashbolt() {
         return;
       }
       updateDraftCardExtras(cardId, { imageData, imageName: file.name });
-      notify("Image attached and saved on this device.");
+      notify("Image attached and queued for account sync.");
     } catch {
       notify("That image could not be attached.");
     }
@@ -1592,8 +1745,16 @@ export default function Flashbolt() {
       return;
     }
     const semester = folderSemester.trim();
-    if (semester && !/^(Spring|Summer|Fall) \d{4}$/.test(semester)) {
-      notify("Use the semester format Spring 2026, Summer 2026, or Fall 2026.");
+    const semesterMatch = /^(Spring|Summer|Fall) (\d{4})$/.exec(semester);
+    if (semester && (!semesterMatch || Number(semesterMatch[2]) < 2020 || Number(semesterMatch[2]) > 2027)) {
+      notify("Choose Spring, Summer, or Fall for a year from 2020 through 2027.");
+      return;
+    }
+    const duplicateFolder = data.folders.some((item) => item.id !== editingFolderId
+      && item.name.trim().toLocaleLowerCase() === folderName.trim().toLocaleLowerCase()
+      && (item.semester ?? "") === semester);
+    if (duplicateFolder) {
+      notify(`A folder named “${folderName.trim()}” already exists${semester ? ` in ${semester}` : " without a semester"}.`);
       return;
     }
 
@@ -1962,11 +2123,7 @@ export default function Flashbolt() {
 
   function deleteSelectedSet() {
     if (!selectedSet) return;
-    setData((current) => ({
-      ...current,
-      sets: current.sets.filter((set) => set.id !== selectedSet.id),
-      folders: current.folders.map((item) => ({ ...item, setIds: item.setIds.filter((id) => id !== selectedSet.id) })),
-    }));
+    setData((current) => removeSetFromLibraryData(current, selectedSet.id));
     setSelectedSetId(data.sets.find((set) => set.id !== selectedSet.id)?.id ?? "");
     notify("Set deleted.");
     navigate("library");
@@ -1977,14 +2134,15 @@ export default function Flashbolt() {
     setTileFolderPickerId(null);
     setSetContextMenu({
       setId,
-      x: Math.min(event.clientX, window.innerWidth - 205),
-      y: Math.min(event.clientY, window.innerHeight - 390),
+      x: Math.max(10, Math.min(event.clientX, window.innerWidth - 270)),
+      y: Math.max(10, Math.min(event.clientY, window.innerHeight - 390)),
     });
   }
 
   function setModeUrl(set: StudySet, mode: "flashcards" | "learn" | "test" | "edit") {
-    const setFolder = data.folders.find((item) => item.setIds.includes(set.id));
-    const path = `/admin-dashboard/private-pages/flashbolt/${routeSlug(setFolder?.semester || "no-semester")}/${routeSlug(setFolder?.name || "unfiled")}/${routeSlug(set.title)}/${mode}`;
+    const setFolder = data.folders.find((item) => item.id === selectedFolderId && item.setIds.includes(set.id))
+      ?? data.folders.find((item) => item.setIds.includes(set.id));
+    const path = `${FLASHBOLT_BASE}/${routeSlug(setFolder?.semester || "no-semester")}/${setFolder ? folderRouteSegment(setFolder) : "unfiled"}/${setRouteSegment(set, setFolder)}/${mode}`;
     return `${window.location.origin}${path}`;
   }
 
@@ -2020,11 +2178,7 @@ export default function Flashbolt() {
 
   function deleteSetFromLibrary(setToDelete: StudySet) {
     if (!window.confirm(`Delete “${setToDelete.title}”? This cannot be undone.`)) return;
-    setData((current) => ({
-      ...current,
-      sets: current.sets.filter((item) => item.id !== setToDelete.id),
-      folders: current.folders.map((folderItem) => ({ ...folderItem, setIds: folderItem.setIds.filter((id) => id !== setToDelete.id) })),
-    }));
+    setData((current) => removeSetFromLibraryData(current, setToDelete.id));
     if (selectedSetId === setToDelete.id) setSelectedSetId(data.sets.find((item) => item.id !== setToDelete.id)?.id ?? "");
     notify("Set deleted.");
   }
@@ -2332,7 +2486,7 @@ export default function Flashbolt() {
           {!search && view === "library" && (
             <section>
               <div className="page-heading split">
-                <div><span className="eyebrow">Your library</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} in this folder.` : `${data.sets.length} sets and ${cardCount} cards, saved on this device.`}</p></div>
+                <div><span className="eyebrow">Your library</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} in this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
                 <div className="heading-actions">
                   {folder && <button className="button quiet" onClick={() => editFolder(folder)}>Edit folder</button>}
                   <button className="button quiet" onClick={() => importInputRef.current?.click()}>Restore backup</button>
@@ -2360,7 +2514,7 @@ export default function Flashbolt() {
                     {folderSemesterGroups.map((group) => <section className="folder-semester-group" key={group.semester}>
                       <h3>{group.semester}<small>{group.folders.length} folder{group.folders.length === 1 ? "" : "s"}</small></h3>
                       <div className="folder-semester-chips">{group.folders.map((item) => (
-                        <button className={selectedFolderId === item.id ? "active" : ""} aria-pressed={selectedFolderId === item.id} aria-label={`Show ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name} key={item.id} onClick={() => setSelectedFolderId(item.id)}>
+                        <button className={selectedFolderId === item.id ? "active" : ""} aria-pressed={selectedFolderId === item.id} aria-label={`Open ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name} key={item.id} onClick={() => openFolder(item)}>
                           <span className="folder-filter-icon folder" aria-hidden="true" style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} />
                           <span className="folder-filter-name">{item.name}</span>
                           <span className="folder-filter-count">{item.setIds.length}</span>
@@ -2421,13 +2575,13 @@ export default function Flashbolt() {
                   {folderSemesterGroups.map((group) => <section className="folder-page-semester" key={group.semester}>
                     <div className="folder-semester-title"><div><span className="eyebrow">Semester</span><h2>{group.semester}</h2></div><small>{group.folders.length} folder{group.folders.length === 1 ? "" : "s"}</small></div>
                     <div className="folder-grid">{group.folders.map((item) => (
-                    <article key={item.id} className="folder-tile">
+                    <article key={item.id} className="folder-tile" onClick={() => openFolder(item)}>
                       <span className="folder-tab" />
                       <div className="folder-tile-actions">
-                        <button onClick={() => editFolder(item)} aria-label={`Edit ${item.name}`} title="Edit folder">✎</button>
-                        <button className="delete" onClick={() => deleteFolder(item)} aria-label={`Delete ${item.name}`} title="Delete folder">×</button>
+                        <button onClick={(event) => { event.stopPropagation(); editFolder(item); }} aria-label={`Edit ${item.name}`} title="Edit folder">✎</button>
+                        <button className="delete" onClick={(event) => { event.stopPropagation(); deleteFolder(item); }} aria-label={`Delete ${item.name}`} title="Delete folder">×</button>
                       </div>
-                      <button className="folder-open-button" onClick={() => { setSelectedFolderId(item.id); navigate("library"); }}>
+                      <button className="folder-open-button" onClick={(event) => { event.stopPropagation(); openFolder(item); }}>
                         <span className="folder-icon">□</span>
                         <strong>{item.name}</strong><small>{item.semester ? `${item.semester} · ` : ""}{item.setIds.length} set{item.setIds.length === 1 ? "" : "s"}</small><span>Open <b>→</b></span>
                       </button>
@@ -2460,7 +2614,7 @@ export default function Flashbolt() {
                     <div className="folder-assignment">
                       <div className="folder-assignment-heading">
                         <div><span>Folders <small>optional</small></span><p>Add this set to one or more folders.</p></div>
-                        <div className="folder-assignment-actions">{!editingSetId && recentSetValues && <button className="recent-folder-button" type="button" onClick={() => setDraftFolderIds(recentSetValues.folderIds.filter((folderId) => data.folders.some((folderItem) => folderItem.id === folderId)))} title={recentFolderNames.join(", ") || "No folders"}>Use recent: {recentFolderNames.join(", ") || "None"}</button>}{previousFolderSelections.length > 0 && <select className="previous-value-select" value="" onChange={(event) => { const selection = previousFolderSelections[Number(event.target.value)]; if (selection) setDraftFolderIds(selection.folderIds); }} aria-label="Choose folders used by a previous set"><option value="">Previous folders…</option>{previousFolderSelections.map((selection, index) => <option value={index} key={selection.folderIds.join("|")}>{selection.label}</option>)}</select>}<button className="text-button" onClick={openNewFolderModal}>＋ New folder</button></div>
+                        <div className="folder-assignment-actions">{!editingSetId && recentSetValues && <button className="recent-folder-button" type="button" onClick={() => setDraftFolderIds(recentSetValues.folderIds.filter((folderId) => data.folders.some((folderItem) => folderItem.id === folderId)))} title={recentFolderNames.join(", ") || "No folders"}>Use recent: {recentFolderNames.join(", ") || "None"}</button>}{previousFolderSelections.length > 0 && <details className="previous-value-menu previous-folder-menu"><summary>Previous folders…</summary><div>{previousFolderSelections.map((selection) => <button type="button" key={selection.folderIds.join("|")} onClick={(event) => { setDraftFolderIds(selection.folderIds); event.currentTarget.closest("details")?.removeAttribute("open"); }}>{selection.label}</button>)}</div></details>}<button className="text-button" onClick={openNewFolderModal}>＋ New folder</button></div>
                       </div>
                       {data.folders.length ? (
                         <>
@@ -2747,7 +2901,7 @@ export default function Flashbolt() {
               )}
 
               {learnPhase === "complete" && (
-                <div className="results-card learn-complete"><span className="result-burst">✓</span><span className="eyebrow">100% goal reached</span><h1>You completed the adaptive path.</h1><p className="learn-complete-count"><strong>{learnQuestionsAnswered}</strong> questions answered across <strong>{learnRound}</strong> adaptive round{learnRound === 1 ? "" : "s"}.</p><p>Every card reached the {learnGoal === "cram" ? "familiar" : "mastered"} level. Weak cards repeated, stronger cards advanced to harder recall, and your progress was saved on this device.</p><div className="button-row center"><button className="button primary" onClick={() => beginLearnSession(learnGoal)}>Practice again</button><button className="button quiet" onClick={() => navigate("set")}>Back to set</button></div></div>
+                <div className="results-card learn-complete"><span className="result-burst">✓</span><span className="eyebrow">100% goal reached</span><h1>You completed the adaptive path.</h1><p className="learn-complete-count"><strong>{learnQuestionsAnswered}</strong> questions answered across <strong>{learnRound}</strong> adaptive round{learnRound === 1 ? "" : "s"}.</p><p>Every card reached the {learnGoal === "cram" ? "familiar" : "mastered"} level. Weak cards repeated, stronger cards advanced to harder recall, and your progress was queued for account sync.</p><div className="button-row center"><button className="button primary" onClick={() => beginLearnSession(learnGoal)}>Practice again</button><button className="button quiet" onClick={() => navigate("set")}>Back to set</button></div></div>
               )}
 
               {learnOptionsOpen && <div className="modal-backdrop learn-options-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setLearnOptionsOpen(false); }}><div className="learn-options-modal" role="dialog" aria-modal="true" aria-labelledby="learn-options-title">
@@ -2767,13 +2921,13 @@ export default function Flashbolt() {
               <div className="page-heading split compact"><div><button className="back-link" onClick={() => navigate("set")}>← Back to set</button><span className="eyebrow">Practice test</span><h1>{selectedSet.title}</h1><p>{testCards.length} questions generated from your flashcards.</p></div>{testSubmitted && <div className="test-score"><strong>{testScore}/{testCards.length}</strong><span>{Math.round((testScore / Math.max(1, testCards.length)) * 100)}% score</span></div>}</div>
               <div className="test-list">
                 {testCards.map((card, cardIndex) => (
-                  <article key={card.id} className={testSubmitted ? (testAnswers[card.id] === card.definition ? "correct-card" : "incorrect-card") : ""}>
-                    <header><span>Question {cardIndex + 1}</span>{testSubmitted && <b>{testAnswers[card.id] === card.definition ? "Correct" : "Review"}</b>}</header>
+                  <article key={card.id} className={testSubmitted ? (normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card)) ? "correct-card" : "incorrect-card") : ""}>
+                    <header><span>Question {cardIndex + 1}</span>{testSubmitted && <b>{normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card)) ? "Correct" : "Review"}</b>}</header>
                     <h2>{card.term}</h2>
                     <div className="test-options">
-                      {answerOptions(selectedSet, cardIndex).map((option, optionIndex) => <label key={option} className={testSubmitted && option === card.definition ? "answer-key" : ""}><input type="radio" name={card.id} value={option} checked={testAnswers[card.id] === option} onChange={() => setTestAnswers((answers) => ({ ...answers, [card.id]: option }))} disabled={testSubmitted} /><span>{String.fromCharCode(65 + optionIndex)}</span><p>{option}</p></label>)}
+                      {answerOptions(selectedSet, cardIndex).map((option, optionIndex) => <label key={option} className={testSubmitted && normalizeAnswer(option) === normalizeAnswer(testCorrectAnswer(card)) ? "answer-key" : ""}><input type="radio" name={card.id} value={option} checked={testAnswers[card.id] === option} onChange={() => setTestAnswers((answers) => ({ ...answers, [card.id]: option }))} disabled={testSubmitted} /><span>{String.fromCharCode(65 + optionIndex)}</span><p>{option}</p></label>)}
                     </div>
-                    {testSubmitted && testAnswers[card.id] !== card.definition && <p className="test-explanation">Correct answer: <strong>{card.definition}</strong></p>}
+                    {testSubmitted && normalizeAnswer(testAnswers[card.id] ?? "") !== normalizeAnswer(testCorrectAnswer(card)) && <p className="test-explanation">Correct answer: <strong>{testCorrectAnswer(card)}</strong></p>}
                   </article>
                 ))}
               </div>
@@ -2813,7 +2967,7 @@ export default function Flashbolt() {
             <label className="modal-field"><span>Semester <small>optional</small></span><input value={folderSemester} onChange={(event) => setFolderSemester(event.target.value)} placeholder="e.g. Fall 2026" list="flashbolt-semesters" maxLength={11} /><datalist id="flashbolt-semesters">{[2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027].flatMap((year) => ["Spring", "Summer", "Fall"].map((term) => <option value={`${term} ${year}`} key={`${term}-${year}`} />))}</datalist></label>
             <fieldset className="folder-color-field"><legend>Folder icon color</legend><div>{FOLDER_COLORS.map((color) => <button type="button" className={folderColor === color ? "selected" : ""} style={{ "--folder-swatch": color } as CSSProperties} onClick={() => setFolderColor(color)} aria-label={`Use folder color ${color}`} aria-pressed={folderColor === color} key={color}><span /></button>)}</div></fieldset>
             <fieldset><legend>Add sets <small>optional</small></legend>{data.sets.map((set) => <label className="set-check" key={set.id}><span className="visually-hidden">Add set to folder</span><input aria-label={`Add ${set.title} to folder`} type="checkbox" checked={folderSetIds.includes(set.id)} onChange={() => setFolderSetIds((ids) => ids.includes(set.id) ? ids.filter((id) => id !== set.id) : [...ids, set.id])} /><span><strong>{set.title}</strong><small>{set.cards.length} terms</small></span></label>)}</fieldset>
-            <p className="modal-privacy">⌁ This folder is saved only in this browser on this device.</p>
+            <p className="modal-privacy">⌁ This private folder syncs with your account and keeps a local backup on this device.</p>
             <footer>{editingFolder && <button className="button danger" onClick={() => deleteFolder(editingFolder)}>Delete folder</button>}<button className="button quiet" onClick={closeFolderModal}>Cancel</button><button className="button primary" onClick={saveFolder}>{editingFolderId ? "Save changes" : "Create folder"}</button></footer>
           </div>
         </div>
