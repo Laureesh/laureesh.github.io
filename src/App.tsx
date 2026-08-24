@@ -57,6 +57,7 @@ import "./App.css";
 
 const AdminFnLeaderboardPage = lazy(() => import("./pages/admin/AdminFnLeaderboardPage"));
 const Flashbolt = lazy(() => import("./pages/admin/flashbolt/Flashbolt"));
+const Notebook = lazy(() => import("./pages/admin/notebook/Notebook"));
 
 export default function App() {
   const location = useLocation();
@@ -64,9 +65,11 @@ export default function App() {
   const standaloneAdminToolRoutes = [
     "/admin-dashboard/private-pages/fn-leaderboard",
     "/admin-dashboard/private-pages/flashbolt",
+    "/admin-dashboard/private-pages/notebook",
   ];
   const isStandaloneAdminToolRoute = standaloneAdminToolRoutes.includes(location.pathname)
     || location.pathname.startsWith("/admin-dashboard/private-pages/flashbolt/")
+    || location.pathname.startsWith("/admin-dashboard/private-pages/notebook/")
     || location.pathname === "/flashbolt"
     || location.pathname.startsWith("/flashbolt/");
   const isAuthRoute = (
@@ -88,6 +91,7 @@ export default function App() {
       "/media-converter",
       "/admin-dashboard/private-pages/fn-leaderboard",
       "/admin-dashboard/private-pages/flashbolt",
+      "/admin-dashboard/private-pages/notebook",
       "/flashbolt",
       "/login",
       "/register",
@@ -288,6 +292,16 @@ export default function App() {
                     )}
                   >
                     <Flashbolt />
+                  </Suspense>
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/admin-dashboard/private-pages/notebook/*"
+              element={(
+                <ProtectedRoute requiredRole="admin" unauthorizedRedirectTo="/profile">
+                  <Suspense fallback={<div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}><div className="auth-spinner" /></div>}>
+                    <Notebook />
                   </Suspense>
                 </ProtectedRoute>
               )}

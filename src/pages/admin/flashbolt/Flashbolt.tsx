@@ -2482,6 +2482,7 @@ export default function Flashbolt() {
           <button title="Flashcard set" aria-label="Create flashcard set" onClick={startCreate}><span className="nav-icon">＋</span><span className="nav-label">Flashcard set</span></button>
           <button title="Study guide" aria-label="Study guide" onClick={() => navigate("guide")}><span className="nav-icon">≡</span><span className="nav-label">Study guide</span></button>
           <button title="Practice test" aria-label="Practice test" onClick={() => selectedSet ? startTest() : navigate("library")}><span className="nav-icon">✓</span><span className="nav-label">Practice test</span></button>
+          <button title="Notebook" aria-label="Open notebook" onClick={() => routerNavigate("/admin-dashboard/private-pages/notebook")}><span className="nav-icon">▱</span><span className="nav-label">Notebook</span></button>
         </div>
 
         <div className="private-card">

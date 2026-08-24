@@ -3,6 +3,7 @@ export type AdminPrivateResourceKey =
   | "face-routine"
   | "fn-leaderboard"
   | "flashbolt"
+  | "notebook"
   | "ps99-inventory"
   | "weight-tracker";
 export type AdminPrivateResourceKind = "structured-page" | "standalone-tool";
@@ -42,6 +43,13 @@ export const adminPrivateResources: AdminPrivateResource[] = [
     label: "Flashbolt Study App",
     route: "/admin-dashboard/private-pages/flashbolt",
     description: "Admin-only flashcards, study guides, Learn mode, practice tests, folders, and local browser backups.",
+    kind: "standalone-tool",
+  },
+  {
+    key: "notebook",
+    label: "Notebook",
+    route: "/admin-dashboard/private-pages/notebook",
+    description: "Autosaving private notes with folders, tags, backlinks, attachments, history, search, and cloud sync.",
     kind: "standalone-tool",
   },
   {
