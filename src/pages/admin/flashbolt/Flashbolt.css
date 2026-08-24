@@ -225,6 +225,24 @@ select:focus-visible {
   min-height: 100vh;
 }
 
+.flashbolt-route-loading {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  align-content: center;
+  gap: 16px;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.flashbolt-route-loading .brand-mark {
+  transform: scale(1.25);
+}
+
+.flashbolt-route-loading strong {
+  font-size: 18px;
+}
+
 .app-shell.theme-white {
   background:
     radial-gradient(circle at 92% 2%, var(--ambient-glow), transparent 26rem),

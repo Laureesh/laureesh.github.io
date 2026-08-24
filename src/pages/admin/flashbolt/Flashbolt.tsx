@@ -823,6 +823,7 @@ export default function Flashbolt() {
   const [toast, setToast] = useState("");
   const [theme, setTheme] = useState<ThemeName>("dark");
   const [storageStatus, setStorageStatus] = useState<StorageStatus>("loading");
+  const [resolvedRoutePath, setResolvedRoutePath] = useState("");
   const [syncError, setSyncError] = useState("");
   const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
   const [dictationTarget, setDictationTarget] = useState<{ cardId: string; field: "term" | "definition" } | null>(null);
@@ -949,31 +950,55 @@ export default function Flashbolt() {
     if (routeParts.length === 0) {
       handledRouteRef.current = location.pathname;
       setView("home");
+      setResolvedRoutePath(location.pathname);
       return;
     }
     if (routeParts.length === 1 && ["home", "library", "folders", "create", "guide"].includes(routeParts[0])) {
       handledRouteRef.current = location.pathname;
       setView(routeParts[0] as View);
+      setResolvedRoutePath(location.pathname);
       return;
     }
     if (routeParts.length === 2) {
       const [semesterSlug, folderSlug] = routeParts;
       const routeFolder = data.folders.find((item) => routeSlug(item.semester || "no-semester") === semesterSlug && folderRouteSegment(item) === folderSlug);
-      if (!routeFolder) return;
+      if (!routeFolder) {
+        handledRouteRef.current = location.pathname;
+        setSelectedFolderId(null);
+        setView("folders");
+        setResolvedRoutePath(location.pathname);
+        return;
+      }
       handledRouteRef.current = location.pathname;
       setSelectedFolderId(routeFolder.id);
       setView("library");
+      setResolvedRoutePath(location.pathname);
       return;
     }
-    if (routeParts.length < 4) return;
+    if (routeParts.length < 4) {
+      handledRouteRef.current = location.pathname;
+      setView("library");
+      setResolvedRoutePath(location.pathname);
+      return;
+    }
     const [semesterSlug, folderSlug, setSlug, mode] = routeParts;
     const isUnfiledRoute = semesterSlug === "no-semester" && folderSlug === "unfiled";
     const routeFolder = data.folders.find((item) => routeSlug(item.semester || "no-semester") === semesterSlug && folderRouteSegment(item) === folderSlug);
-    if (!routeFolder && !isUnfiledRoute) return;
+    if (!routeFolder && !isUnfiledRoute) {
+      handledRouteRef.current = location.pathname;
+      setView("library");
+      setResolvedRoutePath(location.pathname);
+      return;
+    }
     const routeSet = data.sets.find((item) => setRouteSegment(item, routeFolder) === setSlug && (routeFolder
       ? routeFolder.setIds.includes(item.id)
       : !data.folders.some((folderItem) => folderItem.setIds.includes(item.id))));
-    if (!routeSet || !["flashcards", "learn", "test", "edit"].includes(mode)) return;
+    if (!routeSet || !["flashcards", "learn", "test", "edit"].includes(mode)) {
+      handledRouteRef.current = location.pathname;
+      setView(routeFolder ? "library" : "folders");
+      setResolvedRoutePath(location.pathname);
+      return;
+    }
     handledRouteRef.current = location.pathname;
     setSelectedSetId(routeSet.id);
     setSelectedFolderId(routeFolder?.id ?? null);
@@ -981,6 +1006,7 @@ export default function Flashbolt() {
     else if (mode === "learn") startLearn(routeSet.id);
     else if (mode === "test") startTest(routeSet.id);
     else openSet(routeSet.id);
+    setResolvedRoutePath(location.pathname);
   }, [data.folders, data.sets, location.pathname, ready]);
 
   useEffect(() => {
@@ -1262,6 +1288,7 @@ export default function Flashbolt() {
     if (!["set", "learn", "test", "create"].includes(nextView) || (nextView === "create" && !setId)) {
       const path = nextView === "home" ? FLASHBOLT_BASE : `${FLASHBOLT_BASE}/${nextView}`;
       handledRouteRef.current = path;
+      setResolvedRoutePath(path);
       routerNavigate(path);
       return;
     }
@@ -1272,6 +1299,7 @@ export default function Flashbolt() {
     const mode = nextView === "set" ? "flashcards" : nextView === "create" ? "edit" : nextView;
     const path = `${FLASHBOLT_BASE}/${routeSlug(routeFolder?.semester || "no-semester")}/${routeFolder ? folderRouteSegment(routeFolder) : "unfiled"}/${setRouteSegment(routeSet, routeFolder)}/${mode}`;
     handledRouteRef.current = path;
+    setResolvedRoutePath(path);
     routerNavigate(path);
   }
 
@@ -1288,6 +1316,7 @@ export default function Flashbolt() {
     setView("library");
     setNewMenuOpen(false);
     handledRouteRef.current = path;
+    setResolvedRoutePath(path);
     routerNavigate(path);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -2341,6 +2370,10 @@ export default function Flashbolt() {
   const currentFlashcard = selectedSet?.cards[flashIndex];
   const isCurrentMastered = Boolean(selectedSet && currentFlashcard && data.mastered[selectedSet.id]?.includes(currentFlashcard.id));
 
+  if (!ready || resolvedRoutePath !== location.pathname) {
+    return <div className={`flashbolt-route-loading theme-${theme}`} role="status" aria-live="polite"><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><strong>Opening Flashbolt…</strong></div>;
+  }
+
   return (
     <div className={`app-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       {setContextMenu && (() => {
@@ -2373,8 +2406,8 @@ export default function Flashbolt() {
 
         <nav className="main-nav" aria-label="Main navigation">
           <button title="Home" aria-label="Home" className={view === "home" ? "active" : ""} onClick={() => { setSelectedFolderId(null); navigate("home"); }}><span className="nav-icon">⌂</span><span className="nav-label">Home</span></button>
-          <button title="Your library" aria-label="Your library" className={view === "library" ? "active" : ""} onClick={() => { setSelectedFolderId(null); navigate("library"); }}><span className="nav-icon">▤</span><span className="nav-label">Your library</span></button>
-          <button title="Folders" aria-label="Folders" className={view === "folders" ? "active" : ""} onClick={() => navigate("folders")}><span className="nav-icon">□</span><span className="nav-label">Folders</span></button>
+          <button title="Your library" aria-label="Your library" className={view === "library" && !folder ? "active" : ""} onClick={() => { setSelectedFolderId(null); navigate("library"); }}><span className="nav-icon">▤</span><span className="nav-label">Your library</span></button>
+          <button title="Folders" aria-label="Folders" className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} onClick={() => navigate("folders")}><span className="nav-icon">□</span><span className="nav-label">Folders</span></button>
         </nav>
 
         <div className="side-section">
@@ -2559,6 +2592,26 @@ export default function Flashbolt() {
                   </label>
                   <button className="text-button" onClick={exportLibrary}>⇩ Download backup</button>
                 </div>
+              </div>}
+              {folder && <div className="folder-dedicated-toolbar">
+                <span><i style={{ "--folder-color": folder.color ?? FOLDER_COLORS[0] } as CSSProperties} />Showing only <strong>{folder.name}</strong></span>
+                <label className="library-sort-control">
+                  <span className="library-sort-icon" aria-hidden="true">⇅</span>
+                  <span className="library-sort-field"><small>Sort by</small><select value={librarySort} onChange={(event) => setLibrarySort(event.target.value as LibrarySort)} aria-label={`Sort sets in ${folder.name}`}>
+                    <option value="updated-desc">Recently updated</option>
+                    <option value="updated-asc">Oldest updated</option>
+                    <option value="title-asc">Title: A–Z</option>
+                    <option value="title-desc">Title: Z–A</option>
+                    <option value="subject-asc">Subject: A–Z</option>
+                    <option value="subject-desc">Subject: Z–A</option>
+                    <option value="terms-desc">Most terms</option>
+                    <option value="terms-asc">Fewest terms</option>
+                    <option value="progress-desc">Highest mastery %</option>
+                    <option value="progress-asc">Lowest mastery %</option>
+                    <option value="remaining-desc">Most cards left</option>
+                    <option value="remaining-asc">Fewest cards left</option>
+                  </select></span>
+                </label>
               </div>}
               {renderSetGrid(filteredSets)}
             </section>
@@ -2956,7 +3009,7 @@ export default function Flashbolt() {
           )}
         </main>
 
-        <nav className="mobile-nav" aria-label="Mobile navigation"><button className={view === "home" ? "active" : ""} onClick={() => navigate("home")}><span>⌂</span>Home</button><button className={view === "library" ? "active" : ""} onClick={() => navigate("library")}><span>▤</span>Library</button><button className="mobile-create" onClick={startCreate}><span>＋</span></button><button className={view === "folders" ? "active" : ""} onClick={() => navigate("folders")}><span>□</span>Folders</button><button onClick={() => navigate("guide")}><span>≡</span>Guide</button></nav>
+        <nav className="mobile-nav" aria-label="Mobile navigation"><button className={view === "home" ? "active" : ""} onClick={() => navigate("home")}><span>⌂</span>Home</button><button className={view === "library" && !folder ? "active" : ""} onClick={() => { setSelectedFolderId(null); navigate("library"); }}><span>▤</span>Library</button><button className="mobile-create" onClick={startCreate}><span>＋</span></button><button className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} onClick={() => navigate("folders")}><span>□</span>Folders</button><button onClick={() => navigate("guide")}><span>≡</span>Guide</button></nav>
       </div>
 
       {folderModalOpen && (
