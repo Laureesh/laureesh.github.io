@@ -17,6 +17,8 @@
 .folder-heading { margin-top:5px; color:var(--nb-muted); font-size:12px; font-weight:900; letter-spacing:1px; text-transform:uppercase; }
 .notebook-sidebar footer { display:grid; gap:9px; margin-top:auto; padding-top:15px; border-top:1px solid var(--nb-line); }
 .notebook-sidebar footer span { color:var(--nb-mint); font-size:12px; font-weight:800; }
+.notebook-sidebar footer .sync-offline { color:#ff829a; }
+.notebook-sync-error { color:#ff9aac; font-size:11px; line-height:1.35; overflow-wrap:anywhere; }
 .note-list-panel { height:100vh; border-right:1px solid var(--nb-line); background:var(--nb-panel); overflow:hidden; }
 .note-list-panel>header { padding:16px; }
 .note-list-panel label { flex:1; display:flex; gap:8px; padding:9px 11px; border:1px solid var(--nb-line); border-radius:9px; background:var(--nb-panel2); }

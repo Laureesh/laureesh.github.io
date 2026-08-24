@@ -39,6 +39,7 @@ export default function Notebook() {
   const [query, setQuery] = useState("");
   const [tagFilter, setTagFilter] = useState("");
   const [saveState, setSaveState] = useState<"loading" | "saving" | "saved" | "offline">("loading");
+  const [syncError, setSyncError] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [listMode, setListMode] = useState<"notes" | "calendar">("notes");
@@ -50,13 +51,14 @@ export default function Notebook() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
+      let loadFailed = false;
       if (user?.uid) {
         try {
           const cloud = await loadNotebookLibrary(user.uid) as NotebookData | null;
           if (!cancelled && cloud?.notes && cloud?.folders) { setData(cloud); setSelectedId(cloud.notes[0]?.id ?? ""); }
-        } catch { if (!cancelled) setSaveState("offline"); }
+        } catch (error) { loadFailed = true; if (!cancelled) { setSaveState("offline"); setSyncError(error instanceof Error ? error.message : "Cloud library could not be loaded."); } }
       }
-      if (!cancelled) { readyRef.current = true; setSaveState(user?.uid ? "saved" : "offline"); }
+      if (!cancelled) { readyRef.current = true; setSaveState(user?.uid && !loadFailed ? "saved" : "offline"); }
     })();
     return () => { cancelled = true; };
   }, [user?.uid]);
@@ -64,10 +66,11 @@ export default function Notebook() {
   useEffect(() => {
     if (!readyRef.current) return;
     setSaveState("saving");
+    setSyncError("");
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     const timer = window.setTimeout(() => {
       if (!user?.uid) { setSaveState("offline"); return; }
-      void saveNotebookLibrary(user.uid, data).then(() => setSaveState("saved")).catch(() => setSaveState("offline"));
+      void saveNotebookLibrary(user.uid, data).then(() => { setSaveState("saved"); setSyncError(""); }).catch((error: unknown) => { setSaveState("offline"); setSyncError(error instanceof Error ? error.message : "Cloud save failed."); });
     }, 650);
     return () => window.clearTimeout(timer);
   }, [data, user?.uid]);
@@ -118,7 +121,7 @@ export default function Notebook() {
       <nav><button className={folderFilter === "all" ? "active" : ""} onClick={() => setFolderFilter("all")}>▤ All notes <b>{data.notes.filter(n => !n.archived).length}</b></button><button className={folderFilter === "pinned" ? "active" : ""} onClick={() => setFolderFilter("pinned")}>★ Pinned</button><button className={folderFilter === "archive" ? "active" : ""} onClick={() => setFolderFilter("archive")}>⌁ Archive</button></nav>
       <div className="folder-heading"><span>Folders</span><button onClick={() => addFolder()}>＋</button></div>
       <nav>{data.folders.filter(folder => !folder.parentId).map((folder) => <div key={folder.id}><button className={folderFilter === folder.id ? "active" : ""} onClick={() => setFolderFilter(folder.id)}><i style={{ background: folder.color }} />{folder.name}<b>{data.notes.filter(note => note.folderId === folder.id).length}</b></button>{data.folders.filter(child => child.parentId === folder.id).map(child => <button className={`subfolder ${folderFilter === child.id ? "active" : ""}`} key={child.id} onClick={() => setFolderFilter(child.id)}>↳ {child.name}</button>)}<button className="add-subfolder" onClick={() => addFolder(folder.id)}>＋ subfolder</button></div>)}</nav>
-      <footer><span className={`sync-${saveState}`}>● {saveState === "saved" ? "Synced" : saveState === "saving" ? "Saving…" : saveState === "loading" ? "Loading…" : "Saved offline"}</span><button onClick={() => navigate("/admin-dashboard/private-pages")}>← Private pages</button></footer>
+      <footer><span className={`sync-${saveState}`} title={syncError}>● {saveState === "saved" ? "Synced across devices" : saveState === "saving" ? "Saving to cloud…" : saveState === "loading" ? "Loading cloud notes…" : user?.uid ? "Cloud sync failed" : "Saved on this device only"}</span>{syncError && <small className="notebook-sync-error">{syncError}</small>}<button onClick={() => navigate("/admin-dashboard/private-pages")}>← Private pages</button></footer>
     </aside>
     <section className="note-list-panel">
       <header><button className="open-sidebar" onClick={() => setSidebarOpen(true)}>☰</button><label>⌕<input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search every note and file" /></label></header>
@@ -126,7 +129,7 @@ export default function Notebook() {
       {listMode === "notes" ? <div className="note-list">{visibleNotes.map(note => <button className={note.id === selected.id ? "active" : ""} key={note.id} onClick={() => setSelectedId(note.id)}><span>{note.pinned ? "★" : ""} {note.title || "Untitled"}</span><p>{textFromHtml(note.html).slice(0, 110) || "Empty note"}</p><small>{note.noteDate ? new Date(`${note.noteDate}T12:00:00`).toLocaleDateString() : new Date(note.updatedAt).toLocaleDateString()} · {note.tags.slice(0, 2).map(tag => `#${tag}`).join(" ")}</small></button>)}</div> : <div className="notebook-calendar"><header><button onClick={() => setCalendarMonth(current => new Date(current.getFullYear(), current.getMonth() - 1, 1))}>←</button><strong>{calendarMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</strong><button onClick={() => setCalendarMonth(current => new Date(current.getFullYear(), current.getMonth() + 1, 1))}>→</button></header><div className="calendar-weekdays">{["S","M","T","W","T","F","S"].map((day, index) => <span key={`${day}-${index}`}>{day}</span>)}</div><div className="calendar-grid">{calendarDays.map(day => { const key = localDateKey(day); const dayNotes = visibleNotes.filter(note => (note.noteDate || note.createdAt.slice(0, 10)) === key); return <div className={`${day.getMonth() === calendarMonth.getMonth() ? "" : "outside"} ${key === localDateKey() ? "today" : ""}`} key={key}><span>{day.getDate()}</span>{dayNotes.slice(0, 3).map(note => <button title={note.title} key={note.id} onClick={() => setSelectedId(note.id)}>{note.title}</button>)}{dayNotes.length > 3 && <small>+{dayNotes.length - 3} more</small>}</div>; })}</div></div>}
     </section>
     <main className="notebook-editor">
-      <header className="editor-top"><div><span>{saveState === "saving" ? "Saving changes…" : saveState === "offline" ? "Saved offline" : "All changes saved"}</span><small>{new Date(selected.updatedAt).toLocaleString()}</small></div><div><button onClick={() => updateNote({ pinned: !selected.pinned })}>{selected.pinned ? "★ Pinned" : "☆ Pin"}</button><button onClick={snapshot}>◷ Snapshot</button><button onClick={() => setHistoryOpen(!historyOpen)}>History ({selected.versions.length})</button><button onClick={() => updateNote({ archived: !selected.archived })}>{selected.archived ? "Restore" : "Archive"}</button><button className="danger" onClick={deleteNote}>Delete</button></div></header>
+      <header className="editor-top"><div><span>{saveState === "saving" ? "Saving changes…" : saveState === "offline" ? user?.uid ? "Cloud sync failed—local backup safe" : "Saved on this device" : "Synced across devices"}</span><small>{new Date(selected.updatedAt).toLocaleString()}</small></div><div><button onClick={() => updateNote({ pinned: !selected.pinned })}>{selected.pinned ? "★ Pinned" : "☆ Pin"}</button><button onClick={snapshot}>◷ Snapshot</button><button onClick={() => setHistoryOpen(!historyOpen)}>History ({selected.versions.length})</button><button onClick={() => updateNote({ archived: !selected.archived })}>{selected.archived ? "Restore" : "Archive"}</button><button className="danger" onClick={deleteNote}>Delete</button></div></header>
       <div className="editor-meta"><input className="note-title" value={selected.title} onChange={event => updateNote({ title: event.target.value })} placeholder="Untitled note" /><div><label className="note-date-field"><span>Note date</span><input type="date" value={selected.noteDate ?? selected.createdAt.slice(0, 10)} onChange={event => updateNote({ noteDate: event.target.value })} /></label><select value={selected.folderId ?? ""} onChange={event => updateNote({ folderId: event.target.value || null })}><option value="">No folder</option>{data.folders.map(folder => <option value={folder.id} key={folder.id}>{folder.parentId ? "↳ " : ""}{folder.name}</option>)}</select><input value={selected.tags.join(", ")} onChange={event => updateNote({ tags: event.target.value.split(",").map(tag => tag.trim()).filter(Boolean) })} placeholder="Tags, separated by commas" /></div></div>
       <div className="editor-toolbar" role="toolbar"><button onClick={() => format("formatBlock", "h1")}>H1</button><button onClick={() => format("formatBlock", "h2")}>H2</button><button onClick={() => format("bold")}><b>B</b></button><button onClick={() => format("italic")}><i>I</i></button><button onClick={() => format("hiliteColor", "#fff09a")}>Highlight</button><button onClick={() => format("insertUnorderedList")}>• List</button><button onClick={() => format("insertOrderedList")}>1. List</button><button onClick={() => format("formatBlock", "pre")}>Code</button><button onClick={() => { const url = prompt("Link URL"); if (url) format("createLink", url); }}>Link</button><button onClick={startVoice}>🎙 Dictate</button><label className="attach-button">＋ Attach<input type="file" multiple accept="image/*,application/pdf,audio/*,video/*" onChange={attachFiles} /></label></div>
       <div ref={editorRef} className="rich-editor" contentEditable suppressContentEditableWarning onInput={event => updateNote({ html: event.currentTarget.innerHTML })} data-placeholder="Start writing…" />
