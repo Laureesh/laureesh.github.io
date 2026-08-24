@@ -2735,7 +2735,6 @@ export default function Flashbolt() {
             <section className="creator-page">
               <div className="page-heading split">
                 <div><button className="back-link" onClick={() => navigate("library")}>← Library</button><span className="eyebrow">{editingSetId ? "Edit set" : "New flashcard set"}</span><h1>{editingSetId ? "Make it better." : "Build a set that sticks."}</h1></div>
-                <div className="heading-actions"><button className="button quiet" onClick={() => saveDraft(false)}>Save</button><button className="button primary" onClick={() => saveDraft(true)}>Save & study</button></div>
               </div>
               <div className="creator-layout">
                 <div className="creator-main">
@@ -2874,9 +2873,11 @@ export default function Flashbolt() {
 
                 <aside className="import-panel">
                   <section className={`creation-checklist collapsible-panel-section ${collapsedEditorSections.includes("checklist") ? "collapsed" : ""} ${draftCompletion === 100 ? "complete" : ""}`} aria-label={`Set creation ${draftCompletion}% complete`}>
-                    <button className="side-panel-collapse-button creation-checklist-heading" type="button" onClick={() => toggleEditorSection("checklist")} aria-expanded={!collapsedEditorSections.includes("checklist")}><div><span className="eyebrow">Set checklist</span><h3>{draftCompletion === 100 ? "Ready to study" : "Finish your set"}</h3></div><span className="side-panel-heading-value"><span className="live-card-total" aria-live="polite">{draft.cards.length} card{draft.cards.length === 1 ? "" : "s"}</span><strong>{draftCompletion}%</strong><i aria-hidden="true">⌃</i></span></button>
+                    <button className="side-panel-collapse-button creation-checklist-heading" type="button" onClick={() => toggleEditorSection("checklist")} aria-expanded={!collapsedEditorSections.includes("checklist")}><div><span className="eyebrow">Set checklist</span><h3>{draftCompletion === 100 ? "Ready to study" : "Finish your set"}</h3></div><i aria-hidden="true">⌃</i></button>
+                    <div className="creation-checklist-summary" aria-live="polite"><strong>{draftCompletion}%</strong><span>{draft.cards.length} card{draft.cards.length === 1 ? "" : "s"}</span></div>
+                    <div className="creation-progress" role="progressbar" aria-label="Set completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={draftCompletion}><i style={{ width: `${draftCompletion}%` }} /></div>
+                    <div className="editor-save-actions"><button className="button quiet" onClick={() => saveDraft(false)}>Save</button><button className="button primary" onClick={() => saveDraft(true)}>Save &amp; study</button></div>
                     <div className="collapsible-panel-body">
-                      <div className="creation-progress" role="progressbar" aria-label="Set completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={draftCompletion}><i style={{ width: `${draftCompletion}%` }} /></div>
                       <ul>{draftChecklist.map((item) => <li className={item.complete ? "complete" : ""} key={item.label}><span>{item.complete ? "✓" : "○"}</span><div><strong>{item.label}</strong>{!item.complete && <small>{item.detail}</small>}</div></li>)}</ul>
                     </div>
                   </section>
