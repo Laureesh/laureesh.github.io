@@ -1229,6 +1229,17 @@ export default function Flashbolt() {
       return result || titleTieBreaker(a, b);
     });
   }, [data.folders, data.mastered, data.sets, folder, librarySort, search]);
+  const folderSubjectGroups = useMemo(() => {
+    const groups = new Map<string, { subject: string; sets: StudySet[] }>();
+    filteredSets.forEach((set) => {
+      const subject = set.subject.trim() || "General";
+      const key = subject.toLocaleLowerCase();
+      const existing = groups.get(key);
+      if (existing) existing.sets.push(set);
+      else groups.set(key, { subject, sets: [set] });
+    });
+    return [...groups.values()].sort((a, b) => LIBRARY_COLLATOR.compare(a.subject, b.subject));
+  }, [filteredSets]);
 
   const testCards = selectedSet?.cards.slice(0, 8) ?? [];
   const testScore = testCards.filter((card) => normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card))).length;
@@ -2657,7 +2668,19 @@ export default function Flashbolt() {
                   </select></span>
                 </label>
               </div>}
-              {renderSetGrid(filteredSets)}
+              {folder && filteredSets.length ? (
+                <div className="folder-subject-sections">
+                  {folderSubjectGroups.map((group) => (
+                    <section className="folder-subject-section" key={group.subject.toLocaleLowerCase()}>
+                      <div className="folder-subject-heading">
+                        <div><span className="eyebrow">Subject</span><h2>{group.subject}</h2></div>
+                        <small>{group.sets.length} set{group.sets.length === 1 ? "" : "s"}</small>
+                      </div>
+                      {renderSetGrid(group.sets)}
+                    </section>
+                  ))}
+                </div>
+              ) : renderSetGrid(filteredSets)}
             </section>
           )}
 

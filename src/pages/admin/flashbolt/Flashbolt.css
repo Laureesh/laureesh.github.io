@@ -2478,6 +2478,38 @@ code {
   gap: 34px;
 }
 
+.folder-subject-sections {
+  display: grid;
+  gap: 42px;
+}
+
+.folder-subject-section {
+  display: grid;
+  gap: 18px;
+}
+
+.folder-subject-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.folder-subject-heading h2 {
+  margin: 4px 0 0;
+  color: var(--ink);
+  font-size: 24px;
+  overflow-wrap: anywhere;
+}
+
+.folder-subject-heading > small {
+  color: var(--faint);
+  font-size: 16px;
+}
+
 .folder-page-semester {
   display: grid;
   gap: 13px;
