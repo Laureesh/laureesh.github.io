@@ -1682,6 +1682,31 @@ export default function Flashbolt() {
     updateDraftCardExtras(card.id, updates);
   }
 
+  function pasteDraftChoices(card: Card, startIndex: number, pastedText: string) {
+    const pastedChoices = pastedText
+      .split(/\r?\n/)
+      .map((line) => line.trim().replace(/^[A-Z](?:[.)\]:-]|\s+)\s*/i, "").trim())
+      .filter(Boolean)
+      .slice(0, 26 - startIndex);
+    if (pastedChoices.length < 2) return false;
+
+    const previousChoices = card.answerChoices ?? [];
+    const correctIndexes = previousChoices
+      .map((choice, index) => correctAnswersForCard(card).some((answer) => normalizeAnswer(cleanChoiceAnswer(answer)) === normalizeAnswer(cleanChoiceAnswer(choice))) ? index : -1)
+      .filter((index) => index >= 0);
+    const choices = [...previousChoices];
+    while (choices.length < startIndex + pastedChoices.length) choices.push("");
+    pastedChoices.forEach((choice, offset) => { choices[startIndex + offset] = choice; });
+    const correctAnswers = correctIndexes.map((index) => choices[index]).filter(Boolean);
+    updateDraftCardExtras(card.id, {
+      answerChoices: choices,
+      correctAnswers,
+      definition: cardQuestionType(card) === "select-all" ? correctAnswers.join("; ") : correctAnswers[0] ?? card.definition,
+    });
+    notify(`${pastedChoices.length} answer choices populated.`);
+    return true;
+  }
+
   function toggleDraftCorrectAnswer(card: Card, choice: string) {
     if (!choice.trim()) return;
     if (cardQuestionType(card) === "select-all") {
@@ -2968,7 +2993,7 @@ export default function Flashbolt() {
                                     return (
                                       <label className={isCorrect ? "correct" : ""} key={`${card.id}-choice-${choiceIndex}`}>
                                         <button type="button" className="choice-correct-toggle" onClick={() => toggleDraftCorrectAnswer(card, choice)} aria-label={`${isCorrect ? "Unmark" : "Mark"} choice ${String.fromCharCode(65 + choiceIndex)} as correct`} aria-pressed={isCorrect}>{String.fromCharCode(65 + choiceIndex)}</button>
-                                        <input value={choice} onChange={(event) => updateDraftChoice(card, choiceIndex, event.target.value)} aria-label={`Choice ${String.fromCharCode(65 + choiceIndex)} for card ${index + 1}`} placeholder={`Choice ${String.fromCharCode(65 + choiceIndex)}`} readOnly={cardQuestionType(card) === "true-false"} />
+                                        <input value={choice} onChange={(event) => updateDraftChoice(card, choiceIndex, event.target.value)} onPaste={(event) => { if (pasteDraftChoices(card, choiceIndex, event.clipboardData.getData("text/plain"))) event.preventDefault(); }} aria-label={`Choice ${String.fromCharCode(65 + choiceIndex)} for card ${index + 1}`} placeholder={`Choice ${String.fromCharCode(65 + choiceIndex)}`} readOnly={cardQuestionType(card) === "true-false"} />
                                         {isCorrect && <small>Correct</small>}
                                         {cardQuestionType(card) !== "true-false" && card.answerChoices && card.answerChoices.length > 2 && <button type="button" className="choice-remove" onClick={() => updateDraftCardExtras(card.id, { answerChoices: card.answerChoices?.filter((_, itemIndex) => itemIndex !== choiceIndex), correctAnswers: correctAnswersForCard(card).filter((answer) => normalizeAnswer(answer) !== normalizeAnswer(choice)) })} aria-label={`Remove choice ${String.fromCharCode(65 + choiceIndex)}`}>×</button>}
                                       </label>
