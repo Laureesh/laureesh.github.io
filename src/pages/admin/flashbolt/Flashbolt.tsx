@@ -1137,6 +1137,16 @@ export default function Flashbolt() {
   const nextFolderSet = folderSetIndex >= 0 && folderSetIndex < folderSets.length - 1
     ? folderSets[folderSetIndex + 1]
     : undefined;
+  const editorFolder = editingSetId
+    ? data.folders.find((folderItem) => folderItem.id === selectedFolderId && folderItem.setIds.includes(editingSetId))
+      ?? data.folders.find((folderItem) => folderItem.setIds.includes(editingSetId))
+    : undefined;
+  const editorFolderSets = editorFolder
+    ? editorFolder.setIds.map((setId) => data.sets.find((set) => set.id === setId)).filter((set): set is StudySet => Boolean(set))
+    : [];
+  const editorSetIndex = editorFolderSets.findIndex((set) => set.id === editingSetId);
+  const previousEditorSet = editorSetIndex > 0 ? editorFolderSets[editorSetIndex - 1] : undefined;
+  const nextEditorSet = editorSetIndex >= 0 && editorSetIndex < editorFolderSets.length - 1 ? editorFolderSets[editorSetIndex + 1] : undefined;
   const editingFolder = data.folders.find((item) => item.id === editingFolderId);
   const recentSourceSet = data.sets[0];
   const recentSetValues = data.recentSetValues ?? (recentSourceSet ? {
@@ -1503,6 +1513,7 @@ export default function Flashbolt() {
   }
 
   function startEdit(set: StudySet) {
+    setSelectedSetId(set.id);
     setEditingSetId(set.id);
     setCreateOriginFolderId(null);
     setDraftFolderSearch("");
@@ -2427,6 +2438,7 @@ export default function Flashbolt() {
               <span className="tile-kicker"><span>{set.subject || "General"}</span><span>{formatDate(set.updatedAt)}</span></span>
               <strong className="set-tile-title">{set.title}</strong>
               <span className="tile-description">{set.description || "Your private flashcard set."}</span>
+              {set.kahootUrl && isSafeKahootUrl(set.kahootUrl) && <a className="tile-kahoot-link" href={set.kahootUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()} aria-label={`Open Kahoot for ${set.title}`}>◆ Open Kahoot <span>↗</span></a>}
               <div className="tile-folder-control" data-tile-folder-picker={set.id}>
                 <button
                   className={`tile-folder-badge ${setFolders.length ? "assigned" : "unfiled"}`}
@@ -2647,6 +2659,7 @@ export default function Flashbolt() {
                     <div className="button-row">
                       <button className="button primary" onClick={() => openSet(selectedSet.id)}>Resume flashcards <span>→</span></button>
                       <button className="button quiet" onClick={startLearn}>Learn mode</button>
+                      {selectedSet.kahootUrl && isSafeKahootUrl(selectedSet.kahootUrl) && <a className="button quiet" href={selectedSet.kahootUrl} target="_blank" rel="noreferrer">Open Kahoot ↗</a>}
                     </div>
                   </div>
                 </section>
@@ -2825,6 +2838,7 @@ export default function Flashbolt() {
             <section className="creator-page">
               <div className="page-heading split">
                 <div><button className="back-link" onClick={() => navigate("library")}>← Library</button><span className="eyebrow">{editingSetId ? "Edit set" : "New flashcard set"}</span><h1>{editingSetId ? "Make it better." : "Build a set that sticks."}</h1></div>
+                {editingSetId && editorFolder && editorFolderSets.length > 1 && <nav className="editor-set-navigation" aria-label={`Move between sets in ${editorFolder.name}`}><span>{editorSetIndex + 1} of {editorFolderSets.length} in {editorFolder.name}</span><div><button className="button quiet" disabled={!previousEditorSet} onClick={() => previousEditorSet && startEdit(previousEditorSet)} title={previousEditorSet?.title ?? "First set in folder"}>← Previous</button><button className="button quiet" disabled={!nextEditorSet} onClick={() => nextEditorSet && startEdit(nextEditorSet)} title={nextEditorSet?.title ?? "Last set in folder"}>Next →</button></div></nav>}
               </div>
               <div className="creator-layout">
                 <div className="creator-main">
@@ -3006,7 +3020,7 @@ export default function Flashbolt() {
             <section className="study-page">
               <div className="page-heading split compact">
                 <div><button className="back-link" onClick={() => navigate("library")}>← Library</button><span className="eyebrow">{selectedSet.subject}</span><h1>{selectedSet.title}</h1><p>{selectedSet.description}</p></div>
-                <div className="heading-actions"><button className="button quiet" onClick={() => startEdit(selectedSet)}>Edit set</button><button className="icon-button danger" onClick={deleteSelectedSet} aria-label="Delete set">×</button></div>
+                <div className="heading-actions">{selectedSet.kahootUrl && isSafeKahootUrl(selectedSet.kahootUrl) && <a className="button quiet" href={selectedSet.kahootUrl} target="_blank" rel="noreferrer">◆ Open Kahoot ↗</a>}<button className="button quiet" onClick={() => startEdit(selectedSet)}>Edit set</button><button className="icon-button danger" onClick={deleteSelectedSet} aria-label="Delete set">×</button></div>
               </div>
               {folder && folderSetIndex >= 0 && folderSets.length > 1 && (
                 <nav className="folder-set-navigation" aria-label={`Move between sets in ${folder.name}`}>

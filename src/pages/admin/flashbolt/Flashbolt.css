@@ -1585,6 +1585,34 @@ select:focus-visible {
   line-height: 1.35;
 }
 
+.tile-kahoot-link {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  gap: 7px;
+  margin-top: 11px;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--primary-strong) 48%, var(--line));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--primary-soft) 55%, var(--panel));
+  color: var(--primary-strong);
+  font-size: 13px;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.tile-kahoot-link:hover,
+.tile-kahoot-link:focus-visible {
+  border-color: var(--primary-strong);
+  background: var(--primary-soft);
+  color: var(--ink);
+}
+
+.tile-kahoot-link span { margin-left: 2px; }
+
 .tile-folder-control {
   position: relative;
   z-index: 2;
@@ -2938,6 +2966,24 @@ select {
   gap: 13px;
   margin: 19px 0;
 }
+
+.editor-set-navigation {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.editor-set-navigation > span {
+  max-width: 360px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.editor-set-navigation > div { display: flex; gap: 8px; }
+.editor-set-navigation .button { min-width: 112px; }
 
 .kahoot-link-field {
   display: grid;
