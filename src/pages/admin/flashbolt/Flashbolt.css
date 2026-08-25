@@ -7085,7 +7085,7 @@ kbd {
 .kahoot-helper-choices li { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 50px; padding: 7px 12px 7px 7px; border: 1px solid #343959; border-radius: 9px; background: #14182e; color: #8d92a9; opacity: .58; overflow-wrap: anywhere; }
 .kahoot-helper-choices li.correct { border-color: #2abe7c; background: #0b5537; color: #fff; opacity: 1; box-shadow: 0 0 24px rgba(42, 190, 124, .16); }
 .kahoot-helper-choices li > b { color: #71efbd; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
-.choice-symbol { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 7px; color: white; font-size: 16px; }
+.choice-symbol { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 7px; color: white; font-size: 16px; font-weight: 900; }
 .choice-0 { background: #d83942; }.choice-1 { background: #1768c4; }.choice-2 { background: #c59618; }.choice-3 { background: #218350; }
 .kahoot-helper-answer { display: grid; gap: 7px; padding: 18px; border: 1px solid #2abe7c; border-radius: 12px; background: #0b5537; overflow-wrap: anywhere; }
 .kahoot-helper-answer span { color: #71efbd; font-size: 11px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
