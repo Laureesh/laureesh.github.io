@@ -4505,6 +4505,14 @@ kbd {
   min-height: calc(100vh - 190px);
 }
 
+.learn-page.session-active {
+  display: flex;
+  height: calc(100dvh - 125px);
+  min-height: 560px;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .learn-goal-screen {
   width: min(980px, 100%);
   margin: 0 auto;
@@ -4672,12 +4680,13 @@ kbd {
 }
 
 .learn-mastery-overview.compact {
-  margin: 0 0 17px;
+  margin: 0 0 7px;
 }
 
 .learn-mastery-overview.compact > span {
-  min-height: 36px;
-  padding-block: 7px;
+  min-height: 31px;
+  padding-block: 5px;
+  font-size: 14px;
 }
 
 .level-new { background: #7d87a7; }
@@ -4698,8 +4707,8 @@ kbd {
   gap: 22px;
   align-items: center;
   width: min(1120px, 100%);
-  margin: -20px auto 48px;
-  padding: 15px;
+  margin: -20px auto 12px;
+  padding: 10px 13px;
   border: 1px solid var(--line-soft);
   border-radius: 17px;
   background: var(--panel);
@@ -4836,12 +4845,14 @@ kbd {
 .learn-question-shell {
   width: min(900px, 100%);
   margin: 0 auto;
+  min-height: 0;
+  flex: 1;
 }
 
 .learn-question-meta {
   display: flex;
   justify-content: space-between;
-  margin: 0 4px 20px;
+  margin: 0 4px 8px;
   color: var(--faint);
   font-size: 17px;
   font-weight: 850;
@@ -4869,8 +4880,8 @@ kbd {
 
 .learn-question-image {
   width: min(320px, 100%);
-  max-height: 185px;
-  margin: -13px 0 26px;
+  max-height: 135px;
+  margin: -5px 0 10px;
   border-radius: 13px;
   object-fit: contain;
 }
@@ -4907,12 +4918,12 @@ kbd {
 
 .true-false-question {
   display: grid;
-  gap: 18px;
+  gap: 9px;
 }
 
 .true-false-question > p {
   margin: 0;
-  padding: 17px 19px;
+  padding: 11px 14px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--panel-2);
@@ -4960,13 +4971,28 @@ kbd {
 }
 
 .true-false-question button.correct {
-  border-color: rgba(113, 217, 191, 0.5);
-  background: rgba(113, 217, 191, 0.1);
+  border-color: #b9ffe9;
+  background: #70e6c3;
+  color: #062d25;
+  box-shadow: 0 10px 28px rgba(85, 214, 190, 0.22);
 }
 
 .true-false-question button.incorrect {
-  border-color: rgba(255, 123, 138, 0.5);
-  background: rgba(255, 123, 138, 0.1);
+  border-color: #713744;
+  background: #18131c;
+  color: #8b7d84;
+}
+
+.true-false-question button.muted {
+  background: #14161e;
+  opacity: 0.28;
+}
+
+.true-false-question button.correct:disabled,
+.true-false-question button.incorrect:disabled,
+.answer-grid > button.correct:disabled,
+.answer-grid > button.incorrect:disabled {
+  opacity: 1;
 }
 
 .select-all-question {
@@ -4982,10 +5008,10 @@ kbd {
 
 .select-all-grid label {
   display: flex;
-  min-height: 63px;
+  min-height: 52px;
   align-items: center;
   gap: 12px;
-  padding: 11px 13px;
+  padding: 8px 11px;
   border: 1px solid var(--line);
   border-radius: 11px;
   background: var(--panel);
@@ -4995,6 +5021,38 @@ kbd {
 .select-all-grid label.selected {
   border-color: var(--primary-strong);
   background: var(--primary-soft);
+}
+
+.select-all-grid label.correct {
+  border-color: #b9ffe9;
+  background: #70e6c3;
+  color: #062d25;
+  box-shadow: 0 8px 22px rgba(85, 214, 190, 0.2);
+}
+
+.select-all-grid label.correct p {
+  color: #062d25;
+}
+
+.select-all-grid label.correct > span {
+  border-color: #155d4d;
+  background: #d9fff3;
+  color: #0a4c3e;
+}
+
+.select-all-grid label.incorrect {
+  border-color: #713744;
+  background: #18131c;
+  opacity: 1;
+}
+
+.select-all-grid label.incorrect p {
+  color: #8b7d84;
+}
+
+.select-all-grid label.muted {
+  background: #14161e;
+  opacity: 0.28;
 }
 
 .select-all-grid input {
@@ -5387,23 +5445,23 @@ kbd {
 
 .question-card h1 {
   max-width: 780px;
-  margin-bottom: 38px;
-  font-size: clamp(27px, 3.7vw, 43px);
+  margin: 10px 0 16px;
+  font-size: clamp(22px, 3.4vh, 36px);
   line-height: 1.18;
 }
 
 .answer-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 11px;
+  gap: 7px;
 }
 
 .answer-grid > button {
   display: flex;
-  min-height: 85px;
+  min-height: 58px;
   align-items: center;
   gap: 16px;
-  padding: 15px;
+  padding: 10px 13px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--panel);
@@ -5430,18 +5488,23 @@ kbd {
 }
 
 .answer-grid > button.correct {
-  border-color: rgba(113, 217, 191, 0.5);
-  background: rgba(113, 217, 191, 0.08);
+  border-color: #b9ffe9;
+  background: #70e6c3;
+  color: #062d25;
+  box-shadow: 0 0 0 2px rgba(185, 255, 233, 0.22), 0 10px 28px rgba(85, 214, 190, 0.24);
 }
 
 .answer-grid > button.incorrect {
-  border-color: rgba(255, 139, 157, 0.5);
-  background: rgba(255, 139, 157, 0.07);
+  border-color: #713744;
+  background: #18131c;
+  color: #8b7d84;
+  box-shadow: inset 0 0 0 1px rgba(255, 123, 138, 0.08);
 }
 
 .answer-grid > button.correct span {
-  border-color: var(--mint);
-  color: var(--mint);
+  border-color: #155d4d;
+  background: #d9fff3;
+  color: #0a4c3e;
 }
 
 .answer-grid > button.incorrect span {
@@ -5450,27 +5513,30 @@ kbd {
 }
 
 .answer-grid > button.muted {
-  opacity: 0.42;
+  background: #14161e;
+  opacity: 0.28;
 }
 
 .answer-feedback {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 30px;
-  margin-top: 23px;
-  padding: 19px 21px;
+  gap: 16px;
+  margin-top: 10px;
+  padding: 11px 14px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--panel);
 }
 
 .answer-feedback.correct {
-  border-color: rgba(113, 217, 191, 0.3);
+  border-color: rgba(113, 230, 195, 0.75);
+  background: rgba(85, 214, 190, 0.12);
 }
 
 .answer-feedback.incorrect {
   border-color: rgba(255, 139, 157, 0.3);
+  background: #14131a;
 }
 
 .answer-feedback strong,
@@ -5480,6 +5546,40 @@ kbd {
 
 .answer-feedback strong {
   font-size: 16px;
+}
+
+.learn-continue-action {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 3px;
+  text-align: right;
+}
+
+.learn-continue-action > small {
+  color: var(--faint);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+@media (max-height: 760px) and (min-width: 769px) {
+  .learn-page.session-active .learn-mastery-overview.compact {
+    display: none;
+  }
+
+  .learn-page.session-active .learn-session-header {
+    margin-bottom: 7px;
+  }
+
+  .learn-page.session-active .answer-grid > button {
+    min-height: 50px;
+    padding-block: 7px;
+  }
+
+  .learn-page.session-active .question-card h1 {
+    margin-block: 7px 12px;
+    font-size: clamp(20px, 3vh, 30px);
+  }
 }
 
 .answer-feedback p {

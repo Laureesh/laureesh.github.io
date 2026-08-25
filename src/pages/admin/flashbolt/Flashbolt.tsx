@@ -1304,6 +1304,24 @@ export default function Flashbolt() {
   const resumableLearn = data.activeLearn?.setId === selectedSet?.id ? data.activeLearn : undefined;
 
   useEffect(() => {
+    if (view !== "learn" || learnPhase !== "session" || !learnAnswer || learnOptionsOpen) return;
+    const retypeRequired = !learnLastCorrect && learnOptions.retypeCorrectAnswers;
+    const canContinue = !retypeRequired || normalizeAnswer(learnRetypeAnswer) === normalizeAnswer(currentLearnCorrectAnswer);
+    if (!canContinue) return;
+    const continueOnKey = (event: globalThis.KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target;
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement || (target instanceof HTMLElement && target.isContentEditable)) return;
+      event.preventDefault();
+      nextLearnQuestion();
+    };
+    window.addEventListener("keydown", continueOnKey);
+    return () => window.removeEventListener("keydown", continueOnKey);
+    // nextLearnQuestion is intentionally omitted because it is recreated with the current session state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentLearnCorrectAnswer, learnAnswer, learnLastCorrect, learnOptions.retypeCorrectAnswers, learnOptionsOpen, learnPhase, learnRetypeAnswer, view]);
+
+  useEffect(() => {
     if (view !== "learn" || learnPhase !== "session" || !learnOptions.textToSpeech || !currentLearnPrompt) return;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(new SpeechSynthesisUtterance(currentLearnPrompt));
@@ -2979,7 +2997,7 @@ export default function Flashbolt() {
           )}
 
           {!search && view === "learn" && selectedSet && (
-            <section className="learn-page">
+            <section className={`learn-page ${learnPhase === "session" ? "session-active" : ""}`}>
               {learnPhase === "goal" && (
                 <div className="learn-goal-screen">
                   <button className="back-link" onClick={() => navigate("set")}>← Back to set</button>
@@ -3028,18 +3046,18 @@ export default function Flashbolt() {
                         return <button key={option} className={resultClass} onClick={() => chooseLearnAnswer(option)} disabled={Boolean(learnAnswer)}><span>{String.fromCharCode(65 + index)}</span>{option}</button>;
                       })}</div>}
 
-                      {currentLearnQuestionKind === "true-false" && <div className="true-false-question"><p>The matching {currentLearnAnswerSide} is <strong>{currentTrueFalse.statement}</strong>.</p><div><button className={learnAnswer === "True" ? (learnLastCorrect ? "correct" : "incorrect") : ""} onClick={() => submitTrueFalseLearnAnswer(true)} disabled={Boolean(learnAnswer)}><span>✓</span>True</button><button className={learnAnswer === "False" ? (learnLastCorrect ? "correct" : "incorrect") : ""} onClick={() => submitTrueFalseLearnAnswer(false)} disabled={Boolean(learnAnswer)}><span>×</span>False</button></div></div>}
+                      {currentLearnQuestionKind === "true-false" && <div className="true-false-question"><p>The matching {currentLearnAnswerSide} is <strong>{currentTrueFalse.statement}</strong>.</p><div><button className={learnAnswer ? (currentTrueFalse.answer ? "correct" : learnAnswer === "True" ? "incorrect" : "muted") : ""} onClick={() => submitTrueFalseLearnAnswer(true)} disabled={Boolean(learnAnswer)}><span>✓</span>True</button><button className={learnAnswer ? (!currentTrueFalse.answer ? "correct" : learnAnswer === "False" ? "incorrect" : "muted") : ""} onClick={() => submitTrueFalseLearnAnswer(false)} disabled={Boolean(learnAnswer)}><span>×</span>False</button></div></div>}
 
                       {currentLearnQuestionKind === "written" && <form className="written-answer" onSubmit={(event) => { event.preventDefault(); submitWrittenLearnAnswer(); }}><label><span>Your answer</span><input value={learnWrittenAnswer} onChange={(event) => setLearnWrittenAnswer(event.target.value)} disabled={Boolean(learnAnswer)} placeholder={`Type the ${currentLearnAnswerSide}`} /></label><button className="button primary" disabled={!learnWrittenAnswer.trim() || Boolean(learnAnswer)}>Check answer</button></form>}
 
-                      {currentLearnQuestionKind === "select-all" && <div className="select-all-question"><div className="select-all-grid">{currentSelectAll.choices.map((option) => <label key={option} className={learnSelectedAnswers.includes(option) ? "selected" : ""}><input type="checkbox" checked={learnSelectedAnswers.includes(option)} onChange={() => setLearnSelectedAnswers((answers) => answers.includes(option) ? answers.filter((answer) => answer !== option) : [...answers, option])} disabled={Boolean(learnAnswer)} /><span>✓</span><p>{option}</p></label>)}</div><button className="button primary" onClick={submitSelectAllLearnAnswer} disabled={!learnSelectedAnswers.length || Boolean(learnAnswer)}>Check selections</button></div>}
+                      {currentLearnQuestionKind === "select-all" && <div className="select-all-question"><div className="select-all-grid">{currentSelectAll.choices.map((option) => { const selected = learnSelectedAnswers.includes(option); const correct = currentSelectAll.correctParts.includes(option); const resultClass = learnAnswer ? (correct ? "correct" : selected ? "incorrect" : "muted") : selected ? "selected" : ""; return <label key={option} className={resultClass}><input type="checkbox" checked={selected} onChange={() => setLearnSelectedAnswers((answers) => answers.includes(option) ? answers.filter((answer) => answer !== option) : [...answers, option])} disabled={Boolean(learnAnswer)} /><span>✓</span><p>{option}</p></label>; })}</div><button className="button primary" onClick={submitSelectAllLearnAnswer} disabled={!learnSelectedAnswers.length || Boolean(learnAnswer)}>Check selections</button></div>}
 
                       {currentLearnQuestionKind === "flashcard" && <div className="learn-flashcard-mode"><button className={`learn-reveal-card ${learnFlashRevealed ? "revealed" : ""}`} onClick={() => setLearnFlashRevealed(true)}><span>{learnFlashRevealed ? currentLearnCorrectAnswer : "Think of the answer before revealing it"}</span><small>{learnFlashRevealed ? "How did you do?" : "Reveal answer"}</small></button>{learnFlashRevealed && !learnAnswer && <div className="recall-buttons"><button className="button quiet" onClick={() => recordLearnResult(false, "Still learning")}>Still learning</button><button className="button primary" onClick={() => recordLearnResult(true, "Got it")}>Got it</button></div>}</div>}
 
                       {learnAnswer && <div className={`answer-feedback ${learnLastCorrect ? "correct" : "incorrect"}`}>
                         <div className="feedback-copy"><strong>{learnLastCorrect ? "Nice work." : "Not quite yet."}</strong><p>{learnLastCorrect ? (learnLastConfidence >= learnMasteryTarget ? "This card reached your session goal." : `Confidence moved to ${learnConfidenceLabel(learnLastConfidence)}. It will return later in a harder format.`) : <>The correct answer is <b>{currentLearnCorrectAnswer}</b>. This weak card will return before the next batch.</>}</p>{!learnLastCorrect && learnOptions.retypeCorrectAnswers && <label className="retype-answer"><span>Retype the correct answer to continue</span><input value={learnRetypeAnswer} onChange={(event) => setLearnRetypeAnswer(event.target.value)} placeholder={currentLearnCorrectAnswer} /></label>}</div>
                         {learnOptions.showImagesOnAnswers && currentLearnCard.imageData && <img width={74} height={58} className="learn-feedback-image" src={currentLearnCard.imageData} alt="Answer study aid" />}
-                        <button className="button primary" onClick={nextLearnQuestion} disabled={!learnLastCorrect && learnOptions.retypeCorrectAnswers && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer)}>{learnIndex === learnRoundIds.length - 1 && learnRetryIds.length ? "Retry missed" : learnIndex === learnRoundIds.length - 1 && learnPendingIds.length ? "Next round" : learnIndex === learnRoundIds.length - 1 ? "Finish" : "Next question"} →</button>
+                        <div className="learn-continue-action"><small>Press any key to continue</small><button className="button primary" onClick={nextLearnQuestion} disabled={!learnLastCorrect && learnOptions.retypeCorrectAnswers && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer)}>{learnIndex === learnRoundIds.length - 1 && learnRetryIds.length ? "Retry missed" : learnIndex === learnRoundIds.length - 1 && learnPendingIds.length ? "Next round" : learnIndex === learnRoundIds.length - 1 ? "Finish" : "Next question"} →</button></div>
                       </div>}
                     </div>
                   </div>
