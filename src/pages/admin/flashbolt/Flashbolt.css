@@ -25,6 +25,32 @@
   --mobile-nav-bg: rgba(12, 12, 40, 0.94);
 }
 
+:root[data-theme="extreme"] {
+  color-scheme: dark;
+  --ink: #ffffff;
+  --muted: #b3b3c2;
+  --faint: #777887;
+  --bg: #000000;
+  --bg-deep: #000000;
+  --panel: #07070a;
+  --panel-2: #0d0d12;
+  --panel-3: #14141b;
+  --line: #262632;
+  --line-soft: rgba(255, 255, 255, 0.065);
+  --primary: #756cff;
+  --primary-strong: #938cff;
+  --primary-soft: #19162f;
+  --yellow: #f4cf45;
+  --mint: #62dfb6;
+  --coral: #ff826f;
+  --danger: #ff758c;
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.78);
+  --ambient-glow: rgba(117, 108, 255, 0.055);
+  --sidebar-bg: rgba(0, 0, 0, 0.98);
+  --topbar-bg: rgba(0, 0, 0, 0.95);
+  --mobile-nav-bg: rgba(0, 0, 0, 0.98);
+}
+
 :root[data-theme="light"] {
   color-scheme: light;
   --ink: #1a1c37;

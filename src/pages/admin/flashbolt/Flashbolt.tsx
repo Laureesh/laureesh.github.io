@@ -140,7 +140,7 @@ type AppData = {
 
 type View = "home" | "library" | "folders" | "create" | "set" | "learn" | "test" | "guide" | "helper";
 type StorageStatus = "loading" | "saved" | "error";
-type ThemeName = "dark" | "light" | "white" | "ocean" | "forest" | "sunset";
+type ThemeName = "dark" | "extreme" | "light" | "white" | "ocean" | "forest" | "sunset";
 type LibrarySort =
   | "updated-desc" | "updated-asc"
   | "title-asc" | "title-desc"
@@ -181,6 +181,7 @@ const EDITOR_PANEL_COLLAPSED_KEY = `${STORAGE_KEY}.editorPanelCollapsed`;
 const cloudMigrationKey = (uid: string) => `${STORAGE_KEY}.cloudMigrated.${uid}`;
 const THEME_OPTIONS: Array<{ id: ThemeName; label: string; colors: [string, string] }> = [
   { id: "dark", label: "Dark", colors: ["#0c0c28", "#7b78ff"] },
+  { id: "extreme", label: "Extreme dark", colors: ["#000000", "#8b82ff"] },
   { id: "light", label: "Light", colors: ["#f7f7fc", "#5552e9"] },
   { id: "white", label: "White", colors: ["#ffffff", "#111827"] },
   { id: "ocean", label: "Ocean", colors: ["#071b29", "#59cef6"] },
