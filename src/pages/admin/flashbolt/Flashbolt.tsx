@@ -1683,11 +1683,20 @@ export default function Flashbolt() {
   }
 
   function pasteDraftChoices(card: Card, startIndex: number, pastedText: string) {
-    const pastedChoices = pastedText
+    const lines = pastedText
       .split(/\r?\n/)
-      .map((line) => line.trim().replace(/^[A-Z](?:[.)\]:-]|\s+)\s*/i, "").trim())
-      .filter(Boolean)
-      .slice(0, 26 - startIndex);
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const parsedChoices: string[] = [];
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+      if (/^[A-Z][.)\]:-]?$/i.test(lines[lineIndex]) && lines[lineIndex + 1]) {
+        parsedChoices.push(lines[lineIndex + 1].replace(/^[A-Z](?:[.)\]:-]|\s+)\s*/i, "").trim());
+        lineIndex += 1;
+      } else {
+        parsedChoices.push(lines[lineIndex].replace(/^[A-Z](?:[.)\]:-]|\s+)\s*/i, "").trim());
+      }
+    }
+    const pastedChoices = parsedChoices.filter(Boolean).slice(0, 26 - startIndex);
     if (pastedChoices.length < 2) return false;
 
     const previousChoices = card.answerChoices ?? [];
