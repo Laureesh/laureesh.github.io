@@ -1533,10 +1533,10 @@ export default function Flashbolt() {
       cards: cleanCards.map(withDetectedAnswerChoices),
     };
 
-    setData((current) => ({
-      ...current,
-      lastCreatedFolderIds: editingSetId ? current.lastCreatedFolderIds : [...draftFolderIds],
-      recentSetValues: editingSetId ? current.recentSetValues : {
+    const nextData: AppData = {
+      ...data,
+      lastCreatedFolderIds: editingSetId ? data.lastCreatedFolderIds : [...draftFolderIds],
+      recentSetValues: editingSetId ? data.recentSetValues : {
         title: savedSet.title,
         subject: savedSet.subject,
         color: savedSet.color,
@@ -1544,9 +1544,9 @@ export default function Flashbolt() {
         folderIds: [...draftFolderIds],
       },
       sets: editingSetId
-        ? current.sets.map((set) => (set.id === editingSetId ? savedSet : set))
-        : [savedSet, ...current.sets],
-      folders: current.folders.map((folderItem) => {
+        ? data.sets.map((set) => (set.id === editingSetId ? savedSet : set))
+        : [savedSet, ...data.sets],
+      folders: data.folders.map((folderItem) => {
         const shouldContainSet = draftFolderIds.includes(folderItem.id);
         const containsSet = folderItem.setIds.includes(savedSet.id);
         if (shouldContainSet === containsSet) return folderItem;
@@ -1557,9 +1557,18 @@ export default function Flashbolt() {
             : folderItem.setIds.filter((setId) => setId !== savedSet.id),
         };
       }),
-    }));
+    };
+    setData(nextData);
+    let immediateBackupFailed = false;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextData));
+    } catch {
+      immediateBackupFailed = true;
+    }
     setSelectedSetId(savedSet.id);
-    notify(editingSetId
+    notify(immediateBackupFailed
+      ? "Set saved in this session, but the local backup was blocked. Keep this page open until account sync finishes."
+      : editingSetId
       ? "Set and folder assignments updated."
       : draftFolderIds.length
         ? `Set created, added to ${draftFolderIds.length === 1 ? "a folder" : `${draftFolderIds.length} folders`}, and queued for account sync.`
