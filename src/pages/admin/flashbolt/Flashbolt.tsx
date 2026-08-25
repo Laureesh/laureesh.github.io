@@ -1630,7 +1630,6 @@ export default function Flashbolt() {
     if (studyAfter) openSet(savedSet.id);
     else {
       setEditingSetId(savedSet.id);
-      setDraft(savedSet);
       setCreateOriginFolderId(null);
       if (!editingSetId) {
         const routeFolder = originFolder
