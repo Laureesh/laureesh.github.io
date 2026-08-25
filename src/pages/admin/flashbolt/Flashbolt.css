@@ -2939,6 +2939,21 @@ select {
   margin: 19px 0;
 }
 
+.kahoot-link-field {
+  display: grid;
+  gap: 9px;
+  margin-top: 19px;
+}
+
+.kahoot-link-field a {
+  color: var(--primary-strong);
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.kahoot-link-field a:hover { text-decoration: underline; }
+
 .folder-assignment {
   margin-top: 22px;
   padding-top: 20px;

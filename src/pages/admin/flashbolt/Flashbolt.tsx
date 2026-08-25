@@ -115,6 +115,7 @@ type StudySet = {
   description: string;
   subject: string;
   color: string;
+  kahootUrl?: string;
   updatedAt: string;
   cards: Card[];
 };
@@ -357,6 +358,15 @@ function makeId(prefix: string) {
 
 function routeSlug(value: string) {
   return value.toLocaleLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "untitled";
+}
+
+function isSafeKahootUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && (url.hostname === "kahoot.it" || url.hostname.endsWith(".kahoot.it") || url.hostname === "kahoot.com" || url.hostname.endsWith(".kahoot.com"));
+  } catch {
+    return false;
+  }
 }
 
 function compressImage(file: File): Promise<string> {
@@ -1522,6 +1532,11 @@ export default function Flashbolt() {
       notify("Finish every started card and mark the correct answer before saving.");
       return;
     }
+    const kahootUrl = draft.kahootUrl?.trim() ?? "";
+    if (kahootUrl && !isSafeKahootUrl(kahootUrl)) {
+      notify("Enter a valid secure Kahoot link, such as https://create.kahoot.it/details/…");
+      return;
+    }
 
     const savedSet: StudySet = {
       ...draft,
@@ -1529,6 +1544,7 @@ export default function Flashbolt() {
       title: draft.title.trim(),
       description: draft.description.trim(),
       subject: draft.subject.trim() || "General",
+      kahootUrl: kahootUrl || undefined,
       updatedAt: new Date().toISOString(),
       cards: cleanCards.map(withDetectedAnswerChoices),
     };
@@ -2819,6 +2835,7 @@ export default function Flashbolt() {
                       <label><span className="set-field-label"><b>Color</b>{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, color: recentSetValues.color }))}>Use recent: {recentSetValues.color}</button>}</span><select value={draft.color} onChange={(event) => setDraft({ ...draft, color: event.target.value })}><option value="violet">Violet</option><option value="mint">Mint</option><option value="amber">Amber</option><option value="coral">Coral</option></select></label>
                     </div>
                     <label><span className="set-field-label"><b>Description <small>optional</small></b><span className="set-field-history">{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, description: recentSetValues.description }))} title={recentSetValues.description}>Use recent: {recentSetValues.description || "Empty"}</button>}<PreviousValueSelect label="description" values={previousDescriptions} onSelect={(description) => setDraft((current) => ({ ...current, description }))} /></span></span><textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} onKeyDown={(event) => acceptPreviousValueOnTab(event, previousDescriptions, (description) => setDraft((current) => ({ ...current, description })))} placeholder="What will this set help you learn?" rows={3} /></label>
+                    <label className="kahoot-link-field"><span className="set-field-label"><b>Kahoot link <small>optional</small></b>{draft.kahootUrl && isSafeKahootUrl(draft.kahootUrl) && <a href={draft.kahootUrl} target="_blank" rel="noreferrer">Open link ↗</a>}</span><input type="url" inputMode="url" value={draft.kahootUrl ?? ""} onChange={(event) => setDraft((current) => ({ ...current, kahootUrl: event.target.value }))} placeholder="https://create.kahoot.it/details/…" spellCheck={false} /></label>
                     <div className="folder-assignment">
                       <div className="folder-assignment-heading">
                         <div><span>Folders <small>optional</small></span><p>Add this set to one or more folders.</p></div>
