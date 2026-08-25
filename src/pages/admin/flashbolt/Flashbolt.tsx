@@ -553,8 +553,8 @@ function prepareDraftCard(card: Card): Card | null {
   if (type === "multiple-choice" || type === "select-all" || type === "true-false") {
     const answerChoices = [...new Set((card.answerChoices ?? []).map((choice) => choice.trim()).filter(Boolean))];
     const selectedAnswers = correctAnswersForCard(card)
-      .map((answer) => answer.trim())
-      .filter((answer) => answerChoices.some((choice) => normalizeAnswer(choice) === normalizeAnswer(answer)));
+      .map((answer) => answerChoices.find((choice) => normalizeAnswer(cleanChoiceAnswer(choice)) === normalizeAnswer(cleanChoiceAnswer(answer))))
+      .filter((answer): answer is string => Boolean(answer));
     if (answerChoices.length <= 1) {
       const definition = card.definition.trim() || answerChoices[0] || "";
       return definition ? { ...card, term, definition, questionType: "flashcard", answerChoices } : null;
@@ -1155,11 +1155,11 @@ export default function Flashbolt() {
     if (type === "matching") return Boolean(card.matchingPairs?.length && card.matchingPairs.every((pair) => pair.left.trim() && pair.right.trim()));
     if (type !== "multiple-choice" && type !== "select-all" && type !== "true-false") return true;
     if (!card.answerChoices?.length) return false;
-    const correctAnswers = correctAnswersForCard(card).map(normalizeAnswer);
+    const correctAnswers = correctAnswersForCard(card).map((answer) => normalizeAnswer(cleanChoiceAnswer(answer)));
     return card.answerChoices.length >= 2
       && card.answerChoices.every((choice) => choice.trim())
       && correctAnswers.length > 0
-      && correctAnswers.every((answer) => card.answerChoices?.some((choice) => normalizeAnswer(choice) === answer));
+      && correctAnswers.every((answer) => card.answerChoices?.some((choice) => normalizeAnswer(cleanChoiceAnswer(choice)) === answer));
   });
   const draftChecklist = [
     { label: "Add a set title", detail: "Required", complete: Boolean(draft.title.trim()) },
@@ -2802,7 +2802,7 @@ export default function Flashbolt() {
               <div className="creator-layout">
                 <div className="creator-main">
                   <article className="form-card set-details">
-                    <label><span className="set-field-label"><b>Title</b><span className="set-field-history">{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, title: recentSetValues.title }))} title={recentSetValues.title}>Use recent: {recentSetValues.title || "Empty"}</button>}<PreviousValueSelect label="title" values={previousTitles} onSelect={(title) => setDraft((current) => ({ ...current, title }))} /></span></span><input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} onKeyDown={(event) => acceptPreviousValueOnTab(event, previousTitles, (title) => setDraft((current) => ({ ...current, title })))} placeholder="e.g. Biology chapter 4" maxLength={100} /></label>
+                    <label><span className="set-field-label"><b>Title</b><span className="set-field-history">{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, title: recentSetValues.title }))} title={recentSetValues.title}>Use recent: {recentSetValues.title || "Empty"}</button>}<PreviousValueSelect label="title" values={previousTitles} onSelect={(title) => setDraft((current) => ({ ...current, title }))} /></span></span><input value={draft.title} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} onKeyDown={(event) => acceptPreviousValueOnTab(event, previousTitles, (title) => setDraft((current) => ({ ...current, title })))} placeholder="e.g. [ITEC 3600] Chapter 1 - Part 1" maxLength={100} /></label>
                     <div className="field-row">
                       <label><span className="set-field-label"><b>Subject</b><span className="set-field-history">{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, subject: recentSetValues.subject }))} title={recentSetValues.subject}>Use recent: {recentSetValues.subject || "Empty"}</button>}<PreviousValueSelect label="subject" values={previousSubjects} onSelect={(subject) => setDraft((current) => ({ ...current, subject }))} /></span></span><input value={draft.subject} onChange={(event) => setDraft({ ...draft, subject: event.target.value })} onKeyDown={(event) => acceptPreviousValueOnTab(event, previousSubjects, (subject) => setDraft((current) => ({ ...current, subject })))} placeholder="Course or topic" /></label>
                       <label><span className="set-field-label"><b>Color</b>{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, color: recentSetValues.color }))}>Use recent: {recentSetValues.color}</button>}</span><select value={draft.color} onChange={(event) => setDraft({ ...draft, color: event.target.value })}><option value="violet">Violet</option><option value="mint">Mint</option><option value="amber">Amber</option><option value="coral">Coral</option></select></label>
