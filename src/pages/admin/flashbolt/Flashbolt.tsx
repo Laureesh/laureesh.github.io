@@ -1141,12 +1141,6 @@ export default function Flashbolt() {
     ? data.folders.find((folderItem) => folderItem.id === selectedFolderId && folderItem.setIds.includes(editingSetId))
       ?? data.folders.find((folderItem) => folderItem.setIds.includes(editingSetId))
     : undefined;
-  const editorFolderSets = editorFolder
-    ? editorFolder.setIds.map((setId) => data.sets.find((set) => set.id === setId)).filter((set): set is StudySet => Boolean(set))
-    : [];
-  const editorSetIndex = editorFolderSets.findIndex((set) => set.id === editingSetId);
-  const previousEditorSet = editorSetIndex > 0 ? editorFolderSets[editorSetIndex - 1] : undefined;
-  const nextEditorSet = editorSetIndex >= 0 && editorSetIndex < editorFolderSets.length - 1 ? editorFolderSets[editorSetIndex + 1] : undefined;
   const editingFolder = data.folders.find((item) => item.id === editingFolderId);
   const recentSourceSet = data.sets[0];
   const recentSetValues = data.recentSetValues ?? (recentSourceSet ? {
@@ -1275,6 +1269,12 @@ export default function Flashbolt() {
       return result || titleTieBreaker(a, b);
     });
   }, [data.folders, data.mastered, data.sets, folder, librarySort, search]);
+  const editorFolderSets = editorFolder
+    ? filteredSets.filter((set) => editorFolder.setIds.includes(set.id))
+    : [];
+  const editorSetIndex = editorFolderSets.findIndex((set) => set.id === editingSetId);
+  const previousEditorSet = editorSetIndex > 0 ? editorFolderSets[editorSetIndex - 1] : undefined;
+  const nextEditorSet = editorSetIndex >= 0 && editorSetIndex < editorFolderSets.length - 1 ? editorFolderSets[editorSetIndex + 1] : undefined;
   const folderSubjectGroups = useMemo(() => {
     const groups = new Map<string, { subject: string; sets: StudySet[] }>();
     filteredSets.forEach((set) => {
