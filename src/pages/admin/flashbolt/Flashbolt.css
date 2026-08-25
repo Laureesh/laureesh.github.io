@@ -5443,6 +5443,10 @@ kbd {
   margin: 0 auto;
 }
 
+.question-card.ready-to-continue {
+  cursor: pointer;
+}
+
 .question-card h1 {
   max-width: 780px;
   margin: 10px 0 16px;
