@@ -1544,11 +1544,15 @@ export default function Flashbolt() {
       || card.answerChoices?.some((choice) => choice.trim())
       || card.matchingPairs?.some((pair) => pair.left.trim() || pair.right.trim()));
     const cleanCards = startedCards.map(prepareDraftCard).filter((card): card is Card => Boolean(card));
-    if (!draft.title.trim() || cleanCards.length === 0) {
-      notify("Add a title and at least one complete card.");
+    if (!draft.title.trim()) {
+      notify("Add a title before saving this set.");
       return;
     }
-    if (cleanCards.length !== startedCards.length) {
+    if (studyAfter && cleanCards.length === 0) {
+      notify("Complete at least one card before studying this set.");
+      return;
+    }
+    if (studyAfter && cleanCards.length !== startedCards.length) {
       notify("Finish every started card and mark the correct answer before saving.");
       return;
     }
@@ -1566,7 +1570,16 @@ export default function Flashbolt() {
       subject: draft.subject.trim() || "General",
       kahootUrl: kahootUrl || undefined,
       updatedAt: new Date().toISOString(),
-      cards: cleanCards.map(withDetectedAnswerChoices),
+      cards: studyAfter
+        ? cleanCards.map(withDetectedAnswerChoices)
+        : draft.cards.map((card) => ({
+            ...card,
+            term: card.term.trim(),
+            definition: card.definition.trim(),
+            answerChoices: card.answerChoices?.map((choice) => choice.trim()),
+            correctAnswers: card.correctAnswers?.map((answer) => answer.trim()),
+            matchingPairs: card.matchingPairs?.map((pair) => ({ ...pair, left: pair.left.trim(), right: pair.right.trim() })),
+          })),
     };
 
     const nextData: AppData = {
@@ -1604,6 +1617,8 @@ export default function Flashbolt() {
     setSelectedSetId(savedSet.id);
     notify(immediateBackupFailed
       ? "Set saved in this session, but the local backup was blocked. Keep this page open until account sync finishes."
+      : !studyAfter
+        ? "Set saved. You can keep editing and finish the checklist later."
       : editingSetId
       ? "Set and folder assignments updated."
       : draftFolderIds.length
