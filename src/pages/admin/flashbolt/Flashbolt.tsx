@@ -1529,6 +1529,15 @@ export default function Flashbolt() {
     navigate("create", set.id);
   }
 
+  function openAdjacentEditor(set: StudySet) {
+    const storedSet = data.sets.find((item) => item.id === editingSetId);
+    const storedFolderIds = data.folders.filter((folderItem) => folderItem.setIds.includes(editingSetId ?? "")).map((folderItem) => folderItem.id).sort();
+    const hasUnsavedChanges = Boolean(storedSet) && (JSON.stringify(draft) !== JSON.stringify(storedSet)
+      || JSON.stringify([...draftFolderIds].sort()) !== JSON.stringify(storedFolderIds));
+    if (hasUnsavedChanges && !window.confirm("Discard your unsaved changes and open the next set?")) return;
+    startEdit(set);
+  }
+
   function saveDraft(studyAfter = false) {
     const startedCards = draft.cards.filter((card) => card.term.trim()
       || card.definition.trim()
@@ -2838,7 +2847,7 @@ export default function Flashbolt() {
             <section className="creator-page">
               <div className="page-heading split">
                 <div><button className="back-link" onClick={() => navigate("library")}>← Library</button><span className="eyebrow">{editingSetId ? "Edit set" : "New flashcard set"}</span><h1>{editingSetId ? "Make it better." : "Build a set that sticks."}</h1></div>
-                {editingSetId && editorFolder && editorFolderSets.length > 1 && <nav className="editor-set-navigation" aria-label={`Move between sets in ${editorFolder.name}`}><span>{editorSetIndex + 1} of {editorFolderSets.length} in {editorFolder.name}</span><div><button className="button quiet" disabled={!previousEditorSet} onClick={() => previousEditorSet && startEdit(previousEditorSet)} title={previousEditorSet?.title ?? "First set in folder"}>← Previous</button><button className="button quiet" disabled={!nextEditorSet} onClick={() => nextEditorSet && startEdit(nextEditorSet)} title={nextEditorSet?.title ?? "Last set in folder"}>Next →</button></div></nav>}
+                {editingSetId && editorFolder && editorFolderSets.length > 1 && <nav className="editor-set-navigation" aria-label={`Move between sets in ${editorFolder.name}`}><span>{editorSetIndex + 1} of {editorFolderSets.length} in {editorFolder.name}</span><div><button className="button quiet" disabled={!previousEditorSet} onClick={() => previousEditorSet && openAdjacentEditor(previousEditorSet)} title={previousEditorSet?.title ?? "First set in folder"}>← Previous</button><button className="button quiet" disabled={!nextEditorSet} onClick={() => nextEditorSet && openAdjacentEditor(nextEditorSet)} title={nextEditorSet?.title ?? "Last set in folder"}>Next →</button></div></nav>}
               </div>
               <div className="creator-layout">
                 <div className="creator-main">
