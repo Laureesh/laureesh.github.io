@@ -8,21 +8,24 @@
 .notebook-logo { font-size:20px!important; color:var(--nb-text)!important; }
 .new-note { width:100%; padding:11px 13px!important; border-radius:9px!important; background:var(--nb-accent)!important; color:white!important; font-weight:800!important; text-align:center!important; }
 .notebook-sidebar nav { display:grid; gap:3px; }
-.notebook-sidebar nav button { width:100%; display:flex; align-items:center; gap:8px; padding:8px 9px; border-radius:7px; overflow-wrap:anywhere; }
+.notebook-sidebar nav button { width:100%; display:flex; align-items:center; gap:8px; padding:8px 9px; border-radius:7px; overflow-wrap:break-word; word-break:normal; }
 .notebook-sidebar nav button.active { background:#282644; color:white; }
 .notebook-sidebar nav button b { margin-left:auto; font-size:12px; }
 .notebook-sidebar nav button i { width:9px; height:9px; flex:0 0 9px; border-radius:3px; }
-.notebook-folder-row { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:3px; }
-.folder-actions { display:flex; opacity:0; }
+.notebook-folder-row { position:relative; min-width:0; }
+.notebook-folder-row>button { min-width:0; }
+.folder-name { min-width:0; flex:1; overflow-wrap:break-word; word-break:normal; }
+.folder-actions { position:absolute; z-index:2; top:50%; right:3px; display:flex; padding-left:5px; border-radius:6px; background:#10121e; opacity:0; transform:translateY(-50%); }
 .folder-actions button,.notebook-folder-row .delete-folder { width:25px; height:27px; display:grid; padding:0; place-items:center; color:#737b98; }
 .folder-actions button:first-child { color:var(--nb-accent); }
 .notebook-folder-row:hover .folder-actions,.notebook-folder-row:focus-within .folder-actions { opacity:1; }
 .notebook-folder-row .delete-folder:hover { background:#442333; color:#ff829a; }
-.subfolder-row { padding-left:14px; }
+.subfolder-row { padding-left:12px; }
 @media (hover:none) { .folder-actions { opacity:1; } }
-.notebook-sidebar .subfolder { padding-left:25px; font-size:13px; }
+.notebook-sidebar .subfolder { padding-left:14px; font-size:13px; }
 .notebook-sidebar .add-subfolder { padding:2px 9px 7px 25px; font-size:12px; opacity:.65; }
 .folder-heading { margin-top:5px; color:var(--nb-muted); font-size:12px; font-weight:900; letter-spacing:1px; text-transform:uppercase; }
+.folder-heading + nav > div { margin-bottom:6px; }
 .notebook-sidebar footer { display:grid; gap:9px; margin-top:auto; padding-top:15px; border-top:1px solid var(--nb-line); }
 .notebook-sidebar footer span { color:var(--nb-mint); font-size:12px; font-weight:800; }
 .notebook-sidebar footer .sync-offline { color:#ff829a; }
