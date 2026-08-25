@@ -7012,24 +7012,12 @@ kbd {
   padding-bottom: 42px;
 }
 
-.kahoot-helper-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 24px;
-}
-
-.kahoot-helper-heading h1 { margin: 5px 0 7px; font-size: clamp(34px, 5vw, 58px); }
-.kahoot-helper-heading p { max-width: 700px; margin: 0; color: var(--muted); }
-.kahoot-helper-actions { display: flex; gap: 10px; flex: 0 0 auto; }
-
 .kahoot-helper-controls {
   position: sticky;
   top: 76px;
   z-index: 5;
   display: grid;
-  grid-template-columns: minmax(150px, .9fr) minmax(180px, 1fr) minmax(230px, 1.45fr) minmax(145px, .75fr) auto;
+  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.15fr) minmax(260px, 1.5fr);
   align-items: end;
   gap: 10px;
   padding: 14px;
@@ -7059,12 +7047,7 @@ kbd {
 .kahoot-helper-search > div > span { position: absolute; left: 12px; top: 12px; color: var(--muted); }
 .kahoot-helper-search input { padding-left: 35px; padding-right: 34px; }
 .kahoot-helper-search button { position: absolute; right: 5px; top: 5px; width: 34px; height: 34px; border: 0; background: transparent; color: var(--muted); }
-.helper-compact-toggle { height: 44px; white-space: nowrap; }
-
-.kahoot-helper-summary { display: flex; align-items: center; gap: 5px; padding: 16px 4px 10px; color: var(--muted); }
-.kahoot-helper-summary strong { color: var(--text); font-size: 20px; }
-.kahoot-helper-summary span { margin-left: auto; color: #63e6b5; font-weight: 700; }
-.kahoot-helper-list { display: grid; gap: 18px; }
+.kahoot-helper-list { display: grid; gap: 18px; margin-top: 18px; }
 
 .kahoot-helper-card {
   display: grid;
@@ -7096,20 +7079,10 @@ kbd {
 .kahoot-helper-matches strong { padding: 13px; border-radius: 9px; background: #151a34; overflow-wrap: anywhere; }
 .kahoot-helper-matches strong { border: 1px solid #2abe7c; background: #0b5537; }
 .kahoot-helper-notice { margin: 18px 3px 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
-.kahoot-helper-page.compact { width: min(680px, 100%); }
-.kahoot-helper-page.compact .kahoot-helper-heading h1 { font-size: 36px; }
-.kahoot-helper-page.compact .kahoot-helper-card { gap: 12px; padding: 18px; }
-.kahoot-helper-page.compact .kahoot-helper-card h2 { font-size: 22px; }
-.kahoot-helper-page.compact .kahoot-helper-image { max-height: 190px; }
 
 @media (max-width: 1050px) {
-  .kahoot-helper-heading { align-items: stretch; flex-direction: column; }
-  .kahoot-helper-actions > * { flex: 1; text-align: center; }
   .kahoot-helper-controls { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kahoot-helper-search { grid-column: 1 / -1; }
-  .helper-compact-toggle { width: 100%; }
-  .kahoot-helper-summary { align-items: flex-start; flex-wrap: wrap; }
-  .kahoot-helper-summary span { width: 100%; margin-left: 0; }
 }
 
 @media (max-width: 620px) {

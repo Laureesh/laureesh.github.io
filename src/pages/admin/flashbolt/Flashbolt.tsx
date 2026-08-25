@@ -771,8 +771,6 @@ export default function Flashbolt() {
   const [helperFolderId, setHelperFolderId] = useState("all");
   const [helperSetId, setHelperSetId] = useState(initialData.sets[0].id);
   const [helperSearch, setHelperSearch] = useState("");
-  const [helperFilter, setHelperFilter] = useState<"all" | CardQuestionType>("all");
-  const [helperCompact, setHelperCompact] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try { return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true"; } catch { return false; }
   });
@@ -1111,7 +1109,6 @@ export default function Flashbolt() {
     : data.sets.filter((set) => data.folders.find((folderItem) => folderItem.id === helperFolderId)?.setIds.includes(set.id));
   const helperSet = helperAvailableSets.find((set) => set.id === helperSetId) ?? helperAvailableSets[0];
   const helperCards = (helperSet?.cards ?? []).filter((card) => {
-    if (helperFilter !== "all" && cardQuestionType(card) !== helperFilter) return false;
     const query = helperSearch.trim().toLocaleLowerCase();
     if (!query) return true;
     const embedded = parseEmbeddedQuestion(card.term, card.definition);
@@ -1491,7 +1488,6 @@ export default function Flashbolt() {
     setHelperFolderId(selectedSetFolder?.id ?? "all");
     if (selectedSet) setHelperSetId(selectedSet.id);
     setHelperSearch("");
-    setHelperFilter("all");
     navigate("helper");
   }
 
@@ -3140,21 +3136,13 @@ export default function Flashbolt() {
           )}
 
           {!search && view === "helper" && (
-            <section className={`kahoot-helper-page ${helperCompact ? "compact" : ""}`}>
-              <div className="kahoot-helper-heading">
-                <div><span className="eyebrow">Your sets · your study data</span><h1>Kahoot Helper</h1><p>Keep your Flashbolt questions and answers visible in a focused window beside Kahoot.</p></div>
-                <div className="kahoot-helper-actions"><button className="button quiet" onClick={startKahootLinkImport}>Import a set</button><a className="button primary" href="https://kahoot.it/" target="_blank" rel="noreferrer">Open Kahoot ↗</a></div>
-              </div>
-
+            <section className="kahoot-helper-page">
               {helperSet ? <>
                 <div className="kahoot-helper-controls">
                   <label><span>Folder</span><select value={helperFolderId} onChange={(event) => { const folderId = event.target.value; const firstSet = folderId === "all" ? data.sets[0] : data.sets.find((set) => data.folders.find((folderItem) => folderItem.id === folderId)?.setIds.includes(set.id)); setHelperFolderId(folderId); setHelperSetId(firstSet?.id ?? ""); }}><option value="all">All folders ({data.sets.length} sets)</option>{data.folders.map((folderItem) => <option value={folderItem.id} key={folderItem.id} disabled={!folderItem.setIds.length}>{folderItem.name}{folderItem.semester ? ` — ${folderItem.semester}` : ""} ({folderItem.setIds.length})</option>)}</select></label>
                   <label><span>Study set</span><select value={helperSet?.id ?? ""} onChange={(event) => setHelperSetId(event.target.value)} disabled={!helperAvailableSets.length}>{helperAvailableSets.length ? helperAvailableSets.map((set) => <option value={set.id} key={set.id}>{set.title} ({set.cards.length})</option>) : <option value="">No sets in this folder</option>}</select></label>
                   <label className="kahoot-helper-search"><span>Search questions and answers</span><div><span>⌕</span><input value={helperSearch} onChange={(event) => setHelperSearch(event.target.value)} placeholder="Search this set instantly" />{helperSearch && <button onClick={() => setHelperSearch("")} aria-label="Clear helper search">×</button>}</div></label>
-                  <label><span>Question type</span><select value={helperFilter} onChange={(event) => setHelperFilter(event.target.value as "all" | CardQuestionType)}><option value="all">All types</option><option value="multiple-choice">Multiple choice</option><option value="true-false">True or false</option><option value="select-all">Select all</option><option value="flashcard">Flashcard</option><option value="written">Written</option><option value="matching">Matching</option></select></label>
-                  <button className="button quiet helper-compact-toggle" aria-pressed={helperCompact} onClick={() => setHelperCompact((value) => !value)}>{helperCompact ? "Roomy view" : "Side-by-side view"}</button>
                 </div>
-                <div className="kahoot-helper-summary"><strong>{helperCards.length}</strong> of {helperSet.cards.length} questions shown <span>Correct answers are highlighted.</span></div>
                 {helperCards.length ? <div className="kahoot-helper-list">
                   {helperCards.map((card, index) => {
                     const embedded = parseEmbeddedQuestion(card.term, card.definition);
@@ -3168,7 +3156,7 @@ export default function Flashbolt() {
                       {cardQuestionType(card) === "matching" && card.matchingPairs?.length ? <div className="kahoot-helper-matches">{card.matchingPairs.map((pair) => <div key={pair.id}><span>{pair.left}</span><strong>{pair.right}</strong></div>)}</div> : choices.length > 1 ? <ol className="kahoot-helper-choices">{choices.map((choice, choiceIndex) => { const correct = answers.includes(normalizeAnswer(choice)); return <li className={correct ? "correct" : ""} key={`${choice}-${choiceIndex}`}><span className={`choice-symbol choice-${choiceIndex % 4}`} aria-label={`Choice ${String.fromCharCode(65 + choiceIndex)}`}>{String.fromCharCode(65 + choiceIndex)}</span><span>{choice}</span>{correct && <b>Correct</b>}</li>; })}</ol> : <div className="kahoot-helper-answer"><span>Answer</span><strong>{card.definition}</strong></div>}
                     </article>;
                   })}
-                </div> : <div className="empty-state compact"><span>⌕</span><h2>No matching questions</h2><p>Try a different search or question-type filter.</p><button className="button quiet" onClick={() => { setHelperSearch(""); setHelperFilter("all"); }}>Clear filters</button></div>}
+                </div> : <div className="empty-state compact"><span>⌕</span><h2>No matching questions</h2><p>Try a different search.</p><button className="button quiet" onClick={() => setHelperSearch("")}>Clear search</button></div>}
                 <p className="kahoot-helper-notice">Kahoot Helper only displays the Flashbolt set you select. It does not connect to, inspect, or control a live Kahoot game.</p>
               </> : <div className="empty-state"><span>◆</span><h2>Add a set to get started</h2><p>Create or import a study set you own, then return here to view every question and answer.</p><div className="button-row center"><button className="button primary" onClick={startCreate}>Create set</button><button className="button quiet" onClick={startKahootLinkImport}>Import set</button></div></div>}
             </section>
