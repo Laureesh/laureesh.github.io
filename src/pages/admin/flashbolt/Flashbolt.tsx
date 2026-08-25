@@ -1577,8 +1577,19 @@ export default function Flashbolt() {
       ? data.folders.find((folderItem) => folderItem.id === createOriginFolderId)
       : undefined;
     if (studyAfter) openSet(savedSet.id);
-    else if (originFolder) openFolder(originFolder);
-    else navigate("library");
+    else {
+      setEditingSetId(savedSet.id);
+      setDraft(savedSet);
+      setCreateOriginFolderId(null);
+      if (!editingSetId) {
+        const routeFolder = originFolder
+          ?? nextData.folders.find((folderItem) => draftFolderIds.includes(folderItem.id));
+        const path = `${FLASHBOLT_BASE}/${routeSlug(routeFolder?.semester || "no-semester")}/${routeFolder ? folderRouteSegment(routeFolder) : "unfiled"}/${setRouteSegment(savedSet, routeFolder)}/edit`;
+        handledRouteRef.current = path;
+        setResolvedRoutePath(path);
+        routerNavigate(path, { replace: true });
+      }
+    }
   }
 
   function updateDraftCard(cardId: string, field: "term" | "definition", value: string) {
