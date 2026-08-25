@@ -4703,12 +4703,12 @@ kbd {
 
 .learn-session-header {
   display: grid;
-  grid-template-columns: 110px minmax(300px, 1fr) 110px;
-  gap: 22px;
+  grid-template-columns: 48px minmax(300px, 1fr) 122px;
+  gap: 14px;
   align-items: center;
   width: min(1120px, 100%);
-  margin: -20px auto 12px;
-  padding: 10px 13px;
+  margin: 0 auto 12px;
+  padding: 9px 12px;
   border: 1px solid var(--line-soft);
   border-radius: 17px;
   background: var(--panel);
@@ -4741,8 +4741,8 @@ kbd {
   box-shadow: 0 8px 22px rgba(70, 66, 210, 0.18), inset 0 1px rgba(255, 255, 255, 0.08);
   color: #d8d7ff;
   letter-spacing: 0.15px;
-  flex-wrap: wrap;
-  white-space: normal;
+  flex-wrap: nowrap;
+  white-space: nowrap;
   transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
@@ -4799,7 +4799,7 @@ kbd {
   justify-content: space-between;
   margin: 6px 1px 0;
   color: var(--faint);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.45px;
   text-transform: uppercase;
