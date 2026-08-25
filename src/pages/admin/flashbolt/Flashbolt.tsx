@@ -767,6 +767,7 @@ export default function Flashbolt() {
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [librarySort, setLibrarySort] = useState<LibrarySort>("updated-desc");
   const [search, setSearch] = useState("");
+  const [termSearch, setTermSearch] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try { return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true"; } catch { return false; }
   });
@@ -1413,6 +1414,7 @@ export default function Flashbolt() {
 
   function openSet(setId: string) {
     setSelectedSetId(setId);
+    setTermSearch("");
     setFlashIndex(0);
     setFlipped(false);
     navigate("set", setId);
@@ -2454,6 +2456,11 @@ export default function Flashbolt() {
 
   const currentFlashcard = selectedSet?.cards[flashIndex];
   const isCurrentMastered = Boolean(selectedSet && currentFlashcard && data.mastered[selectedSet.id]?.includes(currentFlashcard.id));
+  const visibleSetCards = selectedSet?.cards.filter((card) => {
+    const query = termSearch.trim().toLocaleLowerCase();
+    if (!query) return true;
+    return [card.term, card.definition, ...(card.answerChoices ?? []), ...(card.correctAnswers ?? [])].some((value) => value.toLocaleLowerCase().includes(query));
+  }) ?? [];
 
   if (!ready || resolvedRoutePath !== location.pathname) {
     return <div className={`flashbolt-route-loading theme-${theme}`} role="status" aria-live="polite"><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><strong>Opening Flashbolt…</strong></div>;
@@ -2974,8 +2981,11 @@ export default function Flashbolt() {
                 </aside>
               </div>
               <section className="term-list">
-                <div className="section-heading"><div><span className="eyebrow">Review</span><h2>Terms in this set ({selectedSet.cards.length})</h2></div></div>
-                {selectedSet.cards.map((card, index) => (
+                <div className="section-heading term-list-heading"><div><span className="eyebrow">Review</span><h2>Terms in this set ({selectedSet.cards.length})</h2></div><label className="term-search"><span aria-hidden="true">⌕</span><input type="search" value={termSearch} onChange={(event) => setTermSearch(event.target.value)} placeholder="Search terms and answers" aria-label="Search terms, definitions, and answer choices in this set" />{termSearch && <button type="button" onClick={() => setTermSearch("")} aria-label="Clear term search">×</button>}</label></div>
+                {termSearch && <p className="term-search-count" role="status">Showing {visibleSetCards.length} of {selectedSet.cards.length} terms</p>}
+                {visibleSetCards.map((card) => {
+                  const index = selectedSet.cards.findIndex((item) => item.id === card.id);
+                  return (
                   <article className={`highlight-${card.highlight ?? "none"}${card.answerChoices && card.answerChoices.length > 1 ? " multiple-choice-review" : " flashcard-review"}`} key={card.id}>
                     <span>{index + 1}</span>
                     <strong>{card.term}</strong>
@@ -2991,7 +3001,9 @@ export default function Flashbolt() {
                     {card.imageData && <img width={50} height={42} src={card.imageData} alt="" />}
                     <button className={data.mastered[selectedSet.id]?.includes(card.id) ? "done" : ""} onClick={() => toggleMastered(selectedSet.id, card.id)} aria-label="Toggle mastered">✓</button>
                   </article>
-                ))}
+                  );
+                })}
+                {termSearch && !visibleSetCards.length && <div className="term-search-empty"><strong>No matching terms</strong><p>Try another keyword or clear the search.</p><button className="button quiet" onClick={() => setTermSearch("")}>Clear search</button></div>}
               </section>
             </section>
           )}
