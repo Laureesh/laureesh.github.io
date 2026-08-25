@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
@@ -119,6 +120,11 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const ADMIN_SESSION_TIMER_ENABLED_KEY = "admin.sessionTimer.enabled";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const isPersistentWorkspace = location.pathname.startsWith("/admin-dashboard/private-pages/flashbolt")
+    || location.pathname.startsWith("/admin-dashboard/private-pages/notebook")
+    || location.pathname.startsWith("/flashbolt")
+    || location.pathname.startsWith("/notebook");
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionRecord | null>(null);
@@ -321,6 +327,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       || userProfile.role !== "admin"
       || !hasActiveStatus(userProfile)
       || !adminSessionTimerEnabled
+      || isPersistentWorkspace
     ) {
       return () => undefined;
     }
@@ -394,7 +401,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         window.removeEventListener(eventName, resetAdminSessionTimeout);
       });
     };
-  }, [adminSessionTimerEnabled, loading, user, userProfile]);
+  }, [adminSessionTimerEnabled, isPersistentWorkspace, loading, user, userProfile]);
 
   const login = async (
     email: string,
