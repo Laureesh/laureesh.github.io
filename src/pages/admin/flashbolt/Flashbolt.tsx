@@ -768,6 +768,7 @@ export default function Flashbolt() {
   const [librarySort, setLibrarySort] = useState<LibrarySort>("updated-desc");
   const [search, setSearch] = useState("");
   const [termSearch, setTermSearch] = useState("");
+  const [helperFolderId, setHelperFolderId] = useState("all");
   const [helperSetId, setHelperSetId] = useState(initialData.sets[0].id);
   const [helperSearch, setHelperSearch] = useState("");
   const [helperFilter, setHelperFilter] = useState<"all" | CardQuestionType>("all");
@@ -1105,7 +1106,10 @@ export default function Flashbolt() {
   useEffect(() => () => recognitionRef.current?.stop(), []);
 
   const selectedSet = data.sets.find((set) => set.id === selectedSetId) ?? data.sets[0];
-  const helperSet = data.sets.find((set) => set.id === helperSetId) ?? selectedSet;
+  const helperAvailableSets = helperFolderId === "all"
+    ? data.sets
+    : data.sets.filter((set) => data.folders.find((folderItem) => folderItem.id === helperFolderId)?.setIds.includes(set.id));
+  const helperSet = helperAvailableSets.find((set) => set.id === helperSetId) ?? helperAvailableSets[0];
   const helperCards = (helperSet?.cards ?? []).filter((card) => {
     if (helperFilter !== "all" && cardQuestionType(card) !== helperFilter) return false;
     const query = helperSearch.trim().toLocaleLowerCase();
@@ -1482,6 +1486,9 @@ export default function Flashbolt() {
   }
 
   function openKahootHelper() {
+    const selectedSetFolder = data.folders.find((folderItem) => folderItem.id === selectedFolderId && folderItem.setIds.includes(selectedSet?.id ?? ""))
+      ?? data.folders.find((folderItem) => folderItem.setIds.includes(selectedSet?.id ?? ""));
+    setHelperFolderId(selectedSetFolder?.id ?? "all");
     if (selectedSet) setHelperSetId(selectedSet.id);
     setHelperSearch("");
     setHelperFilter("all");
@@ -3141,7 +3148,8 @@ export default function Flashbolt() {
 
               {helperSet ? <>
                 <div className="kahoot-helper-controls">
-                  <label><span>Study set</span><select value={helperSet.id} onChange={(event) => setHelperSetId(event.target.value)}>{data.sets.map((set) => <option value={set.id} key={set.id}>{set.title} ({set.cards.length})</option>)}</select></label>
+                  <label><span>Folder</span><select value={helperFolderId} onChange={(event) => { const folderId = event.target.value; const firstSet = folderId === "all" ? data.sets[0] : data.sets.find((set) => data.folders.find((folderItem) => folderItem.id === folderId)?.setIds.includes(set.id)); setHelperFolderId(folderId); setHelperSetId(firstSet?.id ?? ""); }}><option value="all">All folders ({data.sets.length} sets)</option>{data.folders.map((folderItem) => <option value={folderItem.id} key={folderItem.id} disabled={!folderItem.setIds.length}>{folderItem.name}{folderItem.semester ? ` — ${folderItem.semester}` : ""} ({folderItem.setIds.length})</option>)}</select></label>
+                  <label><span>Study set</span><select value={helperSet?.id ?? ""} onChange={(event) => setHelperSetId(event.target.value)} disabled={!helperAvailableSets.length}>{helperAvailableSets.length ? helperAvailableSets.map((set) => <option value={set.id} key={set.id}>{set.title} ({set.cards.length})</option>) : <option value="">No sets in this folder</option>}</select></label>
                   <label className="kahoot-helper-search"><span>Search questions and answers</span><div><span>⌕</span><input value={helperSearch} onChange={(event) => setHelperSearch(event.target.value)} placeholder="Search this set instantly" />{helperSearch && <button onClick={() => setHelperSearch("")} aria-label="Clear helper search">×</button>}</div></label>
                   <label><span>Question type</span><select value={helperFilter} onChange={(event) => setHelperFilter(event.target.value as "all" | CardQuestionType)}><option value="all">All types</option><option value="multiple-choice">Multiple choice</option><option value="true-false">True or false</option><option value="select-all">Select all</option><option value="flashcard">Flashcard</option><option value="written">Written</option><option value="matching">Matching</option></select></label>
                   <button className="button quiet helper-compact-toggle" aria-pressed={helperCompact} onClick={() => setHelperCompact((value) => !value)}>{helperCompact ? "Roomy view" : "Side-by-side view"}</button>
