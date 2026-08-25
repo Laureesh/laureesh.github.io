@@ -1,0 +1,433 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function hasAdminBootstrap(uid) {
+      return exists(/databases/$(database)/documents/admin_bootstrap/$(uid));
+    }
+
+    function isAdminUser() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'active';
+    }
+
+    function isValidUserRole(role) {
+      return role == 'member' || role == 'admin';
+    }
+
+    function isValidUserStatus(status) {
+      return status == 'active' || status == 'suspended' || status == 'banned';
+    }
+
+    function isValidLanguage(language) {
+      return language == 'en'
+        || language == 'es'
+        || language == 'fr'
+        || language == 'de'
+        || language == 'pt-BR';
+    }
+
+    function isValidBillingInterval(interval) {
+      return interval == 'monthly' || interval == 'yearly';
+    }
+
+    function isValidMembershipPlanId(planId) {
+      return planId == 'free' || planId == 'creator' || planId == 'pro';
+    }
+
+    function isValidSubscriptionStatus(status) {
+      return status == 'inactive'
+        || status == 'trialing'
+        || status == 'active'
+        || status == 'past_due'
+        || status == 'canceled'
+        || status == 'incomplete'
+        || status == 'incomplete_expired'
+        || status == 'unpaid'
+        || status == 'paused';
+    }
+
+    function isValidContentStatus(status) {
+      return status == 'draft'
+        || status == 'scheduled'
+        || status == 'published'
+        || status == 'archived';
+    }
+
+    function isNullableString(value) {
+      return value == null || value is string;
+    }
+
+    function isStringList(value) {
+      return value is list
+        && value.size() <= 50;
+    }
+    
+    function isValidFlashboltLibrary(library) {
+      return library is map
+        && library.keys().hasOnly([
+          'data',
+          'updatedAt',
+        ])
+        && library.data is map
+        && library.updatedAt is timestamp;
+    }
+
+    function canAssignManagedRole(uid) {
+      return request.resource.data.role == 'member'
+        || resource.data.role == 'admin'
+        || hasAdminBootstrap(uid);
+    }
+
+    function isValidNotificationPreferences(preferences) {
+      return preferences is map
+        && preferences.keys().hasOnly([
+          'accountActivity',
+          'securityAlerts',
+          'productUpdates',
+          'marketingEmails',
+        ])
+        && preferences.accountActivity is bool
+        && preferences.securityAlerts is bool
+        && preferences.productUpdates is bool
+        && preferences.marketingEmails is bool;
+    }
+
+    function isValidSecurityPreferences(preferences) {
+      return preferences is map
+        && preferences.keys().hasOnly([
+          'loginAlerts',
+          'trustedDevicesOnly',
+        ])
+        && preferences.loginAlerts is bool
+        && preferences.trustedDevicesOnly is bool;
+    }
+
+    function isValidUserPreferences(preferences) {
+      return preferences is map
+        && preferences.keys().hasOnly([
+          'language',
+          'notifications',
+          'security',
+        ])
+        && isValidLanguage(preferences.language)
+        && isValidNotificationPreferences(preferences.notifications)
+        && isValidSecurityPreferences(preferences.security);
+    }
+
+    function isValidSocialLinks(socialLinks) {
+      return socialLinks is map
+        && socialLinks.keys().hasOnly([
+          'github',
+          'linkedin',
+          'website',
+          'twitter',
+          'youtube',
+          'email',
+        ])
+        && isNullableString(socialLinks.github)
+        && isNullableString(socialLinks.linkedin)
+        && isNullableString(socialLinks.website)
+        && isNullableString(socialLinks.twitter)
+        && isNullableString(socialLinks.youtube)
+        && isNullableString(socialLinks.email);
+    }
+
+    function isValidUserMembership(membership) {
+      return membership is map
+        && membership.keys().hasOnly([
+          'planId',
+          'planName',
+          'status',
+          'billingInterval',
+          'autoRenew',
+        ])
+        && isValidMembershipPlanId(membership.planId)
+        && membership.planName is string
+        && isValidSubscriptionStatus(membership.status)
+        && isValidBillingInterval(membership.billingInterval)
+        && membership.autoRenew is bool;
+    }
+
+    function isDefaultUserMembership(membership) {
+      return isValidUserMembership(membership)
+        && membership.planId == 'free'
+        && membership.planName == 'Free'
+        && membership.status == 'inactive'
+        && membership.billingInterval == 'monthly'
+        && membership.autoRenew == false;
+    }
+
+    function isValidUserDocument(data, uid) {
+      return data.keys().hasOnly([
+          'uid',
+          'email',
+          'displayName',
+          'phoneNumber',
+          'photoURL',
+          'avatarStoragePath',
+          'role',
+          'status',
+          'bio',
+          'headline',
+          'username',
+          'location',
+          'skills',
+          'isPublic',
+          'socialLinks',
+          'preferences',
+          'membership',
+          'createdAt',
+          'updatedAt',
+          'flashboltLibrary',
+        ])
+        && data.uid == uid
+        && data.email is string
+        && data.displayName is string
+        && isNullableString(data.phoneNumber)
+        && isNullableString(data.photoURL)
+        && isNullableString(data.avatarStoragePath)
+        && isValidUserRole(data.role)
+        && isValidUserStatus(data.status)
+        && data.bio is string
+        && data.headline is string
+        && isNullableString(data.username)
+        && isNullableString(data.location)
+        && isStringList(data.skills)
+        && data.isPublic is bool
+        && isValidSocialLinks(data.socialLinks)
+        && isValidUserPreferences(data.preferences)
+        && isValidUserMembership(data.membership)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp
+        && (
+          !data.keys().hasAny(['flashboltLibrary'])
+          || isValidFlashboltLibrary(data.flashboltLibrary)
+        );
+    }
+
+    function canCreateOwnUser(uid) {
+      return isOwner(uid)
+        && isValidUserDocument(request.resource.data, uid)
+        && request.resource.data.role == 'member'
+        && request.resource.data.status == 'active'
+        && isDefaultUserMembership(request.resource.data.membership);
+    }
+
+    function canSetOwnRole(uid) {
+      return request.resource.data.role == resource.data.role
+        || request.resource.data.role == 'member'
+        || (request.resource.data.role == 'admin' && hasAdminBootstrap(uid));
+    }
+
+    function canUpdateOwnUser(uid) {
+      return isOwner(uid)
+        && isValidUserDocument(request.resource.data, uid)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.email == resource.data.email
+        && canSetOwnRole(uid)
+        && request.resource.data.status == resource.data.status
+        && request.resource.data.membership == resource.data.membership
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'displayName',
+          'phoneNumber',
+          'photoURL',
+          'avatarStoragePath',
+          'bio',
+          'headline',
+          'username',
+          'location',
+          'skills',
+          'isPublic',
+          'socialLinks',
+          'preferences',
+          'role',
+          'updatedAt',
+          'flashboltLibrary',
+        ]);
+    }
+
+    function canAdminManageUser(uid) {
+      return isAdminUser()
+        && uid != request.auth.uid
+        && isValidUserDocument(request.resource.data, uid)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.membership == resource.data.membership
+        && canAssignManagedRole(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'role',
+          'status',
+          'isPublic',
+          'updatedAt',
+        ]);
+    }
+
+    function isOwnedPortfolio(data, uid) {
+      return data.userId == uid;
+    }
+
+    function isOwnedPortfolioProject(data, uid) {
+      return data.scope == 'portfolio' && data.ownerId == uid;
+    }
+
+    function isPublicPortfolioProject(data) {
+      return data.scope == 'portfolio' && data.visibility == 'public';
+    }
+
+    function isPublicSiteProject(data) {
+      return data.scope == 'site' && data.visibility == 'public';
+    }
+
+    function canReadPublishedOrScheduledPublicContent(data) {
+      return data.visibility == 'public'
+        && (
+          data.status == 'published'
+          || (
+            data.status == 'scheduled'
+            && data.scheduledAt is timestamp
+            && data.scheduledAt <= request.time
+          )
+        );
+    }
+    
+    match /users/{uid}/notebook/{documentId} {
+      allow read, write: if isOwner(uid);
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdminUser();
+      allow create: if canCreateOwnUser(uid);
+      allow update: if canUpdateOwnUser(uid) || canAdminManageUser(uid);
+      allow delete: if false;
+    }
+
+    match /admin_bootstrap/{uid} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+
+    match /blogs/{blogId} {
+      allow read: if isAdminUser() || canReadPublishedOrScheduledPublicContent(resource.data);
+      allow create, update, delete: if isAdminUser();
+    }
+
+    match /portfolios/{uid} {
+      allow read: if signedIn() && (isOwner(uid) || isAdminUser() || resource.data.isPublic == true);
+      allow create: if
+        isOwner(uid)
+        && isOwnedPortfolio(request.resource.data, uid);
+      allow update: if
+        (
+          isOwner(uid)
+          && isOwnedPortfolio(resource.data, uid)
+          && request.resource.data.userId == resource.data.userId
+          && request.resource.data.createdAt == resource.data.createdAt
+        )
+        || (
+          isAdminUser()
+          && request.resource.data.userId == resource.data.userId
+          && request.resource.data.createdAt == resource.data.createdAt
+        );
+      allow delete: if false;
+    }
+
+    match /projects/{projectId} {
+      allow read: if
+        isAdminUser()
+        || isPublicSiteProject(resource.data)
+        || (
+          signedIn()
+          && (
+            isOwnedPortfolioProject(resource.data, request.auth.uid)
+            || isPublicPortfolioProject(resource.data)
+          )
+        );
+      allow create: if
+        (signedIn() && isOwnedPortfolioProject(request.resource.data, request.auth.uid))
+        || (isAdminUser() && request.resource.data.scope == 'site');
+      allow update: if
+        (
+          signedIn()
+          && isOwnedPortfolioProject(resource.data, request.auth.uid)
+          && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.scope == resource.data.scope
+          && request.resource.data.createdAt == resource.data.createdAt
+        )
+        || (
+          isAdminUser()
+          && resource.data.scope == 'site'
+          && request.resource.data.scope == resource.data.scope
+          && request.resource.data.createdAt == resource.data.createdAt
+        );
+      allow delete: if
+        (signedIn() && isOwnedPortfolioProject(resource.data, request.auth.uid))
+        || (isAdminUser() && resource.data.scope == 'site');
+    }
+
+    match /links/{linkId} {
+      allow read: if isAdminUser() || resource.data.isActive == true;
+      allow create, update, delete: if isAdminUser();
+    }
+
+    match /pages/{pageId} {
+      allow read: if isAdminUser() || (
+        (
+          resource.data.visibility == 'public'
+          || !resource.data.keys().hasAny(['visibility'])
+        )
+        && (
+          resource.data.status == 'published'
+          || (
+            resource.data.status == 'scheduled'
+            && resource.data.scheduledAt is timestamp
+            && resource.data.scheduledAt <= request.time
+          )
+        )
+      );
+      allow create, update, delete: if isAdminUser();
+    }
+
+    match /tasks/{taskId} {
+      allow read, create, update, delete: if isAdminUser();
+    }
+
+    match /subscriptions/{subscriptionId} {
+      allow read: if isOwner(subscriptionId) || isAdminUser();
+      allow create, update, delete: if false;
+    }
+
+    match /admin_activity/{activityId} {
+      allow read, create, update, delete: if isAdminUser();
+    }
+
+    match /feature_toggles/{toggleId} {
+      allow read: if isAdminUser() || resource.data.public == true;
+      allow create, update, delete: if isAdminUser();
+    }
+
+    match /rainbow-words/{wordId} {
+      allow read: if true;
+      allow create: if
+        request.resource.data.word is string
+        && request.resource.data.word.size() >= 1
+        && request.resource.data.word.size() <= 50
+        && request.resource.data.keys().hasOnly(['word', 'addedAt']);
+      allow update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

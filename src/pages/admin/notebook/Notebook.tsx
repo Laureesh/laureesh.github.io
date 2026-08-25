@@ -2,13 +2,13 @@ import "./Notebook.css";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ClipboardEvent, type DragEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
-import { loadNotebookLibrary, saveNotebookLibrary } from "../../../services/notebookLibrary";
+import { loadNotebookLibrary, mergeNotebookLibraries, saveNotebookLibrary } from "../../../services/notebookLibrary";
 
-type Folder = { id: string; name: string; parentId: string | null; color: string };
+type Folder = { id: string; name: string; parentId: string | null; color: string; updatedAt?: string };
 type Attachment = { id: string; name: string; type: string; dataUrl: string; size: number };
 type Version = { id: string; title: string; html: string; savedAt: string };
 type Note = { id: string; title: string; html: string; folderId: string | null; tags: string[]; pinned: boolean; archived: boolean; noteDate?: string; createdAt: string; updatedAt: string; attachments: Attachment[]; versions: Version[] };
-type NotebookData = { notes: Note[]; folders: Folder[] };
+type NotebookData = { notes: Note[]; folders: Folder[]; deletedNoteIds?: Record<string, string>; deletedFolderIds?: Record<string, string> };
 
 const STORAGE_KEY = "flashbolt.notebook.v1";
 const COLORS = ["#7c6cff", "#55d6be", "#ffca66", "#ff7698", "#58c8f5", "#a98cff"];
@@ -37,7 +37,7 @@ function normalizeNotebook(value: unknown): NotebookData | null {
     attachments: Array.isArray(note.attachments) ? note.attachments.filter((file): file is Attachment => Boolean(file && typeof file.id === "string" && typeof file.dataUrl === "string")) : [],
     versions: Array.isArray(note.versions) ? note.versions.filter((version): version is Version => Boolean(version && typeof version.id === "string" && typeof version.html === "string")) : [],
   }));
-  return { folders, notes };
+  return { folders, notes, deletedNoteIds: candidate.deletedNoteIds && typeof candidate.deletedNoteIds === "object" ? candidate.deletedNoteIds : {}, deletedFolderIds: candidate.deletedFolderIds && typeof candidate.deletedFolderIds === "object" ? candidate.deletedFolderIds : {} };
 }
 
 function readLocal(): NotebookData {
@@ -85,6 +85,7 @@ export default function Notebook() {
   const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const editorRef = useRef<HTMLDivElement>(null);
   const readyRef = useRef(false);
+  const startupLocalDataRef = useRef(data);
   const selected = data.notes.find((note) => note.id === selectedId) ?? data.notes[0];
   const latestSelectedRef = useRef<Note | undefined>(selected);
   latestSelectedRef.current = selected;
@@ -96,7 +97,7 @@ export default function Notebook() {
       if (user?.uid) {
         try {
           const cloud = normalizeNotebook(await loadNotebookLibrary(user.uid));
-          if (!cancelled && cloud) { setData(cloud); setSelectedId(cloud.notes[0]?.id ?? ""); }
+          if (!cancelled && cloud) { const merged = normalizeNotebook(mergeNotebookLibraries(cloud, startupLocalDataRef.current)) ?? startupLocalDataRef.current; setData(merged); setSelectedId(merged.notes[0]?.id ?? ""); }
         } catch (error) { loadFailed = true; if (!cancelled) { setSaveState("offline"); setSyncError(error instanceof Error ? error.message : "Cloud library could not be loaded."); } }
       }
       if (!cancelled) { readyRef.current = true; setSaveState(user?.uid && !loadFailed ? "saved" : "offline"); }
@@ -111,7 +112,7 @@ export default function Notebook() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     const timer = window.setTimeout(() => {
       if (!user?.uid) { setSaveState("offline"); return; }
-      void saveNotebookLibrary(user.uid, data).then(() => { setSaveState("saved"); setSyncError(""); }).catch((error: unknown) => { setSaveState("offline"); setSyncError(error instanceof Error ? error.message : "Cloud save failed."); });
+      void saveNotebookLibrary(user.uid, data).then((mergedValue) => { const merged = normalizeNotebook(mergedValue); if (merged && JSON.stringify(merged) !== JSON.stringify(data)) setData(merged); setSaveState("saved"); setSyncError(""); }).catch((error: unknown) => { setSaveState("offline"); setSyncError(error instanceof Error ? error.message : "Cloud save failed."); });
     }, 650);
     return () => window.clearTimeout(timer);
   }, [data, user?.uid]);
@@ -154,7 +155,7 @@ export default function Notebook() {
   const retryCloudSync = async () => {
     if (!user?.uid) return;
     setSaveState("saving"); setSyncError("");
-    try { await saveNotebookLibrary(user.uid, data); setSaveState("saved"); }
+    try { const merged = normalizeNotebook(await saveNotebookLibrary(user.uid, data)); if (merged && JSON.stringify(merged) !== JSON.stringify(data)) setData(merged); setSaveState("saved"); }
     catch (error) { setSaveState("offline"); setSyncError(error instanceof Error ? error.message : "Cloud save failed."); }
   };
   const openNote = (noteId: string) => { setSelectedId(noteId); setMobileEditorOpen(true); };
@@ -162,9 +163,9 @@ export default function Notebook() {
     const note: Note = { id: id("note"), title: "Untitled note", html: "<p><br></p>", folderId, tags: [], pinned: false, archived: false, noteDate: localDateKey(), createdAt: now(), updatedAt: now(), attachments: [], versions: [] };
     setData((current) => ({ ...current, notes: [note, ...current.notes] })); openNote(note.id);
   };
-  const addFolder = (parentId: string | null = null) => { const name = prompt(parentId ? "Subfolder name" : "Folder name"); if (!name?.trim()) return; setData((current) => ({ ...current, folders: [...current.folders, { id: id("folder"), name: name.trim(), parentId, color: COLORS[current.folders.length % COLORS.length] }] })); };
-  const editFolder = (folder: Folder) => { const name = prompt("Rename folder", folder.name); if (!name?.trim()) return; setData((current) => ({ ...current, folders: current.folders.map((item) => item.id === folder.id ? { ...item, name: name.trim() } : item) })); };
-  const changeFolderColor = (folder: Folder) => setData((current) => ({ ...current, folders: current.folders.map((item) => item.id === folder.id ? { ...item, color: COLORS[(COLORS.indexOf(item.color) + 1) % COLORS.length] } : item) }));
+  const addFolder = (parentId: string | null = null) => { const name = prompt(parentId ? "Subfolder name" : "Folder name"); if (!name?.trim()) return; setData((current) => ({ ...current, folders: [...current.folders, { id: id("folder"), name: name.trim(), parentId, color: COLORS[current.folders.length % COLORS.length], updatedAt: now() }] })); };
+  const editFolder = (folder: Folder) => { const name = prompt("Rename folder", folder.name); if (!name?.trim()) return; setData((current) => ({ ...current, folders: current.folders.map((item) => item.id === folder.id ? { ...item, name: name.trim(), updatedAt: now() } : item) })); };
+  const changeFolderColor = (folder: Folder) => setData((current) => ({ ...current, folders: current.folders.map((item) => item.id === folder.id ? { ...item, color: COLORS[(COLORS.indexOf(item.color) + 1) % COLORS.length], updatedAt: now() } : item) }));
   const deleteFolder = (folder: Folder) => {
     const noteCount = data.notes.filter((note) => note.folderId === folder.id).length;
     const childCount = data.folders.filter((item) => item.parentId === folder.id).length;
@@ -174,10 +175,11 @@ export default function Notebook() {
       ...current,
       notes: current.notes.map((note) => note.folderId === folder.id ? { ...note, folderId: null, updatedAt: now() } : note),
       folders: current.folders.filter((item) => item.id !== folder.id).map((item) => item.parentId === folder.id ? { ...item, parentId: folder.parentId } : item),
+      deletedFolderIds: { ...(current.deletedFolderIds ?? {}), [folder.id]: now() },
     }));
     if (folderFilter === folder.id) setFolderFilter("all");
   };
-  const deleteNote = () => { if (!selected || !confirm(`Delete “${selected.title}”?`)) return; setData((current) => ({ ...current, notes: current.notes.filter((note) => note.id !== selected.id) })); setSelectedId(data.notes.find((note) => note.id !== selected.id)?.id ?? ""); setMobileEditorOpen(false); };
+  const deleteNote = () => { if (!selected || !confirm(`Delete “${selected.title}”?`)) return; setData((current) => ({ ...current, notes: current.notes.filter((note) => note.id !== selected.id), deletedNoteIds: { ...(current.deletedNoteIds ?? {}), [selected.id]: now() } })); setSelectedId(data.notes.find((note) => note.id !== selected.id)?.id ?? ""); setMobileEditorOpen(false); };
   const duplicateNote = () => { const copy: Note = { ...selected, id: id("note"), title: `${selected.title} (copy)`, pinned: false, createdAt: now(), updatedAt: now(), versions: [], attachments: selected.attachments.map((file) => ({ ...file, id: id("file") })) }; setData((current) => ({ ...current, notes: [copy, ...current.notes] })); openNote(copy.id); };
   const snapshot = () => updateNote({ versions: [{ id: id("version"), title: selected.title, html: selected.html, savedAt: now() }, ...selected.versions].slice(0, 30) });
   const format = (command: string, value?: string) => { editorRef.current?.focus(); document.execCommand(command, false, value); if (editorRef.current) updateNote({ html: editorRef.current.innerHTML }); };
