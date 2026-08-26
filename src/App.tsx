@@ -59,6 +59,79 @@ const AdminFnLeaderboardPage = lazy(() => import("./pages/admin/AdminFnLeaderboa
 const Flashbolt = lazy(() => import("./pages/admin/flashbolt/Flashbolt"));
 const Notebook = lazy(() => import("./pages/admin/notebook/Notebook"));
 
+const PAGE_TITLES: Record<string, string> = {
+  "/": "Laureesh Volmar | Developer Portfolio",
+  "/about": "About Laureesh Volmar | Developer Portfolio",
+  "/skills": "Technical Skills | Laureesh Volmar",
+  "/projects": "Software Projects | Laureesh Volmar",
+  "/contact": "Contact Laureesh Volmar",
+  "/blog": "Developer Blog | Laureesh Volmar",
+  "/blog/archive": "Blog Archive | Laureesh Volmar",
+  "/blog/premium": "Premium Articles | Laureesh Volmar",
+  "/community": "Member Community | Laureesh Volmar",
+  "/resume": "Resume | Laureesh Volmar",
+  "/game": "Multiplayer Game | Laureesh Volmar",
+  "/solo-game": "Solo Game | Laureesh Volmar",
+  "/movie-app": "Movie Explorer | Laureesh Volmar",
+  "/mediahub": "Media Hub | Laureesh Volmar",
+  "/yt-tags": "YouTube Tag Generator | Laureesh Volmar",
+  "/password-gen": "Password Generator | Laureesh Volmar",
+  "/media-converter": "Media Converter | Laureesh Volmar",
+  "/profile": "Your Profile | Laureesh Volmar",
+  "/account-settings": "Account Security | Laureesh Volmar",
+  "/memberships": "Memberships | Laureesh Volmar",
+  "/settings": "Settings | Laureesh Volmar",
+  "/login": "Sign In | Laureesh Volmar",
+  "/register": "Create Account | Laureesh Volmar",
+  "/switch-account": "Switch Account | Laureesh Volmar",
+  "/admin-dashboard": "Admin Dashboard | Laureesh Volmar",
+  "/admin-dashboard/content": "Content Manager | Admin Dashboard",
+  "/admin-dashboard/pages": "Page Manager | Admin Dashboard",
+  "/admin-dashboard/users": "User Manager | Admin Dashboard",
+  "/admin-dashboard/tasks": "Task Manager | Admin Dashboard",
+  "/admin-dashboard/jobs": "Job Tracker | Admin Dashboard",
+  "/admin-dashboard/good-jobs": "Saved Jobs | Admin Dashboard",
+  "/admin-dashboard/feature-toggles": "Feature Toggles | Admin Dashboard",
+  "/admin-dashboard/private-pages": "Private Pages | Admin Dashboard",
+  "/admin-dashboard/private-pages/food-routine": "Food Routine | Private Pages",
+  "/admin-dashboard/private-pages/face-routine": "Face Routine | Private Pages",
+  "/admin-dashboard/private-pages/ps99-inventory": "Pet Simulator Inventory | Private Pages",
+  "/admin-dashboard/private-pages/weight-tracker": "Weight Tracker | Private Pages",
+  "/admin-dashboard/private-pages/fn-leaderboard": "UEFN Leaderboard Manager | Private Pages",
+  "/admin-dashboard/private-pages/notebook": "Notebook | Private Pages",
+};
+
+function readableRouteSegment(segment: string) {
+  return decodeURIComponent(segment.split("--")[0]).replace(/-/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function pageTitleForPath(pathname: string) {
+  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
+  if (pathname.startsWith("/blog/premium/")) return `${readableRouteSegment(pathname.split("/").filter(Boolean).at(-1) ?? "Article")} | Premium Article`;
+  if (pathname.startsWith("/blog/")) return `${readableRouteSegment(pathname.split("/").filter(Boolean).at(-1) ?? "Article")} | Laureesh Volmar`;
+  if (pathname.startsWith("/user/")) return "Member Portfolio | Laureesh Volmar";
+
+  const parts = pathname.split("/").filter(Boolean);
+  const flashboltIndex = parts.indexOf("flashbolt");
+  if (flashboltIndex >= 0) {
+    const flashboltParts = parts.slice(flashboltIndex + 1);
+    if (!flashboltParts.length || flashboltParts[0] === "home") return "Flashbolt | Private Study Library";
+    if (flashboltParts.length === 1) {
+      const titles: Record<string, string> = { library: "Flashbolt Library", folders: "Flashbolt Folders", create: "Create Set | Flashbolt", guide: "Study Guide | Flashbolt", helper: "Kahoot Helper | Flashbolt" };
+      return titles[flashboltParts[0]] ?? "Flashbolt | Private Study Library";
+    }
+    const mode = flashboltParts.at(-1) ?? "";
+    if (["flashcards", "learn", "test", "edit"].includes(mode) && flashboltParts.length >= 4) {
+      const setName = readableRouteSegment(flashboltParts.at(-2) ?? "Study Set");
+      const modeName = mode === "edit" ? "Edit" : readableRouteSegment(mode);
+      return `${setName} — ${modeName} | Flashbolt`;
+    }
+    return `${readableRouteSegment(flashboltParts.at(-1) ?? "Folder")} | Flashbolt Folder`;
+  }
+  if (pathname.startsWith("/admin-dashboard/private-pages/notebook/")) return "Notebook | Private Pages";
+  return "Page Not Found | Laureesh Volmar";
+}
+
 export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -79,6 +152,10 @@ export default function App() {
   );
   const showAppChrome = !isStandaloneAdminToolRoute;
   const showBreadcrumbs = location.pathname !== "/" && !isAuthRoute && !isStandaloneAdminToolRoute;
+
+  useEffect(() => {
+    document.title = pageTitleForPath(location.pathname);
+  }, [location.pathname]);
 
   useEffect(() => {
     const disabledSwipePrefixes = [
