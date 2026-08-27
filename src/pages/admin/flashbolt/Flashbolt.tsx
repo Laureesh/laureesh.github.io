@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { CSSProperties, ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
-import { loadFlashboltLibrary, saveFlashboltLibrary } from "../../../services/flashboltLibrary";
+import { loadFlashboltLibrary, mergeAndSaveFlashboltLibrary, saveFlashboltLibrary } from "../../../services/flashboltLibrary";
 import {
   advanceLearnRound,
   chooseAdaptiveQuestionKind,
@@ -179,7 +179,6 @@ const LEGACY_STORAGE_KEY = "studydeck.local.v1";
 const LIBRARY_SORT_KEY = `${STORAGE_KEY}.librarySort`;
 const SIDEBAR_COLLAPSED_KEY = `${STORAGE_KEY}.sidebarCollapsed`;
 const EDITOR_PANEL_COLLAPSED_KEY = `${STORAGE_KEY}.editorPanelCollapsed`;
-const cloudMigrationKey = (uid: string) => `${STORAGE_KEY}.cloudMigrated.${uid}`;
 const THEME_OPTIONS: Array<{ id: ThemeName; label: string; colors: [string, string] }> = [
   { id: "dark", label: "Dark", colors: ["#0c0c28", "#7b78ff"] },
   { id: "extreme", label: "Extreme dark", colors: ["#000000", "#8b82ff"] },
@@ -866,13 +865,11 @@ export default function Flashbolt() {
       let loadedData = initialData;
       let cloudSyncFailed = false;
       let localData: AppData | null = null;
-      let localAlreadyMigrated = false;
 
       try {
         const saved = window.localStorage.getItem(STORAGE_KEY) ?? window.localStorage.getItem(LEGACY_STORAGE_KEY);
         const savedTheme = window.localStorage.getItem(`${STORAGE_KEY}.theme`) ?? window.localStorage.getItem(`${LEGACY_STORAGE_KEY}.theme`);
         const savedLibrarySort = window.localStorage.getItem(LIBRARY_SORT_KEY) ?? window.localStorage.getItem(`${LEGACY_STORAGE_KEY}.librarySort`);
-        localAlreadyMigrated = window.localStorage.getItem(cloudMigrationKey(syncUserId)) === "true";
         if (saved) {
           const parsed: unknown = JSON.parse(saved);
           if (isValidBackup(parsed)) {
@@ -892,19 +889,13 @@ export default function Flashbolt() {
         const cloudData = await loadFlashboltLibrary(syncUserId);
         if (cancelled) return;
         if (isValidBackup(cloudData)) {
-          loadedData = localData && !localAlreadyMigrated
-            ? mergeLibraries(withDataDefaults(cloudData), localData)
+          loadedData = localData
+            ? await mergeAndSaveFlashboltLibrary(syncUserId, localData, (latestCloudData, currentLocalData) => isValidBackup(latestCloudData)
+              ? mergeLibraries(withDataDefaults(latestCloudData), currentLocalData)
+              : currentLocalData)
             : withDataDefaults(cloudData);
-          if (localData && !localAlreadyMigrated) {
-            await saveFlashboltLibrary(syncUserId, loadedData);
-          }
         } else {
           await saveFlashboltLibrary(syncUserId, localData ?? loadedData);
-        }
-        try {
-          window.localStorage.setItem(cloudMigrationKey(syncUserId), "true");
-        } catch {
-          // Sync still works when the browser blocks local storage.
         }
       } catch (error) {
         cloudSyncFailed = true;
@@ -940,8 +931,17 @@ export default function Flashbolt() {
       }
 
       try {
-        await saveFlashboltLibrary(syncUserId, data);
+        const mergedData = await mergeAndSaveFlashboltLibrary(syncUserId, data, (cloudData, localData) => {
+          const safeCloudData = isValidBackup(cloudData) ? withDataDefaults(cloudData) : initialData;
+          return mergeLibraries(safeCloudData, localData);
+        });
         if (cancelled) return;
+        try {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedData));
+        } catch {
+          // The merged cloud copy remains available when local storage is blocked.
+        }
+        if (JSON.stringify(mergedData) !== JSON.stringify(data)) setData(mergedData);
         setSyncError("");
         setStorageStatus("saved");
       } catch (error) {
