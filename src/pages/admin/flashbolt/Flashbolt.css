@@ -310,6 +310,7 @@ select:focus-visible {
 .brand {
   margin: 0 10px 34px;
   padding: 0;
+  text-decoration: none;
 }
 
 .sidebar-brand-row {
@@ -378,9 +379,9 @@ select:focus-visible {
   gap: 6px;
 }
 
-.main-nav button,
-.side-section button,
-.sidebar-bottom button {
+.main-nav :is(button, a),
+.side-section :is(button, a),
+.sidebar-bottom :is(button, a) {
   display: flex;
   min-height: 44px;
   align-items: center;
@@ -391,23 +392,24 @@ select:focus-visible {
   background: transparent;
   color: var(--muted);
   text-align: left;
+  text-decoration: none;
   transition: 160ms ease;
 }
 
-.main-nav button:hover,
-.side-section button:hover,
-.sidebar-bottom button:hover {
+.main-nav :is(button, a):hover,
+.side-section :is(button, a):hover,
+.sidebar-bottom :is(button, a):hover {
   background: var(--panel);
   color: var(--ink);
 }
 
-.main-nav button.active {
+.main-nav :is(button, a).active {
   background: var(--primary-soft);
   color: var(--ink);
   font-weight: 750;
 }
 
-.main-nav button.active::after {
+.main-nav :is(button, a).active::after {
   width: 4px;
   height: 19px;
   margin-left: auto;
@@ -705,15 +707,15 @@ select:focus-visible {
   margin: 0 0 24px;
 }
 
-.app-shell.sidebar-collapsed .main-nav button,
-.app-shell.sidebar-collapsed .side-section button,
-.app-shell.sidebar-collapsed .sidebar-bottom > button {
+.app-shell.sidebar-collapsed .main-nav :is(button, a),
+.app-shell.sidebar-collapsed .side-section :is(button, a),
+.app-shell.sidebar-collapsed .sidebar-bottom > :is(button, a) {
   position: relative;
   justify-content: center;
   padding-inline: 0;
 }
 
-.app-shell.sidebar-collapsed .main-nav button.active::after {
+.app-shell.sidebar-collapsed .main-nav :is(button, a).active::after {
   position: absolute;
   right: -7px;
   margin-left: 0;
@@ -1508,7 +1510,7 @@ select:focus-visible {
   overflow-wrap: anywhere;
 }
 
-.set-context-menu button {
+.set-context-menu :is(button, a) {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1520,15 +1522,16 @@ select:focus-visible {
   font-size: 16px;
   font-weight: 750;
   text-align: left;
+  text-decoration: none;
 }
 
-.set-context-menu button:hover,
-.set-context-menu button:focus-visible {
+.set-context-menu :is(button, a):hover,
+.set-context-menu :is(button, a):focus-visible {
   outline: 0;
   background: var(--panel-2);
 }
 
-.set-context-menu button span {
+.set-context-menu :is(button, a) span {
   width: 18px;
   color: var(--primary-strong);
   font-size: 16px;
@@ -1541,8 +1544,8 @@ select:focus-visible {
   background: var(--line-soft);
 }
 
-.set-context-menu button.danger,
-.set-context-menu button.danger span {
+.set-context-menu :is(button, a).danger,
+.set-context-menu :is(button, a).danger span {
   color: var(--danger);
 }
 
@@ -2286,7 +2289,7 @@ code {
   gap: 7px;
 }
 
-.folder-chips button {
+.folder-chips :is(button, a) {
   position: relative;
   display: inline-flex;
   height: 43px;
@@ -2301,25 +2304,26 @@ code {
   color: var(--muted);
   font-size: 16px;
   font-weight: 780;
+  text-decoration: none;
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
   transition: border-color 150ms ease, background 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
 
-.folder-chips button:hover {
+.folder-chips :is(button, a):hover {
   border-color: color-mix(in srgb, var(--primary-strong) 55%, var(--line));
   background: color-mix(in srgb, var(--primary-soft) 42%, var(--panel));
   color: var(--ink);
   transform: translateY(-2px);
 }
 
-.folder-chips button.active {
+.folder-chips :is(button, a).active {
   border-color: var(--primary-strong);
   background: linear-gradient(135deg, color-mix(in srgb, var(--primary-soft) 88%, var(--panel)), var(--panel));
   color: white;
   box-shadow: 0 8px 20px rgba(82, 78, 225, 0.16), inset 0 1px rgba(255, 255, 255, 0.05);
 }
 
-.folder-chips button.active::after {
+.folder-chips :is(button, a).active::after {
   position: absolute;
   right: 12px;
   bottom: -4px;
@@ -2402,11 +2406,11 @@ code {
   transform: rotate(-1deg);
 }
 
-.folder-chips button:hover .folder-filter-icon {
+.folder-chips :is(button, a):hover .folder-filter-icon {
   transform: scale(1.04);
 }
 
-.folder-chips button.active .folder-filter-icon {
+.folder-chips :is(button, a).active .folder-filter-icon {
   background: linear-gradient(135deg, var(--folder-color, var(--primary-strong)), color-mix(in srgb, var(--folder-color, var(--primary)) 72%, white));
   color: white;
   box-shadow: 0 5px 12px rgba(82, 78, 225, 0.28);
@@ -2445,9 +2449,9 @@ code {
   background: var(--folder-swatch);
 }
 
-.folder-chips button.active .folder-filter-icon.all::before,
-.folder-chips button.active .folder-filter-icon.all::after,
-.folder-chips button.active .folder-filter-icon.all i {
+.folder-chips :is(button, a).active .folder-filter-icon.all::before,
+.folder-chips :is(button, a).active .folder-filter-icon.all::after,
+.folder-chips :is(button, a).active .folder-filter-icon.all i {
   background: var(--primary);
 }
 
@@ -2478,7 +2482,7 @@ code {
   transition: background 150ms ease, color 150ms ease;
 }
 
-.folder-chips button.active .folder-filter-count {
+.folder-chips :is(button, a).active .folder-filter-count {
   background: color-mix(in srgb, var(--primary-strong) 24%, var(--panel-3));
   color: white;
 }
@@ -2625,6 +2629,7 @@ code {
   background: transparent;
   color: var(--ink);
   text-align: left;
+  text-decoration: none;
 }
 
 .folder-tile-actions {
@@ -4154,7 +4159,7 @@ select {
   text-align: right;
 }
 
-.folder-set-button:not(:disabled):hover {
+.folder-set-button:not(.disabled):not(:disabled):hover {
   border-color: var(--primary-strong);
   background: var(--primary-soft);
   transform: translateY(-1px);
@@ -4174,6 +4179,9 @@ select {
   overflow-wrap: anywhere;
   white-space: normal;
 }
+
+.folder-set-button { color: inherit; text-decoration: none; }
+.folder-set-button.disabled { cursor: default; opacity: 0.52; }
 
 .folder-set-position {
   display: grid;
@@ -4199,8 +4207,10 @@ select {
   margin-bottom: 20px;
 }
 
-.mode-tabs button {
+.mode-tabs :is(button, a) {
+  display: inline-flex;
   min-height: 43px;
+  align-items: center;
   padding: 0 17px;
   border: 1px solid var(--line);
   border-radius: 11px;
@@ -4208,10 +4218,11 @@ select {
   color: var(--muted);
   font-size: 16px;
   font-weight: 800;
+  text-decoration: none;
 }
 
-.mode-tabs button.active,
-.mode-tabs button:hover {
+.mode-tabs :is(button, a).active,
+.mode-tabs :is(button, a):hover {
   border-color: var(--primary-strong);
   background: var(--primary-soft);
   color: var(--ink);
@@ -4880,6 +4891,8 @@ kbd {
   border: 0;
   background: transparent;
   color: var(--muted);
+  text-align: center;
+  text-decoration: none;
 }
 
 .learn-options-button {
@@ -6409,7 +6422,7 @@ kbd {
   height: auto;
 }
 
-.folder-chips button {
+.folder-chips :is(button, a) {
   height: auto;
   min-height: 43px;
 }
@@ -6715,7 +6728,7 @@ kbd {
     background: var(--mobile-nav-bg);
   }
 
-  .mobile-nav button {
+  .mobile-nav :is(button, a) {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -6726,13 +6739,14 @@ kbd {
     color: var(--faint);
     font-size: 16px;
     font-weight: 800;
+    text-decoration: none;
   }
 
-  .mobile-nav button span {
+  .mobile-nav :is(button, a) span {
     font-size: 17px;
   }
 
-  .mobile-nav button.active {
+  .mobile-nav :is(button, a).active {
     color: var(--primary-strong);
   }
 

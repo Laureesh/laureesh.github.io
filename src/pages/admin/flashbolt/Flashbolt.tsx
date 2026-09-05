@@ -1,7 +1,7 @@
 
 import "./Flashbolt.css";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { CSSProperties, ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { loadFlashboltLibrary, mergeAndSaveFlashboltLibrary, saveFlashboltLibrary } from "../../../services/flashboltLibrary";
@@ -1377,23 +1377,27 @@ export default function Flashbolt() {
     apply(match);
   }
 
-  function setRoutePath(nextView: View, setId = selectedSetId) {
+  function routePathForView(nextView: View, setId = selectedSetId) {
     if (!["set", "learn", "test", "create"].includes(nextView) || (nextView === "create" && !setId)) {
-      const path = nextView === "home" ? FLASHBOLT_BASE : `${FLASHBOLT_BASE}/${nextView}`;
-      handledRouteRef.current = path;
-      setResolvedRoutePath(path);
-      routerNavigate(path);
-      return;
+      return nextView === "home" ? FLASHBOLT_BASE : `${FLASHBOLT_BASE}/${nextView}`;
     }
     const routeSet = data.sets.find((item) => item.id === setId);
-    if (!routeSet) return;
+    if (!routeSet) return `${FLASHBOLT_BASE}/library`;
     const routeFolder = data.folders.find((item) => item.id === selectedFolderId && item.setIds.includes(routeSet.id))
       ?? data.folders.find((item) => item.setIds.includes(routeSet.id));
     const mode = nextView === "set" ? "flashcards" : nextView === "create" ? "edit" : nextView;
-    const path = `${FLASHBOLT_BASE}/${routeSlug(routeFolder?.semester || "no-semester")}/${routeFolder ? folderRouteSegment(routeFolder) : "unfiled"}/${setRouteSegment(routeSet, routeFolder)}/${mode}`;
+    return `${FLASHBOLT_BASE}/${routeSlug(routeFolder?.semester || "no-semester")}/${routeFolder ? folderRouteSegment(routeFolder) : "unfiled"}/${setRouteSegment(routeSet, routeFolder)}/${mode}`;
+  }
+
+  function setRoutePath(nextView: View, setId = selectedSetId) {
+    const path = routePathForView(nextView, setId);
     handledRouteRef.current = path;
     setResolvedRoutePath(path);
     routerNavigate(path);
+  }
+
+  function folderPath(folderItem: Folder) {
+    return `${FLASHBOLT_BASE}/${routeSlug(folderItem.semester || "no-semester")}/${folderRouteSegment(folderItem)}`;
   }
 
   function navigate(nextView: View, setId = selectedSetId) {
@@ -1403,8 +1407,14 @@ export default function Flashbolt() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function followFlashboltLink(event: ReactMouseEvent<HTMLAnchorElement>, action: () => void) {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    action();
+  }
+
   function openFolder(folderItem: Folder) {
-    const path = `${FLASHBOLT_BASE}/${routeSlug(folderItem.semester || "no-semester")}/${folderRouteSegment(folderItem)}`;
+    const path = folderPath(folderItem);
     setSelectedFolderId(folderItem.id);
     setView("library");
     setNewMenuOpen(false);
@@ -2492,7 +2502,7 @@ export default function Flashbolt() {
             : data.folders;
           return (
             <article className={`set-tile ${progress === 100 ? "completed" : ""}`} key={set.id} onContextMenu={(event) => openSetContextMenu(event, set.id)}>
-              <button className="set-tile-open" onClick={() => openSet(set.id)} aria-label={`Open ${set.title}`}><span className="visually-hidden">Open {set.title}</span></button>
+              <Link className="set-tile-open" to={routePathForView("set", set.id)} aria-label={`Open ${set.title}`}><span className="visually-hidden">Open {set.title}</span></Link>
               <span className={`set-accent ${set.color}`} />
               <span className="tile-kicker"><span>{set.subject || "General"}</span><span>{formatDate(set.updatedAt)}</span></span>
               <strong className="set-tile-title">{set.title}</strong>
@@ -2605,8 +2615,9 @@ export default function Flashbolt() {
         return (
           <div className="set-context-menu" role="menu" aria-label={`Actions for ${contextSet.title}`} style={{ left: setContextMenu.x, top: setContextMenu.y }} onPointerDown={(event) => event.stopPropagation()}>
             <strong>{contextSet.title}</strong>
-            <button role="menuitem" onClick={() => { setSetContextMenu(null); openSet(contextSet.id); }}><span>▣</span>View set</button>
-            <button role="menuitem" onClick={() => { setSetContextMenu(null); startEdit(contextSet); }}><span>✎</span>Edit set</button>
+            <Link role="menuitem" to={routePathForView("set", contextSet.id)} onClick={() => setSetContextMenu(null)}><span>▣</span>View set</Link>
+            <a role="menuitem" href={routePathForView("set", contextSet.id)} target="_blank" rel="noreferrer" onClick={() => setSetContextMenu(null)}><span>↗</span>Open in new tab</a>
+            <a role="menuitem" href={routePathForView("create", contextSet.id)} onClick={(event) => { setSetContextMenu(null); followFlashboltLink(event, () => startEdit(contextSet)); }}><span>✎</span>Edit set</a>
             <button role="menuitem" onClick={() => { setSetContextMenu(null); duplicateSet(contextSet); }}><span>⧉</span>Duplicate</button>
             <i />
             <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "flashcards")}><span>↗</span>Copy flashcards link</button>
@@ -2620,26 +2631,26 @@ export default function Flashbolt() {
       })()}
       <aside className="sidebar">
         <div className="sidebar-brand-row">
-          <button className="brand" onClick={() => navigate("home")} aria-label="Flashbolt home" title="Flashbolt home">
+          <Link className="brand" to={FLASHBOLT_BASE} aria-label="Flashbolt home" title="Flashbolt home">
             <span className="brand-mark"><i /><i /><i /></span>
             <span>Flashbolt</span>
-          </button>
+          </Link>
           <button className="sidebar-collapse-button" onClick={toggleSidebar} aria-label={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"} title={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"}>{sidebarCollapsed ? "›" : "‹"}</button>
         </div>
 
         <nav className="main-nav" aria-label="Main navigation">
-          <button title="Home" aria-label="Home" className={view === "home" ? "active" : ""} onClick={() => { setSelectedFolderId(null); navigate("home"); }}><span className="nav-icon">⌂</span><span className="nav-label">Home</span></button>
-          <button title="Your library" aria-label="Your library" className={view === "library" && !folder ? "active" : ""} onClick={() => { setSelectedFolderId(null); navigate("library"); }}><span className="nav-icon">▤</span><span className="nav-label">Your library</span></button>
-          <button title="Folders" aria-label="Folders" className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} onClick={() => navigate("folders")}><span className="nav-icon">□</span><span className="nav-label">Folders</span></button>
+          <Link title="Home" aria-label="Home" className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span className="nav-icon">⌂</span><span className="nav-label">Home</span></Link>
+          <Link title="Your library" aria-label="Your library" className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span className="nav-icon">▤</span><span className="nav-label">Your library</span></Link>
+          <Link title="Folders" aria-label="Folders" className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span className="nav-icon">□</span><span className="nav-label">Folders</span></Link>
         </nav>
 
         <div className="side-section">
           <p>Study tools</p>
-          <button title="Flashcard set" aria-label="Create flashcard set" onClick={startCreate}><span className="nav-icon">＋</span><span className="nav-label">Flashcard set</span></button>
-          <button title="Study guide" aria-label="Study guide" onClick={() => navigate("guide")}><span className="nav-icon">≡</span><span className="nav-label">Study guide</span></button>
-          <button title="Practice test" aria-label="Practice test" onClick={() => selectedSet ? startTest() : navigate("library")}><span className="nav-icon">✓</span><span className="nav-label">Practice test</span></button>
-          <button title="Kahoot Helper" aria-label="Open Kahoot Helper" className={view === "helper" ? "active" : ""} onClick={openKahootHelper}><span className="nav-icon">◆</span><span className="nav-label">Kahoot Helper</span></button>
-          <button title="Notebook" aria-label="Open notebook" onClick={() => routerNavigate("/admin-dashboard/private-pages/notebook")}><span className="nav-icon">▱</span><span className="nav-label">Notebook</span></button>
+          <a title="Flashcard set" aria-label="Create flashcard set" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><span className="nav-icon">＋</span><span className="nav-label">Flashcard set</span></a>
+          <Link title="Study guide" aria-label="Study guide" to={`${FLASHBOLT_BASE}/guide`}><span className="nav-icon">≡</span><span className="nav-label">Study guide</span></Link>
+          <Link title="Practice test" aria-label="Practice test" to={selectedSet ? routePathForView("test", selectedSet.id) : `${FLASHBOLT_BASE}/library`}><span className="nav-icon">✓</span><span className="nav-label">Practice test</span></Link>
+          <a title="Kahoot Helper" aria-label="Open Kahoot Helper" className={view === "helper" ? "active" : ""} href={`${FLASHBOLT_BASE}/helper`} onClick={(event) => followFlashboltLink(event, openKahootHelper)}><span className="nav-icon">◆</span><span className="nav-label">Kahoot Helper</span></a>
+          <Link title="Notebook" aria-label="Open notebook" to="/admin-dashboard/private-pages/notebook"><span className="nav-icon">▱</span><span className="nav-label">Notebook</span></Link>
         </div>
 
         <div className="private-card">
@@ -2650,13 +2661,13 @@ export default function Flashbolt() {
         <div className="sidebar-bottom">
           <ThemePicker theme={theme} onThemeChange={setTheme} />
           <button title="Back up library" aria-label="Back up library" onClick={exportLibrary}><span className="nav-icon">⇩</span><span className="nav-label">Back up library</span></button>
-          <button title="Back to private pages" aria-label="Back to private pages" onClick={() => routerNavigate("/admin-dashboard/private-pages")}><span className="nav-icon">←</span><span className="nav-label">Back to private pages</span></button>
+          <Link title="Back to private pages" aria-label="Back to private pages" to="/admin-dashboard/private-pages"><span className="nav-icon">←</span><span className="nav-label">Back to private pages</span></Link>
         </div>
       </aside>
 
       <div className="main-column">
         <header className="topbar">
-          <button className="mobile-brand" onClick={() => navigate("home")} aria-label="Flashbolt home"><span className="brand-mark"><i /><i /><i /></span></button>
+          <Link className="mobile-brand" to={FLASHBOLT_BASE} aria-label="Flashbolt home"><span className="brand-mark"><i /><i /><i /></span></Link>
           <label className="search-box">
             <span>⌕</span>
             <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search your sets and cards" aria-label="Search your library" />
@@ -2745,11 +2756,11 @@ export default function Flashbolt() {
           {!search && view === "library" && (
             <section>
               <div className="page-heading split">
-                <div>{folder && <button className="back-link" onClick={() => navigate("folders")}>← All folders</button>}<span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
+                <div>{folder && <Link className="back-link" to={`${FLASHBOLT_BASE}/folders`}>← All folders</Link>}<span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
                 <div className="heading-actions">
                   {folder && <button className="button quiet" onClick={() => editFolder(folder)}>Edit folder</button>}
                   {!folder && <button className="button quiet" onClick={() => importInputRef.current?.click()}>Restore backup</button>}
-                  <button className="button primary" onClick={folder ? () => startCreate(folder.id) : startCreate}>＋ Create set</button>
+                  <a className="button primary" href={folder ? `${folderPath(folder)}/create` : `${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, folder ? () => startCreate(folder.id) : startCreate)}>＋ Create set</a>
                 </div>
               </div>
               <input ref={importInputRef} className="visually-hidden" type="file" accept="application/json" onChange={importLibrary} />
@@ -2773,11 +2784,11 @@ export default function Flashbolt() {
                     {folderSemesterGroups.map((group) => <section className="folder-semester-group" key={group.semester}>
                       <h3>{group.semester}<small>{group.folders.length} folder{group.folders.length === 1 ? "" : "s"}</small></h3>
                       <div className="folder-semester-chips">{group.folders.map((item) => (
-                        <button className={selectedFolderId === item.id ? "active" : ""} aria-pressed={selectedFolderId === item.id} aria-label={`Open ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name} key={item.id} onClick={() => openFolder(item)}>
+                        <Link className={selectedFolderId === item.id ? "active" : ""} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name} key={item.id} to={folderPath(item)}>
                           <span className="folder-filter-icon folder" aria-hidden="true" style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} />
                           <span className="folder-filter-name">{item.name}</span>
                           <span className="folder-filter-count">{item.setIds.length}</span>
-                        </button>
+                        </Link>
                       ))}</div>
                     </section>)}
                   </div>
@@ -2878,10 +2889,10 @@ export default function Flashbolt() {
                         <button onClick={(event) => { event.stopPropagation(); editFolder(item); }} aria-label={`Edit ${item.name}`} title="Edit folder">✎</button>
                         <button className="delete" onClick={(event) => { event.stopPropagation(); deleteFolder(item); }} aria-label={`Delete ${item.name}`} title="Delete folder">×</button>
                       </div>
-                      <button className="folder-open-button" onClick={(event) => { event.stopPropagation(); openFolder(item); }}>
+                      <Link className="folder-open-button" to={folderPath(item)} onClick={(event) => event.stopPropagation()}>
                         <span className="folder-icon">□</span>
                         <strong>{item.name}</strong><small>{item.semester ? `${item.semester} · ` : ""}{item.setIds.length} set{item.setIds.length === 1 ? "" : "s"}</small><span>Open <b>→</b></span>
-                      </button>
+                      </Link>
                     </article>
                     ))}</div>
                   </section>)}
@@ -2896,8 +2907,8 @@ export default function Flashbolt() {
           {!search && view === "create" && (
             <section className="creator-page">
               <div className="page-heading split">
-                <div><button className="back-link" onClick={() => navigate("library")}>← Library</button><span className="eyebrow">{editingSetId ? "Edit set" : "New flashcard set"}</span><h1>{editingSetId ? "Make it better." : "Build a set that sticks."}</h1></div>
-                {editingSetId && editorFolder && editorFolderSets.length > 1 && <nav className="editor-set-navigation" aria-label={`Move between sets in ${editorFolder.name}`}><span>{editorSetIndex + 1} of {editorFolderSets.length} in {editorFolder.name}</span><div><button className="button quiet" disabled={!previousEditorSet} onClick={() => previousEditorSet && openAdjacentEditor(previousEditorSet)} title={previousEditorSet?.title ?? "First set in folder"}>← Previous</button><button className="button quiet" disabled={!nextEditorSet} onClick={() => nextEditorSet && openAdjacentEditor(nextEditorSet)} title={nextEditorSet?.title ?? "Last set in folder"}>Next →</button></div></nav>}
+                <div><Link className="back-link" to={`${FLASHBOLT_BASE}/library`}>← Library</Link><span className="eyebrow">{editingSetId ? "Edit set" : "New flashcard set"}</span><h1>{editingSetId ? "Make it better." : "Build a set that sticks."}</h1></div>
+                {editingSetId && editorFolder && editorFolderSets.length > 1 && <nav className="editor-set-navigation" aria-label={`Move between sets in ${editorFolder.name}`}><span>{editorSetIndex + 1} of {editorFolderSets.length} in {editorFolder.name}</span><div>{previousEditorSet ? <a className="button quiet" href={routePathForView("create", previousEditorSet.id)} onClick={(event) => followFlashboltLink(event, () => openAdjacentEditor(previousEditorSet))} title={previousEditorSet.title}>← Previous</a> : <button className="button quiet" disabled title="First set in folder">← Previous</button>}{nextEditorSet ? <a className="button quiet" href={routePathForView("create", nextEditorSet.id)} onClick={(event) => followFlashboltLink(event, () => openAdjacentEditor(nextEditorSet))} title={nextEditorSet.title}>Next →</a> : <button className="button quiet" disabled title="Last set in folder">Next →</button>}</div></nav>}
               </div>
               <div className="creator-layout">
                 <div className="creator-main">
@@ -3078,26 +3089,26 @@ export default function Flashbolt() {
           {!search && view === "set" && selectedSet && currentFlashcard && (
             <section className="study-page">
               <div className="page-heading split compact">
-                <div><button className="back-link" onClick={() => navigate("library")}>← Library</button><span className="eyebrow">{selectedSet.subject}</span><h1>{selectedSet.title}</h1><p>{selectedSet.description}</p></div>
-                <div className="heading-actions">{selectedSet.kahootUrl && isSafeKahootUrl(selectedSet.kahootUrl) && <a className="button quiet" href={selectedSet.kahootUrl} target="_blank" rel="noreferrer">◆ Open Kahoot ↗</a>}<button className="button quiet" onClick={() => startEdit(selectedSet)}>Edit set</button><button className="icon-button danger" onClick={deleteSelectedSet} aria-label="Delete set">×</button></div>
+                <div><Link className="back-link" to={`${FLASHBOLT_BASE}/library`}>← Library</Link><span className="eyebrow">{selectedSet.subject}</span><h1>{selectedSet.title}</h1><p>{selectedSet.description}</p></div>
+                <div className="heading-actions">{selectedSet.kahootUrl && isSafeKahootUrl(selectedSet.kahootUrl) && <a className="button quiet" href={selectedSet.kahootUrl} target="_blank" rel="noreferrer">◆ Open Kahoot ↗</a>}<a className="button quiet" href={routePathForView("create", selectedSet.id)} onClick={(event) => followFlashboltLink(event, () => startEdit(selectedSet))}>Edit set</a><button className="icon-button danger" onClick={deleteSelectedSet} aria-label="Delete set">×</button></div>
               </div>
               {folder && folderSetIndex >= 0 && folderSets.length > 1 && (
                 <nav className="folder-set-navigation" aria-label={`Move between sets in ${folder.name}`}>
-                  <button className="folder-set-button previous" onClick={() => previousFolderSet && openSet(previousFolderSet.id)} disabled={!previousFolderSet}>
+                  {previousFolderSet ? <Link className="folder-set-button previous" to={routePathForView("set", previousFolderSet.id)}>
                     <span>← Previous set</span>
-                    <strong>{previousFolderSet?.title ?? "First set in folder"}</strong>
-                  </button>
+                    <strong>{previousFolderSet.title}</strong>
+                  </Link> : <span className="folder-set-button previous disabled"><span>← Previous set</span><strong>First set in folder</strong></span>}
                   <div className="folder-set-position">
                     <span className="eyebrow">{folder.name}</span>
                     <strong>{folderSetIndex + 1} of {folderSets.length}</strong>
                   </div>
-                  <button className="folder-set-button next" onClick={() => nextFolderSet && openSet(nextFolderSet.id)} disabled={!nextFolderSet}>
+                  {nextFolderSet ? <Link className="folder-set-button next" to={routePathForView("set", nextFolderSet.id)}>
                     <span>Next set →</span>
-                    <strong>{nextFolderSet?.title ?? "Last set in folder"}</strong>
-                  </button>
+                    <strong>{nextFolderSet.title}</strong>
+                  </Link> : <span className="folder-set-button next disabled"><span>Next set →</span><strong>Last set in folder</strong></span>}
                 </nav>
               )}
-              <div className="mode-tabs" role="tablist" aria-label="Study modes"><button className="active" role="tab">▱ Flashcards</button><button role="tab" onClick={startLearn}>◫ Learn</button><button role="tab" onClick={startTest}>✓ Test</button></div>
+              <div className="mode-tabs" role="tablist" aria-label="Study modes"><Link className="active" role="tab" to={routePathForView("set", selectedSet.id)}>▱ Flashcards</Link><Link role="tab" to={routePathForView("learn", selectedSet.id)}>◫ Learn</Link><Link role="tab" to={routePathForView("test", selectedSet.id)}>✓ Test</Link></div>
               <div className="study-layout">
                 <div>
                   <div className="flash-status"><span>{flashIndex + 1} / {selectedSet.cards.length}</span><button className={isCurrentMastered ? "mastered" : ""} onClick={() => toggleMastered(selectedSet.id, currentFlashcard.id)}>{isCurrentMastered ? "✓ Mastered" : "Mark as mastered"}</button></div>
@@ -3112,7 +3123,7 @@ export default function Flashbolt() {
                 <aside className="study-side-panel">
                   <span className="eyebrow">Set progress</span><div className="score-ring" style={{ "--score": `${Math.round(((data.mastered[selectedSet.id]?.length ?? 0) / selectedSet.cards.length) * 100)}%` } as React.CSSProperties}><span>{Math.round(((data.mastered[selectedSet.id]?.length ?? 0) / selectedSet.cards.length) * 100)}<small>%</small></span></div>
                   <h3>{data.mastered[selectedSet.id]?.length ?? 0} of {selectedSet.cards.length} mastered</h3><p>Mark cards as mastered when you can answer without peeking.</p>
-                  <button className="button primary full" onClick={startLearn}>Practice in Learn</button><button className="button quiet full" onClick={startTest}>Take a test</button>
+                  <Link className="button primary full" to={routePathForView("learn", selectedSet.id)}>Practice in Learn</Link><Link className="button quiet full" to={routePathForView("test", selectedSet.id)}>Take a test</Link>
                 </aside>
               </div>
               <section className="term-list">
@@ -3147,7 +3158,7 @@ export default function Flashbolt() {
             <section className={`learn-page ${learnPhase === "session" ? "session-active" : ""}`}>
               {learnPhase === "goal" && (
                 <div className="learn-goal-screen">
-                  <button className="back-link" onClick={() => navigate("set")}>← Back to set</button>
+                  <Link className="back-link" to={routePathForView("set", selectedSet.id)}>← Back to set</Link>
                   <div className="learn-goal-heading"><div><span className="eyebrow">{selectedSet.subject}</span><h1>Choose a goal for this session</h1><p>Learn adapts to every answer. Recognition comes first, then verification, then written recall. Difficult cards return sooner and strong cards return in harder formats.</p></div><div className="learn-orbit" aria-hidden="true"><i /><i /><i /></div></div>
                   <div className="goal-options" role="radiogroup" aria-label="Learn session goal">
                     <button role="radio" aria-checked={learnGoal === "cram"} className={learnGoal === "cram" ? "selected" : ""} onClick={() => setLearnGoal("cram")}><span className="goal-copy"><strong>Cram for a test</strong><small>Move quickly with mixed question types</small></span><span className="goal-icon cram">◴</span></button>
@@ -3161,7 +3172,7 @@ export default function Flashbolt() {
               {learnPhase === "session" && currentLearnCard && (
                 <>
                   <header className="learn-session-header">
-                    <button className="learn-exit" onClick={() => navigate("set")} aria-label="Exit Learn">×</button>
+                    <Link className="learn-exit" to={routePathForView("set", selectedSet.id)} aria-label="Exit Learn">×</Link>
                     <div className="learn-session-progress" aria-live="polite">
                       <div className="learn-round-track" aria-label={`${learnQuestionsAnswered} of ${learnQuestionsTotal} total questions answered`}>
                         <span>{learnQuestionsAnswered}</span>
@@ -3229,7 +3240,7 @@ export default function Flashbolt() {
 
           {!search && view === "test" && selectedSet && (
             <section className="test-page">
-              <div className="page-heading split compact"><div><button className="back-link" onClick={() => navigate("set")}>← Back to set</button><span className="eyebrow">Practice test</span><h1>{selectedSet.title}</h1><p>{testCards.length} questions generated from your flashcards.</p></div>{testSubmitted && <div className="test-score"><strong>{testScore}/{testCards.length}</strong><span>{Math.round((testScore / Math.max(1, testCards.length)) * 100)}% score</span></div>}</div>
+              <div className="page-heading split compact"><div><Link className="back-link" to={routePathForView("set", selectedSet.id)}>← Back to set</Link><span className="eyebrow">Practice test</span><h1>{selectedSet.title}</h1><p>{testCards.length} questions generated from your flashcards.</p></div>{testSubmitted && <div className="test-score"><strong>{testScore}/{testCards.length}</strong><span>{Math.round((testScore / Math.max(1, testCards.length)) * 100)}% score</span></div>}</div>
               <div className="test-list">
                 {testCards.map((card, cardIndex) => (
                   <article key={card.id} className={testSubmitted ? (normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card)) ? "correct-card" : "incorrect-card") : ""}>
@@ -3275,7 +3286,7 @@ export default function Flashbolt() {
 
           {!search && view === "guide" && (
             <section className="guide-page">
-              <div className="page-heading"><button className="back-link" onClick={() => navigate("home")}>← Home</button><span className="eyebrow">Local study guide</span><h1>Turn notes into something <em>studyable.</em></h1><p>Paste notes below. Flashbolt finds line pairs or turns full sentences into key ideas—without sending your text anywhere.</p></div>
+              <div className="page-heading"><Link className="back-link" to={FLASHBOLT_BASE}>← Home</Link><span className="eyebrow">Local study guide</span><h1>Turn notes into something <em>studyable.</em></h1><p>Paste notes below. Flashbolt finds line pairs or turns full sentences into key ideas—without sending your text anywhere.</p></div>
               <div className="guide-layout">
                 <article className="guide-input-card">
                   <div className="guide-title-field">
@@ -3294,7 +3305,7 @@ export default function Flashbolt() {
           )}
         </main>
 
-        <nav className="mobile-nav" aria-label="Mobile navigation"><button className={view === "home" ? "active" : ""} onClick={() => navigate("home")}><span>⌂</span>Home</button><button className={view === "library" && !folder ? "active" : ""} onClick={() => { setSelectedFolderId(null); navigate("library"); }}><span>▤</span>Library</button><button className="mobile-create" onClick={startCreate}><span>＋</span></button><button className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} onClick={() => navigate("folders")}><span>□</span>Folders</button><button onClick={() => navigate("guide")}><span>≡</span>Guide</button></nav>
+        <nav className="mobile-nav" aria-label="Mobile navigation"><Link className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span>⌂</span>Home</Link><Link className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span>▤</span>Library</Link><a className="mobile-create" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><span>＋</span></a><Link className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span>□</span>Folders</Link><Link to={`${FLASHBOLT_BASE}/guide`}><span>≡</span>Guide</Link></nav>
       </div>
 
       {folderModalOpen && (
