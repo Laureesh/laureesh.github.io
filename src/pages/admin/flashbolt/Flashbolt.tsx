@@ -1689,7 +1689,9 @@ export default function Flashbolt() {
     const parsedChoices: string[] = [];
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
       if (/^[A-Z][.)\]:-]?$/i.test(lines[lineIndex]) && lines[lineIndex + 1]) {
-        parsedChoices.push(lines[lineIndex + 1].replace(/^[A-Z](?:[.)\]:-]|\s+)\s*/i, "").trim());
+        // The standalone letter is the label; preserve the following answer verbatim.
+        // It may legitimately begin with an article such as "A hacker" or "A contractor".
+        parsedChoices.push(lines[lineIndex + 1]);
         lineIndex += 1;
       } else {
         parsedChoices.push(lines[lineIndex].replace(/^[A-Z](?:[.)\]:-]|\s+)\s*/i, "").trim());
