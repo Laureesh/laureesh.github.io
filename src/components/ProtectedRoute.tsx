@@ -32,8 +32,16 @@ export default function ProtectedRoute({
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
-  if (!hasActiveStatus(userProfile)) {
-    return <Navigate to="/" replace />;
+  if (!userProfile || !hasActiveStatus(userProfile)) {
+    return (
+      <section style={{ display: "grid", placeItems: "center", minHeight: "60vh", padding: "2rem" }}>
+        <div style={{ maxWidth: "36rem", textAlign: "center" }}>
+          <h1>Account access is temporarily unavailable</h1>
+          <p>Your current page was not redirected. Refresh after your account profile becomes available.</p>
+          <button className="btn btn-primary" onClick={() => window.location.reload()}>Retry account check</button>
+        </div>
+      </section>
+    );
   }
 
   if (!canAccessRole(user, userProfile, requiredRole)) {

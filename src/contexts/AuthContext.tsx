@@ -1,5 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { useLocation } from "react-router-dom";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
@@ -11,7 +10,6 @@ import {
   updateProfile,
   type User,
 } from "firebase/auth";
-import { ADMIN_IDLE_TIMEOUT_MINUTES, ADMIN_IDLE_TIMEOUT_MS } from "../config/security";
 import { auth } from "../firebase/config";
 import { isFirebaseConfigured } from "../firebase";
 import {
@@ -30,7 +28,7 @@ import type { SubscriptionRecord } from "../types/models";
 import type { UserProfile, UserRole } from "../types/user";
 import type { SavedAccount } from "../utils/savedAccounts";
 import { mergeSavedAccounts, readSavedAccounts, upsertSavedAccount } from "../utils/savedAccounts";
-import { hasActiveStatus, hasRole } from "../utils/authGuards";
+import { hasRole } from "../utils/authGuards";
 
 function getAuthErrorMessage(error: unknown, fallbackMessage: string) {
   if (
@@ -117,14 +115,7 @@ export interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-const ADMIN_SESSION_TIMER_ENABLED_KEY = "admin.sessionTimer.enabled";
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const location = useLocation();
-  const isPersistentWorkspace = location.pathname.startsWith("/admin-dashboard/private-pages/flashbolt")
-    || location.pathname.startsWith("/admin-dashboard/private-pages/notebook")
-    || location.pathname.startsWith("/flashbolt")
-    || location.pathname.startsWith("/notebook");
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionRecord | null>(null);
@@ -133,19 +124,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [adminSessionTimeRemainingMs, setAdminSessionTimeRemainingMs] = useState<number | null>(null);
-  const [adminSessionTimerEnabled, setAdminSessionTimerEnabledState] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return window.localStorage.getItem(ADMIN_SESSION_TIMER_ENABLED_KEY) !== "false";
-  });
-  const adminSessionTimeoutRef = useRef<number | null>(null);
-  const adminSessionDeadlineRef = useRef<number | null>(null);
+  const adminSessionTimerEnabled = false;
 
-  const setAdminSessionTimerEnabled = useCallback((enabled: boolean) => {
-    setAdminSessionTimerEnabledState(enabled);
+  const setAdminSessionTimerEnabled = useCallback(() => {
+    setAdminSessionTimeRemainingMs(null);
     try {
-      window.localStorage.setItem(ADMIN_SESSION_TIMER_ENABLED_KEY, String(enabled));
+      window.localStorage.setItem("admin.sessionTimer.enabled", "false");
     } catch {
-      // The setting remains active for this page session when storage is blocked.
+      // Automatic sign-out remains disabled even when storage is blocked.
     }
   }, []);
 
@@ -248,7 +234,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (!firebaseUser) {
             setUserProfile(null);
             setAdminSessionTimeRemainingMs(null);
-            adminSessionDeadlineRef.current = null;
             refreshSavedAccounts();
             setLoading(false);
             return;
@@ -285,7 +270,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSubscription(null);
       setSubscriptionLoading(false);
       setAdminSessionTimeRemainingMs(null);
-      adminSessionDeadlineRef.current = null;
       return () => undefined;
     }
 
@@ -293,7 +277,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSubscription(null);
       setSubscriptionLoading(false);
       setAdminSessionTimeRemainingMs(null);
-      adminSessionDeadlineRef.current = null;
       return () => undefined;
     }
 
@@ -311,97 +294,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     );
   }, [user?.uid]);
-
-  useEffect(() => {
-    if (adminSessionTimeoutRef.current !== null) {
-      window.clearTimeout(adminSessionTimeoutRef.current);
-      adminSessionTimeoutRef.current = null;
-    }
-    adminSessionDeadlineRef.current = null;
-    setAdminSessionTimeRemainingMs(null);
-
-    if (
-      loading
-      || !user
-      || !userProfile
-      || userProfile.role !== "admin"
-      || !hasActiveStatus(userProfile)
-      || !adminSessionTimerEnabled
-      || isPersistentWorkspace
-    ) {
-      return () => undefined;
-    }
-
-    const activityEvents: Array<keyof WindowEventMap> = [
-      "pointerdown",
-      "keydown",
-      "scroll",
-      "touchstart",
-      "focus",
-    ];
-
-    const expireAdminSession = () => {
-      void (async () => {
-        const currentUser = auth.currentUser;
-
-        if (!currentUser) {
-          return;
-        }
-
-        setError(
-          `Admin session timed out after ${ADMIN_IDLE_TIMEOUT_MINUTES} minutes of inactivity. Sign in again to reopen protected tools.`,
-        );
-        adminSessionDeadlineRef.current = null;
-        setAdminSessionTimeRemainingMs(null);
-        setSavedAccounts(upsertSavedAccount(currentUser));
-        await signOut(auth);
-        setUser(null);
-        setUserProfile(null);
-      })();
-    };
-
-    const resetAdminSessionTimeout = () => {
-      if (adminSessionTimeoutRef.current !== null) {
-        window.clearTimeout(adminSessionTimeoutRef.current);
-      }
-
-      adminSessionDeadlineRef.current = Date.now() + ADMIN_IDLE_TIMEOUT_MS;
-      setAdminSessionTimeRemainingMs(ADMIN_IDLE_TIMEOUT_MS);
-      adminSessionTimeoutRef.current = window.setTimeout(expireAdminSession, ADMIN_IDLE_TIMEOUT_MS);
-    };
-
-    resetAdminSessionTimeout();
-
-    const countdownInterval = window.setInterval(() => {
-      const deadline = adminSessionDeadlineRef.current;
-
-      if (!deadline) {
-        setAdminSessionTimeRemainingMs(null);
-        return;
-      }
-
-      const nextRemaining = Math.max(deadline - Date.now(), 0);
-      setAdminSessionTimeRemainingMs(nextRemaining);
-    }, 1000);
-
-    activityEvents.forEach((eventName) => {
-      window.addEventListener(eventName, resetAdminSessionTimeout);
-    });
-
-    return () => {
-      if (adminSessionTimeoutRef.current !== null) {
-        window.clearTimeout(adminSessionTimeoutRef.current);
-        adminSessionTimeoutRef.current = null;
-      }
-      adminSessionDeadlineRef.current = null;
-      window.clearInterval(countdownInterval);
-      setAdminSessionTimeRemainingMs(null);
-
-      activityEvents.forEach((eventName) => {
-        window.removeEventListener(eventName, resetAdminSessionTimeout);
-      });
-    };
-  }, [adminSessionTimerEnabled, isPersistentWorkspace, loading, user, userProfile]);
 
   const login = async (
     email: string,

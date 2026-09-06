@@ -6,7 +6,7 @@ import "./AdminDashboard.css";
 
 function formatRemainingTime(value: number | null) {
   if (value == null) {
-    return "Inactive";
+    return "Disabled";
   }
 
   const totalSeconds = Math.max(Math.ceil(value / 1000), 0);
@@ -87,8 +87,8 @@ export default function AdminDashboardLayout() {
               <div className="admin-sidebar__timer-row">
                 <Clock3 size={16} />
                 <strong>{adminSessionTimerEnabled ? sessionCountdown : "Off"}</strong>
-                <label className="admin-session-switch">
-                  <input type="checkbox" checked={adminSessionTimerEnabled} onChange={(event) => setAdminSessionTimerEnabled(event.target.checked)} />
+                <label className="admin-session-switch" title="Automatic sign-out is permanently disabled">
+                  <input type="checkbox" checked={adminSessionTimerEnabled} onChange={(event) => setAdminSessionTimerEnabled(event.target.checked)} disabled />
                   <span aria-hidden="true" />
                   <b>{adminSessionTimerEnabled ? "On" : "Off"}</b>
                 </label>
@@ -96,7 +96,7 @@ export default function AdminDashboardLayout() {
               <p>
                 {adminSessionTimerEnabled
                   ? "Any keyboard, pointer, touch, scroll, or focus activity resets the admin idle timer."
-                  : "Automatic idle sign-out is disabled on this browser."}
+                  : "Automatic idle sign-out is disabled everywhere."}
               </p>
             </div>
           ) : null}

@@ -7,7 +7,7 @@ import {
   type TotpSecret,
 } from "firebase/auth";
 import { Button, Checkbox, Input, Modal, Textarea } from "../../components/ui";
-import { ADMIN_IDLE_TIMEOUT_MINUTES, ADMIN_TOTP_ISSUER } from "../../config/security";
+import { ADMIN_TOTP_ISSUER } from "../../config/security";
 import { useAuth } from "../../contexts/AuthContext";
 import { auth } from "../../firebase/config";
 import { updateUserProfile } from "../../services/userProfiles";
@@ -32,7 +32,7 @@ function formatDate(value: string | null | undefined) {
 
 function formatRemainingTime(value: number | null) {
   if (value == null) {
-    return "Inactive";
+    return "Disabled";
   }
 
   const totalSeconds = Math.max(Math.ceil(value / 1000), 0);
@@ -472,14 +472,14 @@ export default function AccountSettingsPage() {
         </div>
 
         <div className="account-note-box">
-          Email verification is now part of the admin route gate, and admin sessions automatically sign out after {ADMIN_IDLE_TIMEOUT_MINUTES} minutes of inactivity.
+          Email verification remains part of the admin route gate. Automatic inactivity sign-out is disabled.
         </div>
 
         {isAdmin ? (
           <div className="account-session-timer">
-            <span className="account-session-timer__label">Admin session expires in</span>
+            <span className="account-session-timer__label">Automatic session timeout</span>
             <strong>{sessionCountdown}</strong>
-            <span>Any typing, click, tap, scroll, or focus resets the timer.</span>
+            <span>Your session does not expire because of inactivity.</span>
           </div>
         ) : null}
       </div>
