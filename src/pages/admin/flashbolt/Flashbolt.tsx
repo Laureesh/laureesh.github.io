@@ -21,7 +21,7 @@ import {
   type LearnQuestionKind,
 } from "./learn-engine";
 import type { KahootImportSet } from "./kahoot-import";
-import { parseEmbeddedQuestion, parseNotes, parseQuizletHtml, suggestNoteTitles } from "./note-parser";
+import { parseEmbeddedQuestion, parseNotes, parseQuizletHtml, parseQuizResults, suggestNoteTitles } from "./note-parser";
 import type { QuizletImportSet } from "./quizlet-import";
 
 type HighlightColor = "none" | "yellow" | "mint" | "violet";
@@ -1945,10 +1945,11 @@ export default function Flashbolt() {
   }
 
   function applyPasteImport() {
-    const htmlCards = parseQuizletHtml(pasteImport);
-    const cards = htmlCards.length ? htmlCards : parseNotes(pasteImport);
+    const quizResultCards = parseQuizResults(pasteImport);
+    const htmlCards = quizResultCards.length ? [] : parseQuizletHtml(pasteImport);
+    const cards = quizResultCards.length ? quizResultCards : htmlCards.length ? htmlCards : parseNotes(pasteImport);
     if (!cards.length) {
-      notify("Paste Quizlet term-list HTML, or use term :: definition.");
+      notify("Paste quiz results, Quizlet term-list HTML, or use term :: definition.");
       return;
     }
     setDraft((current) => ({
@@ -1956,7 +1957,7 @@ export default function Flashbolt() {
       cards: [...current.cards.filter((card) => card.term || card.definition), ...cards],
     }));
     setPasteImport("");
-    notify(`${cards.length} card${cards.length === 1 ? "" : "s"} imported${htmlCards.length ? " from Quizlet HTML" : ""}.`);
+    notify(`${cards.length} card${cards.length === 1 ? "" : "s"} imported${quizResultCards.length ? " from quiz results" : htmlCards.length ? " from Quizlet HTML" : ""}.`);
   }
 
   function openNewFolderModal() {
@@ -3075,8 +3076,8 @@ export default function Flashbolt() {
                   </div>
                   <div className={`paste-import-block collapsible-panel-section ${collapsedEditorSections.includes("paste") ? "collapsed" : ""}`}>
                     <button className="side-panel-collapse-button" type="button" onClick={() => toggleEditorSection("paste")} aria-expanded={!collapsedEditorSections.includes("paste")}><span><small>Manual import</small><strong>Paste a list</strong></span><i aria-hidden="true">⌃</i></button>
-                    <div className="collapsible-panel-body"><p>Put one card on each line and separate the sides with <code>::</code>.</p>
-                      <textarea value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} placeholder={'Paste copied Quizlet term-list HTML, or use:\n\nLifecycle :: The stages an activity moves through\nIntent :: A request to perform an action'} rows={7} />
+                    <div className="collapsible-panel-body"><p>Paste LMS quiz results with Selected/Correct Answer labels, Quizlet HTML, or one <code>term :: definition</code> per line.</p>
+                      <textarea value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} placeholder={'Paste copied quiz results here, or use:\n\nLifecycle :: The stages an activity moves through\nIntent :: A request to perform an action'} rows={7} />
                       <button className="button quiet full" onClick={applyPasteImport}>Import pasted cards</button>
                     </div>
                   </div>

@@ -3,6 +3,8 @@ export type ParsedCard = {
   term: string;
   definition: string;
   answerChoices?: string[];
+  correctAnswers?: string[];
+  questionType?: "multiple-choice" | "true-false";
 };
 
 function makeCard(term: string, definition: string, answerChoices?: string[]): ParsedCard {
@@ -23,6 +25,92 @@ function cleanStudyText(value: string) {
 
 function normalizedChoice(value: string) {
   return cleanStudyText(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function decodeCopiedQuizText(value: string) {
+  return value
+    .replace(/&#x0*9;|&#9;/gi, "\t")
+    .replace(/&#x20;|&#32;|&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/\u00a0/g, " ");
+}
+
+type QuizChoiceMarker = {
+  assessment: "correct" | "incorrect" | null;
+  selected: boolean;
+  choice: string;
+};
+
+function quizChoiceMarker(value: string, pendingAssessment: QuizChoiceMarker["assessment"]): QuizChoiceMarker | null {
+  const match = value.match(/^(?:(Correct Answer|Incorrect Response)\s*)?(Selected|Unselected)\b[\s:–—-]*(.*)$/i);
+  if (!match) return null;
+  const assessment = /^correct answer$/i.test(match[1] ?? "")
+    ? "correct"
+    : /^incorrect response$/i.test(match[1] ?? "")
+      ? "incorrect"
+      : pendingAssessment;
+  return {
+    assessment,
+    selected: /^selected$/i.test(match[2]),
+    choice: match[3].trim(),
+  };
+}
+
+/** Parse question-review text copied from Respondus-backed LMS quiz result pages. */
+export function parseQuizResults(text: string): ParsedCard[] {
+  const normalized = decodeCopiedQuizText(text).replace(/\r\n?/g, "\n");
+  const headers = [...normalized.matchAll(/^Question\s+\d+\b[^\n]*$/gim)];
+  if (!headers.length) return [];
+
+  const cards: ParsedCard[] = [];
+  headers.forEach((header, headerIndex) => {
+    const start = (header.index ?? 0) + header[0].length;
+    const end = headers[headerIndex + 1]?.index ?? normalized.length;
+    const lines = normalized.slice(start, end).split("\n").map((line) => line.trim()).filter(Boolean);
+    const firstChoiceIndex = lines.findIndex((line) => quizChoiceMarker(line, null) !== null || /^(?:Correct Answer|Incorrect Response)$/i.test(line));
+    if (firstChoiceIndex <= 0) return;
+
+    const prompt = cleanStudyText(lines.slice(0, firstChoiceIndex).join(" "));
+    const choices: string[] = [];
+    const selectedAnswers: string[] = [];
+    const explicitCorrectAnswers: string[] = [];
+    let pendingAssessment: QuizChoiceMarker["assessment"] = null;
+
+    for (let lineIndex = firstChoiceIndex; lineIndex < lines.length; lineIndex += 1) {
+      const line = lines[lineIndex];
+      if (/^Correct Answer$/i.test(line)) { pendingAssessment = "correct"; continue; }
+      if (/^Incorrect Response$/i.test(line)) { pendingAssessment = "incorrect"; continue; }
+      const marker = quizChoiceMarker(line, pendingAssessment);
+      if (!marker) continue;
+      pendingAssessment = null;
+
+      let choice = marker.choice;
+      if (!choice) {
+        const nextLine = lines[lineIndex + 1];
+        if (nextLine && !quizChoiceMarker(nextLine, null) && !/^(?:Correct Answer|Incorrect Response)$/i.test(nextLine)) {
+          choice = nextLine;
+          lineIndex += 1;
+        }
+      }
+      choice = cleanStudyText(choice);
+      if (!choice) continue;
+      choices.push(choice);
+      if (marker.assessment === "correct") explicitCorrectAnswers.push(choice);
+      else if (marker.selected && marker.assessment !== "incorrect") selectedAnswers.push(choice);
+    }
+
+    const uniqueChoices = choices.filter((choice, index) => choices.findIndex((candidate) => normalizedChoice(candidate) === normalizedChoice(choice)) === index);
+    const correctAnswer = explicitCorrectAnswers[0] ?? selectedAnswers[0];
+    if (!prompt || uniqueChoices.length < 2 || !correctAnswer) return;
+    const isTrueFalse = uniqueChoices.length === 2 && ["true", "false"].every((answer) => uniqueChoices.some((choice) => normalizedChoice(choice) === answer));
+    cards.push({
+      ...makeCard(prompt, correctAnswer, uniqueChoices),
+      correctAnswers: [correctAnswer],
+      questionType: isTrueFalse ? "true-false" : "multiple-choice",
+    });
+  });
+
+  return cards.slice(0, 100);
 }
 
 function splitLabeledChoices(value: string) {
