@@ -206,6 +206,10 @@ function ContributionInline({
 }: {
   contributions: ProjectShowcaseItem["contributions"];
 }) {
+  if (Object.values(contributions).every((value) => value === 0)) {
+    return <span className="project-contribution-inline">Contribution split not specified</span>;
+  }
+
   return (
     <span className="project-contribution-inline">
       <span>FRONT {contributions.frontend}%</span>
@@ -228,7 +232,7 @@ function ContributionBreakdown({
   label?: string;
   note?: string;
 }) {
-  if (variant === "compact") {
+  if (variant === "compact" || Object.values(contributions).every((value) => value === 0)) {
     return <ContributionInline contributions={contributions} />;
   }
 

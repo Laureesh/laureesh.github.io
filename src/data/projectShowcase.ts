@@ -67,6 +67,67 @@ export interface ProjectShowcaseItem {
 
 export const projectShowcase: ProjectShowcaseItem[] = [
   {
+    id: "internify",
+    title: "Internify",
+    tagline: "Android micro-internship marketplace for students and businesses",
+    desc:
+      "An academic Android app exploring how students and businesses connect through short-term, skill-based projects, with student and company entry flows and project detail screens.",
+    status: "Completed",
+    repoUrl: "https://github.com/Laureesh/Internify",
+    category: "Java",
+    type: "Academic",
+    date: "Jan 2026 - May 2026",
+    sortDate: 202601,
+    startMonth: "2026-01",
+    endMonth: "2026-05",
+    estimatedTime: "5 months",
+    complexity: 3,
+    comparisonSummary: "A native Android academic project focused on student and business workflows for micro-internships.",
+    tags: ["Java", "Android", "XML", "Material Components", "Gradle"],
+    stackGroups: [
+      { label: "Application", items: ["Java", "Android SDK", "AppCompat"] },
+      { label: "Interface", items: ["XML layouts", "Material Components", "ConstraintLayout"] },
+      { label: "Build", items: ["Gradle", "Android Studio"] },
+    ],
+    contributions: { frontend: 0, backend: 0, design: 0 },
+    learned: [
+      "Organizing Android activities and XML layouts around student and company workflows.",
+      "Passing project identifiers between screens with Android intent extras.",
+      "Structuring a marketplace prototype around projects and applications.",
+    ],
+    sourcePreview: {
+      title: "Project detail navigation data",
+      language: "java",
+      snippet: `public static final String EXTRA_PROJECT_ID = "mobile.internify.extra.PROJECT_ID";
+
+int projectId = getIntent().getIntExtra(EXTRA_PROJECT_ID, -1);
+loadProject(projectId);`,
+    },
+    gallery: [
+      {
+        title: "Student and company entry",
+        caption: "Native Android entry screens introduce the two sides of the marketplace.",
+        bullets: ["Login interface", "Registration screen", "Student and company navigation"],
+        theme: "cyan",
+      },
+      {
+        title: "Project details",
+        caption: "The prototype detail screen presents a sample opportunity and application action.",
+        bullets: ["Project description", "Pay and deadline", "Application interaction prototype"],
+        theme: "violet",
+      },
+    ],
+    architecture: {
+      summary: "Java activities and XML layouts provide the native Android interface, with scaffolded layers for project, application, and user data.",
+      lanes: [
+        { label: "Interface", nodes: ["XML layouts", "Material Components", "Header animations"] },
+        { label: "Navigation", nodes: ["Android activities", "Intent extras", "Project details"] },
+        { label: "Data scaffolding", nodes: ["Projects", "Applications", "Users"] },
+      ],
+    },
+    relatedIds: ["movie-streaming-app", "escaping-the-red-cross"],
+  },
+  {
     id: "movie-streaming-app",
     title: "Movie Streaming App",
     tagline: "Full-stack streaming UI with collaborative polish",
