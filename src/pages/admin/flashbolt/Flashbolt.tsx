@@ -1750,6 +1750,16 @@ export default function Flashbolt() {
     });
   }
 
+  function removeAllDraftCards() {
+    if (!draft.cards.length) return;
+    if (!window.confirm(`Remove all ${draft.cards.length} card${draft.cards.length === 1 ? "" : "s"} from this set?`)) return;
+    recognitionRef.current?.stop();
+    setDraggingCardId(null);
+    setDictationTarget(null);
+    setDraft((current) => ({ ...current, cards: [] }));
+    notify("All cards removed. Save the set to keep this change.");
+  }
+
   function duplicateDraftCard(cardId: string) {
     setDraft((current) => {
       const index = current.cards.findIndex((card) => card.id === cardId);
@@ -2963,7 +2973,12 @@ export default function Flashbolt() {
                     </div>
                   </article>
 
+                  <div className="card-editor-section-heading">
+                    <div><span className="eyebrow">Cards</span><h2>Cards in this set</h2><small>{draft.cards.length} total</small></div>
+                    <button type="button" className="button danger" onClick={removeAllDraftCards} disabled={!draft.cards.length}>Remove all cards</button>
+                  </div>
                   <div className="card-editor-list">
+                    {!draft.cards.length && <div className="card-editor-empty"><strong>No cards in this set</strong><span>Add a card below or import questions from the tools beside the editor.</span></div>}
                     {draft.cards.map((card, index) => (
                       <div className="card-editor-wrap" key={card.id}>
                         <article
