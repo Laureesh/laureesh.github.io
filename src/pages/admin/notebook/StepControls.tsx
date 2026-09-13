@@ -1,4 +1,20 @@
+import { useState } from "react";
 import { isFinalCheckTitle, type StepChange } from "./stepLayout";
+
+function useRememberedSection(section: string) {
+  const key = `flashbolt.notebook.v1.steps.${section}.open`;
+  const [open, setOpen] = useState(() => {
+    try { return localStorage.getItem(key) !== "false"; }
+    catch { return true; }
+  });
+  const rememberOpen = (next: boolean) => {
+    if (next === open) return;
+    setOpen(next);
+    try { localStorage.setItem(key, String(next)); }
+    catch { /* Keep the panel usable when browser storage is unavailable. */ }
+  };
+  return [open, rememberOpen] as const;
+}
 
 type Props = {
   steps: { title: string; completed: boolean }[];
@@ -9,12 +25,14 @@ type Props = {
 };
 
 export default function StepControls({ steps, onChange, onEdit, onUndo, canUndo }: Props) {
+  const [guideOpen, setGuideOpen] = useRememberedSection("formatting-guide");
+  const [manageOpen, setManageOpen] = useRememberedSection("manage");
   const completed = steps.filter(step => step.completed).length;
   return <section className="notebook-step-controls" aria-label="Step controls">
     <header><div><strong>Steps</strong><span aria-live="polite">{completed} of {steps.length} complete</span></div><button onClick={() => onChange({ type: "add", index: steps.length })}>＋ Add step</button></header>
     <progress value={completed} max={Math.max(1, steps.length)} aria-label="Step completion" />
     <p>Edit titles below, or select Edit content to jump to a step’s instructions. Changes save automatically.</p>
-    <details className="step-formatting-guide" open>
+    <details className="step-formatting-guide" open={guideOpen} onToggle={event => setGuideOpen(event.currentTarget.open)}>
       <summary>How to style your steps</summary>
       <p>Use the formatting toolbar above this panel while editing the note. These examples show how each part gets its appearance.</p>
       <div className="step-formatting-examples">
@@ -54,7 +72,7 @@ export default function StepControls({ steps, onChange, onEdit, onUndo, canUndo 
       <p><strong>Changing the structure:</strong> Add step appends a step; ＋ After inserts one below a particular step. Use ↑ / ↓ to reorder, Duplicate to copy, or Delete to remove. Undo last step change reverses the latest change if you have not edited the note since. Earlier content is available in History.</p>
       <p><strong>Remove the look:</strong> Click <strong>Steps layout</strong> in the toolbar again to remove the timeline while keeping your text. This guide is separate from your saved note and is hidden when printing.</p>
     </details>
-    <details open><summary>Manage steps</summary>
+    <details open={manageOpen} onToggle={event => setManageOpen(event.currentTarget.open)}><summary>Manage steps</summary>
       {steps.map((step, index) => <div className="notebook-step-control-row" key={index}>
         <label className="step-complete-toggle" title={isFinalCheckTitle(step.title) ? "Final Check is always checked" : undefined}><input type="checkbox" checked={step.completed || isFinalCheckTitle(step.title)} disabled={isFinalCheckTitle(step.title)} onChange={() => onChange({ type: "complete", index })} aria-label={`Mark step ${index + 1} complete`} /><span>{index + 1}</span></label>
         <input key={step.title} className="step-title-input" aria-label={`Step ${index + 1} title`} defaultValue={step.title} maxLength={180} onBlur={event => { if (event.target.value !== step.title) onChange({ type: "title", index, title: event.target.value }); }} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} />
