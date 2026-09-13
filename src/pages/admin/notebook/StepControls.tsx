@@ -37,7 +37,7 @@ export default function StepControls({ steps, onChange, onEdit, onUndo, canUndo 
         <article>
           <h3>Numbered instructions</h3>
           <ol><li>Open Terminal.</li><li>Type the command.</li></ol>
-          <p>Within a step’s content, click <strong>Numbers</strong> and type your first instruction. Press Enter for the next item. Use <strong>Bullets</strong> for an unordered list.</p>
+          <p>Within a step’s content, click <strong>Numbers</strong> and type your first instruction. Press Enter for the next numbered item. Press Shift+Enter for a new line within that item, without another number. Press Enter on an empty item to end the list, or place your cursor in an item and click Exit list for a plain line below it. Use <strong>Bullets</strong> for an unordered list.</p>
         </article>
         <article>
           <h3>Bold, italic, and highlight</h3>
