@@ -1,4 +1,5 @@
 import "./Notebook.css";
+import { describeNotebookSyncError } from "./notebookSyncStatus";
 import { exitInstructionList } from "./listEditing";
 import { changeStepLayout, detectStepLayout, formatStepLayout, getLayoutSteps, normalizeStepTitles, removeStepLayout, startStepLayout, type StepChange } from "./stepLayout";
 import StepControls from "./StepControls";
@@ -112,7 +113,8 @@ export default function Notebook() {
   const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const editorRef = useRef<HTMLDivElement>(null);
   const renderedNoteIdRef = useRef("");
-  const readyRef = useRef(false);
+  const [syncReady, setSyncReady] = useState(false);
+  const [localBackupError, setLocalBackupError] = useState("");
   const dataRevisionRef = useRef(0);
   const selected = data.notes.find((note) => note.id === selectedId) ?? data.notes[0];
   const latestSelectedRef = useRef<Note | undefined>(selected);
@@ -128,21 +130,22 @@ export default function Notebook() {
         try {
           const cloud = normalizeNotebook(await loadNotebookLibrary(user.uid));
           if (!cancelled && cloud) { setData(current => normalizeNotebook(mergeNotebookLibraries(cloud, current)) ?? current); }
-        } catch (error) { loadFailed = true; if (!cancelled) { setSaveState("offline"); setSyncError(error instanceof Error ? error.message : "Cloud library could not be loaded."); } }
+        } catch (error) { loadFailed = true; if (!cancelled) { setSaveState("offline"); setSyncError(describeNotebookSyncError(error)); } }
       }
-      if (!cancelled) { readyRef.current = true; setSaveState(user?.uid && !loadFailed ? "saved" : "offline"); }
+      if (!cancelled) { setSyncReady(true); setSaveState(user?.uid && !loadFailed ? "saved" : "offline"); }
     })();
     return () => { cancelled = true; };
   }, [user?.uid]);
 
   useEffect(() => {
-    if (!readyRef.current) return;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); setLocalBackupError(""); }
+    catch { setLocalBackupError("This browser could not save the latest local backup. Download a backup before closing this page."); }
+    if (!syncReady) return;
     dataRevisionRef.current += 1;
     const savingRevision = dataRevisionRef.current;
     const savingData = data;
     setSaveState("saving");
     setSyncError("");
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     const timer = window.setTimeout(() => {
       if (!user?.uid) { setSaveState("offline"); return; }
       void saveNotebookLibrary(user.uid, savingData).then((mergedValue) => {
@@ -151,10 +154,10 @@ export default function Notebook() {
         if (merged && JSON.stringify(merged) !== JSON.stringify(latestData)) setData(merged);
         setSaveState(dataRevisionRef.current === savingRevision ? "saved" : "saving");
         setSyncError("");
-      }).catch((error: unknown) => { setSaveState("offline"); setSyncError(error instanceof Error ? error.message : "Cloud save failed."); });
+      }).catch((error: unknown) => { setSaveState("offline"); setSyncError(describeNotebookSyncError(error)); });
     }, CLOUD_SAVE_DELAY_MS);
     return () => window.clearTimeout(timer);
-  }, [data, user?.uid]);
+  }, [data, user?.uid, syncReady]);
 
   useEffect(() => {
     if (!editorRef.current || !selected) return;
@@ -268,8 +271,16 @@ export default function Notebook() {
   const retryCloudSync = async () => {
     if (!user?.uid) return;
     setSaveState("saving"); setSyncError("");
-    try { const merged = normalizeNotebook(await saveNotebookLibrary(user.uid, data)); if (merged && JSON.stringify(merged) !== JSON.stringify(data)) setData(merged); setSaveState("saved"); }
-    catch (error) { setSaveState("offline"); setSyncError(error instanceof Error ? error.message : "Cloud save failed."); }
+    const savingData = latestDataRef.current;
+    const revision = dataRevisionRef.current;
+    try {
+      const saved = await saveNotebookLibrary(user.uid, savingData);
+      const latest = latestDataRef.current;
+      const merged = normalizeNotebook(mergeNotebookLibraries(saved, latest));
+      if (merged && JSON.stringify(merged) !== JSON.stringify(latest)) setData(merged);
+      setSaveState(dataRevisionRef.current === revision ? "saved" : "saving");
+    }
+    catch (error) { setSaveState("offline"); setSyncError(describeNotebookSyncError(error)); }
   };
   const noteHref = (noteId: string, view = folderFilter) => `${NOTEBOOK_BASE}/note/${encodeURIComponent(noteId)}?view=${encodeURIComponent(view)}`;
   const openNote = (noteId: string, view = folderFilter) => { setSelectedId(noteId); setMobileEditorOpen(true); setHistoryOpen(false); navigate(noteHref(noteId, view)); };
@@ -483,7 +494,12 @@ export default function Notebook() {
       {listMode === "notes" ? <div className="note-list">{visibleNotes.map(note => <div className={`note-list-row ${note.id === selected.id ? "active" : ""}`} key={note.id} onContextMenu={event => showNoteMenu(event, note.id)}><a href={noteHref(note.id)} className={note.id === selected.id ? "active" : ""} key={note.id} onClick={(event) => followNotebookLink(event, () => openNote(note.id))}><span>{note.pinned ? "★" : ""} {note.title || "Untitled"}</span>{preferences.showPreviews && <p>{textFromHtml(note.html).slice(0, 110) || "Empty note"}</p>}<small>{note.noteDate ? new Date(`${note.noteDate}T12:00:00`).toLocaleDateString() : new Date(note.updatedAt).toLocaleDateString()} · {note.tags.slice(0, 2).map(tag => `#${tag}`).join(" ")}</small></a><button className="note-more" aria-label={`Actions for ${note.title || "Untitled"}`} aria-haspopup="dialog" onClick={event => { const rect = event.currentTarget.getBoundingClientRect(); setContextMenu({ noteId: note.id, x: rect.left, y: rect.bottom }); }}>⋯</button></div>)}{!visibleNotes.length && <div className="notes-empty-state"><strong>No notes found</strong><p>Clear your search or create a note in this folder.</p><button onClick={() => createNote()}>＋ Create note</button></div>}</div> : <div className="notebook-calendar"><header><button onClick={() => setCalendarMonth(current => new Date(current.getFullYear(), current.getMonth() - 1, 1))} aria-label="Previous month">←</button><strong>{calendarMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</strong><button onClick={() => setCalendarMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}>Today</button><button onClick={() => setCalendarMonth(current => new Date(current.getFullYear(), current.getMonth() + 1, 1))} aria-label="Next month">→</button></header><div className="calendar-weekdays">{["S","M","T","W","T","F","S"].map((day, index) => <span key={`${day}-${index}`}>{day}</span>)}</div><div className="calendar-grid">{calendarDays.map(day => { const key = localDateKey(day); const dayNotes = visibleNotes.filter(note => (note.noteDate || note.createdAt.slice(0, 10)) === key); return <div className={`${day.getMonth() === calendarMonth.getMonth() ? "" : "outside"} ${key === localDateKey() ? "today" : ""}`} key={key}><span>{day.getDate()}</span>{dayNotes.slice(0, 3).map(note => <a href={noteHref(note.id)} title={note.title} key={note.id} onContextMenu={event => showNoteMenu(event, note.id)} onClick={(event) => followNotebookLink(event, () => openNote(note.id))}>{note.title}</a>)}{dayNotes.length > 3 && <small>+{dayNotes.length - 3} more</small>}</div>; })}</div></div>}
     </section>
     <main className={`notebook-editor ${mobileEditorOpen ? "mobile-open" : ""}`}>
-      <header className="editor-top"><button className="mobile-notes-back" onClick={() => setMobileEditorOpen(false)}>← Notes</button><div><span>{saveState === "saving" ? "Saving changes…" : saveState === "offline" ? user?.uid ? "Cloud sync failed—local backup safe" : "Saved on this device" : "Synced across devices"}</span><small>{new Date(selected.updatedAt).toLocaleString()}</small></div><div><button onClick={() => updateNote({ pinned: !selected.pinned })}>{selected.pinned ? "★ Pinned" : "☆ Pin"}</button><button onClick={() => duplicateNote()}>Duplicate</button><button onClick={snapshot}>Save version</button><button onClick={() => setHistoryOpen(!historyOpen)}>History ({selected.versions.length})</button><button onClick={() => updateNote({ archived: !selected.archived })}>{selected.archived ? "Restore" : "Archive"}</button><button className="danger" onClick={() => deleteNote()}>Delete</button></div></header>
+      <header className="editor-top"><button className="mobile-notes-back" onClick={() => setMobileEditorOpen(false)}>← Notes</button><div><span>{saveState === "saving" ? "Saving changes…" : saveState === "offline" ? user?.uid ? localBackupError ? "Cloud sync failed—download a backup" : "Cloud sync failed—saved on this device" : localBackupError ? "Local backup unavailable" : "Saved on this device" : "Synced across devices"}</span><small>{new Date(selected.updatedAt).toLocaleString()}</small></div><div><button onClick={() => updateNote({ pinned: !selected.pinned })}>{selected.pinned ? "★ Pinned" : "☆ Pin"}</button><button onClick={() => duplicateNote()}>Duplicate</button><button onClick={snapshot}>Save version</button><button onClick={() => setHistoryOpen(!historyOpen)}>History ({selected.versions.length})</button><button onClick={() => updateNote({ archived: !selected.archived })}>{selected.archived ? "Restore" : "Archive"}</button><button className="danger" onClick={() => deleteNote()}>Delete</button></div></header>
+      {(syncError || localBackupError) && <aside className="notebook-sync-banner" role="alert">
+        <strong>{syncError ? "Cloud sync needs attention" : "Local backup needs attention"}</strong>
+        {syncError && <p>{syncError}</p>}{localBackupError && <p>{localBackupError}</p>}
+        <div>{user?.uid && <button disabled={saveState === "saving"} onClick={() => void retryCloudSync()}>{saveState === "saving" ? "Retrying…" : "Retry cloud sync"}</button>}<button onClick={() => download("notebook-backup.json", JSON.stringify(data, null, 2), "application/json")}>Download backup</button></div>
+      </aside>}
       <nav className="notebook-note-navigation" aria-label="Notes in this folder">
         <button disabled={!previousFolderNote} onClick={() => previousFolderNote && openAdjacentNote(previousFolderNote)} title={previousFolderNote?.title || "First note in this folder"}>← Previous note</button>
         <span aria-live="polite">{folderNoteIndex + 1} of {folderNotes.length} · {noteFolderName}{selected.archived ? " (archived)" : ""}</span>

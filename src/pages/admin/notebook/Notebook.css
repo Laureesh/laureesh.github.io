@@ -172,3 +172,9 @@
 .step-guide-badges { display:flex; align-items:center; gap:12px; }
 .step-guide-badges span { display:grid; place-items:center; width:30px; height:30px; border:1px solid var(--nb-line); border-radius:50%; background:#424961; color:white; font-weight:700; }
 .step-guide-badges .complete { background:#287565; }
+.notebook-sync-banner { margin:16px 0; padding:16px; border:1px solid #754052; border-radius:9px; background:#291d29; color:#ffd6df; font-size:14px; overflow-wrap:anywhere; }
+.notebook-sync-banner p { margin:8px 0; }
+.notebook-sync-banner>div { display:flex; flex-wrap:wrap; gap:8px; }
+.notebook-sync-banner button { padding:8px 12px; border:1px solid var(--nb-line); border-radius:7px; background:var(--nb-panel2); color:var(--nb-text); cursor:pointer; }
+.notebook-sync-banner button:disabled { opacity:.6; cursor:default; }
+@media print { .notebook-sync-banner { display:none!important; } }
