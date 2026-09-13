@@ -97,3 +97,17 @@
 .note-actions-menu select { width:100%; padding:8px; background:var(--nb-bg); color:var(--nb-text); border:1px solid var(--nb-line); border-radius:5px; }
 .notebook-shell :is(button,a,select,input):focus-visible { outline:2px solid #b8b0ff; outline-offset:2px; }
 @media print { .note-actions-menu { display:none!important; } }
+
+.notebook-settings { min-height:100vh; padding:clamp(24px,6vw,72px) 20px; background:var(--nb-bg); color:var(--nb-text); font:15px/1.6 Inter,system-ui,sans-serif; }
+.notebook-settings-content { max-width:700px; margin:0 auto; }
+.notebook-settings a { color:#b8b0ff; }
+.notebook-settings h1 { margin:22px 0 8px; font-size:32px; }
+.notebook-settings p { color:var(--nb-muted); }
+.notebook-settings fieldset { margin:28px 0 18px; padding:20px; border:1px solid var(--nb-line); border-radius:12px; background:var(--nb-panel); }
+.notebook-settings legend { padding:0 8px; font-weight:700; }
+.notebook-settings label { display:flex; align-items:flex-start; gap:12px; padding:16px 10px; border-radius:8px; cursor:pointer; }
+.notebook-settings label:has(input:checked) { background:#282644; }
+.notebook-settings input { margin-top:6px; accent-color:var(--nb-accent); }
+.notebook-settings label span { display:grid; gap:4px; }
+.notebook-settings small { color:var(--nb-muted); }
+.notebook-settings :is(a,input):focus-visible { outline:2px solid #b8b0ff; outline-offset:4px; }

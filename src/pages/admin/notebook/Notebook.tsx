@@ -1,5 +1,6 @@
 import "./Notebook.css";
-import { readClipboardNote } from "./clipboardNote";
+import { CLIPBOARD_SETTING_KEY, readClipboardDestination, readClipboardNote, type ClipboardDestination } from "./clipboardNote";
+import NotebookSettings from "./NotebookSettings";
 import { notebookDraftKey, notebookHtmlToText } from "../flashbolt/notebook-draft";
 import NoteActionsMenu from "./NoteActionsMenu";
 import { compareNotes, SORT_OPTIONS, type NoteSort } from "./noteSorting";
@@ -86,6 +87,8 @@ export default function Notebook() {
   const [data, setData] = useState<NotebookData>(readLocal);
   const [selectedId, setSelectedId] = useState(() => readLocal().notes[0]?.id ?? "");
   const [folderFilter, setFolderFilter] = useState<string | "all" | "pinned" | "archive">("all");
+  const [clipboardDestination, setClipboardDestination] = useState(readClipboardDestination);
+  const [settingsStorageError, setSettingsStorageError] = useState(false);
   const [query, setQuery] = useState("");
   const [tagFilter, setTagFilter] = useState("");
   const [saveState, setSaveState] = useState<"loading" | "saving" | "saved" | "offline">("loading");
@@ -151,7 +154,7 @@ export default function Notebook() {
     const changedNote = renderedNoteIdRef.current !== selected.id;
     if ((changedNote || document.activeElement !== editorRef.current) && editorRef.current.innerHTML !== selected.html) editorRef.current.innerHTML = selected.html;
     renderedNoteIdRef.current = selected.id;
-  }, [selected]);
+  }, [selected, location.pathname]);
 
   useEffect(() => {
     const route = notebookRoute(location.pathname);
@@ -233,14 +236,14 @@ export default function Notebook() {
     action();
   };
   const createNote = (folderId: string | null = typeof folderFilter === "string" && !['all', 'pinned', 'archive'].includes(folderFilter) ? folderFilter : null) => {
-    const clipboardHtml = readClipboardNote();
+    const clipboardChanges = readClipboardNote(clipboardDestination);
     const note: Note = { id: id("note"), title: "Untitled note", html: "<p><br></p>", folderId, tags: tagFilter ? [tagFilter] : [], pinned: folderFilter === "pinned", archived: folderFilter === "archive", noteDate: localDateKey(), createdAt: now(), updatedAt: now(), attachments: [], versions: [] };
     setData((current) => ({ ...current, notes: [note, ...current.notes] })); setQuery(""); setListMode("notes"); openNote(note.id, ["pinned", "archive"].includes(folderFilter) ? folderFilter : folderId ?? "all");
-    void clipboardHtml.then(html => {
-      if (html === "<p><br></p>") return;
+    void clipboardChanges.then(changes => {
+      if (!changes) return;
       // Do not overwrite edits or recreate a deleted note while permission is pending.
       setData(current => current.notes.includes(note)
-        ? { ...current, notes: current.notes.map(item => item === note ? { ...item, html, updatedAt: now() } : item) }
+        ? { ...current, notes: current.notes.map(item => item === note ? { ...item, ...changes, updatedAt: now() } : item) }
         : current);
     });
   };
@@ -334,7 +337,18 @@ export default function Notebook() {
   const summarize = () => { const sentences = textFromHtml(selected.html).match(/[^.!?]+[.!?]+/g)?.slice(0, 5) ?? []; updateNote({ html: `${selected.html}<h2>Summary</h2><ul>${sentences.map((sentence) => `<li>${sentence.trim()}</li>`).join("")}</ul>` }); };
   const extractTasks = () => { const lines = textFromHtml(selected.html).split(/\n|[.!?]\s+/).filter((line) => /\b(todo|need to|must|remember to|follow up|action)\b/i.test(line)); if (!lines.length) return alert("No action items were found."); updateNote({ html: `${selected.html}<h2>Action items</h2><ul>${lines.map((line) => `<li>☐ ${line.trim()}</li>`).join("")}</ul>` }); };
   const wordCount = textFromHtml(selected?.html ?? "").trim().split(/\s+/).filter(Boolean).length;
-  if (!selected) return <main className="notebook-empty"><div><span>▱</span><h1>Your notebook is empty</h1><p>Create a note to start writing. Everything will autosave.</p><button onClick={() => createNote()}>＋ Create your first note</button><label>Restore a backup<input type="file" accept="application/json,.json" onChange={importBackup} /></label><button className="quiet" onClick={() => navigate("/admin-dashboard/private-pages")}>← Private pages</button></div></main>;
+  const openSettings = () => navigate(`${NOTEBOOK_BASE}/settings?returnTo=${encodeURIComponent(location.pathname + location.search)}`);
+  const changeClipboardDestination = (destination: ClipboardDestination) => {
+    setClipboardDestination(destination);
+    try { localStorage.setItem(CLIPBOARD_SETTING_KEY, destination); setSettingsStorageError(false); }
+    catch { setSettingsStorageError(true); }
+  };
+  if (notebookRoute(location.pathname).kind === "settings") {
+    const requestedReturn = new URLSearchParams(location.search).get("returnTo") ?? "";
+    const returnTo = requestedReturn === NOTEBOOK_BASE || ["note/", "folder/", "view/"].some(prefix => requestedReturn.startsWith(`${NOTEBOOK_BASE}/${prefix}`)) ? requestedReturn : NOTEBOOK_BASE;
+    return <NotebookSettings destination={clipboardDestination} onChange={changeClipboardDestination} returnTo={returnTo} storageError={settingsStorageError} />;
+  }
+  if (!selected) return <main className="notebook-empty"><div><span>▱</span><h1>Your notebook is empty</h1><p>Create a note to start writing. Everything will autosave.</p><button onClick={() => createNote()}>＋ Create your first note</button><label>Restore a backup<input type="file" accept="application/json,.json" onChange={importBackup} /></label><button onClick={openSettings}>Settings</button><button className="quiet" onClick={() => navigate("/admin-dashboard/private-pages")}>← Private pages</button></div></main>;
 
   return <div className={`notebook-shell ${sidebarOpen ? "" : "sidebar-hidden"}`}>
     {contextMenu && contextNote && <NoteActionsMenu x={contextMenu.x} y={contextMenu.y} title={contextNote.title} folderId={contextNote.folderId} folders={data.folders} onClose={() => setContextMenu(null)} onMove={folderId => updateNoteById(contextNote.id, { folderId })} actions={[
@@ -361,7 +375,7 @@ export default function Notebook() {
         {data.folders.filter(child => child.parentId === folder.id).map(child => <div className="notebook-folder-row subfolder-row" key={child.id}><a href={`${NOTEBOOK_BASE}/folder/${encodeURIComponent(child.id)}`} className={`subfolder ${folderFilter === child.id ? "active" : ""}`} onClick={(event) => followNotebookLink(event, () => openFolder(child.id))}><span aria-hidden="true">↳</span><span className="folder-name">{child.name}</span><b>{data.notes.filter(note => note.folderId === child.id && !note.archived).length}</b></a><span className="folder-actions"><button onClick={() => changeFolderColor(child)} aria-label={`Change ${child.name} color`} title="Change color">●</button><button onClick={() => editFolder(child)} aria-label={`Rename ${child.name}`} title="Rename folder">✎</button><button className="delete-folder" onClick={() => deleteFolder(child)} aria-label={`Delete ${child.name}`} title={`Delete ${child.name}`}>×</button></span></div>)}
         <button className="add-subfolder" onClick={() => addFolder(folder.id)}>＋ subfolder</button>
       </div>)}</nav>
-      <footer><span className={`sync-${saveState}`} title={syncError}>● {saveState === "saved" ? "Synced across devices" : saveState === "saving" ? "Saving to cloud…" : saveState === "loading" ? "Loading cloud notes…" : user?.uid ? "Cloud sync failed" : "Saved on this device only"}</span>{syncError && <><small className="notebook-sync-error">{syncError}</small><button className="retry-sync" onClick={() => void retryCloudSync()}>Retry cloud sync</button></>}<label className="restore-backup">↑ Restore backup<input type="file" accept="application/json,.json" onChange={importBackup} /></label><button onClick={() => navigate("/admin-dashboard/private-pages")}>← Private pages</button></footer>
+      <footer><button onClick={openSettings}>⚙ Settings</button><span className={`sync-${saveState}`} title={syncError}>● {saveState === "saved" ? "Synced across devices" : saveState === "saving" ? "Saving to cloud…" : saveState === "loading" ? "Loading cloud notes…" : user?.uid ? "Cloud sync failed" : "Saved on this device only"}</span>{syncError && <><small className="notebook-sync-error">{syncError}</small><button className="retry-sync" onClick={() => void retryCloudSync()}>Retry cloud sync</button></>}<label className="restore-backup">↑ Restore backup<input type="file" accept="application/json,.json" onChange={importBackup} /></label><button onClick={() => navigate("/admin-dashboard/private-pages")}>← Private pages</button></footer>
     </aside>
     <section className="note-list-panel">
       <header><button className="open-sidebar" onClick={() => setSidebarOpen(true)}>☰</button><label>⌕<input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search this view" aria-label="Search notes in this view" /></label></header>
