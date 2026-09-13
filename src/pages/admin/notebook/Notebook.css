@@ -111,3 +111,12 @@
 .notebook-settings label span { display:grid; gap:4px; }
 .notebook-settings small { color:var(--nb-muted); }
 .notebook-settings :is(a,input):focus-visible { outline:2px solid #b8b0ff; outline-offset:4px; }
+.notebook-settings .notebook-setting-field { display:grid; gap:8px; }
+.notebook-setting-field input[type=text],.notebook-setting-field select { width:100%; padding:10px; border:1px solid var(--nb-line); border-radius:7px; background:var(--nb-panel2); color:var(--nb-text); font:inherit; }
+.notebook-settings :disabled { opacity:.55; cursor:not-allowed; }
+.notebook-settings-actions { display:flex; flex-wrap:wrap; gap:10px; }
+.notebook-settings-actions button { padding:10px 14px; border:1px solid var(--nb-line); border-radius:8px; background:var(--nb-panel2); color:var(--nb-text); font:inherit; cursor:pointer; }
+.notebook-settings :is(button,select):focus-visible { outline:2px solid #b8b0ff; outline-offset:4px; }
+.notebook-help-topics { display:grid; gap:8px; padding:20px; margin:24px 0; border:1px solid var(--nb-line); border-radius:10px; background:var(--nb-panel); }
+.notebook-help-topic { padding:18px 0; border-bottom:1px solid var(--nb-line); scroll-margin-top:20px; }
+.notebook-help-topic h2 { font-size:21px; line-height:1.35; }
