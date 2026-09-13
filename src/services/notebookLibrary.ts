@@ -1,7 +1,7 @@
-import { getDoc, runTransaction, serverTimestamp } from "firebase/firestore";
+import { runTransaction, serverTimestamp, type Transaction } from "firebase/firestore";
 import { documentRef } from "../firebase/firestore";
+import { decodeNotebook, encodeNotebook, notebookChunkCount, NOTEBOOK_STORAGE_FORMAT, type NotebookRecord } from "./notebookStorage";
 
-type NotebookRecord = { data?: unknown; updatedAt?: unknown };
 type SyncItem = { id: string; updatedAt?: string; title?: string; html?: string; tags?: string[]; attachments?: Array<{ id: string }>; versions?: Array<{ id: string; title: string; html: string; savedAt: string }>; [key: string]: unknown };
 type SyncLibrary = { notes?: SyncItem[]; folders?: SyncItem[]; deletedNoteIds?: Record<string, string>; deletedFolderIds?: Record<string, string>; [key: string]: unknown };
 
@@ -10,8 +10,27 @@ function notebookDocument(uid: string) {
 }
 
 export async function loadNotebookLibrary(uid: string) {
-  const snapshot = await getDoc(notebookDocument(uid));
-  return snapshot.exists() ? snapshot.data().data ?? null : null;
+  const reference = notebookDocument(uid);
+  // A transaction prevents mixing a manifest with chunks from another save.
+  return runTransaction(reference.firestore, async (transaction) => (await readNotebook(transaction, uid)).data);
+}
+
+function chunkDocument(uid: string, index: number) {
+  // Siblings use the existing owner-only notebook rules; no rules migration needed.
+  return documentRef<{ text: string }>(`users/${uid}/notebook`, `library-chunk-${index}`);
+}
+
+async function readNotebook(transaction: Transaction, uid: string) {
+  const snapshot = await transaction.get(notebookDocument(uid));
+  const record = snapshot.exists() ? snapshot.data() : {};
+  const count = notebookChunkCount(record);
+  const snapshots = await Promise.all(Array.from({ length: count }, (_, index) => transaction.get(chunkDocument(uid, index))));
+  const chunks = snapshots.map((chunk) => chunk.exists() ? chunk.data().text : undefined);
+  const decoded = decodeNotebook(record, chunks);
+  // An older open tab may still merge a legacy `data` field into the manifest.
+  // Preserve those edits too; the next successful save migrates them again.
+  const data = count && record.data ? mergeNotebookLibraries(decoded, record.data) : decoded;
+  return { data, chunks };
 }
 
 function uniqueById<T extends { id: string }>(items: T[]) {
@@ -47,7 +66,7 @@ export function mergeNotebookLibraries(remoteValue: unknown, localValue: unknown
       ...winner,
       tags: [...new Set([...(Array.isArray(remoteNote.tags) ? remoteNote.tags : []), ...(Array.isArray(localNote.tags) ? localNote.tags : [])])],
       attachments: uniqueById([...(Array.isArray(remoteNote.attachments) ? remoteNote.attachments : []), ...(Array.isArray(localNote.attachments) ? localNote.attachments : [])]),
-      versions: versions.slice(0, 50),
+      versions,
     });
   });
 
@@ -68,9 +87,21 @@ export async function saveNotebookLibrary(uid: string, data: unknown) {
   const safeData = JSON.parse(JSON.stringify(data)) as unknown;
   const reference = notebookDocument(uid);
   return runTransaction(reference.firestore, async (transaction) => {
-    const snapshot = await transaction.get(reference);
-    const merged = mergeNotebookLibraries(snapshot.exists() ? snapshot.data().data : null, safeData);
-    transaction.set(reference, { data: merged, updatedAt: serverTimestamp() }, { merge: true });
+    const remote = await readNotebook(transaction, uid);
+    const merged = mergeNotebookLibraries(remote.data, safeData);
+    const chunks = encodeNotebook(merged);
+    // All reads precede writes. The legacy document is replaced only if every
+    // chunk commits successfully, including on transaction retries/conflicts.
+    chunks.forEach((text, index) => {
+      if (text !== remote.chunks[index]) transaction.set(chunkDocument(uid, index), { text });
+    });
+    for (let index = chunks.length; index < remote.chunks.length; index++) transaction.delete(chunkDocument(uid, index));
+    transaction.set(reference, {
+      format: NOTEBOOK_STORAGE_FORMAT,
+      chunkCount: chunks.length,
+      byteLength: chunks.reduce((bytes, text) => bytes + new TextEncoder().encode(text).byteLength, 0),
+      updatedAt: serverTimestamp(),
+    });
     return merged;
   });
 }
