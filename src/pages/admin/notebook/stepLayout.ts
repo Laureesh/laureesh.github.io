@@ -73,7 +73,7 @@ export function removeStepLayout(html: string): string {
 
 export function formatStepLayout(html: string): string | null {
   const doc = new DOMParser().parseFromString(html, "text/html");
-  if (doc.querySelector(".notebook-steps")) return html;
+  if (doc.querySelector(".notebook-steps")) return normalizeStepTitles(html);
   const text = editorPlainText(doc.body);
   if (!doc.querySelector("h1,h2,h3,h4,h5,h6,ol") && /(^|\n)\s*(?:#{1,6}\s|```|\d+[.)]\s)/.test(text)) {
     doc.body.innerHTML = labMarkdownToHtml(text);
@@ -99,7 +99,7 @@ export function formatStepLayout(html: string): string | null {
         current.append(node);
       } else if (current) current.append(node);
     }
-    return steps.children.length ? doc.body.innerHTML : null;
+    return steps.children.length ? normalizeStepTitles(doc.body.innerHTML) : null;
   }
   const list = doc.body.querySelector("ol");
   if (!list) return null;
@@ -157,7 +157,7 @@ export function changeStepLayout(html: string, change: StepChange): string {
       }
     }
   }
-  return doc.body.innerHTML;
+  return normalizeStepTitles(doc.body.innerHTML);
 }
 
 export function startStepLayout(html: string): string {
@@ -193,4 +193,30 @@ export function detectStepLayout(html: string): string | null {
   // Plain “Step 1: …” lines need headings before they can become a timeline.
   const markdown = text.replace(/^(\s*)(Step\s+\d+\b[^\n]*)/gim, '$1### $2');
   return markdown !== text ? formatStepLayout(labMarkdownToHtml(markdown)) : null;
+}
+
+export function stripStepTitleNumber(title: string): string {
+  return title.replace(/^\s*\d+[.)]\s+/, "");
+}
+
+/** Remove redundant labels only from timeline headings, preserving inline formatting. */
+export function normalizeStepTitles(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  let changed = false;
+  doc.querySelectorAll("ol.notebook-steps > li > :is(h1,h2,h3,h4,h5,h6)").forEach(heading => {
+    const title = heading.textContent ?? "";
+    let remaining = title.length - stripStepTitleNumber(title).length;
+    if (!remaining) return;
+    changed = true;
+    const walker = doc.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
+    let node = walker.nextNode();
+    while (node && remaining > 0) {
+      const text = node as Text;
+      const count = Math.min(text.length, remaining);
+      text.deleteData(0, count);
+      remaining -= count;
+      node = walker.nextNode();
+    }
+  });
+  return changed ? doc.body.innerHTML : html;
 }

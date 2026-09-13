@@ -1,6 +1,6 @@
 import "./Notebook.css";
 import { exitInstructionList } from "./listEditing";
-import { changeStepLayout, detectStepLayout, formatStepLayout, getLayoutSteps, removeStepLayout, startStepLayout, type StepChange } from "./stepLayout";
+import { changeStepLayout, detectStepLayout, formatStepLayout, getLayoutSteps, normalizeStepTitles, removeStepLayout, startStepLayout, type StepChange } from "./stepLayout";
 import StepControls from "./StepControls";
 import { CLIPBOARD_SETTING_KEY, readClipboardDestination, readClipboardNote, type ClipboardDestination } from "./clipboardNote";
 import NotebookSettings from "./NotebookSettings";
@@ -219,6 +219,16 @@ export default function Notebook() {
     }, 1000);
     return () => window.clearTimeout(timer);
   }, [selected, preferences.autoSteps]);
+
+  useEffect(() => {
+    if (!selected || !selected.html.includes('class="notebook-steps"') || document.activeElement === editorRef.current) return;
+    const html = normalizeStepTitles(selected.html);
+    if (html === selected.html) return;
+    setData(current => ({ ...current, notes: current.notes.map(note => note.id === selected.id && note.html === selected.html ? {
+      ...note, html, updatedAt: now(),
+      versions: [{ id: id("version"), title: note.title, html: note.html, savedAt: now() }, ...note.versions].slice(0, 30),
+    } : note) }));
+  }, [selected]);
 
   const layoutSteps = useMemo(() => selected ? getLayoutSteps(selected.html) : [], [selected]);
   const allTags = useMemo(() => [...new Set(data.notes.flatMap((note) => note.tags))].sort(), [data.notes]);

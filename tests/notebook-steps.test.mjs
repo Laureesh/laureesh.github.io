@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { labMarkdownToHtml } from '../src/pages/admin/notebook/stepLayout.ts';
+import { labMarkdownToHtml, stripStepTitleNumber } from '../src/pages/admin/notebook/stepLayout.ts';
 
 test('lab Markdown preserves commands, headings, bold labels, and resumed numbering', () => {
   const html = labMarkdownToHtml('## Lab Steps\n\n### &#x20;1. Enable the Anaconda Service\n\n1. Open **Terminal**.\n2. Type:\n```bash\nsystemctl enable anaconda.service\n```\n\n3. Press **Enter**.\n4. Check:\n```bash\nsystemctl is-enabled anaconda.service\n```');
@@ -18,4 +18,11 @@ test('plain Markdown never promotes pasted raw HTML into executable markup', () 
   const html = labMarkdownToHtml('### Step\n<img src=x onerror=alert(1)>\n`<script>`');
   assert.ok(!html.includes('<img'));
   assert.ok(html.includes('<code>&lt;script&gt;</code>'));
+});
+
+test('timeline labels remove duplicate integers without changing lab identifiers', () => {
+  assert.equal(stripStepTitleNumber('1. Start the Bluetooth Service'), 'Start the Bluetooth Service');
+  assert.equal(stripStepTitleNumber('  12) Check status'), 'Check status');
+  assert.equal(stripStepTitleNumber('5.1.10 - Scan with Nmap'), '5.1.10 - Scan with Nmap');
+  assert.equal(stripStepTitleNumber('802.1X configuration'), '802.1X configuration');
 });
