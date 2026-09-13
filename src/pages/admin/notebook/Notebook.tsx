@@ -1,5 +1,5 @@
 import "./Notebook.css";
-import { changeStepLayout, formatStepLayout, getLayoutSteps, removeStepLayout, startStepLayout, type StepChange } from "./stepLayout";
+import { changeStepLayout, detectStepLayout, formatStepLayout, getLayoutSteps, removeStepLayout, startStepLayout, type StepChange } from "./stepLayout";
 import StepControls from "./StepControls";
 import { CLIPBOARD_SETTING_KEY, readClipboardDestination, readClipboardNote, type ClipboardDestination } from "./clipboardNote";
 import NotebookSettings from "./NotebookSettings";
@@ -16,7 +16,7 @@ import { loadNotebookLibrary, mergeNotebookLibraries, saveNotebookLibrary } from
 type Folder = { id: string; name: string; parentId: string | null; color: string; updatedAt?: string };
 type Attachment = { id: string; name: string; type: string; dataUrl: string; size: number };
 type Version = { id: string; title: string; html: string; savedAt: string };
-type Note = { id: string; title: string; html: string; folderId: string | null; tags: string[]; pinned: boolean; archived: boolean; noteDate?: string; createdAt: string; updatedAt: string; attachments: Attachment[]; versions: Version[] };
+type Note = { autoStepsDisabled?: boolean; id: string; title: string; html: string; folderId: string | null; tags: string[]; pinned: boolean; archived: boolean; noteDate?: string; createdAt: string; updatedAt: string; attachments: Attachment[]; versions: Version[] };
 type NotebookData = { notes: Note[]; folders: Folder[]; deletedNoteIds?: Record<string, string>; deletedFolderIds?: Record<string, string> };
 
 const STORAGE_KEY = "flashbolt.notebook.v1";
@@ -197,6 +197,28 @@ export default function Notebook() {
     return () => window.clearInterval(timer);
   }, [preferences.automaticHistory, preferences.historyMinutes]);
 
+  useEffect(() => {
+    if (!preferences.autoSteps || !selected || selected.autoStepsDisabled || selected.html.includes('class="notebook-steps"')) return;
+    const noteId = selected.id;
+    const originalHtml = selected.html;
+    const timer = window.setTimeout(() => {
+      const html = detectStepLayout(originalHtml);
+      if (!html || html === originalHtml) return;
+      const currentNote = latestSelectedRef.current;
+      if (currentNote?.id !== noteId || currentNote.html !== originalHtml) return;
+      setData(current => ({ ...current, notes: current.notes.map(note => note.id === noteId && note.html === originalHtml && !note.autoStepsDisabled ? {
+        ...note, html, updatedAt: now(),
+        versions: [{ id: id("version"), title: note.title, html: originalHtml, savedAt: now() }, ...note.versions].slice(0, 30),
+      } : note) }));
+      if (editorRef.current && document.activeElement === editorRef.current) {
+        editorRef.current.innerHTML = html;
+        const range = document.createRange(); range.selectNodeContents(editorRef.current); range.collapse(false);
+        const selection = window.getSelection(); selection?.removeAllRanges(); selection?.addRange(range);
+      }
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [selected, preferences.autoSteps]);
+
   const layoutSteps = useMemo(() => selected ? getLayoutSteps(selected.html) : [], [selected]);
   const allTags = useMemo(() => [...new Set(data.notes.flatMap((note) => note.tags))].sort(), [data.notes]);
   const visibleNotes = useMemo(() => data.notes.filter((note) => {
@@ -321,7 +343,7 @@ export default function Notebook() {
     if (!selected) return;
     const hasSteps = selected.html.includes('class="notebook-steps"');
     const html = hasSteps ? removeStepLayout(selected.html) : formatStepLayout(selected.html) ?? startStepLayout(selected.html);
-    updateNote({ html, versions: [{ id: id("version"), title: selected.title, html: selected.html, savedAt: now() }, ...selected.versions].slice(0, 30) });
+    updateNote({ html, autoStepsDisabled: hasSteps, versions: [{ id: id("version"), title: selected.title, html: selected.html, savedAt: now() }, ...selected.versions].slice(0, 30) });
   };
   const changeStep = (change: StepChange) => {
     if (!selected) return;

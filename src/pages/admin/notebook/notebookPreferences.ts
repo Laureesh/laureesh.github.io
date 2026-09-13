@@ -1,6 +1,7 @@
 export const NOTEBOOK_PREFERENCES_KEY = "flashbolt.notebook.v1.preferences";
 export type NotebookPreferences = {
   readClipboard: boolean;
+  autoSteps: boolean;
   defaultTitle: string;
   defaultView: "notes" | "calendar";
   showPreviews: boolean;
@@ -9,7 +10,7 @@ export type NotebookPreferences = {
   historyMinutes: 2 | 5 | 10;
 };
 export const DEFAULT_NOTEBOOK_PREFERENCES: NotebookPreferences = {
-  readClipboard: true, defaultTitle: "Untitled note", defaultView: "notes",
+  readClipboard: true, autoSteps: true, defaultTitle: "Untitled note", defaultView: "notes",
   showPreviews: true, fontSize: 18, automaticHistory: true, historyMinutes: 2,
 };
 export function readNotebookPreferences(): NotebookPreferences {
@@ -17,6 +18,7 @@ export function readNotebookPreferences(): NotebookPreferences {
     const saved = JSON.parse(localStorage.getItem(NOTEBOOK_PREFERENCES_KEY) ?? "null");
     if (!saved || typeof saved !== "object") return { ...DEFAULT_NOTEBOOK_PREFERENCES };
     return {
+      autoSteps: typeof saved.autoSteps === "boolean" ? saved.autoSteps : true,
       readClipboard: typeof saved.readClipboard === "boolean" ? saved.readClipboard : true,
       defaultTitle: typeof saved.defaultTitle === "string" ? saved.defaultTitle.slice(0, 180) : "Untitled note",
       defaultView: saved.defaultView === "calendar" ? "calendar" : "notes",

@@ -85,7 +85,8 @@ export function formatStepLayout(html: string): string | null {
   const children = [...doc.body.childNodes];
   const headings = [...doc.body.children].filter(node => /^H[1-6]$/.test(node.tagName));
   // A title may precede smaller section headings, as in “Lab Steps” followed by H3s.
-  const sectionHeading = headings.find(node => node !== headings[0] && node.tagName > headings[0].tagName) ?? headings[0];
+  const sectionHeading = headings.length === 1 && doc.body.querySelector("ol") ? undefined
+    : headings.find(node => node !== headings[0] && node.tagName > headings[0].tagName) ?? headings[0];
   if (sectionHeading) {
     const level = sectionHeading.tagName;
     const steps = doc.createElement("ol"); steps.className = "notebook-steps";
@@ -168,4 +169,28 @@ export function startStepLayout(html: string): string {
   list.append(step); doc.body.append(list);
   if (step.children.length === 1) step.insertAdjacentHTML("beforeend", "<p><br></p>");
   return doc.body.innerHTML;
+}
+
+/** Require instructional structure, not just an ordinary numbered list. */
+export function detectStepLayout(html: string): string | null {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  if (doc.querySelector(".notebook-steps")) return null;
+  const text = editorPlainText(doc.body);
+  const outsideCode = doc.body.cloneNode(true) as HTMLElement;
+  outsideCode.querySelectorAll("pre, code").forEach(node => node.remove());
+  const readable = editorPlainText(outsideCode).replace(/```[^\n]*\n[\s\S]*?(?:```|$)/g, "");
+  const headings = [...outsideCode.querySelectorAll("h1,h2,h3,h4,h5,h6")].map(node => node.textContent ?? "");
+  const lines = readable.split(/\n/).map(line => line.replace(/^#{1,6}\s+/, "").replace(/&#x20;|&#32;|&nbsp;/gi, " ").trim());
+  const explicitSteps = [...headings, ...lines].filter(line => /^(?:step\s+\d+\b|\d+[.)]\s+(?:enable|disable|open|click|select|type|enter|press|run|check|verify|create|install|configure|save|connect|add|remove|restart|start|stop|navigate|at the prompt)\b)/i.test(line));
+  const hasGuideTitle = [...headings, ...lines].some(line => /^(?:lab\s+)?(?:steps|instructions|procedure|walkthrough)\b/i.test(line));
+  const listItems = outsideCode.querySelectorAll("ol > li").length;
+  const instructionalItems = [...outsideCode.querySelectorAll("ol > li")].filter(node => /^(?:open|click|select|type|enter|press|run|check|verify|create|install|configure|save|connect|add|remove|restart|enable|disable)\b/i.test((node.textContent ?? "").trim())).length;
+  const numberedLines = lines.filter(line => /^\d+[.)]\s+\S/.test(line)).length;
+  if (new Set(explicitSteps).size < 2 && instructionalItems < 2 && !(hasGuideTitle && (listItems >= 2 || numberedLines >= 2))) return null;
+  // formatStepLayout supports rich headings, numbered lists, and pasted Markdown.
+  const result = formatStepLayout(html);
+  if (result) return result;
+  // Plain “Step 1: …” lines need headings before they can become a timeline.
+  const markdown = text.replace(/^(\s*)(Step\s+\d+\b[^\n]*)/gim, '$1### $2');
+  return markdown !== text ? formatStepLayout(labMarkdownToHtml(markdown)) : null;
 }
