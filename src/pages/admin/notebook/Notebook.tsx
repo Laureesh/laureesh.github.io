@@ -206,6 +206,14 @@ export default function Notebook() {
   }).sort((a, b) => {
     return compareNotes(a, b, noteSort, pinnedFirst, html => textFromHtml(html).trim().split(/\s+/).filter(Boolean).length);
   }), [data.notes, folderFilter, noteSort, pinnedFirst, query, tagFilter]);
+  const folderNotes = useMemo(() => selected ? data.notes
+    .filter(note => note.folderId === selected.folderId && note.archived === selected.archived)
+    .sort((a, b) => compareNotes(a, b, noteSort, pinnedFirst, html => textFromHtml(html).trim().split(/\s+/).filter(Boolean).length)) : [],
+  [data.notes, selected, noteSort, pinnedFirst]);
+  const folderNoteIndex = folderNotes.findIndex(note => note.id === selected?.id);
+  const previousFolderNote = folderNotes[folderNoteIndex - 1];
+  const nextFolderNote = folderNoteIndex >= 0 ? folderNotes[folderNoteIndex + 1] : undefined;
+  const noteFolderName = data.folders.find(folder => folder.id === selected?.folderId)?.name ?? "No folder";
   const backlinks = useMemo(() => selected ? data.notes.filter((note) => note.id !== selected.id && textFromHtml(note.html).toLowerCase().includes(`[[${selected.title.toLowerCase()}]]`)) : [], [data.notes, selected]);
   const related = useMemo(() => selected ? data.notes.filter((note) => note.id !== selected.id && note.tags.some((tag) => selected.tags.includes(tag))).slice(0, 5) : [], [data.notes, selected]);
   const calendarDays = useMemo(() => {
@@ -228,6 +236,12 @@ export default function Notebook() {
   };
   const noteHref = (noteId: string, view = folderFilter) => `${NOTEBOOK_BASE}/note/${encodeURIComponent(noteId)}?view=${encodeURIComponent(view)}`;
   const openNote = (noteId: string, view = folderFilter) => { setSelectedId(noteId); setMobileEditorOpen(true); setHistoryOpen(false); navigate(noteHref(noteId, view)); };
+  const openAdjacentNote = (note: Note) => {
+    setQuery("");
+    setTagFilter("");
+    openNote(note.id, note.archived ? "archive" : note.folderId ?? "all");
+    requestAnimationFrame(() => editorRef.current?.closest(".notebook-editor")?.scrollTo({ top: 0 }));
+  };
   const openFolder = (folderId: string | "all" | "pinned" | "archive") => {
     setFolderFilter(folderId);
     setMobileEditorOpen(false);
@@ -405,6 +419,11 @@ export default function Notebook() {
     </section>
     <main className={`notebook-editor ${mobileEditorOpen ? "mobile-open" : ""}`}>
       <header className="editor-top"><button className="mobile-notes-back" onClick={() => setMobileEditorOpen(false)}>← Notes</button><div><span>{saveState === "saving" ? "Saving changes…" : saveState === "offline" ? user?.uid ? "Cloud sync failed—local backup safe" : "Saved on this device" : "Synced across devices"}</span><small>{new Date(selected.updatedAt).toLocaleString()}</small></div><div><button onClick={() => updateNote({ pinned: !selected.pinned })}>{selected.pinned ? "★ Pinned" : "☆ Pin"}</button><button onClick={() => duplicateNote()}>Duplicate</button><button onClick={snapshot}>Save version</button><button onClick={() => setHistoryOpen(!historyOpen)}>History ({selected.versions.length})</button><button onClick={() => updateNote({ archived: !selected.archived })}>{selected.archived ? "Restore" : "Archive"}</button><button className="danger" onClick={() => deleteNote()}>Delete</button></div></header>
+      <nav className="notebook-note-navigation" aria-label="Notes in this folder">
+        <button disabled={!previousFolderNote} onClick={() => previousFolderNote && openAdjacentNote(previousFolderNote)} title={previousFolderNote?.title || "First note in this folder"}>← Previous note</button>
+        <span aria-live="polite">{folderNoteIndex + 1} of {folderNotes.length} · {noteFolderName}{selected.archived ? " (archived)" : ""}</span>
+        <button disabled={!nextFolderNote} onClick={() => nextFolderNote && openAdjacentNote(nextFolderNote)} title={nextFolderNote?.title || "Last note in this folder"}>Next note →</button>
+      </nav>
       <div className="editor-meta"><label className="title-field"><span>Note title</span><textarea className="note-title" rows={2} value={selected.title} onChange={event => { event.currentTarget.style.height = "auto"; event.currentTarget.style.height = `${event.currentTarget.scrollHeight}px`; updateNote({ title: event.target.value }); }} placeholder="Untitled note" maxLength={180} /></label><div><label className="note-date-field"><span>Note date</span><input type="date" value={selected.noteDate ?? selected.createdAt.slice(0, 10)} onChange={event => updateNote({ noteDate: event.target.value })} /></label><label className="compact-meta-field"><span>Folder</span><select value={selected.folderId ?? ""} onChange={event => updateNote({ folderId: event.target.value || null })}><option value="">No folder</option>{data.folders.map(folder => <option value={folder.id} key={folder.id}>{folder.parentId ? "↳ " : ""}{folder.name}</option>)}</select></label><label className="compact-meta-field tags-field"><span>Tags</span><input value={selected.tags.join(", ")} onChange={event => updateNote({ tags: event.target.value.split(",").map(tag => tag.trim()).filter(Boolean) })} placeholder="class, exam, chapter-2" /></label></div><small className="note-writing-stats">{wordCount} word{wordCount === 1 ? "" : "s"} · about {Math.max(1, Math.ceil(wordCount / 200))} min read</small></div>
       <div className="editor-toolbar" role="toolbar" aria-label="Text formatting"><button title="Undo" onClick={() => format("undo")}>↶ Undo</button><button title="Redo" onClick={() => format("redo")}>↷ Redo</button><i /><button title="Large heading" onClick={() => format("formatBlock", "h1")}>Heading 1</button><button title="Medium heading" onClick={() => format("formatBlock", "h2")}>Heading 2</button><button title="Bold" onClick={() => format("bold")}><b>Bold</b></button><button title="Italic" onClick={() => format("italic")}><i>Italic</i></button><button title="Highlight selected text" onClick={() => format("hiliteColor", "#fff09a")}>Highlight</button><button title="Bulleted list" onClick={() => format("insertUnorderedList")}>• Bullets</button><button title="Numbered list" onClick={() => format("insertOrderedList")}>1. Numbers</button><button title="Code block" onClick={() => format("formatBlock", "pre")}>Code</button><button title="Add a link" onClick={() => { const url = prompt("Paste a link URL"); if (url) format("createLink", url); }}>Link</button><button title="Type using your voice" onClick={startVoice}>🎙 Dictate</button><label className="attach-button" title="Attach images, PDFs, audio, or video">＋ Attach files<input type="file" multiple accept="image/*,application/pdf,audio/*,video/*" onChange={attachFiles} /></label></div>
       <div ref={editorRef} className="rich-editor" style={{ fontSize: preferences.fontSize }} contentEditable suppressContentEditableWarning onKeyDown={handleEditorKeyDown} onPaste={pasteScreenshots} onInput={event => updateNote({ html: event.currentTarget.innerHTML })} data-placeholder="Start writing… Paste a screenshot here to attach it." />

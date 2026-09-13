@@ -120,3 +120,9 @@
 .notebook-help-topics { display:grid; gap:8px; padding:20px; margin:24px 0; border:1px solid var(--nb-line); border-radius:10px; background:var(--nb-panel); }
 .notebook-help-topic { padding:18px 0; border-bottom:1px solid var(--nb-line); scroll-margin-top:20px; }
 .notebook-help-topic h2 { font-size:21px; line-height:1.35; }
+.notebook-note-navigation { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 0; border-bottom:1px solid var(--nb-line); }
+.notebook-note-navigation button { flex-shrink:0; padding:8px 10px; border:1px solid var(--nb-line); border-radius:7px; background:var(--nb-panel2); color:var(--nb-text); cursor:pointer; }
+.notebook-note-navigation button:disabled { opacity:.4; cursor:default; }
+.notebook-note-navigation span { color:var(--nb-muted); font-size:12px; text-align:center; overflow-wrap:anywhere; }
+@media(max-width:600px) { .notebook-note-navigation { flex-wrap:wrap; gap:8px; } .notebook-note-navigation span { order:-1; width:100%; } }
+@media print { .notebook-note-navigation { display:none!important; } }
