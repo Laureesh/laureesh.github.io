@@ -214,9 +214,9 @@ const DEFAULT_LEARN_OPTIONS: LearnOptions = {
   shuffle: false,
   soundEffects: true,
   multipleChoice: true,
-  trueFalse: true,
-  selectAll: true,
-  written: true,
+  trueFalse: false,
+  selectAll: false,
+  written: false,
   flashcards: false,
   answerTerms: false,
   answerDefinitions: true,
@@ -817,7 +817,7 @@ export default function Flashbolt() {
   const [kahootImporting, setKahootImporting] = useState(false);
   const [kahootImportMessage, setKahootImportMessage] = useState("");
   const [kahootImportFailed, setKahootImportFailed] = useState(false);
-  const [flashIndex, setFlashIndex] = useState(0);
+  const [requestedFlashIndex, setFlashIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [learnPhase, setLearnPhase] = useState<LearnPhase>("goal");
   const [learnGoal, setLearnGoal] = useState<LearnGoal>("memorize");
@@ -1146,6 +1146,7 @@ export default function Flashbolt() {
   useEffect(() => () => recognitionRef.current?.stop(), []);
 
   const selectedSet = data.sets.find((set) => set.id === selectedSetId) ?? data.sets[0];
+  const flashIndex = Math.max(0, Math.min(requestedFlashIndex, (selectedSet?.cards.length ?? 0) - 1));
   const helperAvailableSets = helperFolderId === "all"
     ? data.sets
     : data.sets.filter((set) => data.folders.find((folderItem) => folderItem.id === helperFolderId)?.setIds.includes(set.id));
@@ -2150,7 +2151,7 @@ export default function Flashbolt() {
 
   function startLearn(setIdOrEvent?: string | ReactMouseEvent) {
     const setId = typeof setIdOrEvent === "string" ? setIdOrEvent : selectedSetId;
-    const questionFirstOptions = { ...learnOptions, answerTerms: false, answerDefinitions: true };
+    const questionFirstOptions = { ...learnOptions, multipleChoice: true, trueFalse: false, selectAll: false, written: false, flashcards: false, answerTerms: false, answerDefinitions: true };
     setLearnPhase("goal");
     setLearnGoal("memorize");
     setLearnOptions(questionFirstOptions);
@@ -2530,11 +2531,11 @@ export default function Flashbolt() {
   function flashcardKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
     if (!selectedSet) return;
     if (event.key === "ArrowRight") {
-      setFlashIndex((index) => Math.min(index + 1, selectedSet.cards.length - 1));
+      setFlashIndex(Math.min(flashIndex + 1, selectedSet.cards.length - 1));
       setFlipped(false);
     }
     if (event.key === "ArrowLeft") {
-      setFlashIndex((index) => Math.max(index - 1, 0));
+      setFlashIndex(Math.max(flashIndex - 1, 0));
       setFlipped(false);
     }
   }
@@ -3160,7 +3161,9 @@ export default function Flashbolt() {
             </section>
           )}
 
-          {!search && view === "set" && selectedSet && currentFlashcard && (
+          {!search && view === "set" && !selectedSet && <section className="empty-state"><h1>Set unavailable</h1><p>This set is no longer in your library.</p><Link className="button primary" to={`${FLASHBOLT_BASE}/library`}>Back to library</Link></section>}
+
+          {!search && view === "set" && selectedSet && (
             <section className="study-page">
               <div className="page-heading split compact">
                 <div><Link className="back-link" to={`${FLASHBOLT_BASE}/library`}>← Library</Link><span className="eyebrow">{selectedSet.subject}</span><h1>{selectedSet.title}</h1><p>{selectedSet.description}</p></div>
@@ -3183,7 +3186,7 @@ export default function Flashbolt() {
                 </nav>
               )}
               <div className="mode-tabs" role="tablist" aria-label="Study modes"><Link className="active" role="tab" to={routePathForView("set", selectedSet.id)}>▱ Flashcards</Link><Link role="tab" to={routePathForView("learn", selectedSet.id)}>◫ Learn</Link><Link role="tab" to={routePathForView("test", selectedSet.id)}>✓ Test</Link></div>
-              <div className="study-layout">
+              {currentFlashcard ? <div className="study-layout">
                 <div>
                   <div className="flash-status"><span>{flashIndex + 1} / {selectedSet.cards.length}</span><button className={isCurrentMastered ? "mastered" : ""} onClick={() => toggleMastered(selectedSet.id, currentFlashcard.id)}>{isCurrentMastered ? "✓ Mastered" : "Mark as mastered"}</button></div>
                   <button className={`flashcard ${flipped ? "flipped" : ""} highlight-${currentFlashcard.highlight ?? "none"}`} onClick={() => setFlipped((value) => !value)} onKeyDown={flashcardKeyDown} aria-label={`Flashcard ${flashIndex + 1}. ${flipped ? "Showing answer" : "Showing question"}. Press to flip.`}>
@@ -3192,7 +3195,7 @@ export default function Flashbolt() {
                     {currentFlashcard.imageData && <img width={320} height={185} className="flashcard-image" src={currentFlashcard.imageData} alt={currentFlashcard.imageName ? `Study aid: ${currentFlashcard.imageName}` : "Study aid"} />}
                     <small>{flipped ? "Tap to see the question" : "Tap to reveal the answer"}</small>
                   </button>
-                  <div className="flash-controls"><button onClick={() => { setFlashIndex((index) => Math.max(index - 1, 0)); setFlipped(false); }} disabled={flashIndex === 0} aria-label="Previous card">←</button><button className="flip-hint" onClick={() => setFlipped((value) => !value)}>Flip card <kbd>Space</kbd></button><button onClick={() => { setFlashIndex((index) => Math.min(index + 1, selectedSet.cards.length - 1)); setFlipped(false); }} disabled={flashIndex === selectedSet.cards.length - 1} aria-label="Next card">→</button></div>
+                  <div className="flash-controls"><button onClick={() => { setFlashIndex(Math.max(flashIndex - 1, 0)); setFlipped(false); }} disabled={flashIndex === 0} aria-label="Previous card">←</button><button className="flip-hint" onClick={() => setFlipped((value) => !value)}>Flip card <kbd>Space</kbd></button><button onClick={() => { setFlashIndex(Math.min(flashIndex + 1, selectedSet.cards.length - 1)); setFlipped(false); }} disabled={flashIndex === selectedSet.cards.length - 1} aria-label="Next card">→</button></div>
                 </div>
                 <aside className="study-side-panel">
                   <span className="eyebrow">Set progress</span><div className="score-ring" style={{ "--score": `${Math.round(((data.mastered[selectedSet.id]?.length ?? 0) / selectedSet.cards.length) * 100)}%` } as React.CSSProperties}><span>{Math.round(((data.mastered[selectedSet.id]?.length ?? 0) / selectedSet.cards.length) * 100)}<small>%</small></span></div>
@@ -3200,6 +3203,7 @@ export default function Flashbolt() {
                   <Link className="button primary full" to={routePathForView("learn", selectedSet.id)}>Practice in Learn</Link><Link className="button quiet full" to={routePathForView("test", selectedSet.id)}>Take a test</Link>
                 </aside>
               </div>
+              : <div className="empty-state" role="status"><h2>No cards in this set yet</h2><p>Add or import cards to start studying.</p><button className="button primary" onClick={() => startEdit(selectedSet)}>Add cards</button></div>}
               <section className="term-list">
                 <div className="section-heading term-list-heading"><div><span className="eyebrow">Review</span><h2>Terms in this set ({selectedSet.cards.length})</h2></div><label className="term-search"><span aria-hidden="true">⌕</span><input type="search" value={termSearch} onChange={(event) => setTermSearch(event.target.value)} placeholder="Search terms and answers" aria-label="Search terms, definitions, and answer choices in this set" />{termSearch && <button type="button" onClick={() => setTermSearch("")} aria-label="Clear term search">×</button>}</label></div>
                 {termSearch && <p className="term-search-count" role="status">Showing {visibleSetCards.length} of {selectedSet.cards.length} terms</p>}
