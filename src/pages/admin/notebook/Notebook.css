@@ -160,3 +160,15 @@
 .rich-editor .notebook-steps>li[data-completed=true]::before { content:"✓"; background:#287565; }
 .rich-editor .notebook-steps>li[data-completed=true]>:is(h1,h2,h3,h4,h5,h6) { color:var(--nb-mint); }
 @media print { .notebook-step-controls { display:none!important; } }
+.step-formatting-guide { margin:14px 0; padding:12px; border:1px solid var(--nb-line); border-radius:9px; background:var(--nb-bg); }
+.step-formatting-examples { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); gap:12px; }
+.step-formatting-examples article { min-width:0; padding:14px; border:1px solid var(--nb-line); border-radius:8px; background:var(--nb-panel); }
+.step-formatting-examples h3 { margin:0 0 12px; font-size:14px; color:var(--nb-text); }
+.step-formatting-examples p { margin:10px 0 0; font-size:13px; }
+.step-guide-title { color:#d9d5ff; font-weight:750; font-size:17px; }
+.step-guide-heading { color:var(--nb-text); font-size:21px; font-weight:800; }
+.step-guide-command { padding:12px; margin:0; border:1px solid var(--nb-line); border-left:3px solid var(--nb-accent); border-radius:8px; background:#0b0e17; color:#bcebdc; white-space:pre-wrap; overflow-wrap:anywhere; font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace; }
+.step-formatting-examples mark { background:#fff09a; color:#11131a; padding:1px 3px; }
+.step-guide-badges { display:flex; align-items:center; gap:12px; }
+.step-guide-badges span { display:grid; place-items:center; width:30px; height:30px; border:1px solid var(--nb-line); border-radius:50%; background:#424961; color:white; font-weight:700; }
+.step-guide-badges .complete { background:#287565; }
