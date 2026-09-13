@@ -73,3 +73,27 @@
 @media(max-width:900px){.notebook-shell { grid-template-columns:210px minmax(0,1fr); }.notebook-editor { position:fixed; inset:0; z-index:10; display:none; }.notebook-editor.mobile-open { display:block; }.mobile-notes-back { display:block; }.note-list-panel { grid-column:2; }.sidebar-hidden { grid-template-columns:0 1fr; }.editor-top { align-items:flex-start; }.note-connections { grid-template-columns:1fr; }.editor-toolbar { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:thin; }.editor-meta>div { display:grid; grid-template-columns:minmax(135px,.7fr) minmax(150px,1fr); }.compact-meta-field.tags-field { grid-column:1/-1; }}
 @media(max-width:600px){.notebook-shell { grid-template-columns:1fr; }.notebook-sidebar { position:fixed; z-index:30; width:min(280px,88vw); transition:transform 180ms ease; }.note-list-panel { grid-column:1; }.notebook-shell.sidebar-hidden .notebook-sidebar { transform:translateX(-100%); }.notebook-editor { padding:0 18px 40px; }.editor-top { margin:0 -18px; padding:10px 18px; }.editor-meta { padding-top:25px; }.editor-meta>div { display:grid; }.editor-toolbar { top:112px; }.rich-editor { font-size:17px; }.folder-actions { opacity:1; }}
 @media print { .notebook-sidebar,.note-list-panel,.editor-top,.editor-toolbar,.attachments,.note-connections,.editor-footer,.history-panel { display:none!important; }.notebook-shell { display:block; }.notebook-editor { display:block!important; position:static; height:auto; padding:0; overflow:visible; background:white; color:black; }.note-title,.rich-editor { color:black; }.editor-meta { padding:0; }.editor-meta>div,.note-writing-stats,.title-field>span { display:none; } }
+
+.note-list-panel { display:flex; flex-direction:column; min-height:0; }
+.note-list,.notebook-calendar { height:auto; flex:1; min-height:0; }
+.note-list-row { position:relative; border-top:1px solid var(--nb-line); }
+.note-list-row.active { background:#252942; box-shadow:inset 3px 0 var(--nb-accent); }
+.note-list-row>a { display:grid; gap:5px; padding:14px 42px 14px 16px; color:var(--nb-text); text-decoration:none; }
+.note-more { position:absolute; top:10px; right:6px; width:30px; height:30px; border:1px solid var(--nb-line); border-radius:6px; background:var(--nb-panel2); color:var(--nb-text); cursor:pointer; }
+.note-list-summary { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:0 16px 12px; font-size:12px; color:var(--nb-muted); }
+.note-list-summary strong { color:var(--nb-text); overflow-wrap:anywhere; }
+.note-list-summary button { border:0; background:transparent; color:#b8b0ff; cursor:pointer; }
+.note-filter .pinned-first { display:flex; align-items:center; flex:0 0 auto; padding:4px 0; border:0; background:transparent; }
+.note-filter .pinned-first input { width:auto; accent-color:var(--nb-accent); }
+.note-filter select { min-width:0; max-width:100%; }
+.note-actions-menu { position:fixed; z-index:100; width:min(270px,calc(100vw - 16px)); max-height:calc(100dvh - 16px); overflow:auto; padding:8px; border:1px solid var(--nb-line); border-radius:10px; background:var(--nb-panel2); color:var(--nb-text); box-shadow:0 12px 40px #0009; }
+.note-actions-menu header { display:flex; align-items:center; gap:10px; padding:2px 6px 8px; border-bottom:1px solid var(--nb-line); }
+.note-actions-menu header strong { flex:1; overflow-wrap:anywhere; }
+.note-actions-menu button { display:block; width:100%; padding:7px 9px; border:0; border-radius:5px; background:transparent; color:inherit; text-align:left; cursor:pointer; }
+.note-actions-menu header button { width:auto; }
+.note-actions-menu button:hover,.note-actions-menu button:focus-visible { background:#363450; }
+.note-actions-menu .danger { color:#ff9aac; }
+.note-actions-menu label { display:grid; gap:5px; padding:8px; border-top:1px solid var(--nb-line); font-size:12px; }
+.note-actions-menu select { width:100%; padding:8px; background:var(--nb-bg); color:var(--nb-text); border:1px solid var(--nb-line); border-radius:5px; }
+.notebook-shell :is(button,a,select,input):focus-visible { outline:2px solid #b8b0ff; outline-offset:2px; }
+@media print { .note-actions-menu { display:none!important; } }

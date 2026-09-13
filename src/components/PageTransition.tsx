@@ -35,7 +35,9 @@ export default function PageTransition({
 
   return (
     <div
-      key={location.pathname}
+      key={location.pathname.startsWith("/admin-dashboard/private-pages/notebook")
+        ? "/admin-dashboard/private-pages/notebook"
+        : location.pathname}
       style={disableAnimation ? undefined : {
         animation: "fadeInUp 0.35s ease both",
       }}

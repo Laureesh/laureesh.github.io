@@ -1,4 +1,6 @@
 import "./Notebook.css";
+import NoteActionsMenu from "./NoteActionsMenu";
+import { compareNotes, SORT_OPTIONS, type NoteSort } from "./noteSorting";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ClipboardEvent, type DragEvent, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -89,15 +91,17 @@ export default function Notebook() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [listMode, setListMode] = useState<"notes" | "calendar">("notes");
-  const [noteSort, setNoteSort] = useState<"updated" | "title" | "date">("updated");
+  const [noteSort, setNoteSort] = useState<NoteSort>(() => {
+    try { const saved = localStorage.getItem(`${STORAGE_KEY}.sort`); return SORT_OPTIONS.find(([key]) => key === saved)?.[0] ?? "updated"; } catch { return "updated"; }
+  });
+  const [pinnedFirst, setPinnedFirst] = useState(() => { try { return localStorage.getItem(`${STORAGE_KEY}.pinnedFirst`) !== "false"; } catch { return true; } });
+  const [contextMenu, setContextMenu] = useState<{ noteId: string; x: number; y: number } | null>(null);
   const [mobileEditorOpen, setMobileEditorOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const editorRef = useRef<HTMLDivElement>(null);
   const renderedNoteIdRef = useRef("");
   const readyRef = useRef(false);
   const dataRevisionRef = useRef(0);
-  const startupLocalDataRef = useRef(data);
-  const startupPathRef = useRef(location.pathname);
   const selected = data.notes.find((note) => note.id === selectedId) ?? data.notes[0];
   const latestSelectedRef = useRef<Note | undefined>(selected);
   const latestDataRef = useRef(data);
@@ -111,7 +115,7 @@ export default function Notebook() {
       if (user?.uid) {
         try {
           const cloud = normalizeNotebook(await loadNotebookLibrary(user.uid));
-          if (!cancelled && cloud) { const merged = normalizeNotebook(mergeNotebookLibraries(cloud, startupLocalDataRef.current)) ?? startupLocalDataRef.current; const route = notebookRoute(startupPathRef.current); setData(merged); setSelectedId(route.kind === "note" && merged.notes.some((note) => note.id === route.id) ? route.id : merged.notes[0]?.id ?? ""); }
+          if (!cancelled && cloud) { setData(current => normalizeNotebook(mergeNotebookLibraries(cloud, current)) ?? current); }
         } catch (error) { loadFailed = true; if (!cancelled) { setSaveState("offline"); setSyncError(error instanceof Error ? error.message : "Cloud library could not be loaded."); } }
       }
       if (!cancelled) { readyRef.current = true; setSaveState(user?.uid && !loadFailed ? "saved" : "offline"); }
@@ -151,15 +155,21 @@ export default function Notebook() {
     const route = notebookRoute(location.pathname);
     if (route.kind === "note" && data.notes.some((note) => note.id === route.id)) {
       setSelectedId(route.id);
+      const note = data.notes.find((item) => item.id === route.id)!;
+      const view = new URLSearchParams(location.search).get("view");
+      setFolderFilter(view && (["all", "pinned", "archive"].includes(view) || data.folders.some((folder) => folder.id === view)) ? view : note.archived ? "archive" : note.folderId ?? "all");
       setMobileEditorOpen(true);
     } else if (route.kind === "folder" && data.folders.some((folder) => folder.id === route.id)) {
       setFolderFilter(route.id);
+      setMobileEditorOpen(false);
     } else if (route.kind === "view" && ["pinned", "archive"].includes(route.id)) {
       setFolderFilter(route.id as "pinned" | "archive");
+      setMobileEditorOpen(false);
     } else if (route.kind === "all") {
       setFolderFilter("all");
+      setMobileEditorOpen(false);
     }
-  }, [data.folders, data.notes, location.pathname]);
+  }, [data.folders, data.notes, location.pathname, location.search]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -184,7 +194,9 @@ export default function Notebook() {
     if (tagFilter && !note.tags.includes(tagFilter)) return false;
     const haystack = `${note.title} ${textFromHtml(note.html)} ${note.tags.join(" ")} ${note.attachments.map((file) => file.name).join(" ")}`.toLowerCase();
     return haystack.includes(query.toLowerCase());
-  }).sort((a, b) => Number(b.pinned) - Number(a.pinned) || (noteSort === "title" ? a.title.localeCompare(b.title) : noteSort === "date" ? (b.noteDate ?? b.createdAt).localeCompare(a.noteDate ?? a.createdAt) : b.updatedAt.localeCompare(a.updatedAt))), [data.notes, folderFilter, noteSort, query, tagFilter]);
+  }).sort((a, b) => {
+    return compareNotes(a, b, noteSort, pinnedFirst, html => textFromHtml(html).trim().split(/\s+/).filter(Boolean).length);
+  }), [data.notes, folderFilter, noteSort, pinnedFirst, query, tagFilter]);
   const backlinks = useMemo(() => selected ? data.notes.filter((note) => note.id !== selected.id && textFromHtml(note.html).toLowerCase().includes(`[[${selected.title.toLowerCase()}]]`)) : [], [data.notes, selected]);
   const related = useMemo(() => selected ? data.notes.filter((note) => note.id !== selected.id && note.tags.some((tag) => selected.tags.includes(tag))).slice(0, 5) : [], [data.notes, selected]);
   const calendarDays = useMemo(() => {
@@ -193,6 +205,11 @@ export default function Notebook() {
     return Array.from({ length: 42 }, (_, index) => { const date = new Date(start); date.setDate(start.getDate() + index); return date; });
   }, [calendarMonth]);
 
+  useEffect(() => {
+    try { localStorage.setItem(`${STORAGE_KEY}.sort`, noteSort); localStorage.setItem(`${STORAGE_KEY}.pinnedFirst`, String(pinnedFirst)); } catch { /* preferences are optional */ }
+  }, [noteSort, pinnedFirst]);
+
+  const updateNoteById = (noteId: string, changes: Partial<Note>) => setData((current) => ({ ...current, notes: current.notes.map((note) => note.id === noteId ? { ...note, ...changes, updatedAt: now() } : note) }));
   const updateNote = (changes: Partial<Note>) => selected && setData((current) => ({ ...current, notes: current.notes.map((note) => note.id === selected.id ? { ...note, ...changes, updatedAt: now() } : note) }));
   const retryCloudSync = async () => {
     if (!user?.uid) return;
@@ -200,9 +217,12 @@ export default function Notebook() {
     try { const merged = normalizeNotebook(await saveNotebookLibrary(user.uid, data)); if (merged && JSON.stringify(merged) !== JSON.stringify(data)) setData(merged); setSaveState("saved"); }
     catch (error) { setSaveState("offline"); setSyncError(error instanceof Error ? error.message : "Cloud save failed."); }
   };
-  const openNote = (noteId: string) => { setSelectedId(noteId); setMobileEditorOpen(true); navigate(`${NOTEBOOK_BASE}/note/${encodeURIComponent(noteId)}`); };
+  const noteHref = (noteId: string, view = folderFilter) => `${NOTEBOOK_BASE}/note/${encodeURIComponent(noteId)}?view=${encodeURIComponent(view)}`;
+  const openNote = (noteId: string, view = folderFilter) => { setSelectedId(noteId); setMobileEditorOpen(true); setHistoryOpen(false); navigate(noteHref(noteId, view)); };
   const openFolder = (folderId: string | "all" | "pinned" | "archive") => {
     setFolderFilter(folderId);
+    setMobileEditorOpen(false);
+    setContextMenu(null);
     navigate(folderId === "all" ? NOTEBOOK_BASE : folderId === "pinned" || folderId === "archive" ? `${NOTEBOOK_BASE}/view/${folderId}` : `${NOTEBOOK_BASE}/folder/${encodeURIComponent(folderId)}`);
   };
   const followNotebookLink = (event: ReactMouseEvent<HTMLAnchorElement>, action: () => void) => {
@@ -211,8 +231,8 @@ export default function Notebook() {
     action();
   };
   const createNote = (folderId: string | null = typeof folderFilter === "string" && !['all', 'pinned', 'archive'].includes(folderFilter) ? folderFilter : null) => {
-    const note: Note = { id: id("note"), title: "Untitled note", html: "<p><br></p>", folderId, tags: [], pinned: false, archived: false, noteDate: localDateKey(), createdAt: now(), updatedAt: now(), attachments: [], versions: [] };
-    setData((current) => ({ ...current, notes: [note, ...current.notes] })); openNote(note.id);
+    const note: Note = { id: id("note"), title: "Untitled note", html: "<p><br></p>", folderId, tags: tagFilter ? [tagFilter] : [], pinned: folderFilter === "pinned", archived: folderFilter === "archive", noteDate: localDateKey(), createdAt: now(), updatedAt: now(), attachments: [], versions: [] };
+    setData((current) => ({ ...current, notes: [note, ...current.notes] })); setQuery(""); setListMode("notes"); openNote(note.id, ["pinned", "archive"].includes(folderFilter) ? folderFilter : folderId ?? "all");
   };
   const addFolder = (parentId: string | null = null) => { const name = prompt(parentId ? "Subfolder name" : "Folder name"); if (!name?.trim()) return; setData((current) => ({ ...current, folders: [...current.folders, { id: id("folder"), name: name.trim(), parentId, color: COLORS[current.folders.length % COLORS.length], updatedAt: now() }] })); };
   const editFolder = (folder: Folder) => { const name = prompt("Rename folder", folder.name); if (!name?.trim()) return; setData((current) => ({ ...current, folders: current.folders.map((item) => item.id === folder.id ? { ...item, name: name.trim(), updatedAt: now() } : item) })); };
@@ -228,10 +248,24 @@ export default function Notebook() {
       folders: current.folders.filter((item) => item.id !== folder.id).map((item) => item.parentId === folder.id ? { ...item, parentId: folder.parentId } : item),
       deletedFolderIds: { ...(current.deletedFolderIds ?? {}), [folder.id]: now() },
     }));
-    if (folderFilter === folder.id) setFolderFilter("all");
+    if (folderFilter === folder.id) openFolder("all");
   };
-  const deleteNote = () => { if (!selected || !confirm(`Delete “${selected.title}”?`)) return; setData((current) => ({ ...current, notes: current.notes.filter((note) => note.id !== selected.id), deletedNoteIds: { ...(current.deletedNoteIds ?? {}), [selected.id]: now() } })); setSelectedId(data.notes.find((note) => note.id !== selected.id)?.id ?? ""); setMobileEditorOpen(false); };
-  const duplicateNote = () => { const copy: Note = { ...selected, id: id("note"), title: `${selected.title} (copy)`, pinned: false, createdAt: now(), updatedAt: now(), versions: [], attachments: selected.attachments.map((file) => ({ ...file, id: id("file") })) }; setData((current) => ({ ...current, notes: [copy, ...current.notes] })); openNote(copy.id); };
+  const deleteNote = (note = selected) => {
+    if (!note || !confirm(`Delete “${note.title}”? This cannot be undone.`)) return;
+    setData((current) => ({ ...current, notes: current.notes.filter((item) => item.id !== note.id), deletedNoteIds: { ...(current.deletedNoteIds ?? {}), [note.id]: now() } }));
+    if (note.id === selectedId) {
+      const next = visibleNotes.find((item) => item.id !== note.id);
+      setSelectedId(next?.id ?? "");
+      if (next) openNote(next.id); else openFolder(folderFilter);
+    }
+  };
+  const duplicateNote = (note = selected) => {
+    if (!note) return;
+    const copy: Note = { ...note, id: id("note"), title: `${note.title} (copy)`, tags: [...note.tags], createdAt: now(), updatedAt: now(), versions: [], attachments: note.attachments.map((file) => ({ ...file, id: id("file") })) };
+    setData((current) => ({ ...current, notes: [copy, ...current.notes] })); setQuery(""); openNote(copy.id);
+  };
+  const showNoteMenu = (event: ReactMouseEvent, noteId: string) => { event.preventDefault(); setContextMenu({ noteId, x: event.clientX, y: event.clientY }); };
+  const contextNote = data.notes.find((note) => note.id === contextMenu?.noteId);
   const snapshot = () => updateNote({ versions: [{ id: id("version"), title: selected.title, html: selected.html, savedAt: now() }, ...selected.versions].slice(0, 30) });
   const format = (command: string, value?: string) => { editorRef.current?.focus(); document.execCommand(command, false, value); if (editorRef.current) updateNote({ html: editorRef.current.innerHTML }); };
   const handleEditorKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -261,7 +295,7 @@ export default function Notebook() {
   const attachFiles = (event: ChangeEvent<HTMLInputElement>) => { void addAttachments([...(event.target.files ?? [])]); event.target.value = ""; };
   const importBackup = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]; event.target.value = ""; if (!file) return;
-    try { const value = normalizeNotebook(JSON.parse(await file.text())); if (!value) throw new Error("This is not a valid Notebook backup."); if (!confirm(`Restore ${value.notes.length} notes and ${value.folders.length} folders? This replaces the current notebook.`)) return; setData(value); setSelectedId(value.notes[0]?.id ?? ""); setFolderFilter("all"); }
+    try { const value = normalizeNotebook(JSON.parse(await file.text())); if (!value) throw new Error("This is not a valid Notebook backup."); if (!confirm(`Restore ${value.notes.length} notes and ${value.folders.length} folders? This replaces the current notebook.`)) return; setData(value); setSelectedId(value.notes[0]?.id ?? ""); openFolder("all"); }
     catch (error) { alert(error instanceof Error ? error.message : "The backup could not be imported."); }
   };
   const pasteScreenshots = (event: ClipboardEvent<HTMLDivElement>) => {
@@ -274,34 +308,48 @@ export default function Notebook() {
   const startVoice = () => { const Factory = window.SpeechRecognition ?? window.webkitSpeechRecognition; if (!Factory) return alert("Voice typing is not supported in this browser."); const recognition = new Factory(); recognition.lang = "en-US"; recognition.onresult = (event) => { const transcript = event.results[event.results.length - 1][0].transcript; format("insertText", `${transcript} `); }; recognition.start(); };
   const summarize = () => { const sentences = textFromHtml(selected.html).match(/[^.!?]+[.!?]+/g)?.slice(0, 5) ?? []; updateNote({ html: `${selected.html}<h2>Summary</h2><ul>${sentences.map((sentence) => `<li>${sentence.trim()}</li>`).join("")}</ul>` }); };
   const extractTasks = () => { const lines = textFromHtml(selected.html).split(/\n|[.!?]\s+/).filter((line) => /\b(todo|need to|must|remember to|follow up|action)\b/i.test(line)); if (!lines.length) return alert("No action items were found."); updateNote({ html: `${selected.html}<h2>Action items</h2><ul>${lines.map((line) => `<li>☐ ${line.trim()}</li>`).join("")}</ul>` }); };
-  const wordCount = textFromHtml(selected.html).trim().split(/\s+/).filter(Boolean).length;
+  const wordCount = textFromHtml(selected?.html ?? "").trim().split(/\s+/).filter(Boolean).length;
   if (!selected) return <main className="notebook-empty"><div><span>▱</span><h1>Your notebook is empty</h1><p>Create a note to start writing. Everything will autosave.</p><button onClick={() => createNote()}>＋ Create your first note</button><label>Restore a backup<input type="file" accept="application/json,.json" onChange={importBackup} /></label><button className="quiet" onClick={() => navigate("/admin-dashboard/private-pages")}>← Private pages</button></div></main>;
 
   return <div className={`notebook-shell ${sidebarOpen ? "" : "sidebar-hidden"}`}>
+    {contextMenu && contextNote && <NoteActionsMenu x={contextMenu.x} y={contextMenu.y} title={contextNote.title} folderId={contextNote.folderId} folders={data.folders} onClose={() => setContextMenu(null)} onMove={folderId => updateNoteById(contextNote.id, { folderId })} actions={[
+      { label: "View note", run: () => openNote(contextNote.id) },
+      { label: "Edit note", run: () => { openNote(contextNote.id); requestAnimationFrame(() => editorRef.current?.focus()); } },
+      { label: "Rename", run: () => { const title = prompt("Note title", contextNote.title); if (title?.trim()) updateNoteById(contextNote.id, { title: title.trim().slice(0, 180) }); } },
+      { label: "Duplicate", run: () => duplicateNote(contextNote) },
+      { label: "New note in this folder", run: () => createNote(contextNote.folderId) },
+      { label: contextNote.pinned ? "Unpin" : "Pin", run: () => updateNoteById(contextNote.id, { pinned: !contextNote.pinned }) },
+      { label: "Edit tags", run: () => { const tags = prompt("Tags, separated by commas", contextNote.tags.join(", ")); if (tags !== null) updateNoteById(contextNote.id, { tags: [...new Set(tags.split(",").map(tag => tag.trim()).filter(Boolean))] }); } },
+      { label: contextNote.archived ? "Restore from archive" : "Archive", run: () => updateNoteById(contextNote.id, { archived: !contextNote.archived }) },
+      { label: "Version history", run: () => { openNote(contextNote.id); setHistoryOpen(true); } },
+      { label: "Export text", run: () => download(`${contextNote.title || "note"}.txt`, textFromHtml(contextNote.html), "text/plain") },
+      { label: "Delete", danger: true, run: () => deleteNote(contextNote) },
+    ]} />}
     <aside className="notebook-sidebar">
       <header><button className="notebook-logo" onClick={() => navigate("/admin-dashboard/private-pages/flashbolt")}>▱ <strong>Notebook</strong></button><button onClick={() => setSidebarOpen(false)}>‹</button></header>
       <button className="new-note" onClick={() => createNote()}>＋ New note</button>
       <nav><a href={NOTEBOOK_BASE} className={folderFilter === "all" ? "active" : ""} onClick={(event) => followNotebookLink(event, () => openFolder("all"))}>▤ All notes <b>{data.notes.filter(n => !n.archived).length}</b></a><a href={`${NOTEBOOK_BASE}/view/pinned`} className={folderFilter === "pinned" ? "active" : ""} onClick={(event) => followNotebookLink(event, () => openFolder("pinned"))}>★ Pinned</a><a href={`${NOTEBOOK_BASE}/view/archive`} className={folderFilter === "archive" ? "active" : ""} onClick={(event) => followNotebookLink(event, () => openFolder("archive"))}>⌁ Archive</a></nav>
       <div className="folder-heading"><span>Folders</span><button onClick={() => addFolder()}>＋</button></div>
       <nav>{data.folders.filter(folder => !folder.parentId).map((folder) => <div key={folder.id}>
-        <div className="notebook-folder-row"><a href={`${NOTEBOOK_BASE}/folder/${encodeURIComponent(folder.id)}`} className={folderFilter === folder.id ? "active" : ""} onClick={(event) => followNotebookLink(event, () => openFolder(folder.id))}><i style={{ background: folder.color }} /><span className="folder-name">{folder.name}</span><b>{data.notes.filter(note => note.folderId === folder.id).length}</b></a><span className="folder-actions"><button onClick={() => changeFolderColor(folder)} aria-label={`Change ${folder.name} color`} title="Change color">●</button><button onClick={() => editFolder(folder)} aria-label={`Rename ${folder.name}`} title="Rename folder">✎</button><button className="delete-folder" onClick={() => deleteFolder(folder)} aria-label={`Delete ${folder.name}`} title={`Delete ${folder.name}`}>×</button></span></div>
-        {data.folders.filter(child => child.parentId === folder.id).map(child => <div className="notebook-folder-row subfolder-row" key={child.id}><a href={`${NOTEBOOK_BASE}/folder/${encodeURIComponent(child.id)}`} className={`subfolder ${folderFilter === child.id ? "active" : ""}`} onClick={(event) => followNotebookLink(event, () => openFolder(child.id))}><span aria-hidden="true">↳</span><span className="folder-name">{child.name}</span><b>{data.notes.filter(note => note.folderId === child.id).length}</b></a><span className="folder-actions"><button onClick={() => changeFolderColor(child)} aria-label={`Change ${child.name} color`} title="Change color">●</button><button onClick={() => editFolder(child)} aria-label={`Rename ${child.name}`} title="Rename folder">✎</button><button className="delete-folder" onClick={() => deleteFolder(child)} aria-label={`Delete ${child.name}`} title={`Delete ${child.name}`}>×</button></span></div>)}
+        <div className="notebook-folder-row"><a href={`${NOTEBOOK_BASE}/folder/${encodeURIComponent(folder.id)}`} className={folderFilter === folder.id ? "active" : ""} onClick={(event) => followNotebookLink(event, () => openFolder(folder.id))}><i style={{ background: folder.color }} /><span className="folder-name">{folder.name}</span><b>{data.notes.filter(note => note.folderId === folder.id && !note.archived).length}</b></a><span className="folder-actions"><button onClick={() => changeFolderColor(folder)} aria-label={`Change ${folder.name} color`} title="Change color">●</button><button onClick={() => editFolder(folder)} aria-label={`Rename ${folder.name}`} title="Rename folder">✎</button><button className="delete-folder" onClick={() => deleteFolder(folder)} aria-label={`Delete ${folder.name}`} title={`Delete ${folder.name}`}>×</button></span></div>
+        {data.folders.filter(child => child.parentId === folder.id).map(child => <div className="notebook-folder-row subfolder-row" key={child.id}><a href={`${NOTEBOOK_BASE}/folder/${encodeURIComponent(child.id)}`} className={`subfolder ${folderFilter === child.id ? "active" : ""}`} onClick={(event) => followNotebookLink(event, () => openFolder(child.id))}><span aria-hidden="true">↳</span><span className="folder-name">{child.name}</span><b>{data.notes.filter(note => note.folderId === child.id && !note.archived).length}</b></a><span className="folder-actions"><button onClick={() => changeFolderColor(child)} aria-label={`Change ${child.name} color`} title="Change color">●</button><button onClick={() => editFolder(child)} aria-label={`Rename ${child.name}`} title="Rename folder">✎</button><button className="delete-folder" onClick={() => deleteFolder(child)} aria-label={`Delete ${child.name}`} title={`Delete ${child.name}`}>×</button></span></div>)}
         <button className="add-subfolder" onClick={() => addFolder(folder.id)}>＋ subfolder</button>
       </div>)}</nav>
       <footer><span className={`sync-${saveState}`} title={syncError}>● {saveState === "saved" ? "Synced across devices" : saveState === "saving" ? "Saving to cloud…" : saveState === "loading" ? "Loading cloud notes…" : user?.uid ? "Cloud sync failed" : "Saved on this device only"}</span>{syncError && <><small className="notebook-sync-error">{syncError}</small><button className="retry-sync" onClick={() => void retryCloudSync()}>Retry cloud sync</button></>}<label className="restore-backup">↑ Restore backup<input type="file" accept="application/json,.json" onChange={importBackup} /></label><button onClick={() => navigate("/admin-dashboard/private-pages")}>← Private pages</button></footer>
     </aside>
     <section className="note-list-panel">
-      <header><button className="open-sidebar" onClick={() => setSidebarOpen(true)}>☰</button><label>⌕<input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search every note and file" /></label></header>
-      <div className="note-filter"><select value={tagFilter} onChange={event => setTagFilter(event.target.value)} aria-label="Filter notes by tag"><option value="">All tags</option>{allTags.map(tag => <option key={tag}>{tag}</option>)}</select><select value={noteSort} onChange={event => setNoteSort(event.target.value as typeof noteSort)} aria-label="Sort notes"><option value="updated">Recently edited</option><option value="date">Note date</option><option value="title">Title A–Z</option></select><div className="note-view-toggle"><button className={listMode === "notes" ? "active" : ""} onClick={() => setListMode("notes")}>List</button><button className={listMode === "calendar" ? "active" : ""} onClick={() => setListMode("calendar")}>Calendar</button></div></div>
-      {listMode === "notes" ? <div className="note-list">{visibleNotes.map(note => <a href={`${NOTEBOOK_BASE}/note/${encodeURIComponent(note.id)}`} className={note.id === selected.id ? "active" : ""} key={note.id} onClick={(event) => followNotebookLink(event, () => openNote(note.id))}><span>{note.pinned ? "★" : ""} {note.title || "Untitled"}</span><p>{textFromHtml(note.html).slice(0, 110) || "Empty note"}</p><small>{note.noteDate ? new Date(`${note.noteDate}T12:00:00`).toLocaleDateString() : new Date(note.updatedAt).toLocaleDateString()} · {note.tags.slice(0, 2).map(tag => `#${tag}`).join(" ")}</small></a>)}{!visibleNotes.length && <div className="notes-empty-state"><strong>No notes found</strong><p>Clear your search or create a note in this folder.</p><button onClick={() => createNote()}>＋ Create note</button></div>}</div> : <div className="notebook-calendar"><header><button onClick={() => setCalendarMonth(current => new Date(current.getFullYear(), current.getMonth() - 1, 1))} aria-label="Previous month">←</button><strong>{calendarMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</strong><button onClick={() => setCalendarMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}>Today</button><button onClick={() => setCalendarMonth(current => new Date(current.getFullYear(), current.getMonth() + 1, 1))} aria-label="Next month">→</button></header><div className="calendar-weekdays">{["S","M","T","W","T","F","S"].map((day, index) => <span key={`${day}-${index}`}>{day}</span>)}</div><div className="calendar-grid">{calendarDays.map(day => { const key = localDateKey(day); const dayNotes = visibleNotes.filter(note => (note.noteDate || note.createdAt.slice(0, 10)) === key); return <div className={`${day.getMonth() === calendarMonth.getMonth() ? "" : "outside"} ${key === localDateKey() ? "today" : ""}`} key={key}><span>{day.getDate()}</span>{dayNotes.slice(0, 3).map(note => <a href={`${NOTEBOOK_BASE}/note/${encodeURIComponent(note.id)}`} title={note.title} key={note.id} onClick={(event) => followNotebookLink(event, () => openNote(note.id))}>{note.title}</a>)}{dayNotes.length > 3 && <small>+{dayNotes.length - 3} more</small>}</div>; })}</div></div>}
+      <header><button className="open-sidebar" onClick={() => setSidebarOpen(true)}>☰</button><label>⌕<input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search this view" aria-label="Search notes in this view" /></label></header>
+      <div className="note-filter"><select value={tagFilter} onChange={event => setTagFilter(event.target.value)} aria-label="Filter notes by tag"><option value="">All tags</option>{allTags.map(tag => <option key={tag}>{tag}</option>)}</select><select value={noteSort} onChange={event => setNoteSort(event.target.value as typeof noteSort)} aria-label="Sort notes">{SORT_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><label className="pinned-first"><input type="checkbox" checked={pinnedFirst} onChange={event => setPinnedFirst(event.target.checked)} />Pinned first</label><div className="note-view-toggle"><button className={listMode === "notes" ? "active" : ""} onClick={() => setListMode("notes")}>List</button><button className={listMode === "calendar" ? "active" : ""} onClick={() => setListMode("calendar")}>Calendar</button></div></div>
+      <div className="note-list-summary"><strong>{data.folders.find(folder => folder.id === folderFilter)?.name ?? (folderFilter === "pinned" ? "Pinned" : folderFilter === "archive" ? "Archive" : "All notes")}</strong><span>{visibleNotes.length} notes</span>{(query || tagFilter) && <button onClick={() => { setQuery(""); setTagFilter(""); }}>Clear filters</button>}</div>
+      {listMode === "notes" ? <div className="note-list">{visibleNotes.map(note => <div className={`note-list-row ${note.id === selected.id ? "active" : ""}`} key={note.id} onContextMenu={event => showNoteMenu(event, note.id)}><a href={noteHref(note.id)} className={note.id === selected.id ? "active" : ""} key={note.id} onClick={(event) => followNotebookLink(event, () => openNote(note.id))}><span>{note.pinned ? "★" : ""} {note.title || "Untitled"}</span><p>{textFromHtml(note.html).slice(0, 110) || "Empty note"}</p><small>{note.noteDate ? new Date(`${note.noteDate}T12:00:00`).toLocaleDateString() : new Date(note.updatedAt).toLocaleDateString()} · {note.tags.slice(0, 2).map(tag => `#${tag}`).join(" ")}</small></a><button className="note-more" aria-label={`Actions for ${note.title || "Untitled"}`} aria-haspopup="dialog" onClick={event => { const rect = event.currentTarget.getBoundingClientRect(); setContextMenu({ noteId: note.id, x: rect.left, y: rect.bottom }); }}>⋯</button></div>)}{!visibleNotes.length && <div className="notes-empty-state"><strong>No notes found</strong><p>Clear your search or create a note in this folder.</p><button onClick={() => createNote()}>＋ Create note</button></div>}</div> : <div className="notebook-calendar"><header><button onClick={() => setCalendarMonth(current => new Date(current.getFullYear(), current.getMonth() - 1, 1))} aria-label="Previous month">←</button><strong>{calendarMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</strong><button onClick={() => setCalendarMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}>Today</button><button onClick={() => setCalendarMonth(current => new Date(current.getFullYear(), current.getMonth() + 1, 1))} aria-label="Next month">→</button></header><div className="calendar-weekdays">{["S","M","T","W","T","F","S"].map((day, index) => <span key={`${day}-${index}`}>{day}</span>)}</div><div className="calendar-grid">{calendarDays.map(day => { const key = localDateKey(day); const dayNotes = visibleNotes.filter(note => (note.noteDate || note.createdAt.slice(0, 10)) === key); return <div className={`${day.getMonth() === calendarMonth.getMonth() ? "" : "outside"} ${key === localDateKey() ? "today" : ""}`} key={key}><span>{day.getDate()}</span>{dayNotes.slice(0, 3).map(note => <a href={noteHref(note.id)} title={note.title} key={note.id} onContextMenu={event => showNoteMenu(event, note.id)} onClick={(event) => followNotebookLink(event, () => openNote(note.id))}>{note.title}</a>)}{dayNotes.length > 3 && <small>+{dayNotes.length - 3} more</small>}</div>; })}</div></div>}
     </section>
     <main className={`notebook-editor ${mobileEditorOpen ? "mobile-open" : ""}`}>
-      <header className="editor-top"><button className="mobile-notes-back" onClick={() => setMobileEditorOpen(false)}>← Notes</button><div><span>{saveState === "saving" ? "Saving changes…" : saveState === "offline" ? user?.uid ? "Cloud sync failed—local backup safe" : "Saved on this device" : "Synced across devices"}</span><small>{new Date(selected.updatedAt).toLocaleString()}</small></div><div><button onClick={() => updateNote({ pinned: !selected.pinned })}>{selected.pinned ? "★ Pinned" : "☆ Pin"}</button><button onClick={duplicateNote}>Duplicate</button><button onClick={snapshot}>Save version</button><button onClick={() => setHistoryOpen(!historyOpen)}>History ({selected.versions.length})</button><button onClick={() => updateNote({ archived: !selected.archived })}>{selected.archived ? "Restore" : "Archive"}</button><button className="danger" onClick={deleteNote}>Delete</button></div></header>
+      <header className="editor-top"><button className="mobile-notes-back" onClick={() => setMobileEditorOpen(false)}>← Notes</button><div><span>{saveState === "saving" ? "Saving changes…" : saveState === "offline" ? user?.uid ? "Cloud sync failed—local backup safe" : "Saved on this device" : "Synced across devices"}</span><small>{new Date(selected.updatedAt).toLocaleString()}</small></div><div><button onClick={() => updateNote({ pinned: !selected.pinned })}>{selected.pinned ? "★ Pinned" : "☆ Pin"}</button><button onClick={() => duplicateNote()}>Duplicate</button><button onClick={snapshot}>Save version</button><button onClick={() => setHistoryOpen(!historyOpen)}>History ({selected.versions.length})</button><button onClick={() => updateNote({ archived: !selected.archived })}>{selected.archived ? "Restore" : "Archive"}</button><button className="danger" onClick={() => deleteNote()}>Delete</button></div></header>
       <div className="editor-meta"><label className="title-field"><span>Note title</span><textarea className="note-title" rows={2} value={selected.title} onChange={event => { event.currentTarget.style.height = "auto"; event.currentTarget.style.height = `${event.currentTarget.scrollHeight}px`; updateNote({ title: event.target.value }); }} placeholder="Untitled note" maxLength={180} /></label><div><label className="note-date-field"><span>Note date</span><input type="date" value={selected.noteDate ?? selected.createdAt.slice(0, 10)} onChange={event => updateNote({ noteDate: event.target.value })} /></label><label className="compact-meta-field"><span>Folder</span><select value={selected.folderId ?? ""} onChange={event => updateNote({ folderId: event.target.value || null })}><option value="">No folder</option>{data.folders.map(folder => <option value={folder.id} key={folder.id}>{folder.parentId ? "↳ " : ""}{folder.name}</option>)}</select></label><label className="compact-meta-field tags-field"><span>Tags</span><input value={selected.tags.join(", ")} onChange={event => updateNote({ tags: event.target.value.split(",").map(tag => tag.trim()).filter(Boolean) })} placeholder="class, exam, chapter-2" /></label></div><small className="note-writing-stats">{wordCount} word{wordCount === 1 ? "" : "s"} · about {Math.max(1, Math.ceil(wordCount / 200))} min read</small></div>
       <div className="editor-toolbar" role="toolbar" aria-label="Text formatting"><button title="Undo" onClick={() => format("undo")}>↶ Undo</button><button title="Redo" onClick={() => format("redo")}>↷ Redo</button><i /><button title="Large heading" onClick={() => format("formatBlock", "h1")}>Heading 1</button><button title="Medium heading" onClick={() => format("formatBlock", "h2")}>Heading 2</button><button title="Bold" onClick={() => format("bold")}><b>Bold</b></button><button title="Italic" onClick={() => format("italic")}><i>Italic</i></button><button title="Highlight selected text" onClick={() => format("hiliteColor", "#fff09a")}>Highlight</button><button title="Bulleted list" onClick={() => format("insertUnorderedList")}>• Bullets</button><button title="Numbered list" onClick={() => format("insertOrderedList")}>1. Numbers</button><button title="Code block" onClick={() => format("formatBlock", "pre")}>Code</button><button title="Add a link" onClick={() => { const url = prompt("Paste a link URL"); if (url) format("createLink", url); }}>Link</button><button title="Type using your voice" onClick={startVoice}>🎙 Dictate</button><label className="attach-button" title="Attach images, PDFs, audio, or video">＋ Attach files<input type="file" multiple accept="image/*,application/pdf,audio/*,video/*" onChange={attachFiles} /></label></div>
       <div ref={editorRef} className="rich-editor" contentEditable suppressContentEditableWarning onKeyDown={handleEditorKeyDown} onPaste={pasteScreenshots} onInput={event => updateNote({ html: event.currentTarget.innerHTML })} data-placeholder="Start writing… Paste a screenshot here to attach it." />
       <section className="attachments"><div className="attachments-heading"><div><h3>Class screenshots &amp; attachments</h3><p>Paste screenshots while writing, drag them below, or browse your device.</p></div><span>{selected.attachments.length} file{selected.attachments.length === 1 ? "" : "s"}</span></div>{selected.attachments.length > 0 && <div className="attachment-grid">{selected.attachments.map(file => <article key={file.id}>{file.type.startsWith("image/") ? <a href={file.dataUrl} target="_blank" rel="noreferrer"><img src={file.dataUrl} alt={file.name} /></a> : file.type.startsWith("audio/") ? <audio controls src={file.dataUrl} /> : file.type.startsWith("video/") ? <video controls src={file.dataUrl} /> : <span>PDF</span>}<a href={file.dataUrl} download={file.name}>{file.name}</a><button onClick={() => updateNote({ attachments: selected.attachments.filter(item => item.id !== file.id) })} aria-label={`Remove ${file.name}`}>×</button></article>)}</div>}<label className="screenshot-dropzone" onDragOver={event => event.preventDefault()} onDrop={dropScreenshots}><strong>＋ Add screenshots</strong><span>Drop images here or choose screenshots</span><input type="file" multiple accept="image/*" onChange={attachFiles} /></label></section>
-      <section className="note-connections"><div><h3>Notes linking here</h3>{backlinks.length ? backlinks.map(note => <a href={`${NOTEBOOK_BASE}/note/${encodeURIComponent(note.id)}`} key={note.id} onClick={(event) => followNotebookLink(event, () => openNote(note.id))}>↗ {note.title}</a>) : <p>Type [[{selected.title}]] in another note to connect it here.</p>}</div><div><h3>Related by tag</h3>{related.length ? related.map(note => <a href={`${NOTEBOOK_BASE}/note/${encodeURIComponent(note.id)}`} key={note.id} onClick={(event) => followNotebookLink(event, () => openNote(note.id))}># {note.title}</a>) : <p>Add the same tag to multiple notes to find related material.</p>}</div></section>
+      <section className="note-connections"><div><h3>Notes linking here</h3>{backlinks.length ? backlinks.map(note => <a href={noteHref(note.id)} key={note.id} onClick={(event) => followNotebookLink(event, () => openNote(note.id))}>↗ {note.title}</a>) : <p>Type [[{selected.title}]] in another note to connect it here.</p>}</div><div><h3>Related by tag</h3>{related.length ? related.map(note => <a href={noteHref(note.id)} key={note.id} onClick={(event) => followNotebookLink(event, () => openNote(note.id))}># {note.title}</a>) : <p>Add the same tag to multiple notes to find related material.</p>}</div></section>
       <footer className="editor-footer"><div><button onClick={summarize}>✦ Summarize note</button><button onClick={extractTasks}>☑ Find action items</button></div><div><button onClick={() => window.print()}>Print / Save PDF</button><button onClick={() => download(`${selected.title}.html`, selected.html, "text/html")}>Export HTML</button><button onClick={() => download(`${selected.title}.md`, textFromHtml(selected.html), "text/markdown")}>Export Markdown</button><button onClick={() => download("notebook-backup.json", JSON.stringify(data, null, 2), "application/json")}>Download full backup</button></div></footer>
       {historyOpen && <aside className="history-panel"><header><h2>Version history</h2><button onClick={() => setHistoryOpen(false)}>×</button></header>{selected.versions.map(version => <button key={version.id} onClick={() => updateNote({ title: version.title, html: version.html })}><strong>{new Date(version.savedAt).toLocaleString()}</strong><span>Restore this version</span></button>)}{!selected.versions.length && <p>Create a snapshot to preserve the current version.</p>}</aside>}
     </main>
