@@ -1,5 +1,6 @@
 import "./Notebook.css";
-import { formatStepLayout, removeStepLayout } from "./stepLayout";
+import { changeStepLayout, formatStepLayout, getLayoutSteps, removeStepLayout, startStepLayout, type StepChange } from "./stepLayout";
+import StepControls from "./StepControls";
 import { CLIPBOARD_SETTING_KEY, readClipboardDestination, readClipboardNote, type ClipboardDestination } from "./clipboardNote";
 import NotebookSettings from "./NotebookSettings";
 import NotebookHelp from "./NotebookHelp";
@@ -97,6 +98,7 @@ export default function Notebook() {
   const [tagFilter, setTagFilter] = useState("");
   const [saveState, setSaveState] = useState<"loading" | "saving" | "saved" | "offline">("loading");
   const [syncError, setSyncError] = useState("");
+  const [stepUndo, setStepUndo] = useState<{ noteId: string; before: string; after: string } | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [listMode, setListMode] = useState<"notes" | "calendar">(() => readNotebookPreferences().defaultView);
@@ -195,6 +197,7 @@ export default function Notebook() {
     return () => window.clearInterval(timer);
   }, [preferences.automaticHistory, preferences.historyMinutes]);
 
+  const layoutSteps = useMemo(() => selected ? getLayoutSteps(selected.html) : [], [selected]);
   const allTags = useMemo(() => [...new Set(data.notes.flatMap((note) => note.tags))].sort(), [data.notes]);
   const visibleNotes = useMemo(() => data.notes.filter((note) => {
     if (folderFilter === "pinned" && !note.pinned) return false;
@@ -317,9 +320,25 @@ export default function Notebook() {
   const toggleStepLayout = () => {
     if (!selected) return;
     const hasSteps = selected.html.includes('class="notebook-steps"');
-    const html = hasSteps ? removeStepLayout(selected.html) : formatStepLayout(selected.html);
-    if (!html) { alert("Add section headings or a numbered list first, then choose Steps layout. You can also paste Markdown headings and commands."); return; }
+    const html = hasSteps ? removeStepLayout(selected.html) : formatStepLayout(selected.html) ?? startStepLayout(selected.html);
     updateNote({ html, versions: [{ id: id("version"), title: selected.title, html: selected.html, savedAt: now() }, ...selected.versions].slice(0, 30) });
+  };
+  const changeStep = (change: StepChange) => {
+    if (!selected) return;
+    if (change.type === "remove" && !confirm(`Delete step ${change.index + 1} and its content? You can undo this change or restore it from History.`)) return;
+    const html = changeStepLayout(selected.html, change);
+    if (html === selected.html) return;
+    setStepUndo({ noteId: selected.id, before: selected.html, after: html });
+    updateNote({ html, versions: [{ id: id("version"), title: selected.title, html: selected.html, savedAt: now() }, ...selected.versions].slice(0, 30) });
+  };
+  const editStepContent = (index: number) => {
+    const step = editorRef.current?.querySelector("ol.notebook-steps")?.children[index];
+    if (!step) return;
+    editorRef.current?.focus();
+    const content = [...step.children].find(node => !/^H[1-6]$/.test(node.tagName)) ?? step;
+    const range = document.createRange(); range.selectNodeContents(content); range.collapse(true);
+    const selection = window.getSelection(); selection?.removeAllRanges(); selection?.addRange(range);
+    step.scrollIntoView({ block: "center", behavior: "smooth" });
   };
   const format = (command: string, value?: string) => { editorRef.current?.focus(); document.execCommand(command, false, value); if (editorRef.current) updateNote({ html: editorRef.current.innerHTML }); };
   const handleEditorKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -434,6 +453,7 @@ export default function Notebook() {
       </nav>
       <div className="editor-meta"><label className="title-field"><span>Note title</span><textarea className="note-title" rows={2} value={selected.title} onChange={event => { event.currentTarget.style.height = "auto"; event.currentTarget.style.height = `${event.currentTarget.scrollHeight}px`; updateNote({ title: event.target.value }); }} placeholder="Untitled note" maxLength={180} /></label><div><label className="note-date-field"><span>Note date</span><input type="date" value={selected.noteDate ?? selected.createdAt.slice(0, 10)} onChange={event => updateNote({ noteDate: event.target.value })} /></label><label className="compact-meta-field"><span>Folder</span><select value={selected.folderId ?? ""} onChange={event => updateNote({ folderId: event.target.value || null })}><option value="">No folder</option>{data.folders.map(folder => <option value={folder.id} key={folder.id}>{folder.parentId ? "↳ " : ""}{folder.name}</option>)}</select></label><label className="compact-meta-field tags-field"><span>Tags</span><input value={selected.tags.join(", ")} onChange={event => updateNote({ tags: event.target.value.split(",").map(tag => tag.trim()).filter(Boolean) })} placeholder="class, exam, chapter-2" /></label></div><small className="note-writing-stats">{wordCount} word{wordCount === 1 ? "" : "s"} · about {Math.max(1, Math.ceil(wordCount / 200))} min read</small></div>
       <div className="editor-toolbar" role="toolbar" aria-label="Text formatting"><button title="Undo" onClick={() => format("undo")}>↶ Undo</button><button title="Redo" onClick={() => format("redo")}>↷ Redo</button><i /><button title="Large heading" onClick={() => format("formatBlock", "h1")}>Heading 1</button><button title="Medium heading" onClick={() => format("formatBlock", "h2")}>Heading 2</button><button title="Bold" onClick={() => format("bold")}><b>Bold</b></button><button title="Italic" onClick={() => format("italic")}><i>Italic</i></button><button title="Highlight selected text" onClick={() => format("hiliteColor", "#fff09a")}>Highlight</button><button title="Bulleted list" onClick={() => format("insertUnorderedList")}>• Bullets</button><button title="Numbered list" onClick={() => format("insertOrderedList")}>1. Numbers</button><button title="Arrange note headings or a numbered list as a step-by-step timeline" aria-pressed={selected.html.includes('class="notebook-steps"')} onClick={toggleStepLayout}>Steps layout</button><button title="Code block" onClick={() => format("formatBlock", "pre")}>Code</button><button title="Add a link" onClick={() => { const url = prompt("Paste a link URL"); if (url) format("createLink", url); }}>Link</button><button title="Type using your voice" onClick={startVoice}>🎙 Dictate</button><label className="attach-button" title="Attach images, PDFs, audio, or video">＋ Attach files<input type="file" multiple accept="image/*,application/pdf,audio/*,video/*" onChange={attachFiles} /></label></div>
+      {selected.html.includes('class="notebook-steps"') && <StepControls steps={layoutSteps} onChange={changeStep} onEdit={editStepContent} canUndo={stepUndo?.noteId === selected.id && stepUndo.after === selected.html} onUndo={() => { if (stepUndo?.noteId === selected.id && stepUndo.after === selected.html) { updateNote({ html: stepUndo.before }); setStepUndo(null); } }} />}
       <div ref={editorRef} className="rich-editor" style={{ fontSize: preferences.fontSize }} contentEditable suppressContentEditableWarning onKeyDown={handleEditorKeyDown} onPaste={pasteScreenshots} onInput={event => updateNote({ html: event.currentTarget.innerHTML })} data-placeholder="Start writing… Paste a screenshot here to attach it." />
       <section className="attachments"><div className="attachments-heading"><div><h3>Class screenshots &amp; attachments</h3><p>Paste screenshots while writing, drag them below, or browse your device.</p></div><span>{selected.attachments.length} file{selected.attachments.length === 1 ? "" : "s"}</span></div>{selected.attachments.length > 0 && <div className="attachment-grid">{selected.attachments.map(file => <article key={file.id}>{file.type.startsWith("image/") ? <a href={file.dataUrl} target="_blank" rel="noreferrer"><img src={file.dataUrl} alt={file.name} /></a> : file.type.startsWith("audio/") ? <audio controls src={file.dataUrl} /> : file.type.startsWith("video/") ? <video controls src={file.dataUrl} /> : <span>PDF</span>}<a href={file.dataUrl} download={file.name}>{file.name}</a><button onClick={() => updateNote({ attachments: selected.attachments.filter(item => item.id !== file.id) })} aria-label={`Remove ${file.name}`}>×</button></article>)}</div>}<label className="screenshot-dropzone" onDragOver={event => event.preventDefault()} onDrop={dropScreenshots}><strong>＋ Add screenshots</strong><span>Drop images here or choose screenshots</span><input type="file" multiple accept="image/*" onChange={attachFiles} /></label></section>
       <section className="note-connections"><div><h3>Notes linking here</h3>{backlinks.length ? backlinks.map(note => <a href={noteHref(note.id)} key={note.id} onClick={(event) => followNotebookLink(event, () => openNote(note.id))}>↗ {note.title}</a>) : <p>Type [[{selected.title}]] in another note to connect it here.</p>}</div><div><h3>Related by tag</h3>{related.length ? related.map(note => <a href={noteHref(note.id)} key={note.id} onClick={(event) => followNotebookLink(event, () => openNote(note.id))}># {note.title}</a>) : <p>Add the same tag to multiple notes to find related material.</p>}</div></section>

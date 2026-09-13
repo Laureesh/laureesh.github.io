@@ -142,3 +142,21 @@
 .editor-toolbar button[aria-pressed=true] { background:#38325c; border-color:var(--nb-accent); }
 @media(max-width:600px) { .rich-editor .notebook-steps>li { padding-left:43px; } .rich-editor .notebook-steps pre { padding:12px; } }
 @media print { .rich-editor .notebook-steps>li::before { color:black; background:white; border:1px solid #777; box-shadow:none; } .rich-editor .notebook-steps>li::after { background:#aaa; } .rich-editor .notebook-steps pre,.rich-editor .notebook-steps>li> :is(h1,h2,h3,h4,h5,h6) { color:black; background:white; } }
+.notebook-step-controls { margin:20px 0 0; padding:18px; border:1px solid var(--nb-line); border-radius:12px; background:var(--nb-panel); font:14px/1.5 Inter,system-ui,sans-serif; }
+.notebook-step-controls header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.notebook-step-controls header>div { display:grid; gap:3px; }
+.notebook-step-controls header strong { font-size:18px; }
+.notebook-step-controls :is(p,header span) { color:var(--nb-muted); }
+.notebook-step-controls progress { display:block; width:100%; height:6px; margin-top:12px; accent-color:var(--nb-mint); }
+.notebook-step-controls button { padding:7px 9px; border:1px solid var(--nb-line); border-radius:7px; background:var(--nb-panel2); color:var(--nb-text); cursor:pointer; }
+.notebook-step-controls button:disabled { opacity:.4; cursor:default; }
+.notebook-step-controls .danger { color:#ff9aac; }
+.notebook-step-controls summary { padding:8px 0; cursor:pointer; font-weight:700; }
+.notebook-step-control-row { display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px; padding:12px 0; border-top:1px solid var(--nb-line); }
+.step-complete-toggle { display:flex; align-items:center; gap:7px; color:var(--nb-muted); }
+.step-complete-toggle input { accent-color:var(--nb-mint); }
+.step-title-input { width:100%; min-width:0; padding:8px; border:1px solid var(--nb-line); border-radius:6px; background:var(--nb-bg); color:var(--nb-text); }
+.step-row-actions { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:6px; }
+.rich-editor .notebook-steps>li[data-completed=true]::before { content:"✓"; background:#287565; }
+.rich-editor .notebook-steps>li[data-completed=true]>:is(h1,h2,h3,h4,h5,h6) { color:var(--nb-mint); }
+@media print { .notebook-step-controls { display:none!important; } }

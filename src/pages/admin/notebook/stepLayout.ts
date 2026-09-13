@@ -106,3 +106,66 @@ export function formatStepLayout(html: string): string | null {
   list.setAttribute("data-step-source", "list");
   return doc.body.innerHTML;
 }
+
+export type StepChange =
+  | { type: "add"; index: number }
+  | { type: "remove" | "duplicate" | "up" | "down" | "complete"; index: number }
+  | { type: "title"; index: number; title: string };
+
+export function getLayoutSteps(html: string): { title: string; completed: boolean }[] {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const list = doc.querySelector("ol.notebook-steps");
+  return list ? [...list.children].map((step, index) => ({
+    title: step.querySelector(":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6")?.textContent ?? `Step ${index + 1}`,
+    completed: step.getAttribute("data-completed") === "true",
+  })) : [];
+}
+
+export function changeStepLayout(html: string, change: StepChange): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const list = doc.querySelector("ol.notebook-steps");
+  if (!list) return html;
+  const steps = [...list.children];
+  const step = steps[change.index];
+  if (change.type === "add") {
+    const newStep = doc.createElement("li");
+    newStep.innerHTML = "<h3>New step</h3><p><br></p>";
+    list.insertBefore(newStep, steps[change.index] ?? null);
+  } else if (step) {
+    switch (change.type) {
+      case "remove": step.remove(); break;
+      case "duplicate": {
+        const copy = step.cloneNode(true) as Element;
+        copy.removeAttribute("data-completed");
+        copy.querySelectorAll("[id]").forEach(node => node.removeAttribute("id"));
+        copy.removeAttribute("id");
+        step.after(copy);
+        break;
+      }
+      case "up": if (change.index > 0) steps[change.index - 1].before(step); break;
+      case "down": if (change.index < steps.length - 1) steps[change.index + 1].after(step); break;
+      case "complete":
+        if (step.getAttribute("data-completed") === "true") step.removeAttribute("data-completed");
+        else step.setAttribute("data-completed", "true");
+        break;
+      case "title": {
+        let heading = step.querySelector(":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6");
+        if (!heading) { heading = doc.createElement("h3"); step.prepend(heading); }
+        heading.textContent = change.title.trim() || "Untitled step";
+        break;
+      }
+    }
+  }
+  return doc.body.innerHTML;
+}
+
+export function startStepLayout(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const list = doc.createElement("ol"); list.className = "notebook-steps";
+  const step = doc.createElement("li");
+  const heading = doc.createElement("h3"); heading.textContent = "First step";
+  step.append(heading, ...doc.body.childNodes);
+  list.append(step); doc.body.append(list);
+  if (step.children.length === 1) step.insertAdjacentHTML("beforeend", "<p><br></p>");
+  return doc.body.innerHTML;
+}
