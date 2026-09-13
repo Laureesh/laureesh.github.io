@@ -118,7 +118,7 @@ export function getLayoutSteps(html: string): { title: string; completed: boolea
   const list = doc.querySelector("ol.notebook-steps");
   return list ? [...list.children].map((step, index) => ({
     title: step.querySelector(":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6")?.textContent ?? `Step ${index + 1}`,
-    completed: step.getAttribute("data-completed") === "true",
+    completed: step.getAttribute("data-completed") === "true" || isFinalCheckTitle(step.querySelector(":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6")?.textContent ?? ""),
   })) : [];
 }
 
@@ -199,12 +199,20 @@ export function stripStepTitleNumber(title: string): string {
   return title.replace(/^\s*\d+[.)]\s+/, "");
 }
 
+export function isFinalCheckTitle(title: string): boolean {
+  return stripStepTitleNumber(title).replace(/\s+/g, " ").trim().toLowerCase() === "final check";
+}
+
 /** Remove redundant labels only from timeline headings, preserving inline formatting. */
 export function normalizeStepTitles(html: string): string {
   const doc = new DOMParser().parseFromString(html, "text/html");
   let changed = false;
   doc.querySelectorAll("ol.notebook-steps > li > :is(h1,h2,h3,h4,h5,h6)").forEach(heading => {
     const title = heading.textContent ?? "";
+    if (isFinalCheckTitle(title) && heading.parentElement?.getAttribute("data-completed") !== "true") {
+      heading.parentElement?.setAttribute("data-completed", "true");
+      changed = true;
+    }
     let remaining = title.length - stripStepTitleNumber(title).length;
     if (!remaining) return;
     changed = true;

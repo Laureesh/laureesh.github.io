@@ -1,4 +1,4 @@
-import type { StepChange } from "./stepLayout";
+import { isFinalCheckTitle, type StepChange } from "./stepLayout";
 
 type Props = {
   steps: { title: string; completed: boolean }[];
@@ -56,7 +56,7 @@ export default function StepControls({ steps, onChange, onEdit, onUndo, canUndo 
     </details>
     <details open><summary>Manage steps</summary>
       {steps.map((step, index) => <div className="notebook-step-control-row" key={index}>
-        <label className="step-complete-toggle"><input type="checkbox" checked={step.completed} onChange={() => onChange({ type: "complete", index })} aria-label={`Mark step ${index + 1} complete`} /><span>{index + 1}</span></label>
+        <label className="step-complete-toggle" title={isFinalCheckTitle(step.title) ? "Final Check is always checked" : undefined}><input type="checkbox" checked={step.completed || isFinalCheckTitle(step.title)} disabled={isFinalCheckTitle(step.title)} onChange={() => onChange({ type: "complete", index })} aria-label={`Mark step ${index + 1} complete`} /><span>{index + 1}</span></label>
         <input key={step.title} className="step-title-input" aria-label={`Step ${index + 1} title`} defaultValue={step.title} maxLength={180} onBlur={event => { if (event.target.value !== step.title) onChange({ type: "title", index, title: event.target.value }); }} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} />
         <div className="step-row-actions">
           <button onClick={() => onEdit(index)}>Edit content</button>
