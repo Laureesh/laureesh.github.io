@@ -126,3 +126,19 @@
 .notebook-note-navigation span { color:var(--nb-muted); font-size:12px; text-align:center; overflow-wrap:anywhere; }
 @media(max-width:600px) { .notebook-note-navigation { flex-wrap:wrap; gap:8px; } .notebook-note-navigation span { order:-1; width:100%; } }
 @media print { .notebook-note-navigation { display:none!important; } }
+
+.rich-editor .notebook-steps { list-style:none; counter-reset:notebook-step; margin:28px 0; padding:0; font-family:Inter,system-ui,sans-serif; font-size:.92em; line-height:1.65; }
+.rich-editor .notebook-steps>li { position:relative; counter-increment:notebook-step; margin:0; padding:0 0 30px 54px; min-height:60px; }
+.rich-editor .notebook-steps>li::before { content:counter(notebook-step); position:absolute; left:0; top:0; z-index:1; display:grid; place-items:center; width:32px; height:32px; border:3px solid var(--nb-bg); border-radius:50%; background:#424961; color:#fff; font:700 14px/1 Inter,system-ui,sans-serif; box-shadow:0 0 0 1px var(--nb-line); }
+.rich-editor .notebook-steps>li::after { content:""; position:absolute; left:18px; top:38px; bottom:0; width:2px; background:var(--nb-line); }
+.rich-editor .notebook-steps>li:last-child::after { display:none; }
+.rich-editor .notebook-steps>li:focus-within::before { background:var(--nb-accent); box-shadow:0 0 0 3px #7c6cff30; }
+.rich-editor .notebook-steps>li> :is(h1,h2,h3,h4,h5,h6) { margin:0 0 12px; padding-top:3px; color:#d9d5ff; font:750 1.15em/1.4 Inter,system-ui,sans-serif; letter-spacing:0; }
+.rich-editor .notebook-steps p { margin:10px 0; }
+.rich-editor .notebook-steps :is(ol,ul) { padding-left:24px; margin:12px 0; }
+.rich-editor .notebook-steps :is(ol,ul)>li { padding:4px 0 4px 3px; }
+.rich-editor .notebook-steps pre { margin:14px 0 18px; padding:15px 18px; border:1px solid var(--nb-line); border-left:3px solid var(--nb-accent); background:#0b0e17; border-radius:8px; white-space:pre-wrap; overflow-wrap:anywhere; color:#bcebdc; line-height:1.6; }
+.rich-editor .notebook-steps code { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:.88em; }
+.editor-toolbar button[aria-pressed=true] { background:#38325c; border-color:var(--nb-accent); }
+@media(max-width:600px) { .rich-editor .notebook-steps>li { padding-left:43px; } .rich-editor .notebook-steps pre { padding:12px; } }
+@media print { .rich-editor .notebook-steps>li::before { color:black; background:white; border:1px solid #777; box-shadow:none; } .rich-editor .notebook-steps>li::after { background:#aaa; } .rich-editor .notebook-steps pre,.rich-editor .notebook-steps>li> :is(h1,h2,h3,h4,h5,h6) { color:black; background:white; } }
