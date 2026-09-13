@@ -22,6 +22,7 @@ import {
 } from "./learn-engine";
 import type { KahootImportSet } from "./kahoot-import";
 import { parseEmbeddedQuestion, parseNotes, parseQuizletHtml, parseQuizResults, suggestNoteTitles } from "./note-parser";
+import { isNotebookDraftSource, notebookDraftKey, type NotebookDraftSource } from "./notebook-draft";
 import type { QuizletImportSet } from "./quizlet-import";
 
 type HighlightColor = "none" | "yellow" | "mint" | "violet";
@@ -801,6 +802,8 @@ export default function Flashbolt() {
   const [tileFolderSearch, setTileFolderSearch] = useState("");
   const [setContextMenu, setSetContextMenu] = useState<{ setId: string; x: number; y: number } | null>(null);
   const [draft, setDraft] = useState<StudySet>(blankDraft);
+  const [notebookSource, setNotebookSource] = useState<NotebookDraftSource | null>(null);
+  const [notebookDraftStorageKey, setNotebookDraftStorageKey] = useState("");
   const [editingSetId, setEditingSetId] = useState<string | null>(null);
   const [draftFolderIds, setDraftFolderIds] = useState<string[]>([]);
   const [createOriginFolderId, setCreateOriginFolderId] = useState<string | null>(null);
@@ -979,6 +982,34 @@ export default function Flashbolt() {
     if (routeParts.length === 1 && ["home", "library", "folders", "create", "guide", "helper"].includes(routeParts[0])) {
       handledRouteRef.current = location.pathname;
       setView(routeParts[0] as View);
+      if (routeParts[0] === "create" && userId) {
+        const draftId = new URLSearchParams(location.search).get("notebookDraft");
+        if (draftId) {
+          try {
+            const key = notebookDraftKey(userId, draftId);
+            const saved = JSON.parse(sessionStorage.getItem(key) ?? "null");
+            if (!isNotebookDraftSource(saved?.source)) throw new Error("missing draft");
+            const source: NotebookDraftSource = saved.source;
+            const parsed = parseQuizResults(source.text);
+            const cards = (parsed.length ? parsed : parseNotes(source.text)).map(card => ({
+              ...card, questionType: card.questionType ?? (card.answerChoices?.length ? "multiple-choice" : "flashcard"),
+            } as Card));
+            const restored = saved.draft && typeof saved.draft.title === "string" && Array.isArray(saved.draft.cards)
+              ? saved.draft as StudySet : null;
+            setDraft(restored ?? {
+              ...blankDraft, title: source.title, subject: source.subject,
+              description: `From Notebook: ${source.title}`,
+              cards: cards.length ? cards : [{ id: makeId("card"), term: "", definition: "", questionType: "flashcard" }],
+            });
+            setEditingSetId(null);
+            setDraftFolderIds(Array.isArray(saved.folderIds) ? saved.folderIds.filter((id: unknown) => typeof id === "string" && data.folders.some(folder => folder.id === id)) : []);
+            setNotebookSource(source);
+            setNotebookDraftStorageKey(key);
+          } catch {
+            setToast("This note draft is unavailable or has already been saved. Return to Notebook and export the note again.");
+          }
+        }
+      }
       setResolvedRoutePath(location.pathname);
       return;
     }
@@ -1047,7 +1078,7 @@ export default function Flashbolt() {
   // Route handlers are intentionally re-run only when the route or persisted library changes.
   // Adding the inline navigation helpers would retrigger this effect on every render.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.folders, data.sets, location.pathname, ready]);
+  }, [data.folders, data.sets, location.pathname, location.search, ready, userId]);
 
   useEffect(() => {
     if (ready) window.localStorage.setItem(LIBRARY_SORT_KEY, librarySort);
@@ -1465,8 +1496,23 @@ export default function Flashbolt() {
     navigate("set", setId);
   }
 
+  useEffect(() => {
+    if (!notebookSource || !notebookDraftStorageKey || editingSetId) return;
+    try {
+      sessionStorage.setItem(notebookDraftStorageKey, JSON.stringify({ source: notebookSource, draft, folderIds: draftFolderIds }));
+    } catch { setToast("Draft backup is unavailable. Keep this page open until you save your set."); }
+  }, [draft, draftFolderIds, notebookSource, notebookDraftStorageKey, editingSetId]);
+
+  function discardNotebookDraft() {
+    if (!notebookSource || !window.confirm("Discard this Flashbolt draft and return to your note? No set will be created.")) return;
+    if (notebookDraftStorageKey) sessionStorage.removeItem(notebookDraftStorageKey);
+    routerNavigate(notebookSource.returnTo);
+  }
+
   function startCreate(folderIdOrEvent?: string | ReactMouseEvent) {
     const originFolderId = typeof folderIdOrEvent === "string" ? folderIdOrEvent : selectedFolderId;
+    setNotebookSource(null);
+    setNotebookDraftStorageKey("");
     setEditingSetId(null);
     setCreateOriginFolderId(originFolderId);
     setDraftFolderSearch("");
@@ -1618,6 +1664,11 @@ export default function Flashbolt() {
       }),
     };
     setData(nextData);
+    if (notebookDraftStorageKey) {
+      sessionStorage.removeItem(notebookDraftStorageKey);
+      setNotebookDraftStorageKey("");
+      setNotebookSource(null);
+    }
     let immediateBackupFailed = false;
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextData));
@@ -2921,6 +2972,13 @@ export default function Flashbolt() {
                 <div><Link className="back-link" to={`${FLASHBOLT_BASE}/library`}>← Library</Link><span className="eyebrow">{editingSetId ? "Edit set" : "New flashcard set"}</span><h1>{editingSetId ? "Make it better." : "Build a set that sticks."}</h1></div>
                 {editingSetId && editorFolder && editorFolderSets.length > 1 && <nav className="editor-set-navigation" aria-label={`Move between sets in ${editorFolder.name}`}><span>{editorSetIndex + 1} of {editorFolderSets.length} in {editorFolder.name}</span><div>{previousEditorSet ? <a className="button quiet" href={routePathForView("create", previousEditorSet.id)} onClick={(event) => followFlashboltLink(event, () => openAdjacentEditor(previousEditorSet))} title={previousEditorSet.title}>← Previous</a> : <button className="button quiet" disabled title="First set in folder">← Previous</button>}{nextEditorSet ? <a className="button quiet" href={routePathForView("create", nextEditorSet.id)} onClick={(event) => followFlashboltLink(event, () => openAdjacentEditor(nextEditorSet))} title={nextEditorSet.title}>Next →</a> : <button className="button quiet" disabled title="Last set in folder">Next →</button>}</div></nav>}
               </div>
+              {notebookSource && <aside className="form-card notebook-draft-notice">
+                <h2>Review cards from “{notebookSource.title}”</h2>
+                <p>This is an unsaved draft. Check every question and answer, then choose Save or Save &amp; study to create your set.</p>
+                <p>Cards are suggested from the note’s text; they may need corrections. {notebookSource.attachmentCount > 0 && "Attachments are not included."}</p>
+                <details><summary>Original note text</summary><pre style={{ whiteSpace: "pre-wrap", maxHeight: 240, overflow: "auto" }}>{notebookSource.text || "This note has no text yet. Add cards below."}</pre></details>
+                <div className="editor-save-actions"><Link className="button quiet" to={notebookSource.returnTo}>Back to note (keep draft)</Link><button className="button quiet" onClick={discardNotebookDraft}>Discard draft</button></div>
+              </aside>}
               <div className="creator-layout">
                 <div className="creator-main">
                   <article className="form-card set-details">

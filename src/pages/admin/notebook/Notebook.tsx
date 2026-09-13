@@ -1,4 +1,6 @@
 import "./Notebook.css";
+import { readClipboardNote } from "./clipboardNote";
+import { notebookDraftKey, notebookHtmlToText } from "../flashbolt/notebook-draft";
 import NoteActionsMenu from "./NoteActionsMenu";
 import { compareNotes, SORT_OPTIONS, type NoteSort } from "./noteSorting";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ClipboardEvent, type DragEvent, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from "react";
@@ -231,8 +233,16 @@ export default function Notebook() {
     action();
   };
   const createNote = (folderId: string | null = typeof folderFilter === "string" && !['all', 'pinned', 'archive'].includes(folderFilter) ? folderFilter : null) => {
+    const clipboardHtml = readClipboardNote();
     const note: Note = { id: id("note"), title: "Untitled note", html: "<p><br></p>", folderId, tags: tagFilter ? [tagFilter] : [], pinned: folderFilter === "pinned", archived: folderFilter === "archive", noteDate: localDateKey(), createdAt: now(), updatedAt: now(), attachments: [], versions: [] };
     setData((current) => ({ ...current, notes: [note, ...current.notes] })); setQuery(""); setListMode("notes"); openNote(note.id, ["pinned", "archive"].includes(folderFilter) ? folderFilter : folderId ?? "all");
+    void clipboardHtml.then(html => {
+      if (html === "<p><br></p>") return;
+      // Do not overwrite edits or recreate a deleted note while permission is pending.
+      setData(current => current.notes.includes(note)
+        ? { ...current, notes: current.notes.map(item => item === note ? { ...item, html, updatedAt: now() } : item) }
+        : current);
+    });
   };
   const addFolder = (parentId: string | null = null) => { const name = prompt(parentId ? "Subfolder name" : "Folder name"); if (!name?.trim()) return; setData((current) => ({ ...current, folders: [...current.folders, { id: id("folder"), name: name.trim(), parentId, color: COLORS[current.folders.length % COLORS.length], updatedAt: now() }] })); };
   const editFolder = (folder: Folder) => { const name = prompt("Rename folder", folder.name); if (!name?.trim()) return; setData((current) => ({ ...current, folders: current.folders.map((item) => item.id === folder.id ? { ...item, name: name.trim(), updatedAt: now() } : item) })); };
@@ -266,6 +276,21 @@ export default function Notebook() {
   };
   const showNoteMenu = (event: ReactMouseEvent, noteId: string) => { event.preventDefault(); setContextMenu({ noteId, x: event.clientX, y: event.clientY }); };
   const contextNote = data.notes.find((note) => note.id === contextMenu?.noteId);
+  const exportToFlashbolt = (note: Note) => {
+    if (!user?.uid) { alert("Sign in to open a Flashbolt draft."); return; }
+    const draftId = id("draft");
+    const source = {
+      title: note.title || "Untitled note",
+      text: notebookHtmlToText(note.html),
+      subject: data.folders.find(folder => folder.id === note.folderId)?.name ?? "",
+      returnTo: noteHref(note.id),
+      attachmentCount: note.attachments.length,
+    };
+    try {
+      sessionStorage.setItem(notebookDraftKey(user.uid, draftId), JSON.stringify({ source }));
+    } catch { alert("The draft could not be opened because browser storage is unavailable. Your note is unchanged."); return; }
+    navigate(`/admin-dashboard/private-pages/flashbolt/create?notebookDraft=${encodeURIComponent(draftId)}`);
+  };
   const snapshot = () => updateNote({ versions: [{ id: id("version"), title: selected.title, html: selected.html, savedAt: now() }, ...selected.versions].slice(0, 30) });
   const format = (command: string, value?: string) => { editorRef.current?.focus(); document.execCommand(command, false, value); if (editorRef.current) updateNote({ html: editorRef.current.innerHTML }); };
   const handleEditorKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -322,6 +347,7 @@ export default function Notebook() {
       { label: "Edit tags", run: () => { const tags = prompt("Tags, separated by commas", contextNote.tags.join(", ")); if (tags !== null) updateNoteById(contextNote.id, { tags: [...new Set(tags.split(",").map(tag => tag.trim()).filter(Boolean))] }); } },
       { label: contextNote.archived ? "Restore from archive" : "Archive", run: () => updateNoteById(contextNote.id, { archived: !contextNote.archived }) },
       { label: "Version history", run: () => { openNote(contextNote.id); setHistoryOpen(true); } },
+      { label: "Export to Flashbolt", run: () => exportToFlashbolt(contextNote) },
       { label: "Export text", run: () => download(`${contextNote.title || "note"}.txt`, textFromHtml(contextNote.html), "text/plain") },
       { label: "Delete", danger: true, run: () => deleteNote(contextNote) },
     ]} />}
@@ -350,7 +376,7 @@ export default function Notebook() {
       <div ref={editorRef} className="rich-editor" contentEditable suppressContentEditableWarning onKeyDown={handleEditorKeyDown} onPaste={pasteScreenshots} onInput={event => updateNote({ html: event.currentTarget.innerHTML })} data-placeholder="Start writing… Paste a screenshot here to attach it." />
       <section className="attachments"><div className="attachments-heading"><div><h3>Class screenshots &amp; attachments</h3><p>Paste screenshots while writing, drag them below, or browse your device.</p></div><span>{selected.attachments.length} file{selected.attachments.length === 1 ? "" : "s"}</span></div>{selected.attachments.length > 0 && <div className="attachment-grid">{selected.attachments.map(file => <article key={file.id}>{file.type.startsWith("image/") ? <a href={file.dataUrl} target="_blank" rel="noreferrer"><img src={file.dataUrl} alt={file.name} /></a> : file.type.startsWith("audio/") ? <audio controls src={file.dataUrl} /> : file.type.startsWith("video/") ? <video controls src={file.dataUrl} /> : <span>PDF</span>}<a href={file.dataUrl} download={file.name}>{file.name}</a><button onClick={() => updateNote({ attachments: selected.attachments.filter(item => item.id !== file.id) })} aria-label={`Remove ${file.name}`}>×</button></article>)}</div>}<label className="screenshot-dropzone" onDragOver={event => event.preventDefault()} onDrop={dropScreenshots}><strong>＋ Add screenshots</strong><span>Drop images here or choose screenshots</span><input type="file" multiple accept="image/*" onChange={attachFiles} /></label></section>
       <section className="note-connections"><div><h3>Notes linking here</h3>{backlinks.length ? backlinks.map(note => <a href={noteHref(note.id)} key={note.id} onClick={(event) => followNotebookLink(event, () => openNote(note.id))}>↗ {note.title}</a>) : <p>Type [[{selected.title}]] in another note to connect it here.</p>}</div><div><h3>Related by tag</h3>{related.length ? related.map(note => <a href={noteHref(note.id)} key={note.id} onClick={(event) => followNotebookLink(event, () => openNote(note.id))}># {note.title}</a>) : <p>Add the same tag to multiple notes to find related material.</p>}</div></section>
-      <footer className="editor-footer"><div><button onClick={summarize}>✦ Summarize note</button><button onClick={extractTasks}>☑ Find action items</button></div><div><button onClick={() => window.print()}>Print / Save PDF</button><button onClick={() => download(`${selected.title}.html`, selected.html, "text/html")}>Export HTML</button><button onClick={() => download(`${selected.title}.md`, textFromHtml(selected.html), "text/markdown")}>Export Markdown</button><button onClick={() => download("notebook-backup.json", JSON.stringify(data, null, 2), "application/json")}>Download full backup</button></div></footer>
+      <footer className="editor-footer"><div><button onClick={summarize}>✦ Summarize note</button><button onClick={extractTasks}>☑ Find action items</button></div><div><button onClick={() => exportToFlashbolt(selected)}>Export to Flashbolt</button><button onClick={() => window.print()}>Print / Save PDF</button><button onClick={() => download(`${selected.title}.html`, selected.html, "text/html")}>Export HTML</button><button onClick={() => download(`${selected.title}.md`, textFromHtml(selected.html), "text/markdown")}>Export Markdown</button><button onClick={() => download("notebook-backup.json", JSON.stringify(data, null, 2), "application/json")}>Download full backup</button></div></footer>
       {historyOpen && <aside className="history-panel"><header><h2>Version history</h2><button onClick={() => setHistoryOpen(false)}>×</button></header>{selected.versions.map(version => <button key={version.id} onClick={() => updateNote({ title: version.title, html: version.html })}><strong>{new Date(version.savedAt).toLocaleString()}</strong><span>Restore this version</span></button>)}{!selected.versions.length && <p>Create a snapshot to preserve the current version.</p>}</aside>}
     </main>
   </div>;
