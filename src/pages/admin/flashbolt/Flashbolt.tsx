@@ -1,5 +1,7 @@
 
 import "./Flashbolt.css";
+import MasteryFilterControls from "./MasteryFilterControls";
+import { DEFAULT_MASTERY_FILTER, MASTERY_FILTER_KEY, masteryPercentage, matchesMasteryFilter, normalizeMasteryFilter } from "./masteryFilter";
 import InlineSetDetails from "./InlineSetDetails";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -777,6 +779,14 @@ export default function Flashbolt() {
   const [view, setView] = useState<View>("home");
   const [selectedSetId, setSelectedSetId] = useState(initialData.sets[0].id);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [masteryFilter, setMasteryFilter] = useState(() => {
+    try { return normalizeMasteryFilter(JSON.parse(localStorage.getItem(MASTERY_FILTER_KEY) ?? "null")); }
+    catch { return DEFAULT_MASTERY_FILTER; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(MASTERY_FILTER_KEY, JSON.stringify(masteryFilter)); }
+    catch { /* The filter remains usable without browser storage. */ }
+  }, [masteryFilter]);
   const [librarySort, setLibrarySort] = useState<LibrarySort>("updated-desc");
   const [search, setSearch] = useState("");
   const [termSearch, setTermSearch] = useState("");
@@ -1302,6 +1312,8 @@ export default function Flashbolt() {
       return result || titleTieBreaker(a, b);
     });
   }, [data.folders, data.mastered, data.sets, folder, librarySort, search]);
+  const visibleSets = useMemo(() => filteredSets.filter(set => matchesMasteryFilter(masteryPercentage(set.cards, data.mastered[set.id]), masteryFilter)), [filteredSets, data.mastered, masteryFilter]);
+  const recentSets = useMemo(() => data.sets.filter(set => matchesMasteryFilter(masteryPercentage(set.cards, data.mastered[set.id]), masteryFilter)).slice(0, 3), [data.sets, data.mastered, masteryFilter]);
   const editorFolderSets = editorFolder
     ? filteredSets.filter((set) => editorFolder.setIds.includes(set.id))
     : [];
@@ -1310,7 +1322,7 @@ export default function Flashbolt() {
   const nextEditorSet = editorSetIndex >= 0 && editorSetIndex < editorFolderSets.length - 1 ? editorFolderSets[editorSetIndex + 1] : undefined;
   const folderSubjectGroups = useMemo(() => {
     const groups = new Map<string, { subject: string; sets: StudySet[] }>();
-    filteredSets.forEach((set) => {
+    visibleSets.forEach((set) => {
       const subject = set.subject.trim() || "General";
       const key = subject.toLocaleLowerCase();
       const existing = groups.get(key);
@@ -1318,7 +1330,7 @@ export default function Flashbolt() {
       else groups.set(key, { subject, sets: [set] });
     });
     return [...groups.values()].sort((a, b) => LIBRARY_COLLATOR.compare(a.subject, b.subject));
-  }, [filteredSets]);
+  }, [visibleSets]);
 
   const testCards = selectedSet?.cards.slice(0, 8) ?? [];
   const testScore = testCards.filter((card) => normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card))).length;
@@ -2547,8 +2559,9 @@ export default function Flashbolt() {
       return (
         <div className="empty-state">
           <div className="empty-mark">+</div>
-          <h3>No sets here yet</h3>
-          <p>Create a set or change your search to see more.</p>
+          <h3>{masteryFilter.mode !== "all" ? "No sets match this filter" : "No sets here yet"}</h3>
+          <p>{masteryFilter.mode !== "all" ? "Adjust the mastery percentage or clear the filter to see more sets." : "Create a set or change your search to see more."}</p>
+          {masteryFilter.mode !== "all" && <button className="button quiet" onClick={() => setMasteryFilter(current => ({ ...current, mode: "all" }))}>Show all mastery levels</button>}
           <button className="button primary" onClick={startCreate}>Create a set</button>
         </div>
       );
@@ -2557,8 +2570,7 @@ export default function Flashbolt() {
     return (
       <div className="set-grid">
         {sets.map((set) => {
-          const mastered = data.mastered[set.id]?.length ?? 0;
-          const progress = set.cards.length ? Math.round((mastered / set.cards.length) * 100) : 0;
+          const progress = masteryPercentage(set.cards, data.mastered[set.id]);
           const setFolders = data.folders.filter((folderItem) => folderItem.setIds.includes(set.id));
           const folderLabel = setFolders.length ? setFolders.map((folderItem) => folderItem.name).join(" · ") : "None";
           const normalizedFolderSearch = tileFolderSearch.trim().toLocaleLowerCase();
@@ -2762,10 +2774,11 @@ export default function Flashbolt() {
         </header>
 
         <main className="workspace">
+          {(view === "library" || view === "home" || Boolean(search)) && <MasteryFilterControls value={masteryFilter} onChange={setMasteryFilter} shown={!search && view === "home" ? recentSets.length : visibleSets.length} total={!search && view === "home" ? data.sets.length : filteredSets.length} />}
           {search && view !== "library" && (
             <section className="search-results-panel">
               <div className="section-heading"><div><span className="eyebrow">Search</span><h2>Results for “{search}”</h2></div><button className="text-button" onClick={() => navigate("library")}>Open library</button></div>
-              {renderSetGrid(filteredSets)}
+              {renderSetGrid(visibleSets)}
             </section>
           )}
 
@@ -2810,7 +2823,7 @@ export default function Flashbolt() {
 
               <section>
                 <div className="section-heading"><div><span className="eyebrow">Library</span><h2>Recently studied</h2></div><button className="text-button" onClick={() => navigate("library")}>View all <span>→</span></button></div>
-                {renderSetGrid(data.sets.slice(0, 3))}
+                {renderSetGrid(recentSets)}
               </section>
 
               <section className="notes-callout">
@@ -2820,7 +2833,7 @@ export default function Flashbolt() {
             </>
           )}
 
-          {!search && view === "library" && (
+          {view === "library" && (
             <section>
               <div className="page-heading split">
                 <div>{folder && <Link className="back-link" to={`${FLASHBOLT_BASE}/folders`}>← All folders</Link>}<span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
@@ -2923,7 +2936,7 @@ export default function Flashbolt() {
                   </select></span>
                 </label>
               </div>}
-              {folder && filteredSets.length ? (
+              {folder && visibleSets.length ? (
                 <div className="folder-subject-sections">
                   {folderSubjectGroups.map((group) => (
                     <section className="folder-subject-section" key={group.subject.toLocaleLowerCase()}>
@@ -2935,7 +2948,7 @@ export default function Flashbolt() {
                     </section>
                   ))}
                 </div>
-              ) : renderSetGrid(filteredSets)}
+              ) : renderSetGrid(visibleSets)}
             </section>
           )}
 

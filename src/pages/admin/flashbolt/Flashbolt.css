@@ -7332,3 +7332,29 @@ kbd {
   flex-wrap: wrap;
   gap: 8px;
 }
+
+.mastery-filter {
+  margin-bottom: 24px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+.mastery-filter-heading, .mastery-filter-fields {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.mastery-filter-heading { justify-content: space-between; margin-bottom: 14px; }
+.mastery-filter-heading span, .mastery-filter p { color: var(--muted); font-size: 14px; }
+.mastery-filter-fields { align-items: flex-end; }
+.mastery-filter-fields label { display: grid; gap: 6px; font-size: 14px; min-width: 0; }
+.mastery-filter-fields select { max-width: 100%; }
+.mastery-filter-slider { flex: 1 1 180px; }
+.mastery-filter input[type="range"] { width: 100%; padding: 0; accent-color: var(--primary-strong); cursor: pointer; }
+.mastery-filter-number input { width: 90px; }
+.mastery-filter p { margin: 12px 0 0; }
+@media (max-width: 600px) {
+  .mastery-filter-fields > label:first-child { flex-basis: 100%; }
+}
