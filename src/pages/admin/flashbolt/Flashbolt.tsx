@@ -1,5 +1,6 @@
 
 import "./Flashbolt.css";
+import { applyDetectedQuestionType } from "./questionTypeDetection";
 import SemesterVisibilityControls from "./SemesterVisibilityControls";
 import { mergeSemesterVisibility, normalizeSemesterVisibility, type SemesterVisibility } from "./semesterVisibility";
 import MasteryFilterControls from "./MasteryFilterControls";
@@ -77,6 +78,8 @@ type Card = {
   definition: string;
   answerChoices?: string[];
   correctAnswers?: string[];
+  questionTypeMode?: "auto" | "manual";
+  autoTypePreviousChoices?: string[];
   questionType?: "flashcard" | "multiple-choice" | "true-false" | "select-all" | "written" | "matching";
   matchingPairs?: Array<{ id: string; left: string; right: string }>;
   termLanguage?: string;
@@ -1007,7 +1010,7 @@ export default function Flashbolt() {
             if (!isNotebookDraftSource(saved?.source)) throw new Error("missing draft");
             const source: NotebookDraftSource = saved.source;
             const parsed = parseQuizResults(source.text);
-            const cards = (parsed.length ? parsed : parseNotes(source.text)).map(card => ({
+            const cards = (parsed.length ? parsed : parseNotes(source.text)).map(card => applyDetectedQuestionType({
               ...card, questionType: card.questionType ?? (card.answerChoices?.length ? "multiple-choice" : "flashcard"),
             } as Card));
             const restored = saved.draft && typeof saved.draft.title === "string" && Array.isArray(saved.draft.cards)
@@ -1734,7 +1737,7 @@ export default function Flashbolt() {
   function updateDraftCard(cardId: string, field: "term" | "definition", value: string) {
     setDraft((current) => ({
       ...current,
-      cards: current.cards.map((card) => (card.id === cardId ? { ...card, [field]: value } : card)),
+      cards: current.cards.map((card) => (card.id === cardId ? (field === "term" ? applyDetectedQuestionType({ ...card, term: value }) : { ...card, [field]: value }) : card)),
     }));
   }
 
@@ -1746,8 +1749,12 @@ export default function Flashbolt() {
   }
 
   function setDraftCardQuestionType(card: Card, questionType: CardQuestionType) {
-    const updates: Partial<Card> = { questionType };
-    if ((questionType === "multiple-choice" || questionType === "select-all") && (!card.answerChoices || card.answerChoices.length < 2)) {
+    const updates: Partial<Card> = { questionType, questionTypeMode: "manual" };
+    if (questionType !== "true-false" && card.autoTypePreviousChoices) {
+      updates.answerChoices = [...card.autoTypePreviousChoices];
+      updates.autoTypePreviousChoices = undefined;
+    }
+    if ((questionType === "multiple-choice" || questionType === "select-all") && !updates.answerChoices && (!card.answerChoices || card.answerChoices.length < 2)) {
       updates.answerChoices = ["", "", "", ""];
     }
     if (questionType === "true-false") {
@@ -1958,11 +1965,11 @@ export default function Flashbolt() {
         throw new Error("error" in result && result.error ? result.error : "The Quizlet set could not be imported.");
       }
 
-      const importedCards: Card[] = result.cards.map((card) => withDetectedAnswerChoices({
+      const importedCards: Card[] = result.cards.map((card) => applyDetectedQuestionType(withDetectedAnswerChoices({
         id: makeId("card"),
         term: card.term,
         definition: card.definition,
-      }));
+      })));
 
       setDraft((current) => {
         const existingCards = current.cards.filter((card) => card.term.trim() || card.definition.trim());
@@ -2011,7 +2018,7 @@ export default function Flashbolt() {
         term: card.term,
         definition: card.definition,
         ...(card.answerChoices?.length ? { answerChoices: card.answerChoices } : {}),
-      }));
+      })).map(card => applyDetectedQuestionType(card));
 
       setDraft((current) => {
         const existingCards = current.cards.filter((card) => card.term.trim() || card.definition.trim());
@@ -2043,7 +2050,7 @@ export default function Flashbolt() {
     }
     setDraft((current) => ({
       ...current,
-      cards: [...current.cards.filter((card) => card.term || card.definition), ...cards],
+      cards: [...current.cards.filter((card) => card.term || card.definition), ...cards.map(card => applyDetectedQuestionType(card))],
     }));
     setPasteImport("");
     notify(`${cards.length} card${cards.length === 1 ? "" : "s"} imported${quizResultCards.length ? " from quiz results" : htmlCards.length ? " from Quizlet HTML" : ""}.`);
@@ -3111,6 +3118,10 @@ export default function Flashbolt() {
                             </div>
                           </header>
                           <div className="card-question-type">
+                            <label className="auto-question-type"><input type="checkbox" checked={card.questionTypeMode !== "manual"} onChange={event => {
+                              const questionTypeMode = event.target.checked ? "auto" : "manual";
+                              setDraft(current => ({ ...current, cards: current.cards.map(item => item.id === card.id ? applyDetectedQuestionType({ ...item, questionTypeMode }) : item) }));
+                            }} /><span>Auto-detect from question</span></label>
                             <label><span>Question type</span><select value={cardQuestionType(card)} onChange={(event) => setDraftCardQuestionType(card, event.target.value as CardQuestionType)}><option value="flashcard">Flashcard</option><option value="multiple-choice">Multiple choice</option><option value="true-false">True or false</option><option value="select-all">Select all that apply</option><option value="written">Written answer</option><option value="matching">Matching</option></select></label>
                             <small>{cardQuestionType(card) === "matching" ? "Create pairs learners will match." : cardQuestionType(card) === "written" ? "Learners type the definition." : cardQuestionType(card) === "flashcard" ? "Reveal the definition after recalling it." : "Enter choices and mark the correct answer."}</small>{cardQuestionType(card) === "flashcard" && <button type="button" className="quick-add-choices" onClick={() => setDraftCardQuestionType(card, "multiple-choice")}>＋ Add answer choices</button>}
                           </div>

@@ -7448,3 +7448,7 @@ kbd {
   .folder-filter-actions > * { flex: 1 1 180px; }
   .compact-filter-sort > summary { min-width: 0; }
 }
+
+.card-question-type .auto-question-type { flex-basis: 100%; }
+.card-question-type .auto-question-type input { width: 18px; height: 18px; padding: 0; accent-color: var(--primary-strong); }
+.card-question-type .auto-question-type > span { font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none; }
