@@ -2750,6 +2750,7 @@ code {
 }
 
 .form-card label,
+.set-metadata-field,
 .modal-field,
 .guide-input-card label {
   display: grid;
@@ -2757,6 +2758,7 @@ code {
 }
 
 .form-card label > span,
+.set-metadata-field > .set-field-label,
 .modal-field > span,
 .guide-input-card label > span,
 .import-panel h3 + p,
@@ -2768,13 +2770,15 @@ code {
   text-transform: uppercase;
 }
 
-.form-card label > span small {
+.form-card label > span small,
+.set-metadata-field .set-field-label small {
   color: var(--faint);
   font-weight: 500;
   text-transform: none;
 }
 
-.form-card label > span.set-field-label {
+.form-card label > span.set-field-label,
+.set-metadata-field > .set-field-label {
   display: flex;
   min-width: 0;
   align-items: center;
@@ -2782,9 +2786,14 @@ code {
   gap: 10px;
 }
 
-.set-field-label > b {
+.set-field-label > b,
+.set-field-label > label {
   flex: 0 0 auto;
   font-size: inherit;
+}
+
+.form-card .set-field-label > label {
+  display: block;
 }
 
 .set-field-label button,
