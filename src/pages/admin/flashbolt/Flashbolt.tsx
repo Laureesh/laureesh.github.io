@@ -1,5 +1,7 @@
 
 import "./Flashbolt.css";
+import SemesterVisibilityControls from "./SemesterVisibilityControls";
+import { mergeSemesterVisibility, normalizeSemesterVisibility, type SemesterVisibility } from "./semesterVisibility";
 import MasteryFilterControls from "./MasteryFilterControls";
 import { DEFAULT_MASTERY_FILTER, MASTERY_FILTER_KEY, masteryPercentage, matchesMasteryFilter, normalizeMasteryFilter } from "./masteryFilter";
 import InlineSetDetails from "./InlineSetDetails";
@@ -133,6 +135,7 @@ type Folder = {
 };
 
 type AppData = {
+  semesterVisibility?: SemesterVisibility;
   sets: StudySet[];
   folders: Folder[];
   mastered: Record<string, string[]>;
@@ -590,6 +593,7 @@ function withDataDefaults(value: AppData): AppData {
   return {
     ...value,
     sets: normalizedSets,
+    semesterVisibility: normalizeSemesterVisibility(value.semesterVisibility),
     folders: value.folders.map((folder) => ({
       ...folder,
       setIds: [...new Set(folder.setIds)].filter((setId) => setIds.has(setId)),
@@ -627,6 +631,7 @@ function mergeLibraries(cloud: AppData, local: AppData): AppData {
         .map((setId) => [setId, [...new Set([...(cloud.mastered[setId] ?? []), ...(local.mastered[setId] ?? [])])]]),
     ),
     sessions: Math.max(cloud.sessions, local.sessions),
+    semesterVisibility: mergeSemesterVisibility(cloud.semesterVisibility, local.semesterVisibility),
     learnProgress: { ...(cloud.learnProgress ?? {}), ...(local.learnProgress ?? {}) },
     activeLearn: local.activeLearn ?? cloud.activeLearn,
   });
@@ -1253,6 +1258,14 @@ export default function Flashbolt() {
       .sort(([a], [b]) => semesterRank(b) - semesterRank(a))
       .map(([semester, folders]) => ({ semester, folders }));
   }, [foldersBySetCount]);
+  const visibleSemesterGroups = folderSemesterGroups.filter(group => !data.semesterVisibility?.[group.semester]?.hidden);
+  function setSemesterHidden(semester: string, hidden: boolean) {
+    setData(current => ({ ...current, semesterVisibility: {
+      ...(current.semesterVisibility ?? {}),
+      [semester]: { hidden, updatedAt: Math.max(Date.now(), (current.semesterVisibility?.[semester]?.updatedAt ?? 0) + 1) },
+    } }));
+  }
+  const semesterVisibilityControls = <SemesterVisibilityControls semesters={folderSemesterGroups.map(group => group.semester)} preferences={data.semesterVisibility ?? {}} onChange={setSemesterHidden} />;
   const draftFolderOptions = useMemo(() => [...data.folders].sort((a, b) =>
     b.setIds.length - a.setIds.length || LIBRARY_COLLATOR.compare(a.name, b.name),
   ), [data.folders]);
@@ -2850,6 +2863,7 @@ export default function Flashbolt() {
                     <span>Browse by folder</span>
                     <small>{data.folders.length} folder{data.folders.length === 1 ? "" : "s"}</small>
                   </div>
+                  {semesterVisibilityControls}
                   <div className="folder-chips" role="group" aria-label="Filter library by folder">
                     <button
                       className={!selectedFolderId ? "active" : ""}
@@ -2861,7 +2875,7 @@ export default function Flashbolt() {
                       <span className="folder-filter-name">All sets</span>
                       <span className="folder-filter-count">{data.sets.length}</span>
                     </button>
-                    {folderSemesterGroups.map((group) => <section className="folder-semester-group" key={group.semester}>
+                    {visibleSemesterGroups.map((group) => <section className="folder-semester-group" key={group.semester}>
                       <h3>{group.semester}<small>{group.folders.length} folder{group.folders.length === 1 ? "" : "s"}</small></h3>
                       <div className="folder-semester-chips">{group.folders.map((item) => (
                         <Link className={selectedFolderId === item.id ? "active" : ""} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name} key={item.id} to={folderPath(item)}>
@@ -2958,9 +2972,10 @@ export default function Flashbolt() {
                 <div><span className="eyebrow">Folders</span><h1>Organize your way.</h1><p>Group related sets without sharing anything publicly.</p></div>
                 <button className="button primary" onClick={openNewFolderModal}>＋ New folder</button>
               </div>
+              {semesterVisibilityControls}
               {data.folders.length ? (
                 <div className="folder-semester-sections">
-                  {folderSemesterGroups.map((group) => <section className="folder-page-semester" key={group.semester}>
+                  {visibleSemesterGroups.map((group) => <section className="folder-page-semester" key={group.semester}>
                     <div className="folder-semester-title"><div><span className="eyebrow">Semester</span><h2>{group.semester}</h2></div><small>{group.folders.length} folder{group.folders.length === 1 ? "" : "s"}</small></div>
                     <div className="folder-grid">{group.folders.map((item) => (
                     <article key={item.id} className="folder-tile" onClick={() => openFolder(item)}>
