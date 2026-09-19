@@ -1172,7 +1172,7 @@ export default function Flashbolt() {
   const editorFolder = editingSetId
     ? data.folders.find((folderItem) => folderItem.id === selectedFolderId && folderItem.setIds.includes(editingSetId))
       ?? data.folders.find((folderItem) => folderItem.setIds.includes(editingSetId))
-    : undefined;
+    : data.folders.find((folderItem) => folderItem.id === createOriginFolderId);
   const editingFolder = data.folders.find((item) => item.id === editingFolderId);
   const recentSourceSet = data.sets[0];
   const recentSetValues = data.recentSetValues ?? (recentSourceSet ? {
@@ -1516,6 +1516,7 @@ export default function Flashbolt() {
     setNotebookDraftStorageKey("");
     setEditingSetId(null);
     setCreateOriginFolderId(originFolderId);
+    setSelectedFolderId(originFolderId);
     setDraftFolderSearch("");
     setDraftFolderIds(originFolderId
       ? [originFolderId]
@@ -2568,7 +2569,10 @@ export default function Flashbolt() {
               <Link className="set-tile-open" to={routePathForView("set", set.id)} aria-label={`Open ${set.title}`}><span className="visually-hidden">Open {set.title}</span></Link>
               <span className={`set-accent ${set.color}`} />
               <span className="tile-kicker"><span>{set.subject || "General"}</span><span>{formatDate(set.updatedAt)}</span></span>
-              <strong className="set-tile-title">{set.title}</strong>
+              <div className="set-tile-title-row">
+                <strong className="set-tile-title">{set.title}</strong>
+                <a className="set-tile-edit" href={routePathForView("create", set.id)} onClick={(event) => followFlashboltLink(event, () => startEdit(set))} aria-label={`Edit ${set.title}`}>✎ Edit</a>
+              </div>
               <span className="tile-description">{set.description || "Your private flashcard set."}</span>
               {set.kahootUrl && isSafeKahootUrl(set.kahootUrl) && <a className="tile-kahoot-link" href={set.kahootUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()} aria-label={`Open Kahoot for ${set.title}`}>◆ Open Kahoot <span>↗</span></a>}
               <div className="tile-folder-control" data-tile-folder-picker={set.id}>

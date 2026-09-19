@@ -1581,6 +1581,38 @@ select:focus-visible {
   text-transform: uppercase;
 }
 
+.set-tile-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.set-tile-title-row .set-tile-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.set-tile-edit {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--primary-strong);
+  background: var(--panel-2);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.set-tile-edit:hover,
+.set-tile-edit:focus-visible {
+  border-color: var(--primary-strong);
+  background: var(--primary-soft);
+}
+
 .set-tile-title {
   display: block;
   overflow-wrap: anywhere;
