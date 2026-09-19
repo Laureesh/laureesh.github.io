@@ -1265,7 +1265,7 @@ export default function Flashbolt() {
       [semester]: { hidden, updatedAt: Math.max(Date.now(), (current.semesterVisibility?.[semester]?.updatedAt ?? 0) + 1) },
     } }));
   }
-  const semesterVisibilityControls = <SemesterVisibilityControls semesters={folderSemesterGroups.map(group => group.semester)} preferences={data.semesterVisibility ?? {}} onChange={setSemesterHidden} />;
+  const semesterVisibilityControls = <SemesterVisibilityControls compact={view === "library"} semesters={folderSemesterGroups.map(group => group.semester)} preferences={data.semesterVisibility ?? {}} onChange={setSemesterHidden} />;
   const draftFolderOptions = useMemo(() => [...data.folders].sort((a, b) =>
     b.setIds.length - a.setIds.length || LIBRARY_COLLATOR.compare(a.name, b.name),
   ), [data.folders]);
@@ -2787,7 +2787,7 @@ export default function Flashbolt() {
         </header>
 
         <main className="workspace">
-          {(view === "library" || view === "home" || Boolean(search)) && <MasteryFilterControls value={masteryFilter} onChange={setMasteryFilter} shown={!search && view === "home" ? recentSets.length : visibleSets.length} total={!search && view === "home" ? data.sets.length : filteredSets.length} />}
+          {view !== "library" && (view === "home" || Boolean(search)) && <MasteryFilterControls value={masteryFilter} onChange={setMasteryFilter} shown={!search && view === "home" ? recentSets.length : visibleSets.length} total={!search && view === "home" ? data.sets.length : filteredSets.length} />}
           {search && view !== "library" && (
             <section className="search-results-panel">
               <div className="section-heading"><div><span className="eyebrow">Search</span><h2>Results for “{search}”</h2></div><button className="text-button" onClick={() => navigate("library")}>Open library</button></div>
@@ -2863,8 +2863,8 @@ export default function Flashbolt() {
                     <span>Browse by folder</span>
                     <small>{data.folders.length} folder{data.folders.length === 1 ? "" : "s"}</small>
                   </div>
-                  {semesterVisibilityControls}
-                  <div className="folder-chips" role="group" aria-label="Filter library by folder">
+                  <div className="library-filter-row">
+                  <div className="folder-chips library-all-sets">
                     <button
                       className={!selectedFolderId ? "active" : ""}
                       aria-pressed={!selectedFolderId}
@@ -2875,6 +2875,11 @@ export default function Flashbolt() {
                       <span className="folder-filter-name">All sets</span>
                       <span className="folder-filter-count">{data.sets.length}</span>
                     </button>
+                  </div>
+                  {semesterVisibilityControls}
+                  <MasteryFilterControls compact="chip" value={masteryFilter} onChange={setMasteryFilter} shown={visibleSets.length} total={filteredSets.length} />
+                  </div>
+                  <div className="folder-chips" role="group" aria-label="Filter library by folder">
                     {visibleSemesterGroups.map((group) => <section className="folder-semester-group" key={group.semester}>
                       <h3>{group.semester}<small>{group.folders.length} folder{group.folders.length === 1 ? "" : "s"}</small></h3>
                       <div className="folder-semester-chips">{group.folders.map((item) => (
@@ -2926,6 +2931,7 @@ export default function Flashbolt() {
               </div>}
               {folder && <div className="folder-dedicated-toolbar">
                 <span><i style={{ "--folder-color": folder.color ?? FOLDER_COLORS[0] } as CSSProperties} />Showing only <strong>{folder.name}</strong></span>
+                <div className="folder-filter-actions">
                 <label className="library-sort-control">
                   <span className="library-sort-icon" aria-hidden="true">⇅</span>
                   <span className="library-sort-field"><small>Sort by</small><select value={librarySort} onChange={(event) => setLibrarySort(event.target.value as LibrarySort)} aria-label={`Sort sets in ${folder.name}`}>
@@ -2949,6 +2955,8 @@ export default function Flashbolt() {
                     <option value="filed-first">Filed first</option>
                   </select></span>
                 </label>
+                <MasteryFilterControls compact="sort" value={masteryFilter} onChange={setMasteryFilter} shown={visibleSets.length} total={filteredSets.length} />
+                </div>
               </div>}
               {folder && visibleSets.length ? (
                 <div className="folder-subject-sections">

@@ -7372,3 +7372,79 @@ kbd {
 .semester-visibility-options { display: flex; flex-wrap: wrap; gap: 10px 18px; }
 .semester-visibility-options label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .semester-visibility-options input { width: 18px; height: 18px; padding: 0; accent-color: var(--primary-strong); }
+
+.library-filter-row, .folder-filter-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.library-filter-row { margin: 12px 0; }
+.library-filter-row .library-all-sets { padding: 0; }
+.library-filter-row .compact-semester-visibility {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.compact-mastery-filter > summary,
+.compact-semester-visibility > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 43px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 750;
+  cursor: pointer;
+  list-style: none;
+}
+.compact-mastery-filter > summary::-webkit-details-marker,
+.compact-semester-visibility > summary::-webkit-details-marker { display: none; }
+.compact-mastery-filter > summary:hover,
+.compact-semester-visibility > summary:hover,
+.compact-mastery-filter[open] > summary,
+.compact-semester-visibility[open] > summary { border-color: var(--primary-strong); background: var(--panel-2); }
+.compact-semester-visibility > summary > span { margin: 0; font-size: 12px; }
+.compact-mastery-filter > summary small { color: var(--muted); font-size: 12px; }
+.compact-filter-sort > summary {
+  min-width: 210px;
+  min-height: 77px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border-color: color-mix(in srgb, var(--primary-strong) 48%, var(--line));
+}
+.folder-filter-actions > .library-sort-control { min-height: 77px; }
+.compact-filter-copy { display: grid; gap: 4px; }
+.compact-filter-sort .compact-filter-copy > span { color: var(--faint); font-size: 16px; font-weight: 900; letter-spacing: .8px; text-transform: uppercase; }
+.compact-filter-sort .compact-filter-copy > strong { font-size: 17px; }
+.compact-filter-popover {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  left: 0;
+  width: min(480px, 100%);
+  max-height: min(65vh, 550px);
+  overflow: auto;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .3);
+}
+.folder-filter-actions .compact-filter-popover { left: auto; right: 0; }
+.compact-filter-popover .mastery-filter { margin: 0; padding: 0; border: 0; }
+.compact-filter-popover .mastery-filter-fields > label:first-child { flex-basis: 100%; }
+.compact-filter-popover .mastery-filter-fields select { width: 100%; }
+.semester-visibility-panel p { margin-top: 0; }
+@media (max-width: 600px) {
+  .folder-filter-actions { width: 100%; }
+  .folder-filter-actions > * { flex: 1 1 180px; }
+  .compact-filter-sort > summary { min-width: 0; }
+}
