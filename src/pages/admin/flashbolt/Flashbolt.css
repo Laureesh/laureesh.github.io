@@ -1593,7 +1593,7 @@ select:focus-visible {
   overflow-wrap: anywhere;
 }
 
-.set-tile-edit {
+.set-tile-quick-edit {
   position: relative;
   z-index: 2;
   flex-shrink: 0;
@@ -1607,8 +1607,8 @@ select:focus-visible {
   text-decoration: none;
 }
 
-.set-tile-edit:hover,
-.set-tile-edit:focus-visible {
+.set-tile-quick-edit:hover,
+.set-tile-quick-edit:focus-visible {
   border-color: var(--primary-strong);
   background: var(--primary-soft);
 }
@@ -7299,4 +7299,36 @@ kbd {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+.set-tile-inline-editor {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.set-tile-inline-editor label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.set-tile-inline-editor :is(input, textarea, select) {
+  width: 100%;
+  min-width: 0;
+}
+
+.set-tile-inline-editor [role="alert"] {
+  margin: 0;
+  color: var(--coral);
+}
+
+.set-tile-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
