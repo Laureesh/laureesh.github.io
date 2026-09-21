@@ -53,7 +53,7 @@ export default function StepControls({ steps, onChange, onEdit, onUndo, canUndo 
         <article>
           <h3>Main heading</h3>
           <div className="step-guide-heading">Lab Steps — Easy Version</div>
-          <p>Type a heading in the note, place your cursor on that line, and choose <strong>Heading 1</strong> for a large heading or <strong>Heading 2</strong> for a smaller one.</p>
+          <p>Type a heading in the note, place your cursor on that line, and choose <strong>Heading 1</strong> for a large heading or <strong>Heading 2</strong> for a smaller one. Main headings are white by default. Select a word or phrase and choose <strong>Text color</strong> in the toolbar to change its color.</p>
         </article>
         <article>
           <h3>Numbered instructions</h3>
