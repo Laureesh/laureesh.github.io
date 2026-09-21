@@ -79,6 +79,14 @@
 .note-list-row { position:relative; border-top:1px solid var(--nb-line); }
 .note-list-row.active { background:#252942; box-shadow:inset 3px 0 var(--nb-accent); }
 .note-list-row>a { display:grid; gap:5px; padding:14px 42px 14px 16px; color:var(--nb-text); text-decoration:none; }
+.note-list-heading { display:flex; align-items:flex-start; gap:10px; }
+.note-list .note-list-number { flex-shrink:0; display:grid; place-items:center; min-width:30px; height:28px; padding:0 5px; border:1px solid #7c6cff30; border-radius:8px; background:#7c6cff0d; color:#aaa2ed; font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:.04em; line-height:1; }
+.note-list-title { min-width:0; padding-top:2px; line-height:1.4; }
+.note-list .note-list-pin { color:#c4b5fd; }
+.note-list-row.active .note-list-number { border-color:#a99fff70; background:#7c6cff30; color:#e1dcff; }
+.note-list-row:hover { background:#7c6cff0a; }
+.note-list-row.active:hover { background:#292d48; }
+.note-list-row>a:focus-visible { outline:2px solid #b8b0ff; outline-offset:-3px; border-radius:4px; }
 .note-more { position:absolute; top:10px; right:6px; width:30px; height:30px; border:1px solid var(--nb-line); border-radius:6px; background:var(--nb-panel2); color:var(--nb-text); cursor:pointer; }
 .note-list-summary { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:0 16px 12px; font-size:12px; color:var(--nb-muted); }
 .note-list-summary strong { color:var(--nb-text); overflow-wrap:anywhere; }
