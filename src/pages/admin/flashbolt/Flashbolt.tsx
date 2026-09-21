@@ -1,5 +1,8 @@
 
 import "./Flashbolt.css";
+import ReviewToday from "./ReviewToday";
+import StudySummary, { StudyExplanation } from "./StudySummary";
+import { mergeReviewProgress } from "./review-engine";
 import { applyDetectedQuestionType } from "./questionTypeDetection";
 import SemesterVisibilityControls from "./SemesterVisibilityControls";
 import { mergeSemesterVisibility, normalizeSemesterVisibility, type SemesterVisibility } from "./semesterVisibility";
@@ -62,6 +65,7 @@ type LearnSessionSnapshot = {
   goal: LearnGoal;
   options: LearnOptions;
   sessionIds: string[];
+  missedIds?: string[];
   roundIds: string[];
   pendingIds: string[];
   retryIds: string[];
@@ -76,6 +80,7 @@ type Card = {
   id: string;
   term: string;
   definition: string;
+  explanation?: string;
   answerChoices?: string[];
   correctAnswers?: string[];
   questionTypeMode?: "auto" | "manual";
@@ -149,7 +154,7 @@ type AppData = {
   activeLearn?: LearnSessionSnapshot;
 };
 
-type View = "home" | "library" | "folders" | "create" | "set" | "learn" | "test" | "guide" | "helper";
+type View = "review" | "home" | "library" | "folders" | "create" | "set" | "learn" | "test" | "guide" | "helper";
 type StorageStatus = "loading" | "saved" | "error";
 type ThemeName = "dark" | "extreme" | "light" | "white" | "ocean" | "forest" | "sunset";
 type LibrarySort =
@@ -589,7 +594,7 @@ function prepareDraftCard(card: Card): Card | null {
 function withDataDefaults(value: AppData): AppData {
   const normalizedSets = value.sets.map((set) => ({
     ...set,
-    cards: set.cards.map(withDetectedAnswerChoices),
+    cards: set.cards.map(card => withDetectedAnswerChoices({ ...card, explanation: typeof card.explanation === "string" ? card.explanation : undefined })),
   }));
   const setIds = new Set(normalizedSets.map((set) => set.id));
   const cardIdsBySet = new Map(normalizedSets.map((set) => [set.id, new Set(set.cards.map((card) => card.id))]));
@@ -635,7 +640,7 @@ function mergeLibraries(cloud: AppData, local: AppData): AppData {
     ),
     sessions: Math.max(cloud.sessions, local.sessions),
     semesterVisibility: mergeSemesterVisibility(cloud.semesterVisibility, local.semesterVisibility),
-    learnProgress: { ...(cloud.learnProgress ?? {}), ...(local.learnProgress ?? {}) },
+    learnProgress: mergeReviewProgress(cloud.learnProgress, local.learnProgress),
     activeLearn: local.activeLearn ?? cloud.activeLearn,
   });
 }
@@ -861,6 +866,8 @@ export default function Flashbolt() {
   const [learnFlashRevealed, setLearnFlashRevealed] = useState(false);
   const [testAnswers, setTestAnswers] = useState<Record<string, string>>({});
   const [testSubmitted, setTestSubmitted] = useState(false);
+  const [testCardIds, setTestCardIds] = useState<string[] | null>(null);
+  const [learnMissedIds, setLearnMissedIds] = useState<string[]>([]);
   const [guideTitle, setGuideTitle] = useState("My study guide");
   const [guideNotes, setGuideNotes] = useState("");
   const [generatedCards, setGeneratedCards] = useState<Card[]>([]);
@@ -998,7 +1005,7 @@ export default function Flashbolt() {
       setResolvedRoutePath(location.pathname);
       return;
     }
-    if (routeParts.length === 1 && ["home", "library", "folders", "create", "guide", "helper"].includes(routeParts[0])) {
+    if (routeParts.length === 1 && ["home", "review", "library", "folders", "create", "guide", "helper"].includes(routeParts[0])) {
       handledRouteRef.current = location.pathname;
       setView(routeParts[0] as View);
       if (routeParts[0] === "create" && userId) {
@@ -1348,7 +1355,9 @@ export default function Flashbolt() {
     return [...groups.values()].sort((a, b) => LIBRARY_COLLATOR.compare(a.subject, b.subject));
   }, [visibleSets]);
 
-  const testCards = selectedSet?.cards.slice(0, 8) ?? [];
+  const testCards = testCardIds ? (selectedSet?.cards.filter(card => testCardIds.includes(card.id)) ?? []) : (selectedSet?.cards.slice(0, 8) ?? []);
+  const testMissedCards = testCards.filter(card => normalizeAnswer(testAnswers[card.id] ?? "") !== normalizeAnswer(testCorrectAnswer(card)));
+  const learnMissedCards = selectedSet?.cards.filter(card => learnMissedIds.includes(card.id)) ?? [];
   const testScore = testCards.filter((card) => normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card))).length;
   const guideTitleSuggestions = useMemo(() => suggestNoteTitles(guideNotes), [guideNotes]);
   const currentLearnCard = selectedSet?.cards.find((card) => card.id === learnRoundIds[learnIndex]);
@@ -2187,6 +2196,7 @@ export default function Flashbolt() {
     const setId = typeof setIdOrEvent === "string" ? setIdOrEvent : selectedSetId;
     const questionFirstOptions = { ...learnOptions, multipleChoice: true, trueFalse: false, selectAll: false, written: false, flashcards: false, answerTerms: false, answerDefinitions: true };
     setLearnPhase("goal");
+    setLearnMissedIds([]);
     setLearnGoal("memorize");
     setLearnOptions(questionFirstOptions);
     setLearnOptionsDraft(questionFirstOptions);
@@ -2210,9 +2220,11 @@ export default function Flashbolt() {
     navigate("learn", setId);
   }
 
-  function beginLearnSession(goal = learnGoal, options = learnOptions) {
+  function beginLearnSession(goal = learnGoal, options = learnOptions, cardIds?: string[]) {
     if (!selectedSet?.cards.length) return;
-    const ids = selectedSet.cards.map((card) => card.id);
+    const ids = selectedSet.cards.filter(card => !cardIds || cardIds.includes(card.id)).map((card) => card.id);
+    if (!ids.length) return;
+    setLearnMissedIds([]);
     const cardProgress = data.learnProgress?.[selectedSet.id]?.cards ?? {};
     const orderedIds = rankAdaptiveCardIds(ids, cardProgress, options.shuffle);
     const firstRoundIds = orderedIds.slice(0, 7);
@@ -2244,6 +2256,7 @@ export default function Flashbolt() {
         goal,
         options,
         sessionIds: orderedIds,
+        missedIds: [],
         roundIds: firstRoundIds,
         pendingIds,
         retryIds: [],
@@ -2259,6 +2272,7 @@ export default function Flashbolt() {
   function resumeLearnSession() {
     if (!selectedSet || !resumableLearn) return;
     const validIds = new Set(selectedSet.cards.map((card) => card.id));
+    setLearnMissedIds((resumableLearn.missedIds ?? []).filter(id => validIds.has(id)));
     const roundIds = resumableLearn.roundIds.filter((id) => validIds.has(id));
     if (!roundIds.length) {
       beginLearnSession(resumableLearn.goal, resumableLearn.options);
@@ -2314,7 +2328,8 @@ export default function Flashbolt() {
     if (!selectedSet || !currentLearnCard || learnAnswer) return;
     const previousProgress = selectedLearnProgress[currentLearnCard.id] ?? EMPTY_LEARN_CARD_PROGRESS;
     const nextProgress = updateLearnCardProgress(previousProgress, correct, learnSequence);
-    setLearnAnswer(answer);
+    if (!correct) setLearnMissedIds(ids => ids.includes(currentLearnCard.id) ? ids : [...ids, currentLearnCard.id]);
+    setLearnAnswer(answer || "Answered");
     setLearnLastCorrect(correct);
     setLearnLastConfidence(nextProgress.confidence);
     playLearnSound(correct);
@@ -2335,6 +2350,7 @@ export default function Flashbolt() {
       return {
         ...current,
         mastered: { ...current.mastered, [selectedSet.id]: nextMastered },
+        activeLearn: current.activeLearn?.setId === selectedSet.id ? { ...current.activeLearn, missedIds: !correct ? [...new Set([...(current.activeLearn.missedIds ?? []), currentLearnCard.id])] : current.activeLearn.missedIds } : current.activeLearn,
         learnProgress: {
           ...(current.learnProgress ?? {}),
           [selectedSet.id]: {
@@ -2424,6 +2440,7 @@ export default function Flashbolt() {
         goal: learnGoal,
         options: learnOptions,
         sessionIds: learnSessionIds,
+        missedIds: learnMissedIds,
         roundIds: advance.roundIds,
         pendingIds: advance.pendingIds,
         retryIds: advance.retryIds,
@@ -2438,14 +2455,37 @@ export default function Flashbolt() {
 
   function startTest(setIdOrEvent?: string | ReactMouseEvent) {
     const setId = typeof setIdOrEvent === "string" ? setIdOrEvent : selectedSetId;
+    setTestCardIds(null);
     setTestAnswers({});
     setTestSubmitted(false);
     navigate("test", setId);
   }
 
+  function recordReviewResult(setId: string, cardId: string, correct: boolean) {
+    setData(current => {
+      if (!current.sets.some(set => set.id === setId && set.cards.some(card => card.id === cardId))) return current;
+      const previous = current.learnProgress?.[setId];
+      const progress = updateLearnCardProgress(previous?.cards[cardId], correct, 0);
+      return { ...current, learnProgress: { ...current.learnProgress, [setId]: { cards: { ...previous?.cards, [cardId]: progress }, updatedAt: progress.lastReviewedAt! } } };
+    });
+  }
+
+  function retryTestMistakes() {
+    setTestCardIds(testMissedCards.map(card => card.id));
+    setTestAnswers({});
+    setTestSubmitted(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function submitTest() {
+    if (testSubmitted || !selectedSet || !testCards.length || testCards.some(card => !testAnswers[card.id])) return;
     setTestSubmitted(true);
-    setData((current) => ({ ...current, sessions: current.sessions + 1 }));
+    setData((current) => {
+      const previous = current.learnProgress?.[selectedSet.id];
+      const cards = { ...previous?.cards };
+      testCards.forEach(card => { cards[card.id] = updateLearnCardProgress(cards[card.id], normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card)), 0); });
+      return { ...current, sessions: current.sessions + 1, learnProgress: { ...current.learnProgress, [selectedSet.id]: { cards, updatedAt: new Date().toISOString() } } };
+    });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -2739,6 +2779,7 @@ export default function Flashbolt() {
 
         <nav className="main-nav" aria-label="Main navigation">
           <Link title="Home" aria-label="Home" className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span className="nav-icon">⌂</span><span className="nav-label">Home</span></Link>
+          <Link title="Review today" aria-label="Review today" className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><span className="nav-icon">◴</span><span className="nav-label">Review today</span></Link>
           <Link title="Your library" aria-label="Your library" className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span className="nav-icon">▤</span><span className="nav-label">Your library</span></Link>
           <Link title="Folders" aria-label="Folders" className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span className="nav-icon">□</span><span className="nav-label">Folders</span></Link>
         </nav>
@@ -2802,8 +2843,11 @@ export default function Flashbolt() {
             </section>
           )}
 
+          {!search && view === "review" && <ReviewToday sets={data.sets} progress={data.learnProgress ?? {}} onAnswer={recordReviewResult} onComplete={() => setData(current => ({ ...current, sessions: current.sessions + 1 }))} />}
+
           {!search && view === "home" && (
             <>
+              <Link className="review-home-link" to={`${FLASHBOLT_BASE}/review`}><span>◴</span><div><strong>Review today</strong><p>Due cards, tricky questions, and a fresh start.</p></div><b>→</b></Link>
               <section className="welcome-row">
                 <div>
                   <span className="eyebrow">Your private study space</span>
@@ -3163,6 +3207,7 @@ export default function Flashbolt() {
                           {cardQuestionType(card) === "matching" && (
                             <div className="matching-pair-editor"><span>Matching pairs</span><div>{(card.matchingPairs ?? []).map((pair, pairIndex) => <div className="matching-pair-row" key={pair.id}><b>{String.fromCharCode(65 + pairIndex)}</b><input value={pair.left} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, left: event.target.value } : item) })} placeholder="Prompt" /><span>↔</span><input value={pair.right} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, right: event.target.value } : item) })} placeholder="Match" /><button type="button" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.filter((item) => item.id !== pair.id) })} disabled={(card.matchingPairs?.length ?? 0) <= 2} aria-label={`Remove matching pair ${pairIndex + 1}`}>×</button></div>)}</div>{(card.matchingPairs?.length ?? 0) < 26 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: [...(card.matchingPairs ?? []), { id: makeId("pair"), left: "", right: "" }] })}>＋ Add matching pair</button>}</div>
                           )}
+                          <label className="card-explanation-field"><span>Explanation <small>optional · shown after answering</small></span><textarea value={card.explanation ?? ""} onChange={event => updateDraftCardExtras(card.id, { explanation: event.target.value })} placeholder="Explain why this answer is correct, or add a memory tip…" rows={2} /></label>
                           {card.imageData && <div className="card-image-preview"><img width={74} height={58} src={card.imageData} alt={card.imageName ? `Attached ${card.imageName}` : "Attached card image"} /><span>{card.imageName}</span><button onClick={() => updateDraftCardExtras(card.id, { imageData: undefined, imageName: undefined })} aria-label={`Remove image from card ${index + 1}`}>Remove image</button></div>}
                         </article>
                         <button className="insert-card-button" onClick={() => addDraftCard(card.id)} aria-label={`Add a card after card ${index + 1}`}><span>＋</span></button>
@@ -3246,6 +3291,7 @@ export default function Flashbolt() {
                     {currentFlashcard.imageData && <img width={320} height={185} className="flashcard-image" src={currentFlashcard.imageData} alt={currentFlashcard.imageName ? `Study aid: ${currentFlashcard.imageName}` : "Study aid"} />}
                     <small>{flipped ? "Tap to see the question" : "Tap to reveal the answer"}</small>
                   </button>
+                  {flipped && <StudyExplanation text={currentFlashcard.explanation} />}
                   <div className="flash-controls"><button onClick={() => { setFlashIndex(Math.max(flashIndex - 1, 0)); setFlipped(false); }} disabled={flashIndex === 0} aria-label="Previous card">←</button><button className="flip-hint" onClick={() => setFlipped((value) => !value)}>Flip card <kbd>Space</kbd></button><button onClick={() => { setFlashIndex(Math.min(flashIndex + 1, selectedSet.cards.length - 1)); setFlipped(false); }} disabled={flashIndex === selectedSet.cards.length - 1} aria-label="Next card">→</button></div>
                 </div>
                 <aside className="study-side-panel">
@@ -3321,7 +3367,7 @@ export default function Flashbolt() {
                   <div className="learn-question-shell">
                     <div className="learn-mastery-overview compact" aria-label="Adaptive knowledge levels"><span><i className="level-new" />New <b>{learnStatusCounts.new}</b></span><span><i className="level-learning" />Learning <b>{learnStatusCounts.learning}</b></span><span><i className="level-familiar" />Familiar <b>{learnStatusCounts.familiar}</b></span><span><i className="level-mastered" />Mastered <b>{learnStatusCounts.mastered}</b></span></div>
                     <div className="learn-question-meta"><span>Adaptive round {learnRound}</span><span>{learnRetryIds.length ? `${learnRetryIds.length} weak card${learnRetryIds.length === 1 ? "" : "s"} queued` : `${learnRoundIds.length - learnIndex} left in this round`}</span></div>
-                    <div className={`question-card ${learnAnswer ? "ready-to-continue" : ""}`} onClick={(event) => { if (!learnAnswer || event.target instanceof Element && event.target.closest("button, input, textarea, select, a, label")) return; const retypeRequired = !learnLastCorrect && learnOptions.retypeCorrectAnswers; if (retypeRequired && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer)) return; nextLearnQuestion(); }}>
+                    <div className={`question-card ${learnAnswer ? "ready-to-continue" : ""}`} onClick={(event) => { if (!learnAnswer || event.target instanceof Element && event.target.closest("button, input, textarea, select, a, label, .study-explanation")) return; const retypeRequired = !learnLastCorrect && learnOptions.retypeCorrectAnswers; if (retypeRequired && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer)) return; nextLearnQuestion(); }}>
                       <div className="learn-question-stage"><span className="eyebrow">{currentLearnQuestionKind === "written" ? `Write the ${currentLearnAnswerSide}` : currentLearnQuestionKind === "true-false" ? "True or false" : currentLearnQuestionKind === "select-all" ? "Select all that apply" : currentLearnQuestionKind === "flashcard" ? "Recall, then reveal" : `Choose the ${currentLearnAnswerSide}`}</span><span>{learnConfidenceLabel(learnQuestionConfidence)} · stage {Math.min(3, learnQuestionConfidence + 1)}</span></div>
                       <h1>{currentLearnPrompt}</h1>
                       {learnOptions.showImagesOnQuestions && currentLearnCard.imageData && <img width={320} height={185} className="learn-question-image" src={currentLearnCard.imageData} alt={currentLearnCard.imageName ?? "Question study aid"} />}
@@ -3346,13 +3392,14 @@ export default function Flashbolt() {
                         {learnOptions.showImagesOnAnswers && currentLearnCard.imageData && <img width={74} height={58} className="learn-feedback-image" src={currentLearnCard.imageData} alt="Answer study aid" />}
                         <div className="learn-continue-action"><small>Press any key or click to continue</small><button className="button primary" onClick={nextLearnQuestion} disabled={!learnLastCorrect && learnOptions.retypeCorrectAnswers && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer)}>{learnIndex === learnRoundIds.length - 1 && learnRetryIds.length ? "Retry missed" : learnIndex === learnRoundIds.length - 1 && learnPendingIds.length ? "Next round" : learnIndex === learnRoundIds.length - 1 ? "Finish" : "Next question"} →</button></div>
                       </div>}
+                      {(learnAnswer || learnFlashRevealed) && <StudyExplanation text={currentLearnCard.explanation} />}
                     </div>
                   </div>
                 </>
               )}
 
               {learnPhase === "complete" && (
-                <div className="results-card learn-complete"><span className="result-burst">✓</span><span className="eyebrow">100% goal reached</span><h1>You completed the adaptive path.</h1><p className="learn-complete-count"><strong>{learnQuestionsAnswered}</strong> questions answered across <strong>{learnRound}</strong> adaptive round{learnRound === 1 ? "" : "s"}.</p><p>Every card reached the {learnGoal === "cram" ? "familiar" : "mastered"} level. Weak cards repeated, stronger cards advanced to harder recall, and your progress was queued for account sync.</p><div className="button-row center"><button className="button primary" onClick={() => beginLearnSession(learnGoal)}>Practice again</button><button className="button quiet" onClick={() => navigate("set")}>Back to set</button></div></div>
+                <><div className="results-card learn-complete"><span className="result-burst">✓</span><span className="eyebrow">100% goal reached</span><h1>You completed the adaptive path.</h1><p className="learn-complete-count"><strong>{learnQuestionsAnswered}</strong> questions answered across <strong>{learnRound}</strong> adaptive round{learnRound === 1 ? "" : "s"}.</p><p>Every card reached the {learnGoal === "cram" ? "familiar" : "mastered"} level. Weak cards repeated, stronger cards advanced to harder recall, and your progress was queued for account sync.</p><div className="button-row center"><button className="button primary" onClick={() => beginLearnSession(learnGoal)}>Practice again</button><button className="button quiet" onClick={() => navigate("set")}>Back to set</button></div></div><StudySummary missed={learnMissedCards} onRetry={() => beginLearnSession(learnGoal, learnOptions, learnMissedIds)} /></>
               )}
 
               {learnOptionsOpen && <div className="modal-backdrop learn-options-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setLearnOptionsOpen(false); }}><div className="learn-options-modal" role="dialog" aria-modal="true" aria-labelledby="learn-options-title">
@@ -3370,19 +3417,21 @@ export default function Flashbolt() {
           {!search && view === "test" && selectedSet && (
             <section className="test-page">
               <div className="page-heading split compact"><div><Link className="back-link" to={routePathForView("set", selectedSet.id)}>← Back to set</Link><span className="eyebrow">Practice test</span><h1>{selectedSet.title}</h1><p>{testCards.length} questions generated from your flashcards.</p></div>{testSubmitted && <div className="test-score"><strong>{testScore}/{testCards.length}</strong><span>{Math.round((testScore / Math.max(1, testCards.length)) * 100)}% score</span></div>}</div>
+              {testSubmitted && <StudySummary missed={testMissedCards} onRetry={retryTestMistakes} />}
               <div className="test-list">
                 {testCards.map((card, cardIndex) => (
                   <article key={card.id} className={testSubmitted ? (normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card)) ? "correct-card" : "incorrect-card") : ""}>
                     <header><span>Question {cardIndex + 1}</span>{testSubmitted && <b>{normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card)) ? "Correct" : "Review"}</b>}</header>
                     <h2>{card.term}</h2>
                     <div className="test-options">
-                      {answerOptions(selectedSet, cardIndex).map((option, optionIndex) => <label key={option} className={testSubmitted && normalizeAnswer(option) === normalizeAnswer(testCorrectAnswer(card)) ? "answer-key" : ""}><input type="radio" name={card.id} value={option} checked={testAnswers[card.id] === option} onChange={() => setTestAnswers((answers) => ({ ...answers, [card.id]: option }))} disabled={testSubmitted} /><span>{String.fromCharCode(65 + optionIndex)}</span><p>{option}</p></label>)}
+                      {answerOptions(selectedSet, selectedSet.cards.findIndex(item => item.id === card.id)).map((option, optionIndex) => <label key={option} className={testSubmitted && normalizeAnswer(option) === normalizeAnswer(testCorrectAnswer(card)) ? "answer-key" : ""}><input type="radio" name={card.id} value={option} checked={testAnswers[card.id] === option} onChange={() => setTestAnswers((answers) => ({ ...answers, [card.id]: option }))} disabled={testSubmitted} /><span>{String.fromCharCode(65 + optionIndex)}</span><p>{option}</p></label>)}
                     </div>
+                    {testSubmitted && <StudyExplanation text={card.explanation} />}
                     {testSubmitted && normalizeAnswer(testAnswers[card.id] ?? "") !== normalizeAnswer(testCorrectAnswer(card)) && <p className="test-explanation">Correct answer: <strong>{testCorrectAnswer(card)}</strong></p>}
                   </article>
                 ))}
               </div>
-              <div className="test-submit"><span>{Object.keys(testAnswers).length} of {testCards.length} answered</span>{testSubmitted ? <button className="button primary" onClick={startTest}>Retake test</button> : <button className="button primary" onClick={submitTest} disabled={Object.keys(testAnswers).length !== testCards.length}>Grade my test</button>}</div>
+              <div className="test-submit"><span>{Object.keys(testAnswers).length} of {testCards.length} answered</span>{testSubmitted ? <button className="button primary" onClick={startTest}>Retake test</button> : <button className="button primary" onClick={submitTest} disabled={!testCards.length || Object.keys(testAnswers).length !== testCards.length}>Grade my test</button>}</div>
             </section>
           )}
 
@@ -3434,7 +3483,7 @@ export default function Flashbolt() {
           )}
         </main>
 
-        <nav className="mobile-nav" aria-label="Mobile navigation"><Link className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span>⌂</span>Home</Link><Link className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span>▤</span>Library</Link><a className="mobile-create" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><span>＋</span></a><Link className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span>□</span>Folders</Link><Link to={`${FLASHBOLT_BASE}/guide`}><span>≡</span>Guide</Link></nav>
+        <nav className="mobile-nav" aria-label="Mobile navigation"><Link className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span>⌂</span>Home</Link><Link className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span>▤</span>Library</Link><a className="mobile-create" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><span>＋</span></a><Link className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span>□</span>Folders</Link><Link to={`${FLASHBOLT_BASE}/guide`}><span>≡</span>Guide</Link><Link className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><span>◴</span>Review</Link></nav>
       </div>
 
       {folderModalOpen && (

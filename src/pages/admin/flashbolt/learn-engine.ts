@@ -9,6 +9,8 @@ export type LearnCardProgress = {
   misses: number;
   correctStreak: number;
   lastSeenSequence: number;
+  lastReviewedAt?: string;
+  nextReviewAt?: string;
 };
 
 export const EMPTY_LEARN_CARD_PROGRESS: LearnCardProgress = {
@@ -47,6 +49,7 @@ export function updateLearnCardProgress(
   previous: LearnCardProgress | undefined,
   wasCorrect: boolean,
   sequence: number,
+  now = new Date(),
 ): LearnCardProgress {
   const current = previous ?? EMPTY_LEARN_CARD_PROGRESS;
   return {
@@ -56,6 +59,8 @@ export function updateLearnCardProgress(
     misses: current.misses + (wasCorrect ? 0 : 1),
     correctStreak: wasCorrect ? current.correctStreak + 1 : 0,
     lastSeenSequence: sequence,
+    lastReviewedAt: now.toISOString(),
+    nextReviewAt: new Date(now.getTime() + (wasCorrect ? Math.min(30, 2 ** Math.min(5, current.correctStreak)) * 86400000 : 10 * 60000)).toISOString(),
   };
 }
 

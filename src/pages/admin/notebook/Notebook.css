@@ -153,6 +153,9 @@
 .notebook-step-controls { margin:20px 0 0; padding:18px; border:1px solid var(--nb-line); border-radius:12px; background:var(--nb-panel); font:14px/1.5 Inter,system-ui,sans-serif; }
 .notebook-step-controls header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .notebook-step-controls header>div { display:grid; gap:3px; }
+.notebook-step-controls header>.step-panel-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
+.step-panel-actions button { white-space:nowrap; }
+.step-panel-actions button:focus-visible { outline:2px solid var(--nb-accent); outline-offset:3px; }
 .notebook-step-controls header strong { font-size:18px; }
 .notebook-step-controls :is(p,header span) { color:var(--nb-muted); }
 .notebook-step-controls progress { display:block; width:100%; height:6px; margin-top:12px; accent-color:var(--nb-mint); }

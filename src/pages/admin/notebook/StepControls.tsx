@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { isFinalCheckTitle, type StepChange } from "./stepLayout";
 
 function useRememberedSection(section: string) {
@@ -25,11 +25,14 @@ type Props = {
 };
 
 export default function StepControls({ steps, onChange, onEdit, onUndo, canUndo }: Props) {
+  const [panelOpen, setPanelOpen] = useRememberedSection("panel");
+  const panelId = useId();
   const [guideOpen, setGuideOpen] = useRememberedSection("formatting-guide");
   const [manageOpen, setManageOpen] = useRememberedSection("manage");
   const completed = steps.filter(step => step.completed).length;
   return <section className="notebook-step-controls" aria-label="Step controls">
-    <header><div><strong>Steps</strong><span aria-live="polite">{completed} of {steps.length} complete</span></div><button onClick={() => onChange({ type: "add", index: steps.length })}>＋ Add step</button></header>
+    <header><div><strong>Steps</strong><span aria-live="polite">{completed} of {steps.length} complete</span></div><div className="step-panel-actions">{panelOpen && <button onClick={() => onChange({ type: "add", index: steps.length })}>＋ Add step</button>}<button type="button" aria-expanded={panelOpen} aria-controls={panelId} aria-label={panelOpen ? "Minimize Steps section" : "Expand Steps section"} onClick={() => setPanelOpen(!panelOpen)}><span aria-hidden="true">{panelOpen ? "⌃" : "⌄"}</span> {panelOpen ? "Minimize" : "Expand"}</button></div></header>
+    <div id={panelId} hidden={!panelOpen}>
     <progress value={completed} max={Math.max(1, steps.length)} aria-label="Step completion" />
     <p>Edit titles below, or select Edit content to jump to a step’s instructions. Changes save automatically.</p>
     <details className="step-formatting-guide" open={guideOpen} onToggle={event => setGuideOpen(event.currentTarget.open)}>
@@ -88,5 +91,6 @@ export default function StepControls({ steps, onChange, onEdit, onUndo, canUndo 
       {!steps.length && <p>No steps yet. Use Add step to start again.</p>}
     </details>
     <button disabled={!canUndo} onClick={onUndo}>Undo last step change</button>
+    </div>
   </section>;
 }

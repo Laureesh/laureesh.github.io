@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Breadcrumbs from "./components/Breadcrumbs";
@@ -117,7 +117,7 @@ function pageTitleForPath(pathname: string) {
     const flashboltParts = parts.slice(flashboltIndex + 1);
     if (!flashboltParts.length || flashboltParts[0] === "home") return "Flashbolt | Private Study Library";
     if (flashboltParts.length === 1) {
-      const titles: Record<string, string> = { library: "Flashbolt Library", folders: "Flashbolt Folders", create: "Create Set | Flashbolt", guide: "Study Guide | Flashbolt", helper: "Kahoot Helper | Flashbolt" };
+      const titles: Record<string, string> = { review: "Review Today | Flashbolt", library: "Flashbolt Library", folders: "Flashbolt Folders", create: "Create Set | Flashbolt", guide: "Study Guide | Flashbolt", helper: "Kahoot Helper | Flashbolt" };
       return titles[flashboltParts[0]] ?? "Flashbolt | Private Study Library";
     }
     const mode = flashboltParts.at(-1) ?? "";
@@ -153,7 +153,8 @@ export default function App() {
   const showAppChrome = !isStandaloneAdminToolRoute;
   const showBreadcrumbs = location.pathname !== "/" && !isAuthRoute && !isStandaloneAdminToolRoute;
 
-  useEffect(() => {
+  // Set the route fallback before pages apply titles from their loaded content.
+  useLayoutEffect(() => {
     document.title = pageTitleForPath(location.pathname);
   }, [location.pathname]);
 

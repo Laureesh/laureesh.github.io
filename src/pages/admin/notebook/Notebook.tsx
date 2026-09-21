@@ -122,6 +122,13 @@ export default function Notebook() {
   latestSelectedRef.current = selected;
   latestDataRef.current = data;
 
+  const notebookPageTitle = selected && !["help", "settings"].includes(notebookRoute(location.pathname).kind)
+    ? `${selected.title.trim() || "Untitled"} | Notebook | Private Pages`
+    : "Notebook | Private Pages";
+  useEffect(() => {
+    document.title = notebookPageTitle;
+  }, [notebookPageTitle, location.pathname]);
+
   useEffect(() => {
     let cancelled = false;
     void (async () => {

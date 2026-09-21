@@ -6814,7 +6814,7 @@ kbd {
     left: 0;
     z-index: 35;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     height: 73px;
     padding: 8px 9px 7px;
     border-top: 1px solid var(--line);
@@ -6836,7 +6836,7 @@ kbd {
     border: 0;
     background: transparent;
     color: var(--faint);
-    font-size: 16px;
+    font-size: 12px;
     font-weight: 800;
     text-decoration: none;
   }
@@ -7452,3 +7452,26 @@ kbd {
 .card-question-type .auto-question-type { flex-basis: 100%; }
 .card-question-type .auto-question-type input { width: 18px; height: 18px; padding: 0; accent-color: var(--primary-strong); }
 .card-question-type .auto-question-type > span { font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none; }
+
+/* Daily review and answer explanations share the active Flashbolt theme. */
+.review-home-link { display:flex; align-items:center; gap:16px; margin-bottom:28px; padding:20px 24px; border:1px solid var(--line); border-radius:18px; background:linear-gradient(120deg,var(--primary-soft),var(--panel)); color:var(--ink); text-decoration:none; }
+.review-home-link>span { font-size:30px; color:var(--primary-strong); }
+.review-home-link>div { flex:1; }.review-home-link strong { font-size:18px; }.review-home-link p { margin:5px 0 0; color:var(--muted); }.review-home-link>b { font-size:24px; }
+.review-today { max-width:980px; margin:0 auto; }.review-today h1:focus { outline:none; }
+.review-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:24px 0; }
+.review-stats>div { display:grid; gap:8px; padding:22px; border:1px solid var(--line); border-radius:16px; background:var(--panel); }
+.review-stats strong { font-size:32px; font-variant-numeric:tabular-nums; }.review-stats span { color:var(--muted); font-size:13px; }
+.review-start,.study-summary-heading { display:flex; justify-content:space-between; align-items:center; gap:20px; margin-bottom:22px; }
+.review-start p,.study-summary-heading p { color:var(--muted); line-height:1.6; margin:8px 0 0; }.review-start h2,.study-summary-heading h2 { margin:6px 0; font-size:23px; }
+.review-start .button,.study-summary-heading .button { flex-shrink:0; }
+.review-set-list { display:grid; gap:12px; }.review-set-list article { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 22px; border:1px solid var(--line); border-radius:14px; background:var(--panel); }.review-set-list h3 { margin:0 0 6px; overflow-wrap:anywhere; }.review-set-list span { color:var(--muted); font-size:13px; }
+.review-session-meta { display:flex; justify-content:space-between; align-items:center; gap:16px; color:var(--muted); }
+.review-session progress { display:block; width:100%; height:6px; margin:16px 0 24px; accent-color:var(--primary-strong); }
+.review-session .question-card { min-height:0; }.review-session h2 { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.5; }.review-answer { margin:24px 0; padding:20px; border-radius:12px; background:var(--primary-soft); }.review-answer p { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.6; }
+.review-image { display:block; max-width:100%; max-height:260px; object-fit:contain; margin:16px 0; }
+.study-explanation { margin:20px 0; padding:16px 20px; border:1px solid var(--line); border-left:3px solid var(--primary-strong); border-radius:10px; background:var(--panel-2); color:var(--ink); text-align:left; }
+.study-explanation>strong { font-size:13px; }.study-explanation>p { margin:8px 0 0; color:var(--muted); white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.65; }
+.card-explanation-field { display:grid; gap:10px; padding:0 22px 22px; }.card-explanation-field>span { font-size:13px; font-weight:700; }.card-explanation-field small { color:var(--muted); font-weight:400; }.card-explanation-field textarea { width:100%; min-height:76px; padding:12px; border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--ink); font:inherit; resize:vertical; }
+.study-summary { margin:28px 0; padding:24px; border:1px solid var(--line); border-radius:18px; background:var(--panel); }
+.study-mistakes { margin:0; padding-left:24px; }.study-mistakes>li { padding:16px 0 16px 8px; border-top:1px solid var(--line); overflow-wrap:anywhere; }.study-mistakes>li::marker { color:var(--faint); font-weight:700; }.study-mistakes>li>strong { white-space:pre-wrap; }.study-mistakes>li>p { white-space:pre-wrap; line-height:1.6; color:var(--ink); }.study-mistakes>li>p>span { display:block; color:var(--muted); font-size:12px; margin-bottom:4px; }
+@media(max-width:600px) { .review-stats { gap:8px; }.review-stats>div { padding:14px 10px; }.review-stats strong { font-size:26px; }.review-start,.study-summary-heading { align-items:stretch; flex-direction:column; }.review-set-list article { align-items:flex-start; flex-direction:column; }.study-summary { padding:18px; }.review-home-link { padding:16px; }.review-session-meta { font-size:13px; } }
