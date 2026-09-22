@@ -194,6 +194,7 @@ const LEGACY_STORAGE_KEY = "studydeck.local.v1";
 const LIBRARY_SORT_KEY = `${STORAGE_KEY}.librarySort`;
 const SIDEBAR_COLLAPSED_KEY = `${STORAGE_KEY}.sidebarCollapsed`;
 const EDITOR_PANEL_COLLAPSED_KEY = `${STORAGE_KEY}.editorPanelCollapsed`;
+const AUTO_SCROLL_CHOICES_KEY = `${STORAGE_KEY}.autoScrollChoices`;
 const THEME_OPTIONS: Array<{ id: ThemeName; label: string; colors: [string, string] }> = [
   { id: "dark", label: "Dark", colors: ["#0c0c28", "#7b78ff"] },
   { id: "extreme", label: "Extreme dark", colors: ["#000000", "#8b82ff"] },
@@ -816,6 +817,10 @@ export default function Flashbolt() {
     } catch { return []; }
   });
   const [newMenuOpen, setNewMenuOpen] = useState(false);
+  const [autoScrollChoices, setAutoScrollChoices] = useState(() => {
+    try { return window.localStorage.getItem(AUTO_SCROLL_CHOICES_KEY) === "true"; } catch { return false; }
+  });
+  const draftCardElements = useRef(new Map<string, HTMLElement>());
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [folderName, setFolderName] = useState("");
   const [folderColor, setFolderColor] = useState(FOLDER_COLORS[0]);
@@ -1819,6 +1824,15 @@ export default function Flashbolt() {
       definition: cardQuestionType(card) === "select-all" ? correctAnswers.join("; ") : correctAnswers[0] ?? card.definition,
     });
     notify(`${pastedChoices.length} answer choices populated.`);
+    if (autoScrollChoices) {
+      const nextCard = draft.cards[draft.cards.findIndex((item) => item.id === card.id) + 1];
+      if (nextCard) requestAnimationFrame(() => {
+        draftCardElements.current.get(nextCard.id)?.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+          block: "start",
+        });
+      });
+    }
     return true;
   }
 
@@ -3132,6 +3146,7 @@ export default function Flashbolt() {
                     {draft.cards.map((card, index) => (
                       <div className="card-editor-wrap" key={card.id}>
                         <article
+                          ref={(element) => { if (element) draftCardElements.current.set(card.id, element); else draftCardElements.current.delete(card.id); }}
                           className={`card-editor ${draggingCardId === card.id ? "dragging" : ""}`}
                           onDragOver={(event) => event.preventDefault()}
                           onDrop={(event) => dropDraftCard(event, card.id)}
@@ -3223,6 +3238,11 @@ export default function Flashbolt() {
                     <div className="creation-checklist-summary" aria-live="polite"><strong>{draftCompletion}%</strong><span>{draft.cards.length} card{draft.cards.length === 1 ? "" : "s"}</span></div>
                     <div className="creation-progress" role="progressbar" aria-label="Set completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={draftCompletion}><i style={{ width: `${draftCompletion}%` }} /></div>
                     <div className="editor-save-actions"><button className="button quiet" onClick={() => saveDraft(false)}>Save</button><button className="button primary" onClick={() => saveDraft(true)}>Save &amp; study</button></div>
+                    <label className="editor-auto-scroll"><span>Next card after pasting choices</span><input type="checkbox" role="switch" checked={autoScrollChoices} onChange={(event) => {
+                      const enabled = event.target.checked;
+                      setAutoScrollChoices(enabled);
+                      try { window.localStorage.setItem(AUTO_SCROLL_CHOICES_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
+                    }} /></label>
                     <div className="collapsible-panel-body">
                       <ul>{draftChecklist.map((item) => <li className={item.complete ? "complete" : ""} key={item.label}><span>{item.complete ? "✓" : "○"}</span><div><strong>{item.label}</strong>{!item.complete && <small>{item.detail}</small>}</div></li>)}</ul>
                     </div>

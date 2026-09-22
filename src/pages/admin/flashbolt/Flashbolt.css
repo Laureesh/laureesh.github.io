@@ -3976,6 +3976,20 @@ select {
   font-size: 14px;
 }
 
+.editor-auto-scroll {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.card-editor {
+  scroll-margin-top: 24px;
+}
+
 .collapsible-panel-body {
   display: grid;
   gap: 10px;
@@ -5556,7 +5570,8 @@ kbd {
   color: var(--primary-strong);
 }
 
-.option-row input[type="checkbox"] {
+.option-row input[type="checkbox"],
+.editor-auto-scroll input {
   position: relative;
   width: 39px;
   height: 22px;
@@ -5568,7 +5583,8 @@ kbd {
   cursor: pointer;
 }
 
-.option-row input[type="checkbox"]::after {
+.option-row input[type="checkbox"]::after,
+.editor-auto-scroll input::after {
   position: absolute;
   top: 3px;
   left: 3px;
@@ -5580,11 +5596,13 @@ kbd {
   transition: 150ms ease;
 }
 
-.option-row input[type="checkbox"]:checked {
+.option-row input[type="checkbox"]:checked,
+.editor-auto-scroll input:checked {
   background: var(--primary);
 }
 
-.option-row input[type="checkbox"]:checked::after {
+.option-row input[type="checkbox"]:checked::after,
+.editor-auto-scroll input:checked::after {
   left: 20px;
   background: white;
 }
