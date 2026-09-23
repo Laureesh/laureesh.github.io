@@ -3,7 +3,8 @@ import "./Flashbolt.css";
 import ReviewToday from "./ReviewToday";
 import StudySummary, { StudyExplanation } from "./StudySummary";
 import { mergeReviewProgress } from "./review-engine";
-import { applyDetectedQuestionType } from "./questionTypeDetection";
+import { applyDetectedQuestionType, detectQuestionType } from "./questionTypeDetection";
+import { parseQuestionPaste } from "./questionPaste";
 import SemesterVisibilityControls from "./SemesterVisibilityControls";
 import { mergeSemesterVisibility, normalizeSemesterVisibility, type SemesterVisibility } from "./semesterVisibility";
 import MasteryFilterControls from "./MasteryFilterControls";
@@ -673,12 +674,14 @@ function applyThemeToDocument(theme: ThemeName) {
 function AutoResizeTextarea({
   value,
   onChange,
+  onPaste,
   className,
   placeholder,
   rows = 2,
 }: {
   value: string;
   onChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
+  onPaste?: React.ClipboardEventHandler<HTMLTextAreaElement>;
   className?: string;
   placeholder?: string;
   rows?: number;
@@ -714,6 +717,7 @@ function AutoResizeTextarea({
       ref={textareaRef}
       className={className}
       value={value}
+      onPaste={onPaste}
       onChange={(event) => {
         event.currentTarget.style.height = "auto";
         event.currentTarget.style.height = `${event.currentTarget.scrollHeight}px`;
@@ -1794,6 +1798,24 @@ export default function Flashbolt() {
     const updates: Partial<Card> = { answerChoices: choices, correctAnswers };
     if (cardQuestionType(card) !== "select-all" && correctAnswers.some((answer) => normalizeAnswer(answer) === normalizeAnswer(value))) updates.definition = value;
     updateDraftCardExtras(card.id, updates);
+  }
+
+  function pasteDraftQuestion(card: Card, event: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const parsed = parseQuestionPaste(event.clipboardData.getData("text/plain"));
+    if (!parsed) return;
+    event.preventDefault();
+    const field = event.currentTarget;
+    const term = field.value.slice(0, field.selectionStart) + parsed.term + field.value.slice(field.selectionEnd);
+    const detected = detectQuestionType(term);
+    const questionType = detected === "select-all" || card.questionType === "select-all" ? "select-all"
+      : parsed.choices.length === 2 && parsed.choices.every(choice => /^(true|false)$/i.test(choice)) ? "true-false" : "multiple-choice";
+    const correctAnswers = parsed.choices.filter(choice => correctAnswersForCard(card).some(answer => normalizeAnswer(answer) === normalizeAnswer(choice)));
+    updateDraftCardExtras(card.id, {
+      term, answerChoices: parsed.choices, questionType, correctAnswers,
+      definition: correctAnswers.join(questionType === "select-all" ? "; " : ""),
+      autoTypePreviousChoices: undefined,
+    });
+    notify(`Question and ${parsed.choices.length} answer choices populated. Mark the correct answer below.`);
   }
 
   function pasteDraftChoices(card: Card, startIndex: number, pastedText: string) {
@@ -3213,7 +3235,7 @@ export default function Flashbolt() {
                           </div>
                           <div className="card-editor-fields">
                             <label className="card-text-field">
-                              <AutoResizeTextarea className={`highlight-${card.highlight ?? "none"}`} value={card.term} onChange={(event) => updateDraftCard(card.id, "term", event.target.value)} placeholder="Enter term" />
+                              <AutoResizeTextarea className={`highlight-${card.highlight ?? "none"}`} value={card.term} onChange={(event) => updateDraftCard(card.id, "term", event.target.value)} onPaste={(event) => pasteDraftQuestion(card, event)} placeholder="Enter term or paste a question with answer choices" />
                               <span className="field-meta"><b>TERM</b><select aria-label={`Term language for card ${index + 1}`} value={card.termLanguage ?? "auto"} onChange={(event) => updateDraftCardExtras(card.id, { termLanguage: event.target.value })}>{LANGUAGE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></span>
                             </label>
                             <i />
