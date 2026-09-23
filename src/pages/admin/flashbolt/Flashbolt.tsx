@@ -825,6 +825,7 @@ export default function Flashbolt() {
     try { return window.localStorage.getItem(AUTO_SCROLL_CORRECT_KEY) === "true"; } catch { return false; }
   });
   const draftCardElements = useRef(new Map<string, HTMLElement>());
+  const activeDraftCardId = useRef<string | null>(null);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [folderName, setFolderName] = useState("");
   const [folderColor, setFolderColor] = useState(FOLDER_COLORS[0]);
@@ -1832,10 +1833,26 @@ export default function Flashbolt() {
     return true;
   }
 
+  function goToNextAvailableCard() {
+    if (!draft.cards.length) return;
+    const activeIndex = draft.cards.findIndex((card) => card.id === activeDraftCardId.current);
+    const nextCard = activeIndex >= 0
+      ? draft.cards[(activeIndex + 1) % draft.cards.length]
+      : draft.cards.find((card) => (draftCardElements.current.get(card.id)?.getBoundingClientRect().top ?? -1) >= 0) ?? draft.cards[0];
+    const element = draftCardElements.current.get(nextCard.id);
+    activeDraftCardId.current = nextCard.id;
+    element?.querySelector<HTMLElement>('textarea, input:not([type="checkbox"]), select')?.focus({ preventScroll: true });
+    element?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+      block: "start",
+    });
+  }
+
   function scrollToNextDraftCard(cardId: string) {
     const index = draft.cards.findIndex((item) => item.id === cardId);
     const nextCard = index >= 0 ? draft.cards[index + 1] : undefined;
     if (nextCard) requestAnimationFrame(() => {
+      activeDraftCardId.current = nextCard.id;
       draftCardElements.current.get(nextCard.id)?.scrollIntoView({
         behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
         block: "start",
@@ -3156,6 +3173,8 @@ export default function Flashbolt() {
                         <article
                           ref={(element) => { if (element) draftCardElements.current.set(card.id, element); else draftCardElements.current.delete(card.id); }}
                           className={`card-editor ${draggingCardId === card.id ? "dragging" : ""}`}
+                          onFocusCapture={() => { activeDraftCardId.current = card.id; }}
+                          onPointerDown={() => { activeDraftCardId.current = card.id; }}
                           onDragOver={(event) => event.preventDefault()}
                           onDrop={(event) => dropDraftCard(event, card.id)}
                         >
@@ -3247,6 +3266,7 @@ export default function Flashbolt() {
                     <div className="creation-checklist-summary" aria-live="polite"><strong>{draftCompletion}%</strong><span>{draft.cards.length} card{draft.cards.length === 1 ? "" : "s"}</span></div>
                     <div className="creation-progress" role="progressbar" aria-label="Set completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={draftCompletion}><i style={{ width: `${draftCompletion}%` }} /></div>
                     <div className="editor-save-actions"><button className="button quiet" onClick={() => saveDraft(false)}>Save</button><button className="button primary" onClick={() => saveDraft(true)}>Save &amp; study</button></div>
+                    <button type="button" className="button quiet full" onClick={goToNextAvailableCard} disabled={!draft.cards.length}>Go to next available card ↓</button>
                     <label className="editor-auto-scroll"><span>Next card after pasting choices</span><input type="checkbox" role="switch" checked={autoScrollChoices} onChange={(event) => {
                       const enabled = event.target.checked;
                       setAutoScrollChoices(enabled);
