@@ -196,6 +196,7 @@ const LIBRARY_SORT_KEY = `${STORAGE_KEY}.librarySort`;
 const SIDEBAR_COLLAPSED_KEY = `${STORAGE_KEY}.sidebarCollapsed`;
 const EDITOR_PANEL_COLLAPSED_KEY = `${STORAGE_KEY}.editorPanelCollapsed`;
 const AUTO_SCROLL_CHOICES_KEY = `${STORAGE_KEY}.autoScrollChoices`;
+const AUTO_SCROLL_QUESTION_KEY = `${STORAGE_KEY}.autoScrollQuestion`;
 const AUTO_SCROLL_CORRECT_KEY = `${STORAGE_KEY}.autoScrollCorrect`;
 const THEME_OPTIONS: Array<{ id: ThemeName; label: string; colors: [string, string] }> = [
   { id: "dark", label: "Dark", colors: ["#0c0c28", "#7b78ff"] },
@@ -824,6 +825,9 @@ export default function Flashbolt() {
   const [newMenuOpen, setNewMenuOpen] = useState(false);
   const [autoScrollChoices, setAutoScrollChoices] = useState(() => {
     try { return window.localStorage.getItem(AUTO_SCROLL_CHOICES_KEY) === "true"; } catch { return false; }
+  });
+  const [autoScrollQuestion, setAutoScrollQuestion] = useState(() => {
+    try { return window.localStorage.getItem(AUTO_SCROLL_QUESTION_KEY) !== "false"; } catch { return true; }
   });
   const [autoScrollCorrect, setAutoScrollCorrect] = useState(() => {
     try { return window.localStorage.getItem(AUTO_SCROLL_CORRECT_KEY) === "true"; } catch { return false; }
@@ -1815,6 +1819,7 @@ export default function Flashbolt() {
       autoTypePreviousChoices: undefined,
     });
     notify(`Question and ${parsed.choices.length} answer choices populated. Mark the correct answer below.`);
+    if (autoScrollQuestion) scrollToNextDraftCard(card.id, true);
   }
 
   function pasteDraftChoices(card: Card, startIndex: number, pastedText: string) {
@@ -1868,11 +1873,13 @@ export default function Flashbolt() {
     });
   }
 
-  function scrollToNextDraftCard(cardId: string) {
+  function scrollToNextDraftCard(cardId: string, focusTerm = false) {
     const index = draft.cards.findIndex((item) => item.id === cardId);
     const nextCard = index >= 0 ? draft.cards[index + 1] : undefined;
     if (nextCard) requestAnimationFrame(() => {
-      draftCardElements.current.get(nextCard.id)?.scrollIntoView({
+      const element = draftCardElements.current.get(nextCard.id);
+      if (focusTerm) element?.querySelector<HTMLTextAreaElement>('.card-text-field textarea')?.focus({ preventScroll: true });
+      element?.scrollIntoView({
         behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
         block: "start",
       });
@@ -3284,6 +3291,11 @@ export default function Flashbolt() {
                     <div className="creation-progress" role="progressbar" aria-label="Set completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={draftCompletion}><i style={{ width: `${draftCompletion}%` }} /></div>
                     <div className="editor-save-actions"><button className="button quiet" onClick={() => saveDraft(false)}>Save</button><button className="button primary" onClick={() => saveDraft(true)}>Save &amp; study</button></div>
                     <button type="button" className="button quiet full" onClick={goToNextAvailableCard} disabled={!draft.cards.length} title="Jump to the first card with an empty term">Go to next available card ↓</button>
+                    <label className="editor-auto-scroll"><span>Next card after pasting a question</span><input type="checkbox" role="switch" checked={autoScrollQuestion} onChange={(event) => {
+                      const enabled = event.target.checked;
+                      setAutoScrollQuestion(enabled);
+                      try { window.localStorage.setItem(AUTO_SCROLL_QUESTION_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
+                    }} /></label>
                     <label className="editor-auto-scroll"><span>Next card after pasting choices</span><input type="checkbox" role="switch" checked={autoScrollChoices} onChange={(event) => {
                       const enabled = event.target.checked;
                       setAutoScrollChoices(enabled);
