@@ -3380,6 +3380,18 @@ select {
   gap: 3px;
 }
 
+.card-editor-footer {
+  display: flex;
+  align-items: center;
+  min-height: 43px;
+  padding: 6px 22px;
+  border-top: 1px solid var(--line-soft);
+  color: var(--primary-strong);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
 .card-editor header button,
 .icon-button {
   display: grid;

@@ -3232,6 +3232,7 @@ export default function Flashbolt() {
                           )}
                           <label className="card-explanation-field"><span>Explanation <small>optional · shown after answering</small></span><textarea value={card.explanation ?? ""} onChange={event => updateDraftCardExtras(card.id, { explanation: event.target.value })} placeholder="Explain why this answer is correct, or add a memory tip…" rows={2} /></label>
                           {card.imageData && <div className="card-image-preview"><img width={74} height={58} src={card.imageData} alt={card.imageName ? `Attached ${card.imageName}` : "Attached card image"} /><span>{card.imageName}</span><button onClick={() => updateDraftCardExtras(card.id, { imageData: undefined, imageName: undefined })} aria-label={`Remove image from card ${index + 1}`}>Remove image</button></div>}
+                          <footer className="card-editor-footer"><span aria-label={`Card ${index + 1}`}>{String(index + 1).padStart(2, "0")}</span></footer>
                         </article>
                         <button className="insert-card-button" onClick={() => addDraftCard(card.id)} aria-label={`Add a card after card ${index + 1}`}><span>＋</span></button>
                       </div>
