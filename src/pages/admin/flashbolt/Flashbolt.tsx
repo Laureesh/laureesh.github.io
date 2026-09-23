@@ -195,6 +195,7 @@ const LIBRARY_SORT_KEY = `${STORAGE_KEY}.librarySort`;
 const SIDEBAR_COLLAPSED_KEY = `${STORAGE_KEY}.sidebarCollapsed`;
 const EDITOR_PANEL_COLLAPSED_KEY = `${STORAGE_KEY}.editorPanelCollapsed`;
 const AUTO_SCROLL_CHOICES_KEY = `${STORAGE_KEY}.autoScrollChoices`;
+const AUTO_SCROLL_CORRECT_KEY = `${STORAGE_KEY}.autoScrollCorrect`;
 const THEME_OPTIONS: Array<{ id: ThemeName; label: string; colors: [string, string] }> = [
   { id: "dark", label: "Dark", colors: ["#0c0c28", "#7b78ff"] },
   { id: "extreme", label: "Extreme dark", colors: ["#000000", "#8b82ff"] },
@@ -819,6 +820,9 @@ export default function Flashbolt() {
   const [newMenuOpen, setNewMenuOpen] = useState(false);
   const [autoScrollChoices, setAutoScrollChoices] = useState(() => {
     try { return window.localStorage.getItem(AUTO_SCROLL_CHOICES_KEY) === "true"; } catch { return false; }
+  });
+  const [autoScrollCorrect, setAutoScrollCorrect] = useState(() => {
+    try { return window.localStorage.getItem(AUTO_SCROLL_CORRECT_KEY) === "true"; } catch { return false; }
   });
   const draftCardElements = useRef(new Map<string, HTMLElement>());
   const [folderModalOpen, setFolderModalOpen] = useState(false);
@@ -1824,28 +1828,32 @@ export default function Flashbolt() {
       definition: cardQuestionType(card) === "select-all" ? correctAnswers.join("; ") : correctAnswers[0] ?? card.definition,
     });
     notify(`${pastedChoices.length} answer choices populated.`);
-    if (autoScrollChoices) {
-      const nextCard = draft.cards[draft.cards.findIndex((item) => item.id === card.id) + 1];
-      if (nextCard) requestAnimationFrame(() => {
-        draftCardElements.current.get(nextCard.id)?.scrollIntoView({
-          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
-          block: "start",
-        });
-      });
-    }
+    if (autoScrollChoices) scrollToNextDraftCard(card.id);
     return true;
+  }
+
+  function scrollToNextDraftCard(cardId: string) {
+    const index = draft.cards.findIndex((item) => item.id === cardId);
+    const nextCard = index >= 0 ? draft.cards[index + 1] : undefined;
+    if (nextCard) requestAnimationFrame(() => {
+      draftCardElements.current.get(nextCard.id)?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+        block: "start",
+      });
+    });
   }
 
   function toggleDraftCorrectAnswer(card: Card, choice: string) {
     if (!choice.trim()) return;
+    const current = correctAnswersForCard(card);
+    const selected = current.some((answer) => normalizeAnswer(answer) === normalizeAnswer(choice));
     if (cardQuestionType(card) === "select-all") {
-      const current = correctAnswersForCard(card);
-      const selected = current.some((answer) => normalizeAnswer(answer) === normalizeAnswer(choice));
       const next = selected ? current.filter((answer) => normalizeAnswer(answer) !== normalizeAnswer(choice)) : [...current, choice];
       updateDraftCardExtras(card.id, { correctAnswers: next, definition: next.join("; ") });
     } else {
       updateDraftCardExtras(card.id, { correctAnswers: [choice], definition: choice });
     }
+    if (autoScrollCorrect && !selected) scrollToNextDraftCard(card.id);
   }
 
   function addDraftCard(afterCardId?: string) {
@@ -3242,6 +3250,11 @@ export default function Flashbolt() {
                       const enabled = event.target.checked;
                       setAutoScrollChoices(enabled);
                       try { window.localStorage.setItem(AUTO_SCROLL_CHOICES_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
+                    }} /></label>
+                    <label className="editor-auto-scroll"><span>Next card after marking correct</span><input type="checkbox" role="switch" checked={autoScrollCorrect} onChange={(event) => {
+                      const enabled = event.target.checked;
+                      setAutoScrollCorrect(enabled);
+                      try { window.localStorage.setItem(AUTO_SCROLL_CORRECT_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
                     }} /></label>
                     <div className="collapsible-panel-body">
                       <ul>{draftChecklist.map((item) => <li className={item.complete ? "complete" : ""} key={item.label}><span>{item.complete ? "✓" : "○"}</span><div><strong>{item.label}</strong>{!item.complete && <small>{item.detail}</small>}</div></li>)}</ul>
