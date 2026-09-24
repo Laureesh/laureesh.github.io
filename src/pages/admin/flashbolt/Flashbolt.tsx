@@ -1286,6 +1286,9 @@ export default function Flashbolt() {
       .map(([semester, folders]) => ({ semester, folders }));
   }, [foldersBySetCount]);
   const visibleSemesterGroups = folderSemesterGroups.filter(group => !data.semesterVisibility?.[group.semester]?.hidden);
+  const today = new Date();
+  const currentSemester = `${today.getMonth() < 5 ? "Spring" : today.getMonth() < 7 ? "Summer" : "Fall"} ${today.getFullYear()}`;
+  const quickLinkSemester = visibleSemesterGroups.find(group => group.semester === currentSemester);
   function setSemesterHidden(semester: string, hidden: boolean) {
     setData(current => ({ ...current, semesterVisibility: {
       ...(current.semesterVisibility ?? {}),
@@ -2847,6 +2850,30 @@ export default function Flashbolt() {
           <Link title="Review today" aria-label="Review today" className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><span className="nav-icon">◴</span><span className="nav-label">Review today</span></Link>
           <Link title="Your library" aria-label="Your library" className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span className="nav-icon">▤</span><span className="nav-label">Your library</span></Link>
           <Link title="Folders" aria-label="Folders" className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span className="nav-icon">□</span><span className="nav-label">Folders</span></Link>
+          {quickLinkSemester && <details className="sidebar-folder-dropdown" onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.currentTarget.open = false;
+              event.currentTarget.querySelector("summary")?.focus();
+            }
+          }} onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
+          }}>
+            <summary title={`${quickLinkSemester.semester} folder quick links`} aria-label={`${quickLinkSemester.semester} folder quick links`}>
+              <span className="nav-icon sidebar-folder-chevron" aria-hidden="true">⌄</span>
+              <span className="nav-label">{quickLinkSemester.semester}</span>
+              <small className="nav-label">{quickLinkSemester.folders.length}</small>
+            </summary>
+            <div className="sidebar-folder-menu">
+              <h3>{quickLinkSemester.semester}<small>{quickLinkSemester.folders.length} folder{quickLinkSemester.folders.length === 1 ? "" : "s"}</small></h3>
+              <div className="folder-chips" role="group" aria-label={`${quickLinkSemester.semester} folders`}>
+                {quickLinkSemester.folders.map(item => <Link key={item.id} to={folderPath(item)} className={selectedFolderId === item.id ? "active" : ""} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name} onClick={(event) => { event.currentTarget.closest("details")?.removeAttribute("open"); }}>
+                  <span className="folder-filter-icon folder" aria-hidden="true" style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} />
+                  <span className="folder-filter-name">{item.name}</span>
+                  <span className="folder-filter-count">{item.setIds.length}</span>
+                </Link>)}
+              </div>
+            </div>
+          </details>}
         </nav>
 
         <div className="side-section">
@@ -2856,11 +2883,6 @@ export default function Flashbolt() {
           <Link title="Practice test" aria-label="Practice test" to={selectedSet ? routePathForView("test", selectedSet.id) : `${FLASHBOLT_BASE}/library`}><span className="nav-icon">✓</span><span className="nav-label">Practice test</span></Link>
           <a title="Kahoot Helper" aria-label="Open Kahoot Helper" className={view === "helper" ? "active" : ""} href={`${FLASHBOLT_BASE}/helper`} onClick={(event) => followFlashboltLink(event, openKahootHelper)}><span className="nav-icon">◆</span><span className="nav-label">Kahoot Helper</span></a>
           <Link title="Notebook" aria-label="Open notebook" to="/admin-dashboard/private-pages/notebook"><span className="nav-icon">▱</span><span className="nav-label">Notebook</span></Link>
-        </div>
-
-        <div className="private-card">
-          <span className="private-icon">⌁</span>
-          <div><strong>Private by design</strong><p>Your library syncs with your account.</p></div>
         </div>
 
         <div className="sidebar-bottom">
