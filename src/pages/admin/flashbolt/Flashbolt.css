@@ -7510,7 +7510,6 @@ kbd {
 }
 .kahoot-helper-card:not(.collapsed) {
   grid-column: 1 / -1;
-  order: 1;
   max-height: calc(100dvh - 112px);
   overflow-y: auto;
   overscroll-behavior-y: auto;
