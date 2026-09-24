@@ -2855,8 +2855,6 @@ export default function Flashbolt() {
               event.currentTarget.open = false;
               event.currentTarget.querySelector("summary")?.focus();
             }
-          }} onBlur={(event) => {
-            if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
           }}>
             <summary title={`${quickLinkSemester.semester} folder quick links`} aria-label={`${quickLinkSemester.semester} folder quick links`}>
               <span className="nav-icon sidebar-folder-chevron" aria-hidden="true">⌄</span>
@@ -2864,9 +2862,8 @@ export default function Flashbolt() {
               <small className="nav-label">{quickLinkSemester.folders.length}</small>
             </summary>
             <div className="sidebar-folder-menu">
-              <h3>{quickLinkSemester.semester}<small>{quickLinkSemester.folders.length} folder{quickLinkSemester.folders.length === 1 ? "" : "s"}</small></h3>
               <div className="folder-chips" role="group" aria-label={`${quickLinkSemester.semester} folders`}>
-                {quickLinkSemester.folders.map(item => <Link key={item.id} to={folderPath(item)} className={selectedFolderId === item.id ? "active" : ""} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name} onClick={(event) => { event.currentTarget.closest("details")?.removeAttribute("open"); }}>
+                {quickLinkSemester.folders.map(item => <Link key={item.id} to={folderPath(item)} className={selectedFolderId === item.id ? "active" : ""} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name}>
                   <span className="folder-filter-icon folder" aria-hidden="true" style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} />
                   <span className="folder-filter-name">{item.name}</span>
                   <span className="folder-filter-count">{item.setIds.length}</span>
