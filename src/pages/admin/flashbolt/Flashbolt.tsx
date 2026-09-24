@@ -2746,7 +2746,7 @@ export default function Flashbolt() {
             ? data.folders.filter((folderItem) => folderItem.name.toLocaleLowerCase().includes(normalizedFolderSearch))
             : data.folders;
           return (
-            <article className={`set-tile ${progress === 100 ? "completed" : ""}`} key={set.id} onContextMenu={(event) => openSetContextMenu(event, set.id)}>
+            <article className={`set-tile ${progress === 100 ? "completed" : ""}`} data-set-color={set.color} key={set.id} onContextMenu={(event) => openSetContextMenu(event, set.id)}>
               <Link className="set-tile-open" to={routePathForView("set", set.id)} aria-label={`Open ${set.title}`}><span className="visually-hidden">Open {set.title}</span></Link>
               <span className={`set-accent ${set.color}`} />
               <span className="tile-kicker"><span>{set.subject || "General"}</span><span>{formatDate(set.updatedAt)}</span></span>
