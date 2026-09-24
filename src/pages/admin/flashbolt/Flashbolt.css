@@ -2736,6 +2736,43 @@ code {
   .folder-list-view .set-tile-inline-editor { grid-area: 2 / 1 / 4 / 2; min-width: 0; }
 }
 
+.folder-compact-view.folder-subject-sections { gap: 20px; }
+.folder-compact-view .folder-subject-section { gap: 8px; }
+.folder-compact-view .set-grid { gap: 6px; }
+.folder-compact-view .set-tile {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px 125px;
+  grid-template-areas: "title folder progress";
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+.folder-compact-view .tile-kicker,
+.folder-compact-view .tile-description,
+.folder-compact-view .tile-folder-copy > small { display: none; }
+.folder-compact-view .set-tile-title-row { grid-area: title; align-items: center; gap: 8px; }
+.folder-compact-view .set-tile-title-row .set-tile-title { font-size: 14px; line-height: 1.25; flex: 1 1 150px; }
+.folder-compact-view .set-tile-actions { gap: 4px; }
+.folder-compact-view .set-tile-actions .set-tile-quick-edit,
+.folder-compact-view .set-tile-actions .tile-kahoot-link { padding: 5px 6px; font-size: 11px; line-height: 1.2; }
+.folder-compact-view .tile-folder-control { grid-area: folder; min-width: 0; }
+.folder-compact-view .tile-folder-badge { padding: 5px 6px; gap: 5px; border-radius: 7px; }
+.folder-compact-view .tile-folder-copy b { font-size: 11px; line-height: 1.2; }
+.folder-compact-view .tile-folder-icon { width: 20px; height: 20px; flex-basis: 20px; font-size: 13px; }
+.folder-compact-view .tile-footer { grid-area: progress; align-self: center; font-size: 12px; gap: 6px; }
+.folder-compact-view .set-tile-inline-editor { grid-area: auto; grid-column: 1 / -1; grid-row: 1; }
+.folder-compact-view .set-tile:has(.set-tile-inline-editor) {
+  grid-template-columns: minmax(0, 1fr) 125px;
+  grid-template-areas: "editor editor" "folder progress";
+}
+@media (max-width: 799px) {
+  .folder-compact-view .set-tile {
+    grid-template-columns: minmax(0, 1fr) 125px;
+    grid-template-areas: "title title" "folder progress";
+  }
+}
+
 .folder-subject-section {
   display: grid;
   gap: 18px;

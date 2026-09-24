@@ -816,8 +816,8 @@ export default function Flashbolt() {
     catch { /* The filter remains usable without browser storage. */ }
   }, [masteryFilter]);
   const [librarySort, setLibrarySort] = useState<LibrarySort>("updated-desc");
-  const [folderCardView, setFolderCardView] = useState<"default" | "list">(() => {
-    try { return window.localStorage.getItem(`${STORAGE_KEY}.folderCardView`) === "list" ? "list" : "default"; }
+  const [folderCardView, setFolderCardView] = useState<"default" | "list" | "compact">(() => {
+    try { const saved = window.localStorage.getItem(`${STORAGE_KEY}.folderCardView`); return saved === "list" || saved === "compact" ? saved : "default"; }
     catch { return "default"; }
   });
   const [search, setSearch] = useState("");
@@ -3149,19 +3149,20 @@ export default function Flashbolt() {
                 </label>
                 <label className="library-sort-control full-area-select">
                   <span className="library-sort-icon" aria-hidden="true">☷</span>
-                  <span className="library-sort-field"><small>View</small><strong className="full-area-select-value" aria-hidden="true">{folderCardView === "list" ? "Horizontal list" : "Default"}</strong><select value={folderCardView} aria-label="Folder set card view" onChange={(event) => {
-                    const nextView = event.target.value === "list" ? "list" : "default";
+                  <span className="library-sort-field"><small>View</small><strong className="full-area-select-value" aria-hidden="true">{folderCardView === "compact" ? "Horizontal list Compact" : folderCardView === "list" ? "Horizontal list" : "Default"}</strong><select value={folderCardView} aria-label="Folder set card view" onChange={(event) => {
+                    const nextView = event.target.value === "compact" ? "compact" : event.target.value === "list" ? "list" : "default";
                     setFolderCardView(nextView);
                     try { window.localStorage.setItem(`${STORAGE_KEY}.folderCardView`, nextView); } catch { /* Keep the current view when storage is unavailable. */ }
                   }}>
                     <option value="default">Default</option>
                     <option value="list">Horizontal list</option>
+                    <option value="compact">Horizontal list Compact</option>
                   </select></span>
                 </label>
                 </div>
               </div>}
               {folder && visibleSets.length ? (
-                <div className={`folder-subject-sections${folderCardView === "list" ? " folder-list-view" : ""}`}>
+                <div className={`folder-subject-sections${folderCardView !== "default" ? " folder-list-view" : ""}${folderCardView === "compact" ? " folder-compact-view" : ""}`}>
                   {folderSubjectGroups.map((group) => (
                     <section className="folder-subject-section" key={group.subject.toLocaleLowerCase()}>
                       <div className="folder-subject-heading">
