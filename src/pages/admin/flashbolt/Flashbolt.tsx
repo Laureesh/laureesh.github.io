@@ -1,5 +1,6 @@
 
 import "./Flashbolt.css";
+import { initialFlashboltView } from "./initialView";
 import ReviewToday from "./ReviewToday";
 import StudySummary, { StudyExplanation } from "./StudySummary";
 import { mergeReviewProgress } from "./review-engine";
@@ -803,7 +804,7 @@ export default function Flashbolt() {
     return initialData;
   });
   const [ready, setReady] = useState(false);
-  const [view, setView] = useState<View>("home");
+  const [view, setView] = useState<View>(() => initialFlashboltView(location.pathname));
   const [selectedSetId, setSelectedSetId] = useState(initialData.sets[0].id);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [masteryFilter, setMasteryFilter] = useState(() => {
@@ -962,8 +963,10 @@ export default function Flashbolt() {
       }
 
       if (cancelled) return;
+      // Re-resolve the current URL against the merged library before painting.
+      handledRouteRef.current = "";
       setData(loadedData);
-      setSelectedSetId(loadedData.sets[0]?.id ?? "");
+      setSelectedSetId(current => loadedData.sets.some(set => set.id === current) ? current : loadedData.sets[0]?.id ?? "");
       setStorageStatus(cloudSyncFailed ? "error" : "saved");
       setReady(true);
     }
@@ -1020,7 +1023,7 @@ export default function Flashbolt() {
 
   // Resolve internal navigation before paint without replacing the workspace with a loader.
   useLayoutEffect(() => {
-    if (!ready || handledRouteRef.current === location.pathname) return;
+    if (handledRouteRef.current === location.pathname) return;
     if (location.pathname === "/flashbolt" || location.pathname.startsWith("/flashbolt/")) {
       routerNavigate(`${FLASHBOLT_BASE}${location.pathname.slice("/flashbolt".length)}`, { replace: true });
       return;
@@ -1070,6 +1073,7 @@ export default function Flashbolt() {
       const [semesterSlug, folderSlug] = routeParts;
       const routeFolder = data.folders.find((item) => routeSlug(item.semester || "no-semester") === semesterSlug && folderRouteSegment(item) === folderSlug);
       if (!routeFolder) {
+        if (!ready) return;
         handledRouteRef.current = location.pathname;
         setSelectedFolderId(null);
         setView("folders");
@@ -1084,6 +1088,7 @@ export default function Flashbolt() {
       const [semesterSlug, folderSlug] = routeParts;
       const routeFolder = data.folders.find((item) => routeSlug(item.semester || "no-semester") === semesterSlug && folderRouteSegment(item) === folderSlug);
       if (!routeFolder) {
+        if (!ready) return;
         handledRouteRef.current = location.pathname;
         setView("folders");
         return;
@@ -1101,6 +1106,7 @@ export default function Flashbolt() {
     const isUnfiledRoute = semesterSlug === "no-semester" && folderSlug === "unfiled";
     const routeFolder = data.folders.find((item) => routeSlug(item.semester || "no-semester") === semesterSlug && folderRouteSegment(item) === folderSlug);
     if (!routeFolder && !isUnfiledRoute) {
+      if (!ready) return;
       handledRouteRef.current = location.pathname;
       setView("library");
       return;
@@ -1109,6 +1115,7 @@ export default function Flashbolt() {
       ? routeFolder.setIds.includes(item.id)
       : !data.folders.some((folderItem) => folderItem.setIds.includes(item.id))));
     if (!routeSet || !["flashcards", "learn", "test", "edit", "helper"].includes(mode)) {
+      if (!ready) return;
       handledRouteRef.current = location.pathname;
       setView(routeFolder ? "library" : "folders");
       return;
@@ -1491,7 +1498,7 @@ export default function Flashbolt() {
   function setRoutePath(nextView: View, setId = selectedSetId) {
     const path = routePathForView(nextView, setId);
     handledRouteRef.current = path;
-    routerNavigate(path);
+    if (location.pathname !== path) routerNavigate(path);
   }
 
   function folderPath(folderItem: Folder) {
