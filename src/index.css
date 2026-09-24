@@ -596,6 +596,62 @@ img {
   background: rgba(255, 255, 255, 0.2);
 }
 
+/* Larger, higher-contrast scrollbars for both study workspaces and their panels. */
+:root:has(.flashbolt-shell) {
+  --study-scroll-thumb: var(--muted);
+  --study-scroll-track: var(--panel-2);
+  --study-scroll-hover: var(--primary-strong);
+}
+
+:root:has(.notebook-shell) {
+  --study-scroll-thumb: var(--nb-muted);
+  --study-scroll-track: var(--nb-panel2);
+  --study-scroll-hover: var(--nb-accent);
+}
+
+:root:has(.flashbolt-shell, .notebook-shell),
+:root:has(.flashbolt-shell, .notebook-shell) * {
+  scrollbar-width: auto;
+  scrollbar-color: var(--study-scroll-thumb) var(--study-scroll-track);
+}
+
+/* Let WebKit/Blink use the explicit size instead of the standard color override. */
+@supports selector(::-webkit-scrollbar) {
+  :root:has(.flashbolt-shell, .notebook-shell),
+  :root:has(.flashbolt-shell, .notebook-shell) * {
+    scrollbar-color: auto;
+  }
+}
+
+:root:has(.flashbolt-shell, .notebook-shell)::-webkit-scrollbar,
+:root:has(.flashbolt-shell, .notebook-shell) *::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+:root:has(.flashbolt-shell, .notebook-shell)::-webkit-scrollbar-track,
+:root:has(.flashbolt-shell, .notebook-shell) *::-webkit-scrollbar-track,
+:root:has(.flashbolt-shell, .notebook-shell)::-webkit-scrollbar-corner,
+:root:has(.flashbolt-shell, .notebook-shell) *::-webkit-scrollbar-corner {
+  background: var(--study-scroll-track);
+}
+
+:root:has(.flashbolt-shell, .notebook-shell)::-webkit-scrollbar-thumb,
+:root:has(.flashbolt-shell, .notebook-shell) *::-webkit-scrollbar-thumb {
+  min-height: 36px;
+  min-width: 36px;
+  border: 2px solid var(--study-scroll-track);
+  border-radius: 10px;
+  background: var(--study-scroll-thumb);
+  background-clip: padding-box;
+}
+
+:root:has(.flashbolt-shell, .notebook-shell)::-webkit-scrollbar-thumb:hover,
+:root:has(.flashbolt-shell, .notebook-shell) *::-webkit-scrollbar-thumb:hover {
+  background: var(--study-scroll-hover);
+  background-clip: padding-box;
+}
+
 /* Light theme overrides */
 [data-theme="light"] .btn-outline {
   background: rgba(0, 0, 0, 0.02);

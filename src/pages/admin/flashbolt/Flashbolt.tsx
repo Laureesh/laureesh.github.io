@@ -2829,7 +2829,7 @@ export default function Flashbolt() {
   }
 
   return (
-    <div className={`app-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
+    <div className={`app-shell flashbolt-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       {setContextMenu && (() => {
         const contextSet = data.sets.find((item) => item.id === setContextMenu.setId);
         if (!contextSet) return null;
