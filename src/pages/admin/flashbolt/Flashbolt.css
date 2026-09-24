@@ -1594,6 +1594,19 @@ select:focus-visible {
   overflow-wrap: anywhere;
 }
 
+.set-tile-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.set-tile-actions.has-kahoot-helper .set-tile-quick-edit {
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
 .set-tile-quick-edit {
   position: relative;
   z-index: 2;
@@ -6670,6 +6683,8 @@ kbd {
 
 .set-context-menu {
   width: min(250px, calc(100vw - 20px));
+  max-height: calc(100vh - 20px);
+  overflow-y: auto;
 }
 
 .set-context-menu > strong {

@@ -1619,11 +1619,11 @@ export default function Flashbolt() {
     setKahootImportMessage("Paste a public Kahoot details link or quiz ID to begin.");
   }
 
-  function openKahootHelper() {
-    const selectedSetFolder = data.folders.find((folderItem) => folderItem.id === selectedFolderId && folderItem.setIds.includes(selectedSet?.id ?? ""))
-      ?? data.folders.find((folderItem) => folderItem.setIds.includes(selectedSet?.id ?? ""));
+  function openKahootHelper(set = selectedSet) {
+    const selectedSetFolder = data.folders.find((folderItem) => folderItem.id === selectedFolderId && folderItem.setIds.includes(set?.id ?? ""))
+      ?? data.folders.find((folderItem) => folderItem.setIds.includes(set?.id ?? ""));
     setHelperFolderId(selectedSetFolder?.id ?? "all");
-    if (selectedSet) setHelperSetId(selectedSet.id);
+    if (set) setHelperSetId(set.id);
     setHelperSearch("");
     navigate("helper");
   }
@@ -2104,6 +2104,7 @@ export default function Flashbolt() {
           title: current.title.trim() ? current.title : result.title,
           description: current.description.trim() ? current.description : result.description,
           subject: current.subject.trim() ? current.subject : result.subject,
+          kahootUrl: current.kahootUrl?.trim() || `https://create.kahoot.it/details/${encodeURIComponent(result.sourceId)}`,
           cards: existingCards.length ? [...existingCards, ...importedCards] : importedCards,
         };
       });
@@ -2596,7 +2597,7 @@ export default function Flashbolt() {
     setSetContextMenu({
       setId,
       x: Math.max(10, Math.min(event.clientX, window.innerWidth - 270)),
-      y: Math.max(10, Math.min(event.clientY, window.innerHeight - 390)),
+      y: Math.max(10, Math.min(event.clientY, window.innerHeight - (data.sets.find(set => set.id === setId)?.subject.trim().toLowerCase() === "kahoot import" ? 470 : 390))),
     });
   }
 
@@ -2710,7 +2711,7 @@ export default function Flashbolt() {
               <Link className="set-tile-open" to={routePathForView("set", set.id)} aria-label={`Open ${set.title}`}><span className="visually-hidden">Open {set.title}</span></Link>
               <span className={`set-accent ${set.color}`} />
               <span className="tile-kicker"><span>{set.subject || "General"}</span><span>{formatDate(set.updatedAt)}</span></span>
-              <InlineSetDetails set={set} onSave={(details) => {
+              <InlineSetDetails set={set} onOpenKahootHelper={set.subject.trim().toLowerCase() === "kahoot import" ? () => openKahootHelper(set) : undefined} onSave={(details) => {
                 setData(current => ({ ...current, sets: current.sets.map(item => item.id === set.id ? { ...item, ...details, updatedAt: new Date().toISOString() } : item) }));
                 notify("Set details saved.");
               }} />
@@ -2825,6 +2826,10 @@ export default function Flashbolt() {
             <Link role="menuitem" to={routePathForView("set", contextSet.id)} onClick={() => setSetContextMenu(null)}><span>▣</span>View set</Link>
             <a role="menuitem" href={routePathForView("set", contextSet.id)} target="_blank" rel="noreferrer" onClick={() => setSetContextMenu(null)}><span>↗</span>Open in new tab</a>
             <a role="menuitem" href={routePathForView("create", contextSet.id)} onClick={(event) => { setSetContextMenu(null); followFlashboltLink(event, () => startEdit(contextSet)); }}><span>✎</span>Edit set</a>
+            {contextSet.subject.trim().toLowerCase() === "kahoot import" && <>
+              <button role="menuitem" onClick={() => { setSetContextMenu(null); openKahootHelper(contextSet); }}><span>◆</span>Kahoot Helper</button>
+              <a role="menuitem" href={contextSet.kahootUrl && isSafeKahootUrl(contextSet.kahootUrl) ? contextSet.kahootUrl : "https://kahoot.it/"} target="_blank" rel="noreferrer" onClick={() => setSetContextMenu(null)}><span>↗</span>Open Kahoot</a>
+            </>}
             <button role="menuitem" onClick={() => { setSetContextMenu(null); duplicateSet(contextSet); }}><span>⧉</span>Duplicate</button>
             <i />
             <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "flashcards")}><span>↗</span>Copy flashcards link</button>
