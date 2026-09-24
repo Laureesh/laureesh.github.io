@@ -7513,7 +7513,7 @@ kbd {
   order: 1;
   max-height: calc(100dvh - 112px);
   overflow-y: auto;
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: auto;
   padding: 20px 24px;
   gap: 14px;
 }
