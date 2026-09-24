@@ -4050,13 +4050,24 @@ select {
 }
 
 .import-panel {
-  position: sticky;
-  top: 99px;
+  position: fixed;
+  top: 88px;
+  right: max(30px, calc((100vw - 248px - 1240px) / 2));
+  width: 310px;
+  z-index: 10;
   align-self: start;
-  max-height: calc(100vh - 116px);
+  max-height: calc(100dvh - 104px);
   overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
   padding: 14px;
 }
+
+.app-shell.sidebar-collapsed .import-panel {
+  right: max(30px, calc((100vw - 76px - 1240px) / 2));
+}
+
+.creator-main { min-width: 0; }
 
 .creation-checklist {
   display: grid;
@@ -6818,8 +6829,14 @@ kbd {
     grid-template-columns: 1fr;
   }
 
-  .import-panel {
-    position: static;
+  .import-panel,
+  .app-shell.sidebar-collapsed .import-panel {
+    position: sticky;
+    right: auto;
+    grid-row: 1;
+    width: 100%;
+    max-height: min(440px, 45dvh);
+    background: var(--panel);
   }
 
   .study-layout {
@@ -6828,6 +6845,7 @@ kbd {
 }
 
 @media (max-width: 780px) {
+  .import-panel { top: 80px; }
   .sidebar {
     display: none;
   }
