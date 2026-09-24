@@ -97,3 +97,15 @@ test('supports CRLF and rejects incomplete or unmarked question lists', () => {
   assert.deepEqual(parseQuizResults(copied.replace('Questions (13)', 'Questions (14)')), []);
   assert.deepEqual(parseQuizResults(copied.replaceAll(/, correct/g, '')), []);
 });
+
+test('ignores the Details footer after the final duplicated false choice', () => {
+  const withFooter = copied.replace(/\nfalse$/, '\nfalsefalse\nDetails');
+  for (const text of [withFooter, `${withFooter}\nUpdated today\nPublic quiz`]) {
+    const cards = parseQuizResults(text);
+    assert.equal(cards.length, 13);
+    assert.equal(cards[12].term, 'In the computer systems, the smallest storage device is Cache.');
+    assert.deepEqual(cards[12].answerChoices, ['true', 'False']);
+    assert.deepEqual(cards[12].correctAnswers, ['False']);
+  }
+  assert.deepEqual(parseQuizResults(withFooter.replace('Questions (13)', 'Questions (14)')), []);
+});

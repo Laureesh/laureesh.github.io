@@ -75,6 +75,11 @@ export function parseKahootQuestionList(text: string): ParsedCard[] {
   };
   for (const line of lines.slice(headerIndex + 1)) {
     if (/^(?:Hide answers|Show answers|Question layout)$/i.test(line)) continue;
+    // Kahoot appends page details after the final question's choices.
+    if (/^Details$/i.test(line) && cards.length === expectedCount - 1 && prompt.length && choices.length >= 2 && answers.length) {
+      finish();
+      break;
+    }
     const marked = line.match(/^(.*),\s*correct\s*$/i);
     const half = line.length / 2;
     const repeated = Number.isInteger(half) && line.slice(0, half) === line.slice(half);
