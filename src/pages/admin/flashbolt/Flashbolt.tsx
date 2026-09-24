@@ -3096,6 +3096,23 @@ export default function Flashbolt() {
                   </select></span>
                 </label>
                 <MasteryFilterControls compact="sort" value={masteryFilter} onChange={setMasteryFilter} shown={visibleSets.length} total={filteredSets.length} />
+                <label className="library-sort-control">
+                  <span className="library-sort-icon" aria-hidden="true">↧</span>
+                  <span className="library-sort-field"><small>Go to subject</small><select
+                    value=""
+                    disabled={!folderSubjectGroups.length}
+                    aria-label="Go to subject"
+                    onChange={(event) => {
+                      const heading = document.getElementById(event.target.value);
+                      if (!heading) return;
+                      heading.focus({ preventScroll: true });
+                      heading.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+                    }}
+                  >
+                    <option value="" disabled>{folderSubjectGroups.length ? "Choose a subject" : "No visible subjects"}</option>
+                    {folderSubjectGroups.map((group) => <option key={group.subject.toLocaleLowerCase()} value={`folder-subject-${encodeURIComponent(group.subject.toLocaleLowerCase())}`}>{group.subject}</option>)}
+                  </select></span>
+                </label>
                 </div>
               </div>}
               {folder && visibleSets.length ? (
@@ -3103,7 +3120,7 @@ export default function Flashbolt() {
                   {folderSubjectGroups.map((group) => (
                     <section className="folder-subject-section" key={group.subject.toLocaleLowerCase()}>
                       <div className="folder-subject-heading">
-                        <div><span className="eyebrow">Subject</span><h2>{group.subject}</h2></div>
+                        <div><span className="eyebrow">Subject</span><h2 id={`folder-subject-${encodeURIComponent(group.subject.toLocaleLowerCase())}`} tabIndex={-1}>{group.subject}</h2></div>
                         <small>{group.sets.length} set{group.sets.length === 1 ? "" : "s"}</small>
                       </div>
                       {renderSetGrid(group.sets)}
