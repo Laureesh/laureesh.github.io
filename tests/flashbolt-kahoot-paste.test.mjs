@@ -1,6 +1,27 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parseQuizResults } from '../src/pages/admin/flashbolt/note-parser.ts';
+import { applyDetectedQuestionType } from '../src/pages/admin/flashbolt/questionTypeDetection.ts';
+
+test('multiple marked answers import as select-all and survive auto detection', () => {
+  const [card] = parseQuizResults(`Questions (1)
+Hide answers
+Question layout
+the parent process terminates the child because
+it has exceeded the allocated resources , correct
+it has exceeded the allocated resourcesit has exceeded the allocated resources
+it is not taking instructionsit is not taking instructions
+Task assigned to child no longer required, correct
+task assigned to child no longer requiredtask assigned to child no longer required
+nonenone
+Details`);
+  assert.equal(card.questionType, 'select-all');
+  assert.equal(card.answerChoices.length, 4);
+  assert.deepEqual(card.correctAnswers, ['it has exceeded the allocated resources', 'Task assigned to child no longer required']);
+  const detected = applyDetectedQuestionType(card);
+  assert.equal(detected.questionType, 'select-all');
+  for (const answer of detected.correctAnswers) assert.ok(detected.answerChoices.includes(answer));
+});
 
 const copied = String.raw`Questions (13)
 

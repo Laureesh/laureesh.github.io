@@ -4,7 +4,7 @@ import { initialFlashboltView } from "./initialView";
 import ReviewToday from "./ReviewToday";
 import StudySummary, { StudyExplanation } from "./StudySummary";
 import { mergeReviewProgress } from "./review-engine";
-import { applyDetectedQuestionType, detectQuestionType } from "./questionTypeDetection";
+import { applyDetectedQuestionType, detectQuestionType, withCorrectChoiceAnswers } from "./questionTypeDetection";
 import { parseQuestionPaste } from "./questionPaste";
 import SemesterVisibilityControls from "./SemesterVisibilityControls";
 import { mergeSemesterVisibility, normalizeSemesterVisibility, type SemesterVisibility } from "./semesterVisibility";
@@ -599,7 +599,7 @@ function prepareDraftCard(card: Card): Card | null {
 function withDataDefaults(value: AppData): AppData {
   const normalizedSets = value.sets.map((set) => ({
     ...set,
-    cards: set.cards.map(card => withDetectedAnswerChoices({ ...card, explanation: typeof card.explanation === "string" ? card.explanation : undefined })),
+    cards: set.cards.map(card => withCorrectChoiceAnswers(withDetectedAnswerChoices({ ...card, explanation: typeof card.explanation === "string" ? card.explanation : undefined }))),
   }));
   const setIds = new Set(normalizedSets.map((set) => set.id));
   const cardIdsBySet = new Map(normalizedSets.map((set) => [set.id, new Set(set.cards.map((card) => card.id))]));
@@ -2126,6 +2126,7 @@ export default function Flashbolt() {
 
       const importedCards: Card[] = result.cards.map((card) => ({
         id: makeId("card"),
+        correctAnswers: card.correctAnswers,
         term: card.term,
         definition: card.definition,
         ...(card.answerChoices?.length ? { answerChoices: card.answerChoices } : {}),

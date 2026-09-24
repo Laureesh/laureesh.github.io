@@ -16,13 +16,28 @@ type AutoTypeCard = {
   questionType?: DetectedQuestionType | "flashcard";
   questionTypeMode?: "auto" | "manual";
   answerChoices?: string[];
+  correctAnswers?: string[];
   autoTypePreviousChoices?: string[];
   matchingPairs?: { id: string; left: string; right: string }[];
 };
 
+export function withCorrectChoiceAnswers<T extends AutoTypeCard>(card: T): T {
+  const normalize = (value: string) => value.trim().toLocaleLowerCase();
+  let answers = card.correctAnswers;
+  if (!answers?.length && card.answerChoices?.length) {
+    const parts = card.definition.split(/;\s*/).filter(part => part.trim());
+    const matched = parts.map(part => card.answerChoices?.find(choice => normalize(choice) === normalize(part)));
+    if (parts.length > 1 && matched.every((answer): answer is string => Boolean(answer))) answers = matched;
+  }
+  if (!answers?.length) return card;
+  const distinct = [...new Map(answers.map(answer => [normalize(answer), answer])).values()];
+  return { ...card, correctAnswers: distinct, ...(distinct.length > 1 && card.questionTypeMode !== "manual" ? { questionType: "select-all" as const } : {}) };
+}
+
 export function applyDetectedQuestionType<T extends AutoTypeCard>(card: T): T {
   if (card.questionTypeMode === "manual") return card;
-  const questionType = detectQuestionType(card.term);
+  card = withCorrectChoiceAnswers(card);
+  const questionType = (card.correctAnswers?.length ?? 0) > 1 ? "select-all" : detectQuestionType(card.term);
   if (!questionType) return card;
   const next = { ...card, questionType };
   if (questionType === "true-false") {

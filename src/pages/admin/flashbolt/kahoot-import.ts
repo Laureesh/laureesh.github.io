@@ -2,6 +2,7 @@ export type KahootImportCard = {
   term: string;
   definition: string;
   answerChoices?: string[];
+  correctAnswers?: string[];
 };
 
 export type KahootImportSet = {
@@ -97,6 +98,7 @@ export function parseKahootImport(quizId: string, payload: unknown): KahootImpor
     cards.push({
       term,
       definition: correctAnswers.join("; "),
+      correctAnswers,
       ...(answerChoices.length >= 2 ? { answerChoices } : {}),
     });
   }

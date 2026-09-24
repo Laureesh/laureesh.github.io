@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {detectQuestionType,applyDetectedQuestionType} from '../src/pages/admin/flashbolt/questionTypeDetection.ts';
+import {detectQuestionType,applyDetectedQuestionType,withCorrectChoiceAnswers} from '../src/pages/admin/flashbolt/questionTypeDetection.ts';
+test('multiple correct answers override single-choice wording and repair older Kahoot imports', () => {
+ const card = {id:'multi',term:'Select the correct answer.',definition:'Resources; Task ended',answerChoices:['Resources','Instructions','Task ended','None'],questionType:'multiple-choice'};
+ const repaired = withCorrectChoiceAnswers(card);
+ assert.equal(repaired.questionType,'select-all');
+ assert.deepEqual(repaired.correctAnswers,['Resources','Task ended']);
+ assert.equal(applyDetectedQuestionType(repaired).questionType,'select-all');
+ assert.equal(withCorrectChoiceAnswers({...card,definition:'Unknown; Task ended'}).correctAnswers,undefined);
+ assert.equal(withCorrectChoiceAnswers({...card,definition:'Resources; Resources'}).questionType,'multiple-choice');
+});
 test('detects explicit question instructions with punctuation and mixed case',()=>{
  for(const text of ['Which protocols? (Choose two.)','Select the three correct answers.','CHOOSE 2.','Select all that apply.','More than one answer may be correct.']) assert.equal(detectQuestionType(text),'select-all',text);
  for(const text of ['Which service? (Select the best answer.)','Choose one.','Select the correct response.']) assert.equal(detectQuestionType(text),'multiple-choice',text);

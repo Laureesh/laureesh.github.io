@@ -4,7 +4,7 @@ export type ParsedCard = {
   definition: string;
   answerChoices?: string[];
   correctAnswers?: string[];
-  questionType?: "multiple-choice" | "true-false";
+  questionType?: "multiple-choice" | "true-false" | "select-all";
 };
 
 function makeCard(term: string, definition: string, answerChoices?: string[]): ParsedCard {
@@ -70,7 +70,7 @@ export function parseKahootQuestionList(text: string): ParsedCard[] {
   const finish = () => {
     if (!prompt.length || choices.length < 2 || !answers.length) { invalid = true; return; }
     const isTrueFalse = choices.length === 2 && choices.every(choice => /^(true|false)$/i.test(choice));
-    cards.push({ ...makeCard(prompt.join(" "), answers.join("; "), choices), correctAnswers: answers, questionType: isTrueFalse ? "true-false" : "multiple-choice" });
+    cards.push({ ...makeCard(prompt.join(" "), answers.join("; "), choices), correctAnswers: answers, questionType: answers.length > 1 ? "select-all" : isTrueFalse ? "true-false" : "multiple-choice" });
     prompt = []; choices = []; answers = [];
   };
   for (const line of lines.slice(headerIndex + 1)) {
