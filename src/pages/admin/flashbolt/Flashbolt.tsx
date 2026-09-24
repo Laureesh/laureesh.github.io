@@ -2850,7 +2850,7 @@ export default function Flashbolt() {
           <Link title="Review today" aria-label="Review today" className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><span className="nav-icon">◴</span><span className="nav-label">Review today</span></Link>
           <Link title="Your library" aria-label="Your library" className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span className="nav-icon">▤</span><span className="nav-label">Your library</span></Link>
           <Link title="Folders" aria-label="Folders" className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span className="nav-icon">□</span><span className="nav-label">Folders</span></Link>
-          {quickLinkSemester && <details className="sidebar-folder-dropdown" onKeyDown={(event) => {
+          {quickLinkSemester && <details open className="sidebar-folder-dropdown" onKeyDown={(event) => {
             if (event.key === "Escape") {
               event.currentTarget.open = false;
               event.currentTarget.querySelector("summary")?.focus();
