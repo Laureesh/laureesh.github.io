@@ -794,7 +794,14 @@ export default function Flashbolt() {
   const location = useLocation();
   const routerNavigate = useNavigate();
   const userId = user?.uid;
-  const [data, setData] = useState<AppData>(initialData);
+  const [data, setData] = useState<AppData>(() => {
+    try {
+      const saved = window.localStorage.getItem(STORAGE_KEY) ?? window.localStorage.getItem(LEGACY_STORAGE_KEY);
+      const parsed: unknown = saved ? JSON.parse(saved) : null;
+      if (isValidBackup(parsed)) return withDataDefaults(parsed);
+    } catch { /* Account sync will restore the library if the local backup is unavailable. */ }
+    return initialData;
+  });
   const [ready, setReady] = useState(false);
   const [view, setView] = useState<View>("home");
   const [selectedSetId, setSelectedSetId] = useState(initialData.sets[0].id);
@@ -2815,12 +2822,8 @@ export default function Flashbolt() {
     return [card.term, card.definition, ...(card.answerChoices ?? []), ...(card.correctAnswers ?? [])].some((value) => value.toLocaleLowerCase().includes(query));
   }) ?? [];
 
-  if (!ready) {
-    return <div className={`flashbolt-route-loading theme-${theme}`} role="status" aria-live="polite"><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><strong>Opening Flashbolt…</strong></div>;
-  }
-
   return (
-    <div className={`app-shell flashbolt-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
+    <div inert={!ready} className={`app-shell flashbolt-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       {setContextMenu && (() => {
         const contextSet = data.sets.find((item) => item.id === setContextMenu.setId);
         if (!contextSet) return null;
@@ -3592,12 +3595,6 @@ export default function Flashbolt() {
                     const collapsed = collapsedHelperCards.includes(collapseKey);
                     const toggleCard = () => {
                       setCollapsedHelperCards(current => current.includes(collapseKey) ? current.filter(key => key !== collapseKey) : [...current, collapseKey]);
-                      requestAnimationFrame(() => {
-                        const target = collapsed
-                          ? document.getElementById(`helper-card-${card.id}`)
-                          : document.querySelector(".kahoot-helper-card:not(.collapsed)");
-                        target?.scrollIntoView({ block: "start", behavior: "instant" });
-                      });
                     };
                     return <article id={`helper-card-${card.id}`} className={`kahoot-helper-card${collapsed ? " collapsed" : ""}`} key={card.id} onClick={toggleCard}>
                       <header><span>Question {index + 1}</span><b>{cardQuestionType(card).replaceAll("-", " ")}</b><button type="button" className="kahoot-helper-toggle" aria-expanded={!collapsed} aria-controls={`helper-answer-${card.id}`} aria-label={`${collapsed ? "Expand" : "Minimize"} question ${index + 1}: ${question}`} onClick={(event) => { event.stopPropagation(); toggleCard(); }}>{collapsed ? "＋" : "−"}</button></header>

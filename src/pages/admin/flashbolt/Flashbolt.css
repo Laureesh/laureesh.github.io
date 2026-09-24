@@ -251,24 +251,6 @@ select:focus-visible {
   min-height: 100vh;
 }
 
-.flashbolt-route-loading {
-  display: grid;
-  min-height: 100vh;
-  place-items: center;
-  align-content: center;
-  gap: 16px;
-  background: var(--bg);
-  color: var(--ink);
-}
-
-.flashbolt-route-loading .brand-mark {
-  transform: scale(1.25);
-}
-
-.flashbolt-route-loading strong {
-  font-size: 18px;
-}
-
 .app-shell.theme-white {
   background:
     radial-gradient(circle at 92% 2%, var(--ambient-glow), transparent 26rem),
@@ -7469,6 +7451,7 @@ kbd {
 .kahoot-helper-search button { position: absolute; right: 5px; top: 5px; width: 34px; height: 34px; border: 0; background: transparent; color: var(--muted); }
 .kahoot-helper-list {
   display: grid;
+  overflow-anchor: none;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   align-items: start;
   gap: 10px;
@@ -7476,18 +7459,16 @@ kbd {
 }
 .kahoot-helper-card:not(.collapsed) {
   grid-column: 1 / -1;
-  order: -1;
+  order: 1;
   max-height: calc(100dvh - 112px);
   overflow-y: auto;
   overscroll-behavior-y: contain;
-  scroll-margin-top: 88px;
   padding: 20px 24px;
   gap: 14px;
 }
 @media (max-width: 780px) {
   .kahoot-helper-card:not(.collapsed) {
     max-height: calc(100dvh - 164px);
-    scroll-margin-top: 80px;
     padding: 16px;
   }
 }
