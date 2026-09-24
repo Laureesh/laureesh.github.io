@@ -3137,8 +3137,10 @@ select {
 
 .editor-set-navigation {
   display: grid;
-  justify-items: end;
   gap: 8px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--line);
 }
 
 .editor-set-navigation > span {
@@ -3147,11 +3149,11 @@ select {
   font-size: 13px;
   font-weight: 750;
   overflow-wrap: anywhere;
-  text-align: right;
+  text-align: left;
 }
 
-.editor-set-navigation > div { display: flex; gap: 8px; }
-.editor-set-navigation .button { min-width: 112px; }
+.editor-set-navigation > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.editor-set-navigation .button { min-width: 112px; flex: 1; }
 
 .kahoot-link-field {
   display: grid;
