@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
+import { pageTransitionKey } from "./pageTransitionKey";
 
 export default function PageTransition({
   children,
@@ -35,9 +36,7 @@ export default function PageTransition({
 
   return (
     <div
-      key={location.pathname.startsWith("/admin-dashboard/private-pages/notebook")
-        ? "/admin-dashboard/private-pages/notebook"
-        : location.pathname}
+      key={pageTransitionKey(location.pathname)}
       style={disableAnimation ? undefined : {
         animation: "fadeInUp 0.35s ease both",
       }}
