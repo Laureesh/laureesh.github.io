@@ -813,6 +813,7 @@ export default function Flashbolt() {
   const [helperFolderId, setHelperFolderId] = useState("all");
   const [helperSetId, setHelperSetId] = useState(initialData.sets[0].id);
   const [helperSearch, setHelperSearch] = useState("");
+  const [collapsedHelperCards, setCollapsedHelperCards] = useState<string[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try { return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true"; } catch { return false; }
   });
@@ -3586,11 +3587,16 @@ export default function Flashbolt() {
                     const choices = card.answerChoices?.length ? card.answerChoices : embedded.choices;
                     const answers = correctAnswersForCard(card).map(normalizeAnswer);
                     const question = embedded.prompt || card.term;
-                    return <article className="kahoot-helper-card" key={card.id}>
-                      <header><span>Question {index + 1}</span><b>{cardQuestionType(card).replaceAll("-", " ")}</b></header>
-                      {card.imageData && <img className="kahoot-helper-image" src={card.imageData} alt={card.imageName || "Question study aid"} />}
+                    const collapseKey = `${helperSet.id}:${card.id}`;
+                    const collapsed = collapsedHelperCards.includes(collapseKey);
+                    const toggleCard = () => setCollapsedHelperCards(current => current.includes(collapseKey) ? current.filter(key => key !== collapseKey) : [...current, collapseKey]);
+                    return <article className={`kahoot-helper-card${collapsed ? " collapsed" : ""}`} key={card.id} onClick={toggleCard}>
+                      <header><span>Question {index + 1}</span><b>{cardQuestionType(card).replaceAll("-", " ")}</b><button type="button" className="kahoot-helper-toggle" aria-expanded={!collapsed} aria-controls={`helper-answer-${card.id}`} aria-label={`${collapsed ? "Expand" : "Minimize"} question ${index + 1}: ${question}`} onClick={(event) => { event.stopPropagation(); toggleCard(); }}>{collapsed ? "＋" : "−"}</button></header>
                       <h2>{question}</h2>
+                      <div className="kahoot-helper-card-content" id={`helper-answer-${card.id}`} hidden={collapsed}>
+                      {card.imageData && <img className="kahoot-helper-image" src={card.imageData} alt={card.imageName || "Question study aid"} />}
                       {cardQuestionType(card) === "matching" && card.matchingPairs?.length ? <div className="kahoot-helper-matches">{card.matchingPairs.map((pair) => <div key={pair.id}><span>{pair.left}</span><strong>{pair.right}</strong></div>)}</div> : choices.length > 1 ? <ol className="kahoot-helper-choices">{choices.map((choice, choiceIndex) => { const correct = answers.includes(normalizeAnswer(choice)); return <li className={correct ? "correct" : ""} key={`${choice}-${choiceIndex}`}><span className={`choice-symbol choice-${choiceIndex % 4}`} aria-label={`Choice ${String.fromCharCode(65 + choiceIndex)}`}>{String.fromCharCode(65 + choiceIndex)}</span><span>{choice}</span>{correct && <b>Correct</b>}</li>; })}</ol> : <div className="kahoot-helper-answer"><span>Answer</span><strong>{card.definition}</strong></div>}
+                      </div>
                     </article>;
                   })}
                 </div> : <div className="empty-state compact"><span>⌕</span><h2>No matching questions</h2><p>Try a different search.</p><button className="button quiet" onClick={() => setHelperSearch("")}>Clear search</button></div>}
