@@ -2694,6 +2694,39 @@ code {
   gap: 42px;
 }
 
+.folder-list-view .set-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.folder-list-view .set-tile {
+  min-height: 0;
+  gap: 12px;
+}
+
+.folder-list-view .tile-kicker,
+.folder-list-view .tile-description,
+.folder-list-view .tile-folder-badge,
+.folder-list-view .tile-footer {
+  margin: 0;
+}
+
+@media (min-width: 800px) {
+  .folder-list-view .set-tile {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 26%);
+    grid-template-areas: "kicker folder" "title folder" "description progress";
+    column-gap: 24px;
+    padding: 20px 24px;
+  }
+
+  .folder-list-view .tile-kicker { grid-area: kicker; }
+  .folder-list-view .set-tile-title-row { grid-area: title; }
+  .folder-list-view .tile-description { grid-area: description; }
+  .folder-list-view .tile-folder-control { grid-area: folder; align-self: center; min-width: 0; }
+  .folder-list-view .tile-footer { grid-area: progress; align-self: end; }
+  .folder-list-view .set-tile-inline-editor { grid-area: 2 / 1 / 4 / 2; min-width: 0; }
+}
+
 .folder-subject-section {
   display: grid;
   gap: 18px;
