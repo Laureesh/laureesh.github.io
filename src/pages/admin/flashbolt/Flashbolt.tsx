@@ -3590,8 +3590,16 @@ export default function Flashbolt() {
                     const question = embedded.prompt || card.term;
                     const collapseKey = `${helperSet.id}:${card.id}`;
                     const collapsed = collapsedHelperCards.includes(collapseKey);
-                    const toggleCard = () => setCollapsedHelperCards(current => current.includes(collapseKey) ? current.filter(key => key !== collapseKey) : [...current, collapseKey]);
-                    return <article className={`kahoot-helper-card${collapsed ? " collapsed" : ""}`} key={card.id} onClick={toggleCard}>
+                    const toggleCard = () => {
+                      setCollapsedHelperCards(current => current.includes(collapseKey) ? current.filter(key => key !== collapseKey) : [...current, collapseKey]);
+                      requestAnimationFrame(() => {
+                        const target = collapsed
+                          ? document.getElementById(`helper-card-${card.id}`)
+                          : document.querySelector(".kahoot-helper-card:not(.collapsed)");
+                        target?.scrollIntoView({ block: "start", behavior: "instant" });
+                      });
+                    };
+                    return <article id={`helper-card-${card.id}`} className={`kahoot-helper-card${collapsed ? " collapsed" : ""}`} key={card.id} onClick={toggleCard}>
                       <header><span>Question {index + 1}</span><b>{cardQuestionType(card).replaceAll("-", " ")}</b><button type="button" className="kahoot-helper-toggle" aria-expanded={!collapsed} aria-controls={`helper-answer-${card.id}`} aria-label={`${collapsed ? "Expand" : "Minimize"} question ${index + 1}: ${question}`} onClick={(event) => { event.stopPropagation(); toggleCard(); }}>{collapsed ? "＋" : "−"}</button></header>
                       <h2 title={collapsed ? question : undefined}>{question}</h2>
                       <div className="kahoot-helper-card-content" id={`helper-answer-${card.id}`} hidden={collapsed}>

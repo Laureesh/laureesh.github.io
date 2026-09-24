@@ -7474,7 +7474,23 @@ kbd {
   gap: 10px;
   margin-top: 18px;
 }
-.kahoot-helper-card:not(.collapsed) { grid-column: 1 / -1; }
+.kahoot-helper-card:not(.collapsed) {
+  grid-column: 1 / -1;
+  order: -1;
+  max-height: calc(100dvh - 112px);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-margin-top: 88px;
+  padding: 20px 24px;
+  gap: 14px;
+}
+@media (max-width: 780px) {
+  .kahoot-helper-card:not(.collapsed) {
+    max-height: calc(100dvh - 164px);
+    scroll-margin-top: 80px;
+    padding: 16px;
+  }
+}
 
 .kahoot-helper-card {
   display: grid;
