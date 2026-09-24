@@ -2032,7 +2032,22 @@ export default function Flashbolt() {
     recognition.start();
   }
 
-  async function applyQuizletImport() {
+  function applyLinkImport() {
+    if (quizletImporting || kahootImporting) return;
+    const reference = quizletUrl.trim();
+    setQuizletImportMessage("");
+    setKahootImportMessage("");
+    if (!reference) {
+      setQuizletImportFailed(true);
+      setQuizletImportMessage("Paste a Quizlet or Kahoot link or ID first.");
+      return;
+    }
+    if (/^\d+$/.test(reference)) void applyQuizletImport(`https://quizlet.com/${reference}/`);
+    else if (/^(?:https?:\/\/)?(?:www\.)?quizlet\.com\//i.test(reference)) void applyQuizletImport(reference);
+    else void applyKahootImport();
+  }
+
+  async function applyQuizletImport(reference = quizletUrl) {
     if (!quizletUrl.trim()) {
       setQuizletImportFailed(true);
       setQuizletImportMessage("Paste a Quizlet set link first.");
@@ -2047,7 +2062,7 @@ export default function Flashbolt() {
       const response = await fetch("/api/import/quizlet", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ url: quizletUrl.trim() }),
+        body: JSON.stringify({ url: reference.trim() }),
       });
       const result = await readImportResponse<QuizletImportSet | { error?: string }>(response);
       if (!response.ok || !("cards" in result)) {
@@ -2132,6 +2147,10 @@ export default function Flashbolt() {
 
   function applyPasteImport() {
     const quizResultCards = parseQuizResults(pasteImport);
+    if (/^Questions\s*\(\d+\)\s*$/im.test(pasteImport) && !quizResultCards.length) {
+      notify("Could not read every Kahoot question. Copy the full question list with answers shown, including the correct labels.");
+      return;
+    }
     const htmlCards = quizResultCards.length ? [] : parseQuizletHtml(pasteImport);
     const cards = quizResultCards.length ? quizResultCards : htmlCards.length ? htmlCards : parseNotes(pasteImport);
     if (!cards.length) {
@@ -3371,24 +3390,17 @@ export default function Flashbolt() {
                   </section>
                   <div className="import-divider"><span>Import tools</span></div>
                   <div className={`quizlet-import-block collapsible-panel-section ${collapsedEditorSections.includes("quizlet") ? "collapsed" : ""}`}>
-                    <button className="side-panel-collapse-button" type="button" onClick={() => toggleEditorSection("quizlet")} aria-expanded={!collapsedEditorSections.includes("quizlet")}><span><small>From Quizlet</small><strong>Import by link</strong></span><i aria-hidden="true">⌃</i></button>
-                    <div className="collapsible-panel-body"><p>Paste a public flashcard-set link. Its title, description, and cards will fill this editor.</p>
-                      <label className="quizlet-link-field"><span className="visually-hidden">Quizlet set link</span><input type="url" value={quizletUrl} onChange={(event) => { setQuizletUrl(event.target.value); setQuizletImportMessage(""); setQuizletImportFailed(false); }} onKeyDown={(event) => { if (event.key === "Enter" && !quizletImporting) void applyQuizletImport(); }} placeholder="https://quizlet.com/123…/flash-cards/" autoComplete="url" /></label>
-                      <button className="button primary full" onClick={() => void applyQuizletImport()} disabled={quizletImporting}>{quizletImporting ? "Importing…" : "Import Quizlet set"}</button>
+                    <button className="side-panel-collapse-button" type="button" onClick={() => toggleEditorSection("quizlet")} aria-expanded={!collapsedEditorSections.includes("quizlet")}><span><small>From Quizlet or Kahoot</small><strong>Import by link or ID</strong></span><i aria-hidden="true">⌃</i></button>
+                    <div className="collapsible-panel-body"><p>Paste a public Quizlet or Kahoot link, or a set or quiz ID. Imported cards will fill this editor.</p>
+                      <label className="quizlet-link-field"><span className="visually-hidden">Quizlet or Kahoot link or ID</span><input type="text" value={quizletUrl} onChange={(event) => { setQuizletUrl(event.target.value); setKahootReference(event.target.value); setQuizletImportMessage(""); setKahootImportMessage(""); setQuizletImportFailed(false); setKahootImportFailed(false); }} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); applyLinkImport(); } }} placeholder="Quizlet or Kahoot link or ID" autoComplete="url" disabled={quizletImporting || kahootImporting} /></label>
+                      <button className="button primary full" onClick={applyLinkImport} disabled={quizletImporting || kahootImporting}>{quizletImporting || kahootImporting ? "Importing…" : "Import cards"}</button>
                       {quizletImportMessage && <p className={`import-status ${quizletImportFailed ? "error" : ""}`} role={quizletImportFailed ? "alert" : "status"}>{quizletImportMessage}</p>}
-                    </div>
-                  </div>
-                  <div className={`kahoot-import-block collapsible-panel-section ${collapsedEditorSections.includes("kahoot") ? "collapsed" : ""}`}>
-                    <button className="side-panel-collapse-button" type="button" onClick={() => toggleEditorSection("kahoot")} aria-expanded={!collapsedEditorSections.includes("kahoot")}><span><small>From Kahoot</small><strong>Import by link or ID</strong></span><i aria-hidden="true">⌃</i></button>
-                    <div className="collapsible-panel-body"><p>Paste a public details link or its quiz ID. Questions, choices, and correct answers will fill this editor.</p>
-                      <label className="quizlet-link-field"><span className="visually-hidden">Kahoot quiz link or ID</span><input type="text" inputMode="url" value={kahootReference} onChange={(event) => { setKahootReference(event.target.value); setKahootImportMessage(""); setKahootImportFailed(false); }} onKeyDown={(event) => { if (event.key === "Enter" && !kahootImporting) void applyKahootImport(); }} placeholder="Kahoot details link or quiz ID" autoComplete="url" /></label>
-                      <button className="button primary full kahoot-import-button" onClick={() => void applyKahootImport()} disabled={kahootImporting}>{kahootImporting ? "Importing…" : "Import Kahoot quiz"}</button>
                       {kahootImportMessage && <p className={`import-status ${kahootImportFailed ? "error" : ""}`} role={kahootImportFailed ? "alert" : "status"}>{kahootImportMessage}</p>}
                     </div>
                   </div>
                   <div className={`paste-import-block collapsible-panel-section ${collapsedEditorSections.includes("paste") ? "collapsed" : ""}`}>
                     <button className="side-panel-collapse-button" type="button" onClick={() => toggleEditorSection("paste")} aria-expanded={!collapsedEditorSections.includes("paste")}><span><small>Manual import</small><strong>Paste a list</strong></span><i aria-hidden="true">⌃</i></button>
-                    <div className="collapsible-panel-body"><p>Paste LMS quiz results with Selected/Correct Answer labels, Quizlet HTML, or one <code>term :: definition</code> per line.</p>
+                    <div className="collapsible-panel-body"><p>Paste a Kahoot question list with answers shown and “correct” labels, LMS quiz results, Quizlet HTML, or one <code>term :: definition</code> per line.</p>
                       <textarea value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} placeholder={'Paste copied quiz results here, or use:\n\nLifecycle :: The stages an activity moves through\nIntent :: A request to perform an action'} rows={7} />
                       <button className="button quiet full" onClick={applyPasteImport}>Import pasted cards</button>
                     </div>

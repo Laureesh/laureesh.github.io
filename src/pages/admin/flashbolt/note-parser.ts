@@ -56,11 +56,50 @@ function quizChoiceMarker(value: string, pendingAssessment: QuizChoiceMarker["as
   };
 }
 
-/** Parse question-review text copied from Respondus-backed LMS quiz result pages. */
+/** Parse Kahoot's copied question list, including duplicated accessible choice labels. */
+export function parseKahootQuestionList(text: string): ParsedCard[] {
+  const lines = decodeCopiedQuizText(text).replace(/\\_/g, "_").split(/\r?\n/).map(cleanStudyText).filter(Boolean);
+  const headerIndex = lines.findIndex(line => /^Questions\s*\(\d+\)$/i.test(line));
+  if (headerIndex < 0) return [];
+  const expectedCount = Number(lines[headerIndex].match(/\d+/)?.[0]);
+  const cards: ParsedCard[] = [];
+  let prompt: string[] = [];
+  let choices: string[] = [];
+  let answers: string[] = [];
+  let invalid = false;
+  const finish = () => {
+    if (!prompt.length || choices.length < 2 || !answers.length) { invalid = true; return; }
+    const isTrueFalse = choices.length === 2 && choices.every(choice => /^(true|false)$/i.test(choice));
+    cards.push({ ...makeCard(prompt.join(" "), answers.join("; "), choices), correctAnswers: answers, questionType: isTrueFalse ? "true-false" : "multiple-choice" });
+    prompt = []; choices = []; answers = [];
+  };
+  for (const line of lines.slice(headerIndex + 1)) {
+    if (/^(?:Hide answers|Show answers|Question layout)$/i.test(line)) continue;
+    const marked = line.match(/^(.*),\s*correct\s*$/i);
+    const half = line.length / 2;
+    const repeated = Number.isInteger(half) && line.slice(0, half) === line.slice(half);
+    const choice = marked ? marked[1].trim() : repeated ? line.slice(0, half).trim() : null;
+    if (choice) {
+      const existing = choices.find(item => normalizedChoice(item) === normalizedChoice(choice));
+      if (!existing) choices.push(choice);
+      if (marked && !answers.some(item => normalizedChoice(item) === normalizedChoice(choice))) answers.push(existing ?? choice);
+    } else if (choices.some(item => normalizedChoice(item) === normalizedChoice(line))) {
+      // A correct answer's duplicate can be a single label (for example, "false").
+      continue;
+    } else {
+      if (choices.length) finish();
+      prompt.push(line);
+    }
+  }
+  if (prompt.length || choices.length) finish();
+  return !invalid && cards.length === expectedCount ? cards : [];
+}
+
+/** Parse question-review text copied from LMS or Kahoot question lists. */
 export function parseQuizResults(text: string): ParsedCard[] {
   const normalized = decodeCopiedQuizText(text).replace(/\r\n?/g, "\n");
   const headers = [...normalized.matchAll(/^Question\s+\d+\b[^\n]*$/gim)];
-  if (!headers.length) return [];
+  if (!headers.length) return parseKahootQuestionList(text);
 
   const cards: ParsedCard[] = [];
   headers.forEach((header, headerIndex) => {
