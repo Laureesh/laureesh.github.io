@@ -6,9 +6,10 @@ type Props = {
   set: SetDetails & { id: string };
   onSave: (details: SetDetails) => void;
   onOpenKahootHelper?: () => void;
+  kahootUrl?: string;
 };
 
-export default function InlineSetDetails({ set, onSave, onOpenKahootHelper }: Props) {
+export default function InlineSetDetails({ set, onSave, onOpenKahootHelper, kahootUrl }: Props) {
   const [draft, setDraft] = useState<SetDetails | null>(null);
   const [error, setError] = useState("");
   const cancel = () => { setDraft(null); setError(""); };
@@ -22,6 +23,7 @@ export default function InlineSetDetails({ set, onSave, onOpenKahootHelper }: Pr
           setError("");
         }}>Quick edit</button>
         {onOpenKahootHelper && <button type="button" className="set-tile-quick-edit" aria-label={`Open Kahoot Helper for ${set.title}`} onClick={onOpenKahootHelper}>Kahoot Helper</button>}
+        {kahootUrl && <a className="tile-kahoot-link" href={kahootUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()} aria-label={`Linked Kahoot for ${set.title}`}>Linked Kahoot <span aria-hidden="true">↗</span></a>}
       </div>
     </div>
     <span className="tile-description">{set.description || "Your private flashcard set."}</span>

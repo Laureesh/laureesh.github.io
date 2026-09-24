@@ -1104,7 +1104,7 @@ export default function Flashbolt() {
     const routeSet = data.sets.find((item) => setRouteSegment(item, routeFolder) === setSlug && (routeFolder
       ? routeFolder.setIds.includes(item.id)
       : !data.folders.some((folderItem) => folderItem.setIds.includes(item.id))));
-    if (!routeSet || !["flashcards", "learn", "test", "edit"].includes(mode)) {
+    if (!routeSet || !["flashcards", "learn", "test", "edit", "helper"].includes(mode)) {
       handledRouteRef.current = location.pathname;
       setView(routeFolder ? "library" : "folders");
       setResolvedRoutePath(location.pathname);
@@ -1116,6 +1116,13 @@ export default function Flashbolt() {
     if (mode === "edit") startEdit(routeSet);
     else if (mode === "learn") startLearn(routeSet.id);
     else if (mode === "test") startTest(routeSet.id);
+    else if (mode === "helper") {
+      setHelperFolderId(routeFolder?.id ?? "all");
+      setHelperSetId(routeSet.id);
+      setHelperSearch("");
+      setSearch("");
+      setView("helper");
+    }
     else openSet(routeSet.id);
     setResolvedRoutePath(location.pathname);
   // Route handlers are intentionally re-run only when the route or persisted library changes.
@@ -1468,7 +1475,7 @@ export default function Flashbolt() {
   }
 
   function routePathForView(nextView: View, setId = selectedSetId) {
-    if (!["set", "learn", "test", "create"].includes(nextView) || (nextView === "create" && !setId)) {
+    if (!["set", "learn", "test", "create", "helper"].includes(nextView) || (["create", "helper"].includes(nextView) && !setId)) {
       return nextView === "home" ? FLASHBOLT_BASE : `${FLASHBOLT_BASE}/${nextView}`;
     }
     const routeSet = data.sets.find((item) => item.id === setId);
@@ -1623,9 +1630,13 @@ export default function Flashbolt() {
     const selectedSetFolder = data.folders.find((folderItem) => folderItem.id === selectedFolderId && folderItem.setIds.includes(set?.id ?? ""))
       ?? data.folders.find((folderItem) => folderItem.setIds.includes(set?.id ?? ""));
     setHelperFolderId(selectedSetFolder?.id ?? "all");
-    if (set) setHelperSetId(set.id);
+    if (set) {
+      setHelperSetId(set.id);
+      setSelectedSetId(set.id);
+    }
     setHelperSearch("");
-    navigate("helper");
+    setSearch("");
+    navigate("helper", set?.id ?? "");
   }
 
   function startEdit(set: StudySet) {
@@ -2711,11 +2722,10 @@ export default function Flashbolt() {
               <Link className="set-tile-open" to={routePathForView("set", set.id)} aria-label={`Open ${set.title}`}><span className="visually-hidden">Open {set.title}</span></Link>
               <span className={`set-accent ${set.color}`} />
               <span className="tile-kicker"><span>{set.subject || "General"}</span><span>{formatDate(set.updatedAt)}</span></span>
-              <InlineSetDetails set={set} onOpenKahootHelper={set.subject.trim().toLowerCase() === "kahoot import" ? () => openKahootHelper(set) : undefined} onSave={(details) => {
+              <InlineSetDetails set={set} kahootUrl={set.kahootUrl && isSafeKahootUrl(set.kahootUrl) ? set.kahootUrl : undefined} onOpenKahootHelper={set.subject.trim().toLowerCase() === "kahoot import" ? () => openKahootHelper(set) : undefined} onSave={(details) => {
                 setData(current => ({ ...current, sets: current.sets.map(item => item.id === set.id ? { ...item, ...details, updatedAt: new Date().toISOString() } : item) }));
                 notify("Set details saved.");
               }} />
-              {set.kahootUrl && isSafeKahootUrl(set.kahootUrl) && <a className="tile-kahoot-link" href={set.kahootUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()} aria-label={`Open Kahoot for ${set.title}`}>◆ Open Kahoot <span>↗</span></a>}
               <div className="tile-folder-control" data-tile-folder-picker={set.id}>
                 <button
                   className={`tile-folder-badge ${setFolders.length ? "assigned" : "unfiled"}`}
@@ -2883,7 +2893,7 @@ export default function Flashbolt() {
           <a title="Flashcard set" aria-label="Create flashcard set" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><span className="nav-icon">＋</span><span className="nav-label">Flashcard set</span></a>
           <Link title="Study guide" aria-label="Study guide" to={`${FLASHBOLT_BASE}/guide`}><span className="nav-icon">≡</span><span className="nav-label">Study guide</span></Link>
           <Link title="Practice test" aria-label="Practice test" to={selectedSet ? routePathForView("test", selectedSet.id) : `${FLASHBOLT_BASE}/library`}><span className="nav-icon">✓</span><span className="nav-label">Practice test</span></Link>
-          <a title="Kahoot Helper" aria-label="Open Kahoot Helper" className={view === "helper" ? "active" : ""} href={`${FLASHBOLT_BASE}/helper`} onClick={(event) => followFlashboltLink(event, openKahootHelper)}><span className="nav-icon">◆</span><span className="nav-label">Kahoot Helper</span></a>
+          <a title="Kahoot Helper" aria-label="Open Kahoot Helper" className={view === "helper" ? "active" : ""} href={routePathForView("helper", selectedSet?.id ?? "")} onClick={(event) => followFlashboltLink(event, openKahootHelper)}><span className="nav-icon">◆</span><span className="nav-label">Kahoot Helper</span></a>
           <Link title="Notebook" aria-label="Open notebook" to="/admin-dashboard/private-pages/notebook"><span className="nav-icon">▱</span><span className="nav-label">Notebook</span></Link>
         </div>
 
