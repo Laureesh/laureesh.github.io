@@ -3114,9 +3114,9 @@ export default function Flashbolt() {
                   </select></span>
                 </label>
                 <MasteryFilterControls compact="sort" value={masteryFilter} onChange={setMasteryFilter} shown={visibleSets.length} total={filteredSets.length} />
-                <label className="library-sort-control">
+                <label className="library-sort-control full-area-select">
                   <span className="library-sort-icon" aria-hidden="true">↧</span>
-                  <span className="library-sort-field"><small>Go to subject</small><select
+                  <span className="library-sort-field"><small>Go to subject</small><strong className="full-area-select-value" aria-hidden="true">{folderSubjectGroups.length ? "Choose a subject" : "No visible subjects"}</strong><select
                     value=""
                     disabled={!folderSubjectGroups.length}
                     aria-label="Go to subject"
@@ -3131,9 +3131,9 @@ export default function Flashbolt() {
                     {folderSubjectGroups.map((group) => <option key={group.subject.toLocaleLowerCase()} value={`folder-subject-${encodeURIComponent(group.subject.toLocaleLowerCase())}`}>{group.subject}</option>)}
                   </select></span>
                 </label>
-                <label className="library-sort-control">
+                <label className="library-sort-control full-area-select">
                   <span className="library-sort-icon" aria-hidden="true">☷</span>
-                  <span className="library-sort-field"><small>View</small><select value={folderCardView} aria-label="Folder set card view" onChange={(event) => {
+                  <span className="library-sort-field"><small>View</small><strong className="full-area-select-value" aria-hidden="true">{folderCardView === "list" ? "Horizontal list" : "Default"}</strong><select value={folderCardView} aria-label="Folder set card view" onChange={(event) => {
                     const nextView = event.target.value === "list" ? "list" : "default";
                     setFolderCardView(nextView);
                     try { window.localStorage.setItem(`${STORAGE_KEY}.folderCardView`, nextView); } catch { /* Keep the current view when storage is unavailable. */ }

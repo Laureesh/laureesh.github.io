@@ -2276,6 +2276,19 @@ code {
   color: var(--ink);
 }
 
+.full-area-select { position: relative; }
+.full-area-select-value { padding-right: 20px; color: var(--ink); font-size: 18px; font-weight: 800; }
+.full-area-select::after { content: "⌄"; position: absolute; right: 10px; color: var(--ink); pointer-events: none; }
+.full-area-select .library-sort-field select {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+.full-area-select:has(select:disabled) { opacity: .55; }
+
 .folder-filter-panel {
   display: grid;
   min-width: 0;
