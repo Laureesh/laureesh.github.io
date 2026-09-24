@@ -2703,6 +2703,15 @@ code {
   gap: 12px;
 }
 
+.folder-list-view .set-tile-title-row { flex-wrap: wrap; }
+.folder-list-view .set-tile-actions {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+}
+
 .folder-list-view .tile-kicker,
 .folder-list-view .tile-description,
 .folder-list-view .tile-folder-badge,
