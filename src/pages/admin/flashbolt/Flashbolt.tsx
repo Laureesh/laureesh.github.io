@@ -1735,6 +1735,9 @@ export default function Flashbolt() {
       }),
     };
     setData(nextData);
+    // Keep the editor aligned with saved normalization and updatedAt so
+    // adjacent-set navigation only warns about edits made after this save.
+    setDraft({ ...savedSet, cards: savedSet.cards.map((card) => ({ ...card })) });
     if (notebookDraftStorageKey) {
       sessionStorage.removeItem(notebookDraftStorageKey);
       setNotebookDraftStorageKey("");
