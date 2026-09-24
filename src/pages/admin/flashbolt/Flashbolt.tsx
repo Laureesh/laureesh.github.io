@@ -10,7 +10,7 @@ import { mergeSemesterVisibility, normalizeSemesterVisibility, type SemesterVisi
 import MasteryFilterControls from "./MasteryFilterControls";
 import { DEFAULT_MASTERY_FILTER, MASTERY_FILTER_KEY, masteryPercentage, matchesMasteryFilter, normalizeMasteryFilter } from "./masteryFilter";
 import InlineSetDetails from "./InlineSetDetails";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { CSSProperties, ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -896,7 +896,6 @@ export default function Flashbolt() {
   const [toast, setToast] = useState("");
   const [theme, setTheme] = useState<ThemeName>("dark");
   const [storageStatus, setStorageStatus] = useState<StorageStatus>("loading");
-  const [resolvedRoutePath, setResolvedRoutePath] = useState("");
   const [syncError, setSyncError] = useState("");
   const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
   const [dictationTarget, setDictationTarget] = useState<{ cardId: string; field: "term" | "definition" } | null>(null);
@@ -1012,7 +1011,8 @@ export default function Flashbolt() {
     if (ready) window.localStorage.setItem(`${STORAGE_KEY}.theme`, theme);
   }, [theme, ready]);
 
-  useEffect(() => {
+  // Resolve internal navigation before paint without replacing the workspace with a loader.
+  useLayoutEffect(() => {
     if (!ready || handledRouteRef.current === location.pathname) return;
     if (location.pathname === "/flashbolt" || location.pathname.startsWith("/flashbolt/")) {
       routerNavigate(`${FLASHBOLT_BASE}${location.pathname.slice("/flashbolt".length)}`, { replace: true });
@@ -1024,7 +1024,6 @@ export default function Flashbolt() {
     if (routeParts.length === 0) {
       handledRouteRef.current = location.pathname;
       setView("home");
-      setResolvedRoutePath(location.pathname);
       return;
     }
     if (routeParts.length === 1 && ["home", "review", "library", "folders", "create", "guide", "helper"].includes(routeParts[0])) {
@@ -1058,7 +1057,6 @@ export default function Flashbolt() {
           }
         }
       }
-      setResolvedRoutePath(location.pathname);
       return;
     }
     if (routeParts.length === 2) {
@@ -1068,13 +1066,11 @@ export default function Flashbolt() {
         handledRouteRef.current = location.pathname;
         setSelectedFolderId(null);
         setView("folders");
-        setResolvedRoutePath(location.pathname);
         return;
       }
       handledRouteRef.current = location.pathname;
       setSelectedFolderId(routeFolder.id);
       setView("library");
-      setResolvedRoutePath(location.pathname);
       return;
     }
     if (routeParts.length === 3 && routeParts[2] === "create") {
@@ -1083,18 +1079,15 @@ export default function Flashbolt() {
       if (!routeFolder) {
         handledRouteRef.current = location.pathname;
         setView("folders");
-        setResolvedRoutePath(location.pathname);
         return;
       }
       handledRouteRef.current = location.pathname;
       startCreate(routeFolder.id);
-      setResolvedRoutePath(location.pathname);
       return;
     }
     if (routeParts.length < 4) {
       handledRouteRef.current = location.pathname;
       setView("library");
-      setResolvedRoutePath(location.pathname);
       return;
     }
     const [semesterSlug, folderSlug, setSlug, mode] = routeParts;
@@ -1103,7 +1096,6 @@ export default function Flashbolt() {
     if (!routeFolder && !isUnfiledRoute) {
       handledRouteRef.current = location.pathname;
       setView("library");
-      setResolvedRoutePath(location.pathname);
       return;
     }
     const routeSet = data.sets.find((item) => setRouteSegment(item, routeFolder) === setSlug && (routeFolder
@@ -1112,7 +1104,6 @@ export default function Flashbolt() {
     if (!routeSet || !["flashcards", "learn", "test", "edit", "helper"].includes(mode)) {
       handledRouteRef.current = location.pathname;
       setView(routeFolder ? "library" : "folders");
-      setResolvedRoutePath(location.pathname);
       return;
     }
     handledRouteRef.current = location.pathname;
@@ -1129,7 +1120,6 @@ export default function Flashbolt() {
       setView("helper");
     }
     else openSet(routeSet.id);
-    setResolvedRoutePath(location.pathname);
   // Route handlers are intentionally re-run only when the route or persisted library changes.
   // Adding the inline navigation helpers would retrigger this effect on every render.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1494,7 +1484,6 @@ export default function Flashbolt() {
   function setRoutePath(nextView: View, setId = selectedSetId) {
     const path = routePathForView(nextView, setId);
     handledRouteRef.current = path;
-    setResolvedRoutePath(path);
     routerNavigate(path);
   }
 
@@ -1521,7 +1510,6 @@ export default function Flashbolt() {
     setView("library");
     setNewMenuOpen(false);
     handledRouteRef.current = path;
-    setResolvedRoutePath(path);
     routerNavigate(path);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -1612,7 +1600,6 @@ export default function Flashbolt() {
         setView("create");
         setNewMenuOpen(false);
         handledRouteRef.current = path;
-        setResolvedRoutePath(path);
         routerNavigate(path);
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
@@ -1776,7 +1763,6 @@ export default function Flashbolt() {
           ?? nextData.folders.find((folderItem) => draftFolderIds.includes(folderItem.id));
         const path = `${FLASHBOLT_BASE}/${routeSlug(routeFolder?.semester || "no-semester")}/${routeFolder ? folderRouteSegment(routeFolder) : "unfiled"}/${setRouteSegment(savedSet, routeFolder)}/edit`;
         handledRouteRef.current = path;
-        setResolvedRoutePath(path);
         routerNavigate(path, { replace: true });
       }
     }
@@ -2829,7 +2815,7 @@ export default function Flashbolt() {
     return [card.term, card.definition, ...(card.answerChoices ?? []), ...(card.correctAnswers ?? [])].some((value) => value.toLocaleLowerCase().includes(query));
   }) ?? [];
 
-  if (!ready || resolvedRoutePath !== location.pathname) {
+  if (!ready) {
     return <div className={`flashbolt-route-loading theme-${theme}`} role="status" aria-live="polite"><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><strong>Opening Flashbolt…</strong></div>;
   }
 
