@@ -1,6 +1,6 @@
 
 import "./Flashbolt.css";
-import { activeAutoAdvance } from "./autoAdvance";
+import { activeAutoAdvance, shouldAdvanceAfterCorrect } from "./autoAdvance";
 import { initialFlashboltView } from "./initialView";
 import ReviewToday from "./ReviewToday";
 import StudySummary, { StudyExplanation } from "./StudySummary";
@@ -1951,13 +1951,12 @@ export default function Flashbolt() {
     if (!choice.trim()) return;
     const current = correctAnswersForCard(card);
     const selected = current.some((answer) => normalizeAnswer(answer) === normalizeAnswer(choice));
-    if (cardQuestionType(card) === "select-all") {
-      const next = selected ? current.filter((answer) => normalizeAnswer(answer) !== normalizeAnswer(choice)) : [...current, choice];
-      updateDraftCardExtras(card.id, { correctAnswers: next, definition: next.join("; ") });
-    } else {
-      updateDraftCardExtras(card.id, { correctAnswers: [choice], definition: choice });
-    }
-    if (autoAdvanceOn === "correct" && !selected) scrollToNextDraftCard(card.id);
+    const isMultiAnswer = cardQuestionType(card) === "select-all";
+    const next = isMultiAnswer
+      ? selected ? current.filter((answer) => normalizeAnswer(answer) !== normalizeAnswer(choice)) : [...current, choice]
+      : [choice];
+    updateDraftCardExtras(card.id, { correctAnswers: next, definition: next.join(isMultiAnswer ? "; " : "") });
+    if (autoAdvanceOn === "correct" && shouldAdvanceAfterCorrect(card.term, isMultiAnswer, next.length, !selected)) scrollToNextDraftCard(card.id);
   }
 
   function addDraftCard(afterCardId?: string) {
