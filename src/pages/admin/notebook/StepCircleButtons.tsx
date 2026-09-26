@@ -16,7 +16,9 @@ export default function StepCircleButtons({ editorRef, onToggle }: {
     const measure = () => {
       const origin = layer.getBoundingClientRect();
       const list = editor.querySelector("ol.notebook-steps");
+      if (list) resize.observe(list);
       const next = list ? [...list.children].map(step => {
+        resize.observe(step);
         const rect = step.getBoundingClientRect();
         const style = getComputedStyle(step, "::before");
         return {
@@ -27,8 +29,8 @@ export default function StepCircleButtons({ editorRef, onToggle }: {
       }) : [];
       setCircles(previous => JSON.stringify(previous) === JSON.stringify(next) ? previous : next);
     };
-    measure();
     const resize = new ResizeObserver(measure);
+    measure();
     resize.observe(editor);
     const mutations = new MutationObserver(measure);
     mutations.observe(editor, { childList: true, subtree: true, attributes: true, characterData: true });
