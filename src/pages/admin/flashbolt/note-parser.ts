@@ -455,6 +455,24 @@ function isListFragment(value: string) {
 }
 
 export function parseNotes(text: string): ParsedCard[] {
+  // Explicit one-card-per-line imports must be parsed before paragraph handling,
+  // which intentionally preserves newlines inside a single question or answer.
+  const rows = text.trim().split(/\r\n?|\n/).map(line => line.trim()).filter(Boolean);
+  const pairs = rows.map(line => {
+    const separator = line.includes("::") ? "::" : "\t";
+    const index = line.indexOf(separator);
+    if (index < 0) return null;
+    const term = line.slice(0, index).trim();
+    const definition = line.slice(index + separator.length).trim();
+    return term && definition ? { term, definition } : null;
+  });
+  if (pairs.length && pairs.every(pair => pair !== null)) {
+    return pairs.map(({ term, definition }) => {
+      const embedded = parseEmbeddedQuestion(term, definition);
+      return makeCard(embedded.prompt, definition, embedded.choices);
+    });
+  }
+
   const multilineCards: ParsedCard[] = [];
   let multilineBuffer = "";
   const paragraphs = text.trim().split(/\r?\n\s*\r?\n+/);
@@ -469,7 +487,7 @@ export function parseNotes(text: string): ParsedCard[] {
     multilineCards.push(makeCard(embedded.prompt, definition, embedded.choices));
     multilineBuffer = "";
   }
-  if (multilineCards.length && !multilineBuffer.trim()) return multilineCards.slice(0, 100);
+  if (multilineCards.length && !multilineBuffer.trim()) return multilineCards;
 
   const seen = new Set<string>();
   const lines = text
