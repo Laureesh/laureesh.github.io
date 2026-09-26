@@ -145,7 +145,7 @@
 .rich-editor :is(h1,h2):has(~ .notebook-steps) { color:#ffffff!important; }
 .rich-editor .notebook-steps { list-style:none; counter-reset:notebook-step; margin:28px 0; padding:0; font-family:Inter,system-ui,sans-serif; font-size:.92em; line-height:1.65; }
 .rich-editor .notebook-steps>li { position:relative; counter-increment:notebook-step; margin:0; padding:0 0 30px 54px; min-height:60px; }
-.rich-editor .notebook-steps>li::before { content:counter(notebook-step); position:absolute; left:0; top:0; z-index:1; display:grid; place-items:center; width:32px; height:32px; border:3px solid var(--nb-bg); border-radius:50%; background:#424961; color:#fff; font:700 14px/1 Inter,system-ui,sans-serif; box-shadow:0 0 0 1px var(--nb-line); }
+.rich-editor .notebook-steps>li::before { content:counter(notebook-step); cursor:pointer; user-select:none; position:absolute; left:0; top:0; z-index:1; display:grid; place-items:center; width:32px; height:32px; border:3px solid var(--nb-bg); border-radius:50%; background:#424961; color:#fff; font:700 14px/1 Inter,system-ui,sans-serif; box-shadow:0 0 0 1px var(--nb-line); }
 .rich-editor .notebook-steps>li::after { content:""; position:absolute; left:18px; top:38px; bottom:0; width:2px; background:var(--nb-line); }
 .rich-editor .notebook-steps>li:last-child::after { display:none; }
 .rich-editor .notebook-steps>li:focus-within::before { background:var(--nb-accent); box-shadow:0 0 0 3px #7c6cff30; }

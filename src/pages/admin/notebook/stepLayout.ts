@@ -118,7 +118,7 @@ export function getLayoutSteps(html: string): { title: string; completed: boolea
   const list = doc.querySelector("ol.notebook-steps");
   return list ? [...list.children].map((step, index) => ({
     title: step.querySelector(":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6")?.textContent ?? `Step ${index + 1}`,
-    completed: step.getAttribute("data-completed") === "true" || isFinalCheckTitle(step.querySelector(":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6")?.textContent ?? ""),
+    completed: step.getAttribute("data-completed") === "true" || (!step.hasAttribute("data-completed") && isFinalCheckTitle(step.querySelector(":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6")?.textContent ?? "")),
   })) : [];
 }
 
@@ -146,7 +146,7 @@ export function changeStepLayout(html: string, change: StepChange): string {
       case "up": if (change.index > 0) steps[change.index - 1].before(step); break;
       case "down": if (change.index < steps.length - 1) steps[change.index + 1].after(step); break;
       case "complete":
-        if (step.getAttribute("data-completed") === "true") step.removeAttribute("data-completed");
+        if (step.getAttribute("data-completed") === "true" || (!step.hasAttribute("data-completed") && isFinalCheckTitle(step.querySelector(":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6")?.textContent ?? ""))) step.setAttribute("data-completed", "false");
         else step.setAttribute("data-completed", "true");
         break;
       case "title": {
@@ -209,7 +209,7 @@ export function normalizeStepTitles(html: string): string {
   let changed = false;
   doc.querySelectorAll("ol.notebook-steps > li > :is(h1,h2,h3,h4,h5,h6)").forEach(heading => {
     const title = heading.textContent ?? "";
-    if (isFinalCheckTitle(title) && heading.parentElement?.getAttribute("data-completed") !== "true") {
+    if (isFinalCheckTitle(title) && !heading.parentElement?.hasAttribute("data-completed")) {
       heading.parentElement?.setAttribute("data-completed", "true");
       changed = true;
     }

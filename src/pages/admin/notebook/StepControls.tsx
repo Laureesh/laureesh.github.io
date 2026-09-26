@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import { isFinalCheckTitle, type StepChange } from "./stepLayout";
+import { type StepChange } from "./stepLayout";
 
 function useRememberedSection(section: string) {
   const key = `flashbolt.notebook.v1.steps.${section}.open`;
@@ -71,7 +71,7 @@ export default function StepControls({ steps, onChange, onEdit, onUndo, canUndo 
           <p>The numbered circles and connecting line come from Steps layout. Add, delete, or move a step and the circle numbers update automatically.</p>
           <p>To start a new step at a heading inside an existing step, place the cursor at the beginning of that heading and press Enter. The heading and everything after it move into the new step.</p>
           <p>Press Backspace at the beginning of a step to remove its circle and move its heading and instructions into the previous step.</p>
-          <p>Check a step’s box under <strong>Manage steps</strong> to turn its circle and title green and update the progress bar.</p>
+          <p>Click a numbered circle, or check its box under <strong>Manage steps</strong>, to turn the circle and title green and update the progress bar. Click again to mark it incomplete.</p>
         </article>
       </div>
       <p><strong>Changing the structure:</strong> Add step appends a step; ＋ After inserts one below a particular step. Use ↑ / ↓ to reorder, Duplicate to copy, or Delete to remove. Undo last step change reverses the latest change if you have not edited the note since. Earlier content is available in History.</p>
@@ -79,7 +79,7 @@ export default function StepControls({ steps, onChange, onEdit, onUndo, canUndo 
     </details>
     <details open={manageOpen} onToggle={event => setManageOpen(event.currentTarget.open)}><summary>Manage steps</summary>
       {steps.map((step, index) => <div className="notebook-step-control-row" key={index}>
-        <label className="step-complete-toggle" title={isFinalCheckTitle(step.title) ? "Final Check is always checked" : undefined}><input type="checkbox" checked={step.completed || isFinalCheckTitle(step.title)} disabled={isFinalCheckTitle(step.title)} onChange={() => onChange({ type: "complete", index })} aria-label={`Mark step ${index + 1} complete`} /><span>{index + 1}</span></label>
+        <label className="step-complete-toggle"><input type="checkbox" checked={step.completed} onChange={() => onChange({ type: "complete", index })} aria-label={`Mark step ${index + 1} complete`} /><span>{index + 1}</span></label>
         <input key={step.title} className="step-title-input" aria-label={`Step ${index + 1} title`} defaultValue={step.title} maxLength={180} onBlur={event => { if (event.target.value !== step.title) onChange({ type: "title", index, title: event.target.value }); }} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} />
         <div className="step-row-actions">
           <button onClick={() => onEdit(index)}>Edit content</button>
