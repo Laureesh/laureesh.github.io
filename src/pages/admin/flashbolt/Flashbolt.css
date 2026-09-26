@@ -7821,3 +7821,5 @@ kbd {
 .continue-art.red { background:color-mix(in srgb, #d83242 32%, #171832); }
 /* Keep quick-edit choices inside the tile's clipped border. */
 .set-tile-inline-editor .set-color-menu { position:static; margin-top:7px; }
+
+.editor-auto-scroll-hint { margin:0; color:var(--muted); font-size:12px; line-height:1.4; }

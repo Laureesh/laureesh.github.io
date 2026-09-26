@@ -1,5 +1,6 @@
 
 import "./Flashbolt.css";
+import { activeAutoAdvance } from "./autoAdvance";
 import { initialFlashboltView } from "./initialView";
 import ReviewToday from "./ReviewToday";
 import StudySummary, { StudyExplanation } from "./StudySummary";
@@ -846,6 +847,7 @@ export default function Flashbolt() {
   const [autoScrollCorrect, setAutoScrollCorrect] = useState(() => {
     try { return window.localStorage.getItem(AUTO_SCROLL_CORRECT_KEY) === "true"; } catch { return false; }
   });
+  const autoAdvanceOn = activeAutoAdvance(autoScrollQuestion, autoScrollChoices, autoScrollCorrect);
   const draftCardElements = useRef(new Map<string, HTMLElement>());
   const editorPanelRef = useRef<HTMLElement>(null);
   const topbarRef = useRef<HTMLElement>(null);
@@ -1859,8 +1861,12 @@ export default function Flashbolt() {
   }
 
   function pasteDraftQuestion(card: Card, event: React.ClipboardEvent<HTMLTextAreaElement>) {
-    const parsed = parseQuestionPaste(event.clipboardData.getData("text/plain"));
-    if (!parsed) return;
+    const pastedText = event.clipboardData.getData("text/plain");
+    const parsed = parseQuestionPaste(pastedText);
+    if (!parsed) {
+      if (pastedText.trim() && autoAdvanceOn === "question") scrollToNextDraftCard(card.id, true);
+      return;
+    }
     event.preventDefault();
     const field = event.currentTarget;
     const term = field.value.slice(0, field.selectionStart) + parsed.term + field.value.slice(field.selectionEnd);
@@ -1874,7 +1880,7 @@ export default function Flashbolt() {
       autoTypePreviousChoices: undefined,
     });
     notify(`Question and ${parsed.choices.length} answer choices populated. Mark the correct answer below.`);
-    if (autoScrollQuestion) scrollToNextDraftCard(card.id, true);
+    if (autoAdvanceOn === "question" || autoAdvanceOn === "choices") scrollToNextDraftCard(card.id, true);
   }
 
   function pasteDraftChoices(card: Card, startIndex: number, pastedText: string) {
@@ -1910,7 +1916,7 @@ export default function Flashbolt() {
       definition: cardQuestionType(card) === "select-all" ? correctAnswers.join("; ") : correctAnswers[0] ?? card.definition,
     });
     notify(`${pastedChoices.length} answer choices populated.`);
-    if (autoScrollChoices) scrollToNextDraftCard(card.id);
+    if (autoAdvanceOn === "choices") scrollToNextDraftCard(card.id);
     return true;
   }
 
@@ -1951,7 +1957,7 @@ export default function Flashbolt() {
     } else {
       updateDraftCardExtras(card.id, { correctAnswers: [choice], definition: choice });
     }
-    if (autoScrollCorrect && !selected) scrollToNextDraftCard(card.id);
+    if (autoAdvanceOn === "correct" && !selected) scrollToNextDraftCard(card.id);
   }
 
   function addDraftCard(afterCardId?: string) {
@@ -3442,6 +3448,7 @@ export default function Flashbolt() {
                       setAutoScrollCorrect(enabled);
                       try { window.localStorage.setItem(AUTO_SCROLL_CORRECT_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
                     }} /></label>
+                    <p className="editor-auto-scroll-hint">{autoAdvanceOn === "correct" ? "Advances after marking correct." : autoAdvanceOn === "choices" ? "Advances after pasting choices." : autoAdvanceOn === "question" ? "Advances after pasting a question." : "Automatic advance is off."} The lowest enabled option takes priority.</p>
                     <div className="collapsible-panel-body">
                       <ul>{draftChecklist.map((item) => <li className={item.complete ? "complete" : ""} key={item.label}><span>{item.complete ? "✓" : "○"}</span><div><strong>{item.label}</strong>{!item.complete && <small>{item.detail}</small>}</div></li>)}</ul>
                     </div>
