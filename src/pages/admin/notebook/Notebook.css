@@ -204,3 +204,11 @@
 .notebook-shell .step-circle-button { position:absolute; z-index:2; width:44px; height:44px; padding:0; margin:0; border:0; border-radius:50%; background:transparent; cursor:pointer; pointer-events:auto; touch-action:manipulation; }
 .notebook-shell .step-circle-button:focus-visible { outline:2px solid var(--nb-mint); outline-offset:2px; }
 @media print { .step-circle-buttons { display:none; } }
+
+/* Reserve a toolbar row so copy controls never cover code, including on mobile. */
+.rich-editor pre, .rich-editor .notebook-steps pre { padding-top:48px; }
+.code-copy-buttons { position:absolute; inset:0; pointer-events:none; }
+.notebook-shell .code-copy-button { position:absolute; z-index:3; pointer-events:auto; min-height:32px; padding:4px 10px; border:1px solid var(--nb-line); border-radius:6px; background:#181d2b; color:#bcebdc; font:12px/1.5 Inter,system-ui,sans-serif; cursor:pointer; }
+.notebook-shell .code-copy-button:hover { background:#292440; border-color:var(--nb-accent); }
+.notebook-shell .code-copy-button:focus-visible { outline:2px solid var(--nb-mint); outline-offset:2px; }
+@media print { .code-copy-buttons { display:none; } .rich-editor pre, .rich-editor .notebook-steps pre { padding-top:15px; } }
