@@ -7778,6 +7778,9 @@ kbd {
 /* Reuse the existing header height when the editing panel has scrolled away. */
 .editor-topbar-controls { display:flex; align-items:center; gap:12px; width:100%; min-width:0; }
 .editor-topbar-context { display:flex; flex:1; flex-direction:column; min-width:0; gap:2px; }
+.editor-topbar-heading { display:flex; align-items:center; gap:12px; min-width:0; }
+.editor-topbar-position { flex:0 1 auto; max-width:55%; }
+.editor-topbar-set-title { flex:1; min-width:0; color:var(--mint); }
 .editor-topbar-context strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; line-height:18px; }
 .editor-topbar-context > span { width:fit-content; padding:2px 8px; border-radius:6px; background:var(--primary-soft); color:var(--ink); font-size:16px; font-weight:800; line-height:22px; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .editor-topbar-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
@@ -7787,7 +7790,8 @@ kbd {
   .topbar.topbar-editing { padding-inline:10px; }
   .editor-topbar-controls { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:4px 10px; }
   .editor-topbar-context { display:contents; }
-  .editor-topbar-context strong { grid-column:1 / -1; min-width:0; font-size:12px; }
+  .editor-topbar-heading { grid-column:1 / -1; }
+  .editor-topbar-context strong { min-width:0; font-size:12px; }
   .editor-topbar-context > span { grid-column:1; }
   .editor-topbar-actions { grid-column:2; min-width:0; overflow-x:auto; justify-content:safe flex-end; gap:4px; }
   .editor-topbar-actions > * { flex-shrink:0; }

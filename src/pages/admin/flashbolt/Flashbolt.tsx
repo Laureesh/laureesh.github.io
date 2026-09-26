@@ -2976,9 +2976,12 @@ export default function Flashbolt() {
         <header ref={topbarRef} className={`topbar${showEditorTopbar ? " topbar-editing" : ""}`}>
           {showEditorTopbar ? <nav className="editor-topbar-controls" aria-label="Set editing controls">
             <div className="editor-topbar-context">
-              <strong title={editorFolder ? `${editorSetIndex + 1} of ${editorFolderSets.length} in ${editorFolder.name}` : draft.title}>
-                {editorFolder ? `${editorSetIndex + 1} of ${editorFolderSets.length} in ${editorFolder.name}` : draft.title || "Edit set"}
-              </strong>
+              <div className="editor-topbar-heading">
+                {editorFolder && <strong className="editor-topbar-position" title={`${editorSetIndex + 1} of ${editorFolderSets.length} in ${editorFolder.name}`}>
+                  {editorSetIndex + 1} of {editorFolderSets.length} in {editorFolder.name}
+                </strong>}
+                <strong className="editor-topbar-set-title" title={draft.title || "Untitled set"}>{draft.title || "Untitled set"}</strong>
+              </div>
               <span>{draft.cards.length} card{draft.cards.length === 1 ? "" : "s"}</span>
             </div>
             <div className="editor-topbar-actions">
