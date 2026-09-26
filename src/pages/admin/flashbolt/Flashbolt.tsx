@@ -1,6 +1,6 @@
 
 import "./Flashbolt.css";
-import { activeAutoAdvance, shouldAdvanceAfterCorrect } from "./autoAdvance";
+import { activeAutoAdvance, shouldAdvanceAfterCorrect, type AutoAdvanceEvent } from "./autoAdvance";
 import { initialFlashboltView } from "./initialView";
 import ReviewToday from "./ReviewToday";
 import StudySummary, { StudyExplanation } from "./StudySummary";
@@ -848,6 +848,8 @@ export default function Flashbolt() {
     try { return window.localStorage.getItem(AUTO_SCROLL_CORRECT_KEY) === "true"; } catch { return false; }
   });
   const autoAdvanceOn = activeAutoAdvance(autoScrollQuestion, autoScrollChoices, autoScrollCorrect);
+  const autoAdvanceOnRef = useRef(autoAdvanceOn);
+  autoAdvanceOnRef.current = autoAdvanceOn;
   const draftCardElements = useRef(new Map<string, HTMLElement>());
   const editorPanelRef = useRef<HTMLElement>(null);
   const topbarRef = useRef<HTMLElement>(null);
@@ -1864,7 +1866,7 @@ export default function Flashbolt() {
     const pastedText = event.clipboardData.getData("text/plain");
     const parsed = parseQuestionPaste(pastedText);
     if (!parsed) {
-      if (pastedText.trim() && autoAdvanceOn === "question") scrollToNextDraftCard(card.id, true);
+      if (pastedText.trim()) scrollToNextDraftCard(card.id, ["question"], true);
       return;
     }
     event.preventDefault();
@@ -1880,7 +1882,7 @@ export default function Flashbolt() {
       autoTypePreviousChoices: undefined,
     });
     notify(`Question and ${parsed.choices.length} answer choices populated. Mark the correct answer below.`);
-    if (autoAdvanceOn === "question" || autoAdvanceOn === "choices") scrollToNextDraftCard(card.id, true);
+    scrollToNextDraftCard(card.id, ["question", "choices"], true);
   }
 
   function pasteDraftChoices(card: Card, startIndex: number, pastedText: string) {
@@ -1916,7 +1918,7 @@ export default function Flashbolt() {
       definition: cardQuestionType(card) === "select-all" ? correctAnswers.join("; ") : correctAnswers[0] ?? card.definition,
     });
     notify(`${pastedChoices.length} answer choices populated.`);
-    if (autoAdvanceOn === "choices") scrollToNextDraftCard(card.id);
+    scrollToNextDraftCard(card.id, ["choices"]);
     return true;
   }
 
@@ -1934,10 +1936,14 @@ export default function Flashbolt() {
     });
   }
 
-  function scrollToNextDraftCard(cardId: string, focusTerm = false) {
+  function scrollToNextDraftCard(cardId: string, triggers: AutoAdvanceEvent[], focusTerm = false) {
+    const active = autoAdvanceOnRef.current;
+    if (!active || !triggers.includes(active)) return;
     const index = draft.cards.findIndex((item) => item.id === cardId);
     const nextCard = index >= 0 ? draft.cards[index + 1] : undefined;
     if (nextCard) requestAnimationFrame(() => {
+      // A preference change must also cancel an advance already queued by a paste.
+      if (autoAdvanceOnRef.current !== active) return;
       const element = draftCardElements.current.get(nextCard.id);
       if (focusTerm) element?.querySelector<HTMLTextAreaElement>('.card-text-field textarea')?.focus({ preventScroll: true });
       element?.scrollIntoView({
@@ -1956,7 +1962,7 @@ export default function Flashbolt() {
       ? selected ? current.filter((answer) => normalizeAnswer(answer) !== normalizeAnswer(choice)) : [...current, choice]
       : [choice];
     updateDraftCardExtras(card.id, { correctAnswers: next, definition: next.join(isMultiAnswer ? "; " : "") });
-    if (autoAdvanceOn === "correct" && shouldAdvanceAfterCorrect(card.term, isMultiAnswer, next.length, !selected)) scrollToNextDraftCard(card.id);
+    if (shouldAdvanceAfterCorrect(card.term, isMultiAnswer, next.length, !selected)) scrollToNextDraftCard(card.id, ["correct"]);
   }
 
   function addDraftCard(afterCardId?: string) {
