@@ -1,3 +1,33 @@
+/** Backspace at a timeline boundary removes the boundary, preserving both steps' blocks. */
+export function mergeStepBackward(editor: HTMLElement): boolean {
+  const selection = window.getSelection();
+  if (!selection?.isCollapsed || !selection.rangeCount || !selection.anchorNode) return false;
+  const anchor = selection.anchorNode;
+  const element = anchor instanceof Element ? anchor : anchor.parentElement;
+  const step = element?.closest("li");
+  if (!step || !editor.contains(step) || !step.parentElement?.matches("ol.notebook-steps")) return false;
+  const previous = step.previousElementSibling;
+  if (!previous || previous.tagName !== "LI") return false;
+
+  const prefix = document.createRange();
+  prefix.selectNodeContents(step);
+  prefix.setEnd(anchor, selection.anchorOffset);
+  const content = prefix.cloneContents();
+  if (content.textContent || content.querySelector("br,img,video,audio,iframe,hr,pre,ol,ul")) return false;
+
+  const offset = selection.anchorOffset;
+  const boundary = previous.childNodes.length;
+  previous.append(...step.childNodes);
+  step.remove();
+  const caret = document.createRange();
+  // Moving nodes resets live ranges, so restore the original caret explicitly.
+  caret.setStart(anchor === step ? previous : anchor, anchor === step ? boundary + offset : offset);
+  caret.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(caret);
+  return true;
+}
+
 /** Promote a heading at the caret to a timeline step, keeping its following content. */
 export function splitStepAtHeading(editor: HTMLElement): boolean {
   const selection = window.getSelection();
