@@ -846,6 +846,9 @@ export default function Flashbolt() {
     try { return window.localStorage.getItem(AUTO_SCROLL_CORRECT_KEY) === "true"; } catch { return false; }
   });
   const draftCardElements = useRef(new Map<string, HTMLElement>());
+  const editorPanelRef = useRef<HTMLElement>(null);
+  const topbarRef = useRef<HTMLElement>(null);
+  const [editorPanelPassed, setEditorPanelPassed] = useState(false);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [folderName, setFolderName] = useState("");
   const [folderColor, setFolderColor] = useState(FOLDER_COLORS[0]);
@@ -1376,6 +1379,35 @@ export default function Flashbolt() {
   const editorFolderSets = editorFolder
     ? filteredSets.filter((set) => editorFolder.setIds.includes(set.id))
     : [];
+  useLayoutEffect(() => {
+    const panel = editorPanelRef.current;
+    const topbar = topbarRef.current;
+    if (view !== "create" || !editingSetId || search || !panel || !topbar) {
+      setEditorPanelPassed(false);
+      return;
+    }
+    let frame = 0;
+    const measure = () => {
+      setEditorPanelPassed(panel.getBoundingClientRect().bottom <= topbar.getBoundingClientRect().bottom);
+    };
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    };
+    const resize = new ResizeObserver(schedule);
+    resize.observe(panel);
+    resize.observe(topbar);
+    window.addEventListener("scroll", schedule, true);
+    window.addEventListener("resize", schedule);
+    measure();
+    return () => {
+      cancelAnimationFrame(frame);
+      resize.disconnect();
+      window.removeEventListener("scroll", schedule, true);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [view, editingSetId, search]);
+  const showEditorTopbar = view === "create" && Boolean(editingSetId) && !search && editorPanelPassed;
   const editorSetIndex = editorFolderSets.findIndex((set) => set.id === editingSetId);
   const previousEditorSet = editorSetIndex > 0 ? editorFolderSets[editorSetIndex - 1] : undefined;
   const nextEditorSet = editorSetIndex >= 0 && editorSetIndex < editorFolderSets.length - 1 ? editorFolderSets[editorSetIndex + 1] : undefined;
@@ -2929,7 +2961,22 @@ export default function Flashbolt() {
       </aside>
 
       <div className="main-column">
-        <header className="topbar">
+        <header ref={topbarRef} className={`topbar${showEditorTopbar ? " topbar-editing" : ""}`}>
+          {showEditorTopbar ? <nav className="editor-topbar-controls" aria-label="Set editing controls">
+            <div className="editor-topbar-context">
+              <strong title={editorFolder ? `${editorSetIndex + 1} of ${editorFolderSets.length} in ${editorFolder.name}` : draft.title}>
+                {editorFolder ? `${editorSetIndex + 1} of ${editorFolderSets.length} in ${editorFolder.name}` : draft.title || "Edit set"}
+              </strong>
+              <span>{draft.cards.length} card{draft.cards.length === 1 ? "" : "s"}</span>
+            </div>
+            <div className="editor-topbar-actions">
+              {previousEditorSet ? <a className="button quiet" href={routePathForView("create", previousEditorSet.id)} onClick={event => followFlashboltLink(event, () => openAdjacentEditor(previousEditorSet))} title={previousEditorSet.title}>← Previous</a> : <button className="button quiet" disabled>← Previous</button>}
+              {nextEditorSet ? <a className="button quiet" href={routePathForView("create", nextEditorSet.id)} onClick={event => followFlashboltLink(event, () => openAdjacentEditor(nextEditorSet))} title={nextEditorSet.title}>Next →</a> : <button className="button quiet" disabled>Next →</button>}
+              <button className="button primary" onClick={() => saveDraft(false)}>Save</button>
+              <button className="button quiet editor-topbar-next-card" onClick={goToNextAvailableCard} disabled={!draft.cards.length} aria-label="Go to next available card" title="Go to next available card"><span className="editor-topbar-next-full">Go to next available card ↓</span><span className="editor-topbar-next-short">Next empty ↓</span></button>
+            </div>
+          </nav> : <>
+
           <Link className="mobile-brand" to={FLASHBOLT_BASE} aria-label="Flashbolt home"><span className="brand-mark"><i /><i /><i /></span></Link>
           <label className="search-box">
             <span>⌕</span>
@@ -2955,6 +3002,7 @@ export default function Flashbolt() {
             )}
           </div>
           <button className="avatar" aria-label="Private profile">ME</button>
+          </>}
         </header>
 
         <main className="workspace">
@@ -3370,7 +3418,7 @@ export default function Flashbolt() {
                   <button className="add-card-button" onClick={() => addDraftCard()}>＋ Add another card</button>
                 </div>
 
-                <aside className="import-panel">
+                <aside ref={editorPanelRef} className="import-panel">
                   <section className={`creation-checklist collapsible-panel-section ${collapsedEditorSections.includes("checklist") ? "collapsed" : ""} ${draftCompletion === 100 ? "complete" : ""}`} aria-label={`Set creation ${draftCompletion}% complete`}>
                     {editingSetId && editorFolder && editorFolderSets.length > 1 && <nav className="editor-set-navigation" aria-label={`Move between sets in ${editorFolder.name}`}><span>{editorSetIndex + 1} of {editorFolderSets.length} in {editorFolder.name}</span><div>{previousEditorSet ? <a className="button quiet" href={routePathForView("create", previousEditorSet.id)} onClick={(event) => followFlashboltLink(event, () => openAdjacentEditor(previousEditorSet))} title={previousEditorSet.title}>← Previous</a> : <button className="button quiet" disabled title="First set in folder">← Previous</button>}{nextEditorSet ? <a className="button quiet" href={routePathForView("create", nextEditorSet.id)} onClick={(event) => followFlashboltLink(event, () => openAdjacentEditor(nextEditorSet))} title={nextEditorSet.title}>Next →</a> : <button className="button quiet" disabled title="Last set in folder">Next →</button>}</div></nav>}
                     <button className="side-panel-collapse-button creation-checklist-heading" type="button" onClick={() => toggleEditorSection("checklist")} aria-expanded={!collapsedEditorSections.includes("checklist")}><div><span className="eyebrow">Set checklist</span><h3>{draftCompletion === 100 ? "Ready to study" : "Finish your set"}</h3></div><i aria-hidden="true">⌃</i></button>

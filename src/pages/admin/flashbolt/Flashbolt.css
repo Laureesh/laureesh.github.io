@@ -7774,3 +7774,23 @@ kbd {
 .study-summary { margin:28px 0; padding:24px; border:1px solid var(--line); border-radius:18px; background:var(--panel); }
 .study-mistakes { margin:0; padding-left:24px; }.study-mistakes>li { padding:16px 0 16px 8px; border-top:1px solid var(--line); overflow-wrap:anywhere; }.study-mistakes>li::marker { color:var(--faint); font-weight:700; }.study-mistakes>li>strong { white-space:pre-wrap; }.study-mistakes>li>p { white-space:pre-wrap; line-height:1.6; color:var(--ink); }.study-mistakes>li>p>span { display:block; color:var(--muted); font-size:12px; margin-bottom:4px; }
 @media(max-width:600px) { .review-stats { gap:8px; }.review-stats>div { padding:14px 10px; }.review-stats strong { font-size:26px; }.review-start,.study-summary-heading { align-items:stretch; flex-direction:column; }.review-set-list article { align-items:flex-start; flex-direction:column; }.study-summary { padding:18px; }.review-home-link { padding:16px; }.review-session-meta { font-size:13px; } }
+
+/* Reuse the existing header height when the editing panel has scrolled away. */
+.editor-topbar-controls { display:flex; align-items:center; gap:12px; width:100%; min-width:0; }
+.editor-topbar-context { display:flex; flex:1; flex-direction:column; min-width:0; gap:2px; }
+.editor-topbar-context strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; line-height:18px; }
+.editor-topbar-context > span { color:var(--muted); font-size:12px; line-height:16px; }
+.editor-topbar-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.editor-topbar-actions .button { min-height:32px; padding:5px 9px; font-size:12px; line-height:20px; white-space:nowrap; }
+.editor-topbar-next-short { display:none; }
+@media (max-width:780px) {
+  .topbar.topbar-editing { padding-inline:10px; }
+  .editor-topbar-controls { flex-direction:column; align-items:stretch; gap:4px; }
+  .editor-topbar-context { flex-direction:row; align-items:center; gap:8px; }
+  .editor-topbar-context strong { flex:1; font-size:12px; }
+  .editor-topbar-context > span { flex-shrink:0; }
+  .editor-topbar-actions { justify-content:flex-end; gap:4px; }
+  .editor-topbar-actions .button { min-height:30px; padding:4px 8px; }
+  .editor-topbar-next-full { display:none; }
+  .editor-topbar-next-short { display:inline; }
+}
