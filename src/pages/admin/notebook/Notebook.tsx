@@ -1,4 +1,5 @@
 import "./Notebook.css";
+import { loadLocalNotebookBackup, saveLocalNotebookBackup } from "../../../services/notebookLocalBackup";
 import { describeNotebookSyncError } from "./notebookSyncStatus";
 import { exitInstructionList, mergeStepBackward, splitStepAtHeading } from "./listEditing";
 import { changeStepLayout, detectStepLayout, formatStepLayout, getLayoutSteps, normalizeStepTitles, removeStepLayout, startStepLayout, type StepChange } from "./stepLayout";
@@ -129,6 +130,11 @@ export default function Notebook() {
   const renderedNoteIdRef = useRef("");
   const [syncReady, setSyncReady] = useState(false);
   const [localBackupError, setLocalBackupError] = useState("");
+  const [localBackupLoaded, setLocalBackupLoaded] = useState(false);
+  const [localBackupReady, setLocalBackupReady] = useState(false);
+  const [localBackupRetry, setLocalBackupRetry] = useState(0);
+  const [localBackupLoadRetry, setLocalBackupLoadRetry] = useState(0);
+  const [localBackupSaving, setLocalBackupSaving] = useState(false);
   const dataRevisionRef = useRef(0);
   const selected = data.notes.find((note) => note.id === selectedId) ?? data.notes[0];
   const latestSelectedRef = useRef<Note | undefined>(selected);
@@ -145,6 +151,37 @@ export default function Notebook() {
 
   useEffect(() => {
     let cancelled = false;
+    setLocalBackupSaving(true);
+    void loadLocalNotebookBackup().then(value => {
+      if (cancelled) return;
+      const backup = normalizeNotebook(value);
+      if (value != null && !backup) throw new Error("The local backup could not be read.");
+      if (backup) setData(current => current === initialData ? backup : normalizeNotebook(mergeNotebookLibraries(backup, current)) ?? current);
+      setLocalBackupReady(true);
+      setLocalBackupError("");
+    }).catch(() => {
+      if (!cancelled) setLocalBackupError("This browser could not open the local backup. Retry or download a backup of the current notes.");
+    }).finally(() => {
+      if (!cancelled) { setLocalBackupLoaded(true); setLocalBackupSaving(false); }
+    });
+    return () => { cancelled = true; };
+  }, [localBackupLoadRetry]);
+
+  useEffect(() => {
+    if (!localBackupReady) return;
+    let cancelled = false;
+    setLocalBackupSaving(true);
+    void saveLocalNotebookBackup(data).then(() => {
+      if (!cancelled) setLocalBackupError("");
+    }).catch(() => {
+      if (!cancelled) setLocalBackupError("This browser could not save the latest local backup. Retry or download a backup before closing this page.");
+    }).finally(() => { if (!cancelled) setLocalBackupSaving(false); });
+    return () => { cancelled = true; };
+  }, [data, localBackupReady, localBackupRetry]);
+
+  useEffect(() => {
+    if (!localBackupLoaded) return;
+    let cancelled = false;
     void (async () => {
       let loadFailed = false;
       if (user?.uid) {
@@ -156,11 +193,9 @@ export default function Notebook() {
       if (!cancelled) { setSyncReady(true); setSaveState(user?.uid && !loadFailed ? "saved" : "offline"); }
     })();
     return () => { cancelled = true; };
-  }, [user?.uid]);
+  }, [user?.uid, localBackupLoaded]);
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); setLocalBackupError(""); }
-    catch { setLocalBackupError("This browser could not save the latest local backup. Download a backup before closing this page."); }
     if (!syncReady) return;
     dataRevisionRef.current += 1;
     const savingRevision = dataRevisionRef.current;
@@ -526,7 +561,7 @@ export default function Notebook() {
       {(syncError || localBackupError) && <aside className="notebook-sync-banner" role="alert">
         <strong>{syncError ? "Cloud sync needs attention" : "Local backup needs attention"}</strong>
         {syncError && <p>{syncError}</p>}{localBackupError && <p>{localBackupError}</p>}
-        <div>{user?.uid && <button disabled={saveState === "saving"} onClick={() => void retryCloudSync()}>{saveState === "saving" ? "Retrying…" : "Retry cloud sync"}</button>}<button onClick={() => download("notebook-backup.json", JSON.stringify(data, null, 2), "application/json")}>Download backup</button></div>
+        <div>{syncError && user?.uid && <button disabled={saveState === "saving"} onClick={() => void retryCloudSync()}>{saveState === "saving" ? "Retrying…" : "Retry cloud sync"}</button>}{localBackupError && <button disabled={localBackupSaving} onClick={() => localBackupReady ? setLocalBackupRetry(value => value + 1) : setLocalBackupLoadRetry(value => value + 1)}>{localBackupSaving ? "Retrying…" : "Retry local backup"}</button>}<button onClick={() => download("notebook-backup.json", JSON.stringify(data, null, 2), "application/json")}>Download backup</button></div>
       </aside>}
       <nav className="notebook-note-navigation" aria-label="Notes in this folder">
         <button disabled={!previousFolderNote} onClick={() => previousFolderNote && openAdjacentNote(previousFolderNote)} title={previousFolderNote?.title || "First note in this folder"}>← Previous note</button>
