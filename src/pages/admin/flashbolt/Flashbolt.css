@@ -7779,17 +7779,18 @@ kbd {
 .editor-topbar-controls { display:flex; align-items:center; gap:12px; width:100%; min-width:0; }
 .editor-topbar-context { display:flex; flex:1; flex-direction:column; min-width:0; gap:2px; }
 .editor-topbar-context strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; line-height:18px; }
-.editor-topbar-context > span { color:var(--muted); font-size:12px; line-height:16px; }
+.editor-topbar-context > span { width:fit-content; padding:2px 8px; border-radius:6px; background:var(--primary-soft); color:var(--ink); font-size:16px; font-weight:800; line-height:22px; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .editor-topbar-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
 .editor-topbar-actions .button { min-height:32px; padding:5px 9px; font-size:12px; line-height:20px; white-space:nowrap; }
 .editor-topbar-next-short { display:none; }
 @media (max-width:780px) {
   .topbar.topbar-editing { padding-inline:10px; }
-  .editor-topbar-controls { flex-direction:column; align-items:stretch; gap:4px; }
-  .editor-topbar-context { flex-direction:row; align-items:center; gap:8px; }
-  .editor-topbar-context strong { flex:1; font-size:12px; }
-  .editor-topbar-context > span { flex-shrink:0; }
-  .editor-topbar-actions { justify-content:flex-end; gap:4px; }
+  .editor-topbar-controls { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:4px 10px; }
+  .editor-topbar-context { display:contents; }
+  .editor-topbar-context strong { grid-column:1 / -1; min-width:0; font-size:12px; }
+  .editor-topbar-context > span { grid-column:1; }
+  .editor-topbar-actions { grid-column:2; min-width:0; overflow-x:auto; justify-content:safe flex-end; gap:4px; }
+  .editor-topbar-actions > * { flex-shrink:0; }
   .editor-topbar-actions .button { min-height:30px; padding:4px 8px; }
   .editor-topbar-next-full { display:none; }
   .editor-topbar-next-short { display:inline; }
