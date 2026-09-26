@@ -198,3 +198,9 @@
 .notebook-sync-banner button { padding:8px 12px; border:1px solid var(--nb-line); border-radius:7px; background:var(--nb-panel2); color:var(--nb-text); cursor:pointer; }
 .notebook-sync-banner button:disabled { opacity:.6; cursor:default; }
 @media print { .notebook-sync-banner { display:none!important; } }
+
+.notebook-editor-content { position:relative; }
+.step-circle-buttons { position:absolute; inset:0; pointer-events:none; }
+.notebook-shell .step-circle-button { position:absolute; z-index:2; width:44px; height:44px; padding:0; margin:0; border:0; border-radius:50%; background:transparent; cursor:pointer; pointer-events:auto; touch-action:manipulation; }
+.notebook-shell .step-circle-button:focus-visible { outline:2px solid var(--nb-mint); outline-offset:2px; }
+@media print { .step-circle-buttons { display:none; } }
