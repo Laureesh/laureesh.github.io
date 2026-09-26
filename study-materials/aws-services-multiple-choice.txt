@@ -1,0 +1,1581 @@
+Which AWS service lets you query data in Amazon S3 using SQL?
+A. Amazon Elasticsearch Service (ES)
+B. AWS Lake Formation
+C. Amazon QuickSight
+D. Amazon Athena
+:: Amazon Athena
+
+Which AWS service provides managed search capabilities?
+A. Amazon CloudSearch
+B. AWS Data Exchange
+C. Amazon FinSpace
+D. Amazon Kinesis
+:: Amazon CloudSearch
+
+Which AWS service runs and scales Elasticsearch clusters?
+A. Amazon Elasticsearch Service (ES)
+B. Amazon QuickSight
+C. Amazon Athena
+D. AWS Glue
+:: Amazon Elasticsearch Service (ES)
+
+Which AWS service provides a hosted Hadoop framework?
+A. Amazon FinSpace
+B. AWS Lake Formation
+C. Amazon Managed Streaming for Apache Kafka (Amazon MSK)
+D. Amazon Elastic MapReduce (EMR)
+:: Amazon Elastic MapReduce (EMR)
+
+Which AWS service provides analytics for the financial services industry?
+A. Amazon Athena
+B. Amazon FinSpace
+C. Amazon Elastic MapReduce (EMR)
+D. AWS Data Exchange
+:: Amazon FinSpace
+
+Which AWS service analyzes real-time video and data streams?
+A. Amazon FinSpace
+B. Amazon Kinesis
+C. AWS Lake Formation
+D. AWS Glue
+:: Amazon Kinesis
+
+Which AWS service provides fully managed Apache Kafka?
+A. Amazon QuickSight
+B. Amazon Elasticsearch Service (ES)
+C. Amazon CloudSearch
+D. Amazon Managed Streaming for Apache Kafka (Amazon MSK)
+:: Amazon Managed Streaming for Apache Kafka (Amazon MSK)
+
+Which AWS service provides fast, cost-effective data warehousing?
+A. AWS Data Exchange
+B. Amazon Athena
+C. Amazon Redshift
+D. Amazon Managed Streaming for Apache Kafka (Amazon MSK)
+:: Amazon Redshift
+
+Which AWS service provides business analytics and visualizations?
+A. Amazon Elasticsearch Service (ES)
+B. Amazon QuickSight
+C. Amazon CloudSearch
+D. Amazon Redshift
+:: Amazon QuickSight
+
+Which AWS service lets you find, subscribe to, and use third-party data in the cloud?
+A. Amazon Elasticsearch Service (ES)
+B. Amazon Kinesis
+C. AWS Data Exchange
+D. Amazon FinSpace
+:: AWS Data Exchange
+
+Which AWS service orchestrates periodic, data-driven workflows?
+A. Amazon Elastic MapReduce (EMR)
+B. Amazon Elasticsearch Service (ES)
+C. AWS Data Pipeline
+D. Amazon QuickSight
+:: AWS Data Pipeline
+
+Which AWS service provides scalable, serverless data integration?
+A. Amazon Kinesis
+B. AWS Glue
+C. AWS Data Exchange
+D. Amazon Redshift
+:: AWS Glue
+
+Which AWS service helps you build a secure data lake?
+A. Amazon Managed Streaming for Apache Kafka (Amazon MSK)
+B. AWS Lake Formation
+C. Amazon Redshift
+D. Amazon FinSpace
+:: AWS Lake Formation
+
+Which AWS service coordinates workflows for distributed applications?
+A. AWS Step Functions
+B. Amazon AppFlow
+C. Amazon Simple Queue Service (SQS)
+D. Amazon Managed Workflows for Apache Airflow (Amazon MWAA)
+:: AWS Step Functions
+
+Which AWS service provides no-code integration between SaaS applications and AWS services?
+A. Amazon AppFlow
+B. AWS Step Functions
+C. Amazon MQ
+D. Amazon EventBridge
+:: Amazon AppFlow
+
+Which AWS service provides a serverless event bus for SaaS applications and AWS services?
+A. Amazon EventBridge
+B. Amazon Managed Workflows for Apache Airflow (Amazon MWAA)
+C. Amazon Simple Queue Service (SQS)
+D. Amazon AppFlow
+:: Amazon EventBridge
+
+Which AWS service provides managed Apache Airflow workflow orchestration?
+A. Amazon Managed Workflows for Apache Airflow (Amazon MWAA)
+B. Amazon Simple Queue Service (SQS)
+C. AWS AppSync
+D. Amazon AppFlow
+:: Amazon Managed Workflows for Apache Airflow (Amazon MWAA)
+
+Which AWS service provides a managed message broker?
+A. Amazon Simple Queue Service (SQS)
+B. Amazon MQ
+C. AWS AppSync
+D. Amazon AppFlow
+:: Amazon MQ
+
+Which AWS service supports publish/subscribe messaging, SMS, email, and mobile push notifications?
+A. AWS AppSync
+B. Amazon EventBridge
+C. Amazon Simple Notification Service (SNS)
+D. Amazon MQ
+:: Amazon Simple Notification Service (SNS)
+
+Which AWS service provides managed message queues?
+A. Amazon Simple Queue Service (SQS)
+B. Amazon EventBridge
+C. Amazon AppFlow
+D. AWS Step Functions
+:: Amazon Simple Queue Service (SQS)
+
+Which AWS service connects applications to data from multiple sources at scale?
+A. Amazon MQ
+B. Amazon Managed Workflows for Apache Airflow (Amazon MWAA)
+C. Amazon Simple Notification Service (SNS)
+D. AWS AppSync
+:: AWS AppSync
+
+Which AWS tool helps you analyze AWS costs and usage?
+A. AWS Cost Explorer
+B. AWS Budgets
+C. Savings Plans
+D. AWS Cost and Usage Report
+:: AWS Cost Explorer
+
+Which AWS service lets you set custom cost and usage budgets?
+A. Reserved Instance Reporting
+B. AWS Cost and Usage Report
+C. AWS Budgets
+D. AWS Cost Explorer
+:: AWS Budgets
+
+Which AWS report provides comprehensive cost and usage information?
+A. AWS Cost Explorer
+B. AWS Cost and Usage Report
+C. Reserved Instance Reporting
+D. Savings Plans
+:: AWS Cost and Usage Report
+
+Which AWS reporting feature helps you analyze Reserved Instances?
+A. Savings Plans
+B. AWS Budgets
+C. Reserved Instance Reporting
+D. AWS Cost Explorer
+:: Reserved Instance Reporting
+
+Which AWS pricing model offers flexible savings on compute usage?
+A. AWS Cost and Usage Report
+B. Savings Plans
+C. AWS Budgets
+D. AWS Cost Explorer
+:: Savings Plans
+
+Which AWS service lets you create and manage scalable blockchain networks?
+A. Amazon DynamoDB
+B. Amazon Managed Blockchain
+C. Amazon Neptune
+D. Amazon Quantum Ledger Database (QLDB)
+:: Amazon Managed Blockchain
+
+Which AWS service provides a fully managed ledger database?
+A. Amazon Neptune
+B. Amazon DynamoDB
+C. Amazon Quantum Ledger Database (QLDB)
+D. Amazon Managed Blockchain
+:: Amazon Quantum Ledger Database (QLDB)
+
+Which AWS service provides an omnichannel cloud contact center?
+A. Amazon WorkMail
+B. Amazon Chime SDK
+C. Amazon WorkDocs
+D. Amazon Connect
+:: Amazon Connect
+
+Which AWS service supports multichannel marketing and personalized customer engagement?
+A. Amazon Chime SDK
+B. Amazon Pinpoint
+C. Amazon Honeycode
+D. Amazon Chime
+:: Amazon Pinpoint
+
+Which AWS service lets you build mobile and web applications without programming?
+A. Alexa for Business
+B. Amazon Simple Email Service (SES)
+C. Amazon Honeycode
+D. Amazon Chime
+:: Amazon Honeycode
+
+Which AWS service provides meetings, video calls, and chat?
+A. Amazon Chime Voice Connector
+B. Amazon WorkDocs
+C. Amazon Chime
+D. Amazon Connect
+:: Amazon Chime
+
+Which AWS service provides secure enterprise document storage and sharing?
+A. Amazon WorkDocs
+B. Alexa for Business
+C. Amazon Connect
+D. Amazon Simple Email Service (SES)
+:: Amazon WorkDocs
+
+Which AWS service provides secure email and calendaring?
+A. Amazon WorkMail
+B. Amazon Chime Voice Connector
+C. Amazon Pinpoint
+D. Amazon Chime SDK
+:: Amazon WorkMail
+
+Which AWS service brings Alexa capabilities into an organization?
+A. Amazon Chime Voice Connector
+B. Amazon Honeycode
+C. Amazon Chime SDK
+D. Alexa for Business
+:: Alexa for Business
+
+Which AWS SDK lets developers add real-time messaging, audio, video, and screen sharing to applications?
+A. Amazon Chime SDK
+B. Amazon Simple Email Service (SES)
+C. Amazon WorkDocs SDK
+D. Amazon Chime
+:: Amazon Chime SDK
+
+Which AWS service provides high-scale inbound and outbound email?
+A. Amazon WorkDocs SDK
+B. Amazon Connect
+C. Amazon Simple Email Service (SES)
+D. Amazon Chime Voice Connector
+:: Amazon Simple Email Service (SES)
+
+Which AWS APIs provide mobile SMS and push notification capabilities?
+A. Amazon Chime SDK
+B. Amazon Pinpoint APIs
+C. Alexa for Business
+D. Amazon Chime
+:: Amazon Pinpoint APIs
+
+Which AWS service provides SIP trunking and advanced telephony features?
+A. Amazon WorkMail
+B. Amazon Honeycode
+C. Amazon Chime
+D. Amazon Chime Voice Connector
+:: Amazon Chime Voice Connector
+
+Which AWS SDK provides secure file collaboration and management capabilities?
+A. Amazon WorkDocs SDK
+B. Amazon Simple Email Service (SES)
+C. Amazon Honeycode
+D. Amazon Connect
+:: Amazon WorkDocs SDK
+
+Which AWS service provides virtual servers in the cloud?
+A. Amazon EC2
+B. AWS Batch
+C. AWS Snow Family
+D. AWS Lambda
+:: Amazon EC2
+
+Which AWS service automatically adjusts EC2 capacity to meet demand?
+A. Amazon Lightsail
+B. AWS Lambda
+C. Amazon EC2 Auto Scaling
+D. AWS Elastic Beanstalk
+:: Amazon EC2 Auto Scaling
+
+Which AWS service simplifies launching and managing virtual private servers?
+A. AWS Wavelength
+B. Amazon EC2 Auto Scaling
+C. AWS Snow Family
+D. Amazon Lightsail
+:: Amazon Lightsail
+
+Which AWS service builds and runs containerized web applications at scale?
+A. VMware Cloud on AWS
+B. Amazon EC2 Auto Scaling
+C. AWS Outposts
+D. AWS App Runner
+:: AWS App Runner
+
+Which AWS service runs batch computing jobs at any scale?
+A. VMware Cloud on AWS
+B. Amazon EC2
+C. AWS Batch
+D. AWS Wavelength
+:: AWS Batch
+
+Which AWS service simplifies deploying and managing web applications?
+A. AWS Elastic Beanstalk
+B. AWS Lambda
+C. AWS Wavelength
+D. AWS Snow Family
+:: AWS Elastic Beanstalk
+
+Which AWS service runs code without requiring you to manage servers?
+A. VMware Cloud on AWS
+B. AWS Elastic Beanstalk
+C. AWS App Runner
+D. AWS Lambda
+:: AWS Lambda
+
+Which AWS service runs AWS infrastructure on premises?
+A. AWS App Runner
+B. AWS Batch
+C. AWS Outposts
+D. AWS Wavelength
+:: AWS Outposts
+
+Which AWS repository lets you discover, deploy, and publish serverless applications?
+A. Amazon Lightsail
+B. AWS Outposts
+C. AWS App Runner
+D. AWS Serverless Application Repository
+:: AWS Serverless Application Repository
+
+Which AWS family provides physical devices for edge computing, storage, and transferring data to or from AWS?
+A. AWS Snow Family
+B. Amazon Lightsail
+C. AWS Elastic Beanstalk
+D. AWS Outposts
+:: AWS Snow Family
+
+Which AWS service supports ultra-low-latency applications for 5G devices?
+A. AWS Elastic Beanstalk
+B. AWS Serverless Application Repository
+C. Amazon EC2
+D. AWS Wavelength
+:: AWS Wavelength
+
+Which service lets you build a VMware hybrid cloud with AWS without custom hardware?
+A. AWS Outposts
+B. AWS App Runner
+C. AWS Lambda
+D. VMware Cloud on AWS
+:: VMware Cloud on AWS
+
+Which AWS service stores, manages, and distributes container images?
+A. Amazon Elastic Container Registry (ECR)
+B. Red Hat OpenShift Service on AWS (ROSA)
+C. Amazon EKS Distro
+D. AWS Copilot
+:: Amazon Elastic Container Registry (ECR)
+
+Which AWS service provides managed container orchestration?
+A. Amazon Elastic Container Service (ECS)
+B. Amazon EKS Distro
+C. AWS App2Container
+D. Amazon Elastic Container Registry (ECR)
+:: Amazon Elastic Container Service (ECS)
+
+Which AWS service runs ECS containers on customer-managed infrastructure?
+A. AWS App2Container
+B. AWS Fargate
+C. Amazon EKS Distro
+D. Amazon ECS Anywhere
+:: Amazon ECS Anywhere
+
+Which AWS service provides managed Kubernetes?
+A. Amazon Elastic Container Registry (ECR)
+B. Amazon Elastic Kubernetes Service (EKS)
+C. AWS App2Container
+D. AWS Fargate
+:: Amazon Elastic Kubernetes Service (EKS)
+
+Which AWS offering lets you run Kubernetes on your own infrastructure using EKS tooling?
+A. Amazon EKS Anywhere
+B. Amazon Elastic Container Registry (ECR)
+C. Red Hat OpenShift Service on AWS (ROSA)
+D. Amazon ECS Anywhere
+:: Amazon EKS Anywhere
+
+Which AWS offering provides a Kubernetes distribution for running consistent clusters?
+A. Amazon EKS Distro
+B. Amazon Elastic Container Service (ECS)
+C. Amazon Elastic Container Registry (ECR)
+D. AWS Copilot
+:: Amazon EKS Distro
+
+Which AWS tool helps containerize and migrate existing applications?
+A. AWS Fargate
+B. Amazon EKS Anywhere
+C. Amazon ECS Anywhere
+D. AWS App2Container
+:: AWS App2Container
+
+Which AWS tool simplifies deploying and operating containerized applications?
+A. AWS Copilot
+B. AWS App2Container
+C. Amazon ECS Anywhere
+D. Amazon Elastic Container Registry (ECR)
+:: AWS Copilot
+
+Which AWS service provides serverless compute for containers?
+A. AWS Copilot
+B. AWS Fargate
+C. Amazon ECS Anywhere
+D. Amazon Elastic Kubernetes Service (EKS)
+:: AWS Fargate
+
+Which AWS service provides managed Red Hat OpenShift clusters?
+A. Amazon Elastic Container Registry (ECR)
+B. Amazon ECS Anywhere
+C. Red Hat OpenShift Service on AWS (ROSA)
+D. Amazon EKS Distro
+:: Red Hat OpenShift Service on AWS (ROSA)
+
+Which AWS service provides a high-performance managed relational database?
+A. Amazon Aurora
+B. Amazon Timestream
+C. Amazon DocumentDB
+D. Amazon Keyspaces
+:: Amazon Aurora
+
+Which Aurora offering provides automatically scaling serverless database capacity?
+A. Amazon Aurora Serverless v2
+B. Amazon ElastiCache
+C. Amazon RDS
+D. Amazon Timestream
+:: Amazon Aurora Serverless v2
+
+Which AWS service provides a managed document database with MongoDB compatibility?
+A. Amazon DynamoDB
+B. Amazon Aurora
+C. AWS Database Migration Service (AWS DMS)
+D. Amazon DocumentDB
+:: Amazon DocumentDB
+
+Which AWS service provides a managed NoSQL database?
+A. Amazon RDS
+B. Amazon DynamoDB
+C. Amazon ElastiCache
+D. Amazon RDS on VMware
+:: Amazon DynamoDB
+
+Which AWS service provides in-memory caching?
+A. Amazon DocumentDB
+B. Amazon ElastiCache
+C. Amazon Keyspaces
+D. Amazon RDS on VMware
+:: Amazon ElastiCache
+
+Which AWS service provides a managed Apache Cassandra-compatible database?
+A. Amazon Timestream
+B. Amazon DynamoDB
+C. Amazon Aurora Serverless v2
+D. Amazon Keyspaces
+:: Amazon Keyspaces
+
+Which AWS service provides a fully managed graph database?
+A. Amazon Timestream
+B. Amazon Neptune
+C. Amazon RDS
+D. Amazon Keyspaces
+:: Amazon Neptune
+
+Which AWS service manages relational databases such as MySQL, PostgreSQL, Oracle, SQL Server, and MariaDB?
+A. Amazon Neptune
+B. Amazon Aurora Serverless v2
+C. Amazon RDS
+D. Amazon ElastiCache
+:: Amazon RDS
+
+Which AWS service automates on-premises database management in VMware environments?
+A. Amazon Aurora
+B. Amazon ElastiCache
+C. Amazon RDS on VMware
+D. Amazon Aurora Serverless v2
+:: Amazon RDS on VMware
+
+Which AWS service provides a fully managed time series database?
+A. AWS Database Migration Service (AWS DMS)
+B. Amazon RDS on VMware
+C. Amazon Keyspaces
+D. Amazon Timestream
+:: Amazon Timestream
+
+Which AWS service migrates databases with minimal downtime?
+A. Amazon Timestream
+B. Amazon Keyspaces
+C. Amazon DynamoDB
+D. AWS Database Migration Service (AWS DMS)
+:: AWS Database Migration Service (AWS DMS)
+
+Which AWS service helps identify expensive lines of application code?
+A. AWS Cloud9
+B. AWS Device Farm
+C. AWS CloudShell
+D. Amazon CodeGuru
+:: Amazon CodeGuru
+
+Which AWS offering provides a production-ready distribution of OpenJDK?
+A. AWS Command Line Interface (AWS CLI)
+B. Amazon Corretto
+C. AWS Fault Injection Simulator
+D. AWS CodeBuild
+:: Amazon Corretto
+
+Which AWS development framework lets you define cloud infrastructure using code?
+A. AWS Command Line Interface (AWS CLI)
+B. AWS CodeStar
+C. AWS Cloud Development Kit (AWS CDK)
+D. Amazon Corretto
+:: AWS Cloud Development Kit (AWS CDK)
+
+Which AWS service provides a cloud IDE for writing, running, and debugging code?
+A. Amazon Corretto
+B. AWS Cloud9
+C. AWS CodeCommit
+D. AWS CloudShell
+:: AWS Cloud9
+
+Which AWS service provides a browser-based shell environment?
+A. AWS Cloud Development Kit (AWS CDK)
+B. AWS Tools and SDKs
+C. AWS CloudShell
+D. AWS CodePipeline
+:: AWS CloudShell
+
+Which AWS service manages software artifacts and development packages?
+A. Amazon CodeGuru
+B. AWS CodeStar
+C. AWS Command Line Interface (AWS CLI)
+D. AWS CodeArtifact
+:: AWS CodeArtifact
+
+Which AWS service builds and tests application code?
+A. AWS CodeStar
+B. Amazon Corretto
+C. AWS CodeBuild
+D. AWS CodeArtifact
+:: AWS CodeBuild
+
+Which AWS service stores code in private Git repositories?
+A. AWS Tools and SDKs
+B. AWS Command Line Interface (AWS CLI)
+C. AWS CodeDeploy
+D. AWS CodeCommit
+:: AWS CodeCommit
+
+Which AWS service automates application deployments?
+A. AWS Cloud9
+B. Amazon CodeGuru
+C. AWS Tools and SDKs
+D. AWS CodeDeploy
+:: AWS CodeDeploy
+
+Which AWS service automates software release workflows using continuous delivery?
+A. AWS Cloud Development Kit (AWS CDK)
+B. AWS CodePipeline
+C. AWS Cloud9
+D. AWS X-Ray
+:: AWS CodePipeline
+
+Which AWS service helps teams develop and deploy AWS applications?
+A. AWS CodeStar
+B. Amazon CodeGuru
+C. AWS Fault Injection Simulator
+D. Amazon Corretto
+:: AWS CodeStar
+
+Which AWS tool lets you manage services from the command line?
+A. AWS Tools and SDKs
+B. Amazon Corretto
+C. AWS CodeStar
+D. AWS Command Line Interface (AWS CLI)
+:: AWS Command Line Interface (AWS CLI)
+
+Which AWS service tests Android, iOS, and web applications on real devices in the cloud?
+A. AWS CodeStar
+B. AWS CodePipeline
+C. AWS Device Farm
+D. AWS Cloud9
+:: AWS Device Farm
+
+Which AWS service provides managed fault injection experiments?
+A. AWS Fault Injection Simulator
+B. AWS CloudShell
+C. AWS CodeBuild
+D. AWS Tools and SDKs
+:: AWS Fault Injection Simulator
+
+Which AWS resources provide development tools and software development kits for working with AWS?
+A. AWS CodeCommit
+B. AWS Device Farm
+C. AWS CodeArtifact
+D. AWS Tools and SDKs
+:: AWS Tools and SDKs
+
+Which AWS service helps analyze and debug distributed applications?
+A. AWS CodeBuild
+B. AWS X-Ray
+C. AWS Fault Injection Simulator
+D. Amazon Corretto
+:: AWS X-Ray
+
+Which AWS service provides virtual desktops in the cloud?
+A. Amazon WorkSpaces
+B. Amazon AppStream 2.0
+C. Amazon API Gateway
+D. Amazon Location Service
+:: Amazon WorkSpaces
+
+Which AWS service securely streams desktop applications to a browser?
+A. Amazon WorkLink
+B. Amazon WorkSpaces
+C. Amazon API Gateway
+D. Amazon AppStream 2.0
+:: Amazon AppStream 2.0
+
+Which AWS service enables mobile access to internal websites?
+A. Amazon WorkSpaces
+B. Amazon AppStream 2.0
+C. Amazon WorkLink
+D. Amazon API Gateway
+:: Amazon WorkLink
+
+Which AWS service helps build and deploy mobile and web applications?
+A. Amazon API Gateway
+B. Amazon Location Service
+C. AWS Amplify
+D. Amazon WorkSpaces
+:: AWS Amplify
+
+Which AWS service lets you build, deploy, and manage APIs?
+A. Amazon Location Service
+B. Amazon API Gateway
+C. Amazon AppStream 2.0
+D. Amazon WorkLink
+:: Amazon API Gateway
+
+Which AWS service lets you add location data and capabilities to applications?
+A. Amazon Location Service
+B. Amazon API Gateway
+C. Amazon WorkLink
+D. Amazon AppStream 2.0
+:: Amazon Location Service
+
+Which AWS service provides dedicated game server hosting?
+A. Amazon GameLift
+B. Amazon Lumberyard
+C. Amazon EC2 Auto Scaling
+D. Amazon Sumerian
+:: Amazon GameLift
+
+Which AWS offering is a free, cross-platform 3D game engine integrated with AWS and Twitch?
+A. AWS RoboMaker
+B. Amazon Sumerian
+C. Amazon GameLift
+D. Amazon Lumberyard
+:: Amazon Lumberyard
+
+Which AWS service lets supported IoT devices trigger Lambda functions with one click?
+A. AWS Partner Device Catalog
+B. AWS IoT 1-Click
+C. AWS IoT Device Management
+D. AWS IoT Button
+:: AWS IoT 1-Click
+
+Which AWS service provides analytics for IoT device data?
+A. AWS IoT EduKit
+B. AWS IoT Analytics
+C. FreeRTOS
+D. AWS IoT Device Defender
+:: AWS IoT Analytics
+
+Which AWS device is a cloud-programmable button?
+A. AWS IoT Button
+B. AWS IoT Analytics
+C. AWS Partner Device Catalog
+D. AWS IoT Events
+:: AWS IoT Button
+
+Which AWS service connects IoT devices to the cloud?
+A. AWS IoT 1-Click
+B. AWS IoT Core
+C. AWS IoT EduKit
+D. AWS IoT Greengrass
+:: AWS IoT Core
+
+Which AWS service provides security management for IoT devices?
+A. AWS IoT Device Management
+B. AWS IoT Button
+C. AWS IoT Device Defender
+D. AWS IoT 1-Click
+:: AWS IoT Device Defender
+
+Which AWS service helps onboard, organize, and remotely manage IoT devices?
+A. AWS IoT Things Graph
+B. AWS IoT Core
+C. AWS IoT Greengrass
+D. AWS IoT Device Management
+:: AWS IoT Device Management
+
+Which AWS offering helps you learn to build simple IoT applications?
+A. AWS IoT Greengrass
+B. AWS IoT 1-Click
+C. AWS IoT EduKit
+D. AWS IoT Device Management
+:: AWS IoT EduKit
+
+Which AWS service detects and responds to IoT events?
+A. AWS IoT Events
+B. AWS IoT Things Graph
+C. AWS IoT Device Management
+D. FreeRTOS
+:: AWS IoT Events
+
+Which AWS service provides local computing, messaging, and synchronization for connected devices?
+A. AWS IoT Analytics
+B. AWS IoT SiteWise
+C. AWS IoT Greengrass
+D. AWS IoT Events
+:: AWS IoT Greengrass
+
+Which AWS service collects and interprets industrial IoT data?
+A. AWS IoT Core
+B. AWS IoT SiteWise
+C. FreeRTOS
+D. AWS IoT Device Defender
+:: AWS IoT SiteWise
+
+Which AWS service helps connect devices and web services into IoT applications?
+A. AWS IoT Things Graph
+B. AWS Partner Device Catalog
+C. AWS IoT 1-Click
+D. AWS IoT Greengrass
+:: AWS IoT Things Graph
+
+Which AWS resource provides a curated catalog of AWS-compatible IoT hardware?
+A. FreeRTOS
+B. AWS Partner Device Catalog
+C. AWS IoT Button
+D. AWS IoT SiteWise
+:: AWS Partner Device Catalog
+
+Which AWS-supported operating system is designed for microcontrollers?
+A. AWS IoT Device Management
+B. FreeRTOS
+C. AWS IoT Events
+D. AWS Partner Device Catalog
+:: FreeRTOS
+
+Which AWS service lets you build, train, and deploy machine learning models at scale?
+A. Amazon Polly
+B. Amazon SageMaker
+C. Amazon Rekognition
+D. Amazon Comprehend
+:: Amazon SageMaker
+
+Which AWS service adds human review to machine learning predictions?
+A. Amazon Augmented AI (Amazon A2I)
+B. Amazon Rekognition
+C. Amazon SageMaker
+D. Apache MXNet on AWS
+:: Amazon Augmented AI (Amazon A2I)
+
+Which AWS service discovers insights and relationships in text?
+A. Amazon Lookout for Metrics
+B. Amazon Fraud Detector
+C. Amazon Comprehend
+D. Amazon HealthLake
+:: Amazon Comprehend
+
+Which AWS service uses machine learning to improve cloud operations?
+A. Amazon Comprehend
+B. Amazon DevOps Guru
+C. AWS Deep Learning AMIs
+D. Amazon Forecast
+:: Amazon DevOps Guru
+
+Which AWS service provides deep learning inference acceleration?
+A. Amazon Forecast
+B. Amazon DevOps Guru
+C. Amazon Elastic Inference
+D. Amazon Kendra
+:: Amazon Elastic Inference
+
+Which AWS service uses machine learning to improve forecast accuracy?
+A. Amazon Fraud Detector
+B. AWS Panorama
+C. Amazon Forecast
+D. Amazon Translate
+:: Amazon Forecast
+
+Which AWS service uses machine learning to detect online fraud?
+A. Amazon Fraud Detector
+B. Amazon Rekognition
+C. Amazon SageMaker
+D. Amazon Monitron
+:: Amazon Fraud Detector
+
+Which AWS service helps organizations make sense of health data?
+A. Amazon Translate
+B. Amazon Lookout for Vision
+C. Amazon Lex
+D. Amazon HealthLake
+:: Amazon HealthLake
+
+Which AWS service provides machine learning-powered enterprise search?
+A. Amazon Lookout for Equipment
+B. Amazon Fraud Detector
+C. Amazon Kendra
+D. AWS Deep Learning AMIs
+:: Amazon Kendra
+
+Which AWS service lets you build voice and text chatbots?
+A. Amazon SageMaker
+B. Amazon Transcribe
+C. AWS DeepLens
+D. Amazon Lex
+:: Amazon Lex
+
+Which AWS service detects abnormal equipment behavior by analyzing sensor data?
+A. PyTorch on AWS
+B. Amazon DevOps Guru
+C. Apache MXNet on AWS
+D. Amazon Lookout for Equipment
+:: Amazon Lookout for Equipment
+
+Which AWS service detects anomalies in metrics?
+A. Amazon Comprehend
+B. Amazon Lookout for Metrics
+C. AWS Deep Learning AMIs
+D. Amazon Augmented AI (Amazon A2I)
+:: Amazon Lookout for Metrics
+
+Which AWS service uses computer vision to detect product defects?
+A. Amazon Textract
+B. Amazon HealthLake
+C. AWS Deep Learning Containers
+D. Amazon Lookout for Vision
+:: Amazon Lookout for Vision
+
+Which AWS offering provides an end-to-end equipment monitoring system?
+A. Amazon Lookout for Metrics
+B. AWS Deep Learning Containers
+C. Amazon Monitron
+D. Amazon Lex
+:: Amazon Monitron
+
+Which AWS service adds real-time personalized recommendations to applications?
+A. Amazon Translate
+B. Amazon Transcribe
+C. Amazon Rekognition
+D. Amazon Personalize
+:: Amazon Personalize
+
+Which AWS service converts text into lifelike speech?
+A. TensorFlow on AWS
+B. Amazon Polly
+C. AWS Deep Learning Containers
+D. Amazon HealthLake
+:: Amazon Polly
+
+Which AWS service analyzes images and video?
+A. Amazon SageMaker
+B. Amazon Rekognition
+C. Amazon Lookout for Vision
+D. AWS Panorama
+:: Amazon Rekognition
+
+Which AWS service extracts text and data from documents?
+A. Amazon Kendra
+B. Amazon Textract
+C. Amazon Lookout for Vision
+D. Amazon HealthLake
+:: Amazon Textract
+
+Which AWS service translates text between languages?
+A. Amazon Translate
+B. Amazon Textract
+C. Amazon Polly
+D. AWS DeepLens
+:: Amazon Translate
+
+Which AWS service converts speech into text?
+A. Amazon Elastic Inference
+B. Amazon Transcribe
+C. Amazon Rekognition
+D. Amazon Polly
+:: Amazon Transcribe
+
+Which AWS offering provides machine images for deep learning on Amazon EC2?
+A. AWS Deep Learning Containers
+B. Amazon Elastic Inference
+C. AWS Inferentia
+D. AWS Deep Learning AMIs
+:: AWS Deep Learning AMIs
+
+Which AWS offering provides Docker images for deep learning?
+A. AWS Inferentia
+B. Amazon Elastic Inference
+C. AWS Deep Learning Containers
+D. AWS Deep Learning AMIs
+:: AWS Deep Learning Containers
+
+Which AWS device is a machine learning-enabled musical keyboard?
+A. Amazon Monitron
+B. Amazon Transcribe
+C. Amazon DevOps Guru
+D. AWS DeepComposer
+:: AWS DeepComposer
+
+Which AWS device is a deep learning-enabled video camera?
+A. AWS DeepRacer
+B. Amazon Translate
+C. AWS DeepComposer
+D. AWS DeepLens
+:: AWS DeepLens
+
+Which AWS offering is a machine learning-powered autonomous 1/18-scale race car?
+A. Amazon Personalize
+B. Amazon Transcribe
+C. AWS DeepRacer
+D. Amazon SageMaker
+:: AWS DeepRacer
+
+Which AWS chip is designed for machine learning inference?
+A. Amazon Elastic Inference
+B. AWS Inferentia
+C. Amazon Textract
+D. Amazon Personalize
+:: AWS Inferentia
+
+Which AWS offering brings computer vision to edge locations?
+A. Amazon Fraud Detector
+B. Amazon DevOps Guru
+C. AWS Panorama
+D. Amazon Elastic Inference
+:: AWS Panorama
+
+Which AWS-supported deep learning framework is called MXNet?
+A. PyTorch on AWS
+B. Apache MXNet on AWS
+C. TensorFlow on AWS
+D. Amazon Corretto
+:: Apache MXNet on AWS
+
+Which AWS-supported machine learning framework is known as PyTorch?
+A. TensorFlow on AWS
+B. Amazon Corretto
+C. PyTorch on AWS
+D. Apache MXNet on AWS
+:: PyTorch on AWS
+
+Which AWS-supported machine learning framework is known as TensorFlow?
+A. Amazon Corretto
+B. Apache MXNet on AWS
+C. PyTorch on AWS
+D. TensorFlow on AWS
+:: TensorFlow on AWS
+
+Which AWS service monitors resources and applications?
+A. AWS Console Mobile Application
+B. AWS Config
+C. Amazon CloudWatch
+D. AWS Service Catalog
+:: Amazon CloudWatch
+
+Which AWS managed service provides interactive data visualization using Grafana?
+A. Amazon Managed Service for Grafana
+B. AWS License Manager
+C. AWS Proton
+D. AWS Management Console
+:: Amazon Managed Service for Grafana
+
+Which AWS managed service provides monitoring for containers using Prometheus?
+A. AWS Chatbot
+B. AWS Control Tower
+C. Amazon Managed Service for Prometheus
+D. AWS Well-Architected Tool
+:: Amazon Managed Service for Prometheus
+
+Which AWS service scales multiple types of resources to meet demand?
+A. AWS CloudFormation
+B. AWS Chatbot
+C. Amazon Managed Service for Grafana
+D. AWS Auto Scaling
+:: AWS Auto Scaling
+
+Which AWS service provides ChatOps capabilities?
+A. AWS Chatbot
+B. AWS CloudTrail
+C. AWS Well-Architected Tool
+D. AWS Trusted Advisor
+:: AWS Chatbot
+
+Which AWS service creates and manages resources using templates?
+A. AWS CloudFormation
+B. AWS Service Catalog
+C. AWS Trusted Advisor
+D. AWS Distro for OpenTelemetry
+:: AWS CloudFormation
+
+Which AWS service tracks user activity and API usage?
+A. AWS Console Mobile Application
+B. AWS CloudTrail
+C. AWS Personal Health Dashboard
+D. AWS Service Catalog
+:: AWS CloudTrail
+
+Which AWS service recommends optimal compute resources?
+A. AWS License Manager
+B. AWS Service Catalog
+C. AWS Compute Optimizer
+D. Amazon CloudWatch
+:: AWS Compute Optimizer
+
+Which AWS service tracks resource inventory and configuration changes?
+A. AWS Config
+B. AWS Control Tower
+C. AWS OpsWorks
+D. AWS Well-Architected Tool
+:: AWS Config
+
+Which AWS service helps establish and govern a secure multi-account environment?
+A. AWS Proton
+B. AWS Distro for OpenTelemetry
+C. AWS Control Tower
+D. AWS CloudFormation
+:: AWS Control Tower
+
+Which AWS application lets you access and manage resources from a mobile device?
+A. AWS Managed Services
+B. AWS Console Mobile Application
+C. AWS CloudFormation
+D. AWS Config
+:: AWS Console Mobile Application
+
+Which AWS distribution helps collect correlated metrics and traces using OpenTelemetry?
+A. Amazon Managed Service for Prometheus
+B. AWS Control Tower
+C. AWS Config
+D. AWS Distro for OpenTelemetry
+:: AWS Distro for OpenTelemetry
+
+Which AWS service helps track, manage, and control software licenses?
+A. AWS License Manager
+B. AWS Config
+C. AWS Management Console
+D. AWS Distro for OpenTelemetry
+:: AWS License Manager
+
+Which AWS interface lets you manage AWS services through a web browser?
+A. AWS Distro for OpenTelemetry
+B. AWS Service Catalog
+C. AWS Management Console
+D. AWS License Manager
+:: AWS Management Console
+
+Which AWS service provides infrastructure operations management?
+A. AWS Auto Scaling
+B. AWS Compute Optimizer
+C. AWS Trusted Advisor
+D. AWS Managed Services
+:: AWS Managed Services
+
+Which AWS service automates operations using Chef and Puppet?
+A. AWS Well-Architected Tool
+B. AWS OpsWorks
+C. AWS Config
+D. AWS Auto Scaling
+:: AWS OpsWorks
+
+Which AWS service provides central governance and management across multiple AWS accounts?
+A. AWS Organizations
+B. AWS Trusted Advisor
+C. AWS Proton
+D. AWS OpsWorks
+:: AWS Organizations
+
+Which AWS dashboard provides a personalized view of service health?
+A. AWS License Manager
+B. Amazon Managed Service for Grafana
+C. AWS Personal Health Dashboard
+D. AWS Management Console
+:: AWS Personal Health Dashboard
+
+Which AWS service automates management of container and serverless deployments?
+A. AWS OpsWorks
+B. AWS Trusted Advisor
+C. Amazon CloudWatch
+D. AWS Proton
+:: AWS Proton
+
+Which AWS service lets organizations create and use standardized products?
+A. AWS Service Catalog
+B. AWS Organizations
+C. AWS Chatbot
+D. AWS CloudTrail
+:: AWS Service Catalog
+
+Which AWS service provides operational insights and tools to take action across resources?
+A. AWS Config
+B. AWS Service Catalog
+C. Amazon Managed Service for Grafana
+D. AWS Systems Manager
+:: AWS Systems Manager
+
+Which AWS service recommends ways to optimize performance and security?
+A. AWS Trusted Advisor
+B. AWS License Manager
+C. AWS Managed Services
+D. AWS Systems Manager
+:: AWS Trusted Advisor
+
+Which AWS tool helps you review and improve cloud workloads?
+A. AWS Compute Optimizer
+B. Amazon Managed Service for Grafana
+C. AWS Distro for OpenTelemetry
+D. AWS Well-Architected Tool
+:: AWS Well-Architected Tool
+
+Which AWS service provides scalable media transcoding?
+A. AWS Elemental Appliances & Software
+B. Amazon Elastic Transcoder
+C. AWS Elemental MediaTailor
+D. Amazon Nimble Studio
+:: Amazon Elastic Transcoder
+
+Which AWS service provides a managed live video solution?
+A. Amazon Interactive Video Service (Amazon IVS)
+B. Amazon Kinesis Video Streams
+C. AWS Elemental MediaTailor
+D. Amazon Nimble Studio
+:: Amazon Interactive Video Service (Amazon IVS)
+
+Which AWS service processes and analyzes video streams?
+A. Amazon Nimble Studio
+B. AWS Elemental MediaLive
+C. Amazon Kinesis Video Streams
+D. AWS Elemental MediaConnect
+:: Amazon Kinesis Video Streams
+
+Which AWS service helps build a digital content creation studio?
+A. AWS Elemental MediaPackage
+B. Amazon Kinesis Video Streams
+C. Amazon Nimble Studio
+D. AWS Elemental MediaConnect
+:: Amazon Nimble Studio
+
+Which AWS media service provides reliable, secure transport for live video?
+A. AWS Elemental MediaConnect
+B. AWS Elemental Appliances & Software
+C. AWS Elemental MediaStore
+D. Amazon Elastic Transcoder
+:: AWS Elemental MediaConnect
+
+Which AWS media service converts file-based video content?
+A. AWS Elemental MediaTailor
+B. AWS Elemental MediaStore
+C. Amazon Kinesis Video Streams
+D. AWS Elemental MediaConvert
+:: AWS Elemental MediaConvert
+
+Which AWS media service converts live video content?
+A. AWS Elemental MediaConvert
+B. AWS Elemental MediaTailor
+C. AWS Elemental MediaPackage
+D. AWS Elemental MediaLive
+:: AWS Elemental MediaLive
+
+Which AWS media service handles video origination and packaging?
+A. Amazon Interactive Video Service (Amazon IVS)
+B. AWS Elemental MediaPackage
+C. Amazon Kinesis Video Streams
+D. Amazon Nimble Studio
+:: AWS Elemental MediaPackage
+
+Which AWS media service provides media storage and a simple HTTP origin?
+A. AWS Elemental MediaPackage
+B. AWS Elemental MediaStore
+C. AWS Elemental MediaLive
+D. Amazon Kinesis Video Streams
+:: AWS Elemental MediaStore
+
+Which AWS media service supports video personalization and monetization?
+A. AWS Elemental MediaTailor
+B. Amazon Nimble Studio
+C. AWS Elemental MediaPackage
+D. Amazon Kinesis Video Streams
+:: AWS Elemental MediaTailor
+
+Which AWS offering provides on-premises media solutions?
+A. Amazon Elastic Transcoder
+B. AWS Elemental MediaStore
+C. AWS Elemental Appliances & Software
+D. AWS Elemental MediaPackage
+:: AWS Elemental Appliances & Software
+
+Which AWS service lets you track migrations from a central location?
+A. AWS Transfer Family
+B. AWS Application Migration Service (CloudEndure Migration)
+C. AWS Server Migration Service
+D. AWS Migration Hub
+:: AWS Migration Hub
+
+Which AWS service discovers on-premises applications to support migration planning?
+A. AWS Application Discovery Service
+B. AWS Application Migration Service (CloudEndure Migration)
+C. Migration Evaluator, formerly TSO Logic
+D. AWS Migration Hub
+:: AWS Application Discovery Service
+
+Which AWS service automates lift-and-shift application migrations?
+A. AWS Migration Hub
+B. Migration Evaluator, formerly TSO Logic
+C. AWS DataSync
+D. AWS Application Migration Service (CloudEndure Migration)
+:: AWS Application Migration Service (CloudEndure Migration)
+
+Which AWS service provides fast online data transfers?
+A. AWS Transfer Family
+B. AWS DataSync
+C. AWS Migration Hub
+D. Migration Evaluator, formerly TSO Logic
+:: AWS DataSync
+
+Which AWS service migrates on-premises servers to AWS?
+A. AWS Transfer Family
+B. AWS DataSync
+C. AWS Server Migration Service
+D. AWS Application Discovery Service
+:: AWS Server Migration Service
+
+Which AWS service provides managed SFTP, FTPS, and FTP transfers?
+A. AWS Transfer Family
+B. AWS DataSync
+C. AWS Server Migration Service
+D. Migration Evaluator, formerly TSO Logic
+:: AWS Transfer Family
+
+Which AWS service helps create a business case for cloud migration?
+A. AWS DataSync
+B. AWS Transfer Family
+C. Migration Evaluator, formerly TSO Logic
+D. AWS Application Migration Service (CloudEndure Migration)
+:: Migration Evaluator, formerly TSO Logic
+
+Which AWS service provides isolated virtual network resources?
+A. AWS Transit Gateway
+B. Amazon Virtual Private Cloud (Amazon VPC)
+C. AWS Direct Connect
+D. AWS App Mesh
+:: Amazon Virtual Private Cloud (Amazon VPC)
+
+Which AWS service provides a global content delivery network?
+A. AWS Cloud Map
+B. AWS Direct Connect
+C. Amazon Route 53
+D. Amazon CloudFront
+:: Amazon CloudFront
+
+Which AWS service provides a scalable Domain Name System (DNS)?
+A. Amazon Route 53
+B. Amazon CloudFront
+C. AWS Cloud Map
+D. AWS VPN
+:: Amazon Route 53
+
+Which AWS service helps monitor and control microservices through a service mesh?
+A. AWS Transit Gateway
+B. AWS App Mesh
+C. AWS PrivateLink
+D. AWS VPN
+:: AWS App Mesh
+
+Which AWS service provides service discovery for cloud resources?
+A. AWS PrivateLink
+B. Elastic Load Balancing (ELB)
+C. AWS Transit Gateway
+D. AWS Cloud Map
+:: AWS Cloud Map
+
+Which AWS service provides a dedicated network connection to AWS?
+A. Amazon Route 53
+B. AWS Direct Connect
+C. Amazon Virtual Private Cloud (Amazon VPC)
+D. Amazon CloudFront
+:: AWS Direct Connect
+
+Which AWS service improves application availability and performance through the AWS global network?
+A. Amazon Route 53
+B. AWS Global Accelerator
+C. AWS Direct Connect
+D. AWS Cloud Map
+:: AWS Global Accelerator
+
+Which AWS service provides private access to services hosted on AWS?
+A. AWS Global Accelerator
+B. AWS Direct Connect
+C. AWS PrivateLink
+D. AWS VPN
+:: AWS PrivateLink
+
+Which AWS service connects and scales networks across VPCs and accounts?
+A. AWS Cloud Map
+B. Amazon Virtual Private Cloud (Amazon VPC)
+C. AWS PrivateLink
+D. AWS Transit Gateway
+:: AWS Transit Gateway
+
+Which AWS service provides secure VPN access to network resources?
+A. AWS VPN
+B. Elastic Load Balancing (ELB)
+C. AWS Global Accelerator
+D. Amazon Route 53
+:: AWS VPN
+
+Which AWS service distributes incoming traffic across multiple targets?
+A. Elastic Load Balancing (ELB)
+B. Amazon Route 53
+C. AWS Global Accelerator
+D. Amazon Virtual Private Cloud (Amazon VPC)
+:: Elastic Load Balancing (ELB)
+
+Which AWS service lets you explore and experiment with quantum computing?
+A. AWS RoboMaker
+B. Amazon Braket
+C. Amazon Quantum Solutions Lab
+D. AWS Ground Station
+:: Amazon Braket
+
+Which AWS program lets you collaborate with quantum computing experts?
+A. AWS RoboMaker
+B. Amazon Quantum Solutions Lab
+C. Amazon Sumerian
+D. AWS Ground Station
+:: Amazon Quantum Solutions Lab
+
+Which AWS service helps develop, test, and deploy robotics applications?
+A. AWS Ground Station
+B. Amazon Braket
+C. Amazon Sumerian
+D. AWS RoboMaker
+:: AWS RoboMaker
+
+Which AWS service provides fully managed satellite ground stations?
+A. AWS RoboMaker
+B. AWS Ground Station
+C. Amazon Sumerian
+D. Amazon Quantum Solutions Lab
+:: AWS Ground Station
+
+Which AWS service securely manages access to AWS services and resources?
+A. Amazon GuardDuty
+B. Amazon Cognito
+C. AWS Identity and Access Management (IAM)
+D. AWS Audit Manager
+:: AWS Identity and Access Management (IAM)
+
+Which AWS service provides identity management for applications?
+A. AWS Directory Service
+B. AWS Key Management Service (AWS KMS)
+C. Amazon Cognito
+D. AWS CloudHSM
+:: Amazon Cognito
+
+Which AWS service helps investigate potential security issues?
+A. AWS Resource Access Manager (AWS RAM)
+B. Amazon Detective
+C. Amazon Cognito
+D. AWS CloudHSM
+:: Amazon Detective
+
+Which AWS service provides managed threat detection?
+A. Amazon Cognito
+B. AWS Single Sign-On
+C. Amazon Inspector
+D. Amazon GuardDuty
+:: Amazon GuardDuty
+
+Which AWS service analyzes application security?
+A. AWS Directory Service
+B. AWS Resource Access Manager (AWS RAM)
+C. Amazon Inspector
+D. AWS Audit Manager
+:: Amazon Inspector
+
+Which AWS service discovers and protects sensitive data at scale?
+A. AWS Directory Service
+B. Amazon Macie
+C. AWS Audit Manager
+D. AWS Security Hub
+:: Amazon Macie
+
+Which AWS service provides on-demand access to AWS compliance reports?
+A. AWS Certificate Manager
+B. AWS Secrets Manager
+C. AWS Key Management Service (AWS KMS)
+D. AWS Artifact
+:: AWS Artifact
+
+Which AWS service helps continuously audit AWS usage?
+A. AWS Shield
+B. Amazon Macie
+C. AWS Audit Manager
+D. AWS CloudHSM
+:: AWS Audit Manager
+
+Which AWS service provisions, manages, and deploys SSL/TLS certificates?
+A. AWS Certificate Manager
+B. AWS Network Firewall
+C. Amazon GuardDuty
+D. AWS Secrets Manager
+:: AWS Certificate Manager
+
+Which AWS service provides hardware-based key storage for regulatory compliance?
+A. AWS Single Sign-On
+B. Amazon GuardDuty
+C. AWS CloudHSM
+D. AWS Resource Access Manager (AWS RAM)
+:: AWS CloudHSM
+
+Which AWS service hosts and manages Active Directory?
+A. Amazon Macie
+B. Amazon Detective
+C. AWS Directory Service
+D. Amazon Inspector
+:: AWS Directory Service
+
+Which AWS service centrally manages firewall rules?
+A. AWS Artifact
+B. AWS Firewall Manager
+C. Amazon Detective
+D. AWS Security Hub
+:: AWS Firewall Manager
+
+Which AWS service manages the creation and control of encryption keys?
+A. Amazon Macie
+B. AWS WAF
+C. AWS Key Management Service (AWS KMS)
+D. Amazon GuardDuty
+:: AWS Key Management Service (AWS KMS)
+
+Which AWS service provides network firewall protection for VPCs?
+A. AWS Network Firewall
+B. AWS Security Hub
+C. AWS CloudHSM
+D. Amazon Inspector
+:: AWS Network Firewall
+
+Which AWS service lets you securely share AWS resources?
+A. AWS Network Firewall
+B. AWS Firewall Manager
+C. AWS Key Management Service (AWS KMS)
+D. AWS Resource Access Manager (AWS RAM)
+:: AWS Resource Access Manager (AWS RAM)
+
+Which AWS service rotates, manages, and retrieves secrets?
+A. AWS Secrets Manager
+B. Amazon Cognito
+C. AWS Shield
+D. AWS WAF
+:: AWS Secrets Manager
+
+Which AWS service provides a unified view of security and compliance findings?
+A. Amazon Macie
+B. AWS Security Hub
+C. AWS Audit Manager
+D. Amazon Cognito
+:: AWS Security Hub
+
+Which AWS service provides protection against distributed denial-of-service attacks?
+A. AWS Secrets Manager
+B. AWS Shield
+C. AWS WAF
+D. AWS Directory Service
+:: AWS Shield
+
+Which AWS service provides cloud single sign-on capabilities?
+A. Amazon Macie
+B. AWS Shield
+C. AWS Single Sign-On
+D. AWS Artifact
+:: AWS Single Sign-On
+
+Which AWS service filters malicious web traffic?
+A. Amazon Cognito
+B. AWS Resource Access Manager (AWS RAM)
+C. Amazon Macie
+D. AWS WAF
+:: AWS WAF
+
+Which AWS service provides scalable object storage in the cloud?
+A. Amazon Simple Storage Service (S3)
+B. Amazon S3 Glacier
+C. AWS Backup
+D. Amazon Elastic Block Store (EBS)
+:: Amazon Simple Storage Service (S3)
+
+Which AWS service provides block storage volumes for EC2 instances?
+A. Amazon Elastic Block Store (EBS)
+B. Amazon S3 Glacier
+C. Amazon FSx for Windows File Server
+D. AWS Backup
+:: Amazon Elastic Block Store (EBS)
+
+Which AWS service provides a fully managed shared file system for EC2?
+A. Amazon Elastic File System (EFS)
+B. Amazon Elastic Block Store (EBS)
+C. Amazon S3 Glacier
+D. CloudEndure Disaster Recovery
+:: Amazon Elastic File System (EFS)
+
+Which AWS service provides a high-performance Lustre file system integrated with S3?
+A. Amazon FSx for Lustre
+B. Amazon Elastic File System (EFS)
+C. Amazon FSx for Windows File Server
+D. CloudEndure Disaster Recovery
+:: Amazon FSx for Lustre
+
+Which AWS service provides a fully managed Windows-native file system?
+A. Amazon S3 Glacier
+B. Amazon FSx for Windows File Server
+C. AWS Backup
+D. Amazon FSx for Lustre
+:: Amazon FSx for Windows File Server
+
+Which AWS storage offering provides low-cost archive storage?
+A. Amazon Elastic File System (EFS)
+B. Amazon Simple Storage Service (S3)
+C. Amazon FSx for Lustre
+D. Amazon S3 Glacier
+:: Amazon S3 Glacier
+
+Which AWS service centralizes backups across AWS services?
+A. CloudEndure Disaster Recovery
+B. AWS Backup
+C. Amazon Elastic File System (EFS)
+D. Amazon Elastic Block Store (EBS)
+:: AWS Backup
+
+Which AWS service integrates on-premises environments with cloud storage?
+A. Amazon FSx for Lustre
+B. Amazon S3 Glacier
+C. AWS Storage Gateway
+D. AWS Backup
+:: AWS Storage Gateway
+
+Which service provides highly automated disaster recovery using CloudEndure technology?
+A. Amazon FSx for Windows File Server
+B. Amazon Elastic File System (EFS)
+C. CloudEndure Disaster Recovery
+D. Amazon FSx for Lustre
+:: CloudEndure Disaster Recovery
+
+Which AWS service lets you build and run augmented reality and virtual reality applications?
+A. Amazon Sumerian
+B. AWS RoboMaker
+C. AWS Ground Station
+D. Amazon Quantum Solutions Lab
+:: Amazon Sumerian

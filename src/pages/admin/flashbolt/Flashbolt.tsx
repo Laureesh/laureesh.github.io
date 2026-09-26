@@ -147,6 +147,7 @@ type Folder = {
 };
 
 type AppData = {
+  deletedSetIds?: string[];
   semesterVisibility?: SemesterVisibility;
   sets: StudySet[];
   folders: Folder[];
@@ -599,7 +600,9 @@ function prepareDraftCard(card: Card): Card | null {
 }
 
 function withDataDefaults(value: AppData): AppData {
-  const normalizedSets = value.sets.map((set) => ({
+  const deletedSetIds = [...new Set((value.deletedSetIds ?? []).filter((id) => typeof id === "string"))];
+  const deleted = new Set(deletedSetIds);
+  const normalizedSets = value.sets.filter((set) => !deleted.has(set.id)).map((set) => ({
     ...set,
     cards: set.cards.map(card => withCorrectChoiceAnswers(withDetectedAnswerChoices({ ...card, explanation: typeof card.explanation === "string" ? card.explanation : undefined }))),
   }));
@@ -608,6 +611,7 @@ function withDataDefaults(value: AppData): AppData {
   return {
     ...value,
     sets: normalizedSets,
+    deletedSetIds,
     semesterVisibility: normalizeSemesterVisibility(value.semesterVisibility),
     folders: value.folders.map((folder) => ({
       ...folder,
@@ -616,7 +620,8 @@ function withDataDefaults(value: AppData): AppData {
     mastered: Object.fromEntries(Object.entries(value.mastered ?? {})
       .filter(([setId]) => setIds.has(setId))
       .map(([setId, cardIds]) => [setId, [...new Set(cardIds)].filter((cardId) => cardIdsBySet.get(setId)?.has(cardId))])),
-    learnProgress: value.learnProgress ?? {},
+    learnProgress: Object.fromEntries(Object.entries(value.learnProgress ?? {}).filter(([setId]) => setIds.has(setId))),
+    activeLearn: value.activeLearn && setIds.has(value.activeLearn.setId) ? value.activeLearn : undefined,
   };
 }
 
@@ -639,6 +644,8 @@ function mergeLibraries(cloud: AppData, local: AppData): AppData {
 
   return withDataDefaults({
     ...cloud,
+    // Deletions win over stale copies, including edits from another device.
+    deletedSetIds: [...new Set([...(cloud.deletedSetIds ?? []), ...(local.deletedSetIds ?? [])])],
     sets: [...sets.values()],
     folders: [...folders.values()],
     mastered: Object.fromEntries(
@@ -659,6 +666,7 @@ function removeSetFromLibraryData(data: AppData, setId: string): AppData {
   delete learnProgress[setId];
   return {
     ...data,
+    deletedSetIds: [...new Set([...(data.deletedSetIds ?? []), setId])],
     sets: data.sets.filter((item) => item.id !== setId),
     folders: data.folders.map((folder) => ({ ...folder, setIds: folder.setIds.filter((id) => id !== setId) })),
     mastered,
