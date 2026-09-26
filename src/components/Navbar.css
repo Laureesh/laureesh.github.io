@@ -310,6 +310,29 @@
   border-color: var(--accent);
 }
 
+.nav-admin-shortcuts {
+  display: flex;
+  gap: 4px;
+}
+
+.nav-app-shortcut {
+  min-height: 36px;
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  line-height: 18px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nav-app-shortcut:hover {
+  transform: none;
+}
+
+.nav-app-shortcut:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
 .nav-history {
   position: relative;
 }
@@ -480,7 +503,7 @@
   color: var(--accent-hover);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
   .nav-toggle {
     display: flex;
     align-items: center;
@@ -575,6 +598,26 @@
   .nav-history-menu {
     right: -44px;
     width: min(320px, calc(100vw - 32px));
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar-container:has(.nav-admin-shortcuts) {
+    height: auto;
+    min-height: 64px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .nav-actions:has(.nav-admin-shortcuts) {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: 240px;
+  }
+
+  .nav-admin-shortcuts {
+    flex-basis: 100%;
+    justify-content: flex-end;
   }
 }
 

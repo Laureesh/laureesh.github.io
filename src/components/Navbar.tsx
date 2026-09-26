@@ -72,7 +72,7 @@ export default function Navbar() {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, userProfile, savedAccounts, loginWithGoogle, logout, loading, refreshUserProfile } = useAuth();
+  const { user, userProfile, isAdmin, savedAccounts, loginWithGoogle, logout, loading, refreshUserProfile } = useAuth();
   const { currentLanguage, getLanguageLabel, getLanguageOptionLabel, t, translateRouteLabel } = useDisplayLanguage();
   const normalizedPath = normalizePath(location.pathname);
   const mobileOpen = menuOpenPath === normalizedPath;
@@ -246,6 +246,16 @@ export default function Navbar() {
           ))}
         </ul>
         <div className="nav-actions">
+          {!loading && user && isAdmin ? (
+            <div className="nav-admin-shortcuts">
+              <Link className="theme-toggle nav-app-shortcut" to="/admin-dashboard/private-pages/notebook">
+                notebook
+              </Link>
+              <Link className="theme-toggle nav-app-shortcut" to="/admin-dashboard/private-pages/flashbolt">
+                flashbolt
+              </Link>
+            </div>
+          ) : null}
           <CommandPaletteTrigger />
           <div className="nav-history" ref={historyRef}>
             <button
