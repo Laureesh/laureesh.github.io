@@ -6864,11 +6864,14 @@ kbd {
 
   .import-panel,
   .app-shell.sidebar-collapsed .import-panel {
-    position: sticky;
+    position: static;
     right: auto;
     grid-row: 1;
     width: 100%;
-    max-height: min(440px, 45dvh);
+    max-height: none;
+    overflow-y: visible;
+    overscroll-behavior-y: auto;
+    scrollbar-gutter: auto;
     background: var(--panel);
   }
 
@@ -6878,7 +6881,6 @@ kbd {
 }
 
 @media (max-width: 780px) {
-  .import-panel { top: 80px; }
   .sidebar {
     display: none;
   }
