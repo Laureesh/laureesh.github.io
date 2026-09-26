@@ -69,6 +69,7 @@ export default function StepControls({ steps, onChange, onEdit, onUndo, canUndo 
           <h3>Step numbers and completion</h3>
           <div className="step-guide-badges"><span>1</span><span>2</span><span className="complete">✓</span></div>
           <p>The numbered circles and connecting line come from Steps layout. Add, delete, or move a step and the circle numbers update automatically.</p>
+          <p>To start a new step at a heading inside an existing step, place the cursor at the beginning of that heading and press Enter. The heading and everything after it move into the new step.</p>
           <p>Check a step’s box under <strong>Manage steps</strong> to turn its circle and title green and update the progress bar.</p>
         </article>
       </div>

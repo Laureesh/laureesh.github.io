@@ -1,3 +1,38 @@
+/** Promote a heading at the caret to a timeline step, keeping its following content. */
+export function splitStepAtHeading(editor: HTMLElement): boolean {
+  const selection = window.getSelection();
+  if (!selection?.isCollapsed || !selection.rangeCount || !selection.anchorNode) return false;
+  const anchor = selection.anchorNode;
+  const heading = (anchor instanceof Element ? anchor : anchor.parentElement)?.closest("h1,h2,h3,h4,h5,h6");
+  const step = heading?.parentElement;
+  if (!heading || !step || !editor.contains(step) || step.tagName !== "LI" || !step.parentElement?.matches("ol.notebook-steps")) return false;
+
+  const beforeCaret = selection.getRangeAt(0).cloneRange();
+  beforeCaret.selectNodeContents(heading);
+  beforeCaret.setEnd(selection.anchorNode, selection.anchorOffset);
+  if (beforeCaret.toString().replace(/\u200b/g, "").trim()) return false;
+
+  const beforeHeading = document.createRange();
+  beforeHeading.selectNodeContents(step);
+  beforeHeading.setEndBefore(heading);
+  const prefix = beforeHeading.cloneContents();
+  // The heading already has a circle if it starts the step. Do not add empty steps.
+  if (!(prefix.textContent ?? "").trim() && !prefix.querySelector("img,video,audio,iframe,hr,pre,ol,ul")) return true;
+
+  const nextStep = document.createElement("li");
+  const tail = document.createRange();
+  tail.selectNodeContents(step);
+  tail.setStartBefore(heading);
+  nextStep.append(tail.extractContents());
+  step.after(nextStep);
+  const caret = document.createRange();
+  caret.selectNodeContents(heading);
+  caret.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(caret);
+  return true;
+}
+
 /** Exit an instruction list without splitting the surrounding timeline step. */
 export function exitInstructionList(editor: HTMLElement, onlyIfEmpty = false): boolean {
   const selection = window.getSelection();
