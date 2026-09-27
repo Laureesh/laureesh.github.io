@@ -7830,3 +7830,11 @@ kbd {
 .editor-auto-scroll-hint { margin:0; color:var(--muted); font-size:12px; line-height:1.4; }
 
 .card-explanation-field textarea { box-sizing:content-box; width:auto; resize:none; overflow:hidden; }
+
+.manual-import-examples { display:grid; gap:8px; min-width:0; margin-top:14px; }
+.manual-import-examples h4 { margin:0; color:var(--ink); font-size:14px; }
+.manual-import-examples p { margin:0; color:var(--muted); font-size:13px; line-height:1.5; }
+.manual-import-examples details { min-width:0; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--panel); }
+.manual-import-examples summary { cursor:pointer; color:var(--ink); font-size:13px; font-weight:600; }
+.manual-import-examples details p { margin-top:10px; }
+.manual-import-examples pre { margin:10px 0 0; padding:10px; border-radius:6px; background:var(--panel-2); color:var(--ink); white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; line-height:1.6; tab-size:4; }

@@ -1,3 +1,4 @@
+import { manualImportExamples } from "./manualImportExamples";
 
 import "./Flashbolt.css";
 import { activeAutoAdvance, shouldAdvanceAfterCorrect, type AutoAdvanceEvent } from "./autoAdvance";
@@ -3493,6 +3494,17 @@ export default function Flashbolt() {
                     <div className="collapsible-panel-body"><p>Paste a Kahoot question list with answers shown and “correct” labels, CyberDefense Pro module quizzes (including explanations), LMS quiz results, Quizlet HTML, or one <code>term :: definition</code> per line.</p>
                       <textarea value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} placeholder={'Paste copied quiz results here, or use:\n\nLifecycle :: The stages an activity moves through\nIntent :: A request to perform an action'} rows={7} />
                       <button className="button quiet full" onClick={applyPasteImport}>Import pasted cards</button>
+                      <div className="manual-import-examples">
+                        <h4>Supported formats &amp; examples</h4>
+                        <p>Expand any format to see an example. Use one format per import.</p>
+                        {manualImportExamples.map(example => (
+                          <details key={example.title}>
+                            <summary>{example.title}</summary>
+                            <p>{example.description}</p>
+                            <pre><code>{example.text}</code></pre>
+                          </details>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   <div className="privacy-note"><span>⌁</span><p><strong>Saved privately.</strong> Imported cards sync to your account and remain available as a local backup.</p></div>
