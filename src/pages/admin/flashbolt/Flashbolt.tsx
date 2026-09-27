@@ -3490,7 +3490,7 @@ export default function Flashbolt() {
                   </div>
                   <div className={`paste-import-block collapsible-panel-section ${collapsedEditorSections.includes("paste") ? "collapsed" : ""}`}>
                     <button className="side-panel-collapse-button" type="button" onClick={() => toggleEditorSection("paste")} aria-expanded={!collapsedEditorSections.includes("paste")}><span><small>Manual import</small><strong>Paste a list</strong></span><i aria-hidden="true">⌃</i></button>
-                    <div className="collapsible-panel-body"><p>Paste a Kahoot question list with answers shown and “correct” labels, LMS quiz results, Quizlet HTML, or one <code>term :: definition</code> per line.</p>
+                    <div className="collapsible-panel-body"><p>Paste a Kahoot question list with answers shown and “correct” labels, CyberDefense Pro module quizzes (including explanations), LMS quiz results, Quizlet HTML, or one <code>term :: definition</code> per line.</p>
                       <textarea value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} placeholder={'Paste copied quiz results here, or use:\n\nLifecycle :: The stages an activity moves through\nIntent :: A request to perform an action'} rows={7} />
                       <button className="button quiet full" onClick={applyPasteImport}>Import pasted cards</button>
                     </div>

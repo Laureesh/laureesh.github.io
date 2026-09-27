@@ -2,6 +2,7 @@ export type ParsedCard = {
   id: string;
   term: string;
   definition: string;
+  explanation?: string;
   answerChoices?: string[];
   correctAnswers?: string[];
   questionType?: "multiple-choice" | "true-false" | "select-all";
@@ -100,6 +101,39 @@ export function parseKahootQuestionList(text: string): ParsedCard[] {
   return !invalid && cards.length === expectedCount ? cards : [];
 }
 
+/** CyberDefense Pro places correctness markers after each lettered choice. */
+function parseModuleQuizQuestion(block: string): ParsedCard | null {
+  const lines = block.split("\n").map(line => line.trim());
+  const answerIndex = lines.findIndex(line => /^answer$/i.test(line));
+  if (answerIndex < 0) return null;
+  const explanationIndex = lines.findIndex((line, index) => index > answerIndex && /^Explanation:?$/i.test(line));
+  const choiceLines = lines.slice(answerIndex + 1, explanationIndex < 0 ? undefined : explanationIndex);
+  const labels = choiceLines.flatMap((line, index) => /^[A-Z]$/.test(line) ? [{ label: line, index }] : []);
+  if (labels.length < 2 || labels.some((item, index) => item.label !== String.fromCharCode(65 + index))) return null;
+  const promptLines = lines.slice(0, answerIndex);
+  while (promptLines.length && (!promptLines[0] || /^(?:Correct|Incorrect|Partial|Unanswered)$/i.test(promptLines[0]))) promptLines.shift();
+  const prompt = promptLines.join("\n").trim();
+  const choices: string[] = [];
+  const answers: string[] = [];
+  for (const [index, label] of labels.entries()) {
+    const content = choiceLines.slice(label.index + 1, labels[index + 1]?.index);
+    const markerIndex = content.findIndex(line => /^(?:Correct|Incorrect)\s+Answer\s*:/i.test(line));
+    const choice = content.slice(0, markerIndex < 0 ? undefined : markerIndex).join("\n").trim();
+    if (!choice) return null;
+    choices.push(choice);
+    if (markerIndex >= 0 && /^Correct\s+Answer\s*:/i.test(content[markerIndex])) answers.push(choice);
+  }
+  if (!prompt || !answers.length) return null;
+  const isTrueFalse = choices.length === 2 && choices.every(choice => /^(true|false)$/i.test(choice));
+  const explanation = explanationIndex < 0 ? "" : lines.slice(explanationIndex + 1).join("\n").trim();
+  return {
+    ...makeCard(prompt, answers.join("; "), choices),
+    correctAnswers: answers,
+    questionType: answers.length > 1 ? "select-all" : isTrueFalse ? "true-false" : "multiple-choice",
+    ...(explanation ? { explanation } : {}),
+  };
+}
+
 /** Parse question-review text copied from LMS or Kahoot question lists. */
 export function parseQuizResults(text: string): ParsedCard[] {
   const normalized = decodeCopiedQuizText(text).replace(/\r\n?/g, "\n");
@@ -110,6 +144,8 @@ export function parseQuizResults(text: string): ParsedCard[] {
   headers.forEach((header, headerIndex) => {
     const start = (header.index ?? 0) + header[0].length;
     const end = headers[headerIndex + 1]?.index ?? normalized.length;
+    const moduleCard = parseModuleQuizQuestion(normalized.slice(start, end));
+    if (moduleCard) { cards.push(moduleCard); return; }
     const lines = normalized.slice(start, end).split("\n").map((line) => line.trim()).filter(Boolean);
     const firstChoiceIndex = lines.findIndex((line) => quizChoiceMarker(line, null) !== null || /^(?:Correct Answer|Incorrect Response)$/i.test(line));
     if (firstChoiceIndex <= 0) return;
