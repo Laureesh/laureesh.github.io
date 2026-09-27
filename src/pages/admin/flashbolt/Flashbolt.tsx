@@ -1,3 +1,4 @@
+import { groupFolderSets } from "./folderSetOrder";
 import { manualImportExamples } from "./manualImportExamples";
 
 import "./Flashbolt.css";
@@ -1239,16 +1240,6 @@ export default function Flashbolt() {
       .some((value) => value.toLocaleLowerCase().includes(query));
   });
   const folder = data.folders.find((item) => item.id === selectedFolderId);
-  const folderSets = folder
-    ? folder.setIds
-        .map((setId) => data.sets.find((set) => set.id === setId))
-        .filter((set): set is StudySet => Boolean(set))
-    : [];
-  const folderSetIndex = folderSets.findIndex((set) => set.id === selectedSet?.id);
-  const previousFolderSet = folderSetIndex > 0 ? folderSets[folderSetIndex - 1] : undefined;
-  const nextFolderSet = folderSetIndex >= 0 && folderSetIndex < folderSets.length - 1
-    ? folderSets[folderSetIndex + 1]
-    : undefined;
   const editorFolder = editingSetId
     ? data.folders.find((folderItem) => folderItem.id === selectedFolderId && folderItem.setIds.includes(editingSetId))
       ?? data.folders.find((folderItem) => folderItem.setIds.includes(editingSetId))
@@ -1394,8 +1385,15 @@ export default function Flashbolt() {
   }, [data.folders, data.mastered, data.sets, folder, librarySort, search]);
   const visibleSets = useMemo(() => filteredSets.filter(set => matchesMasteryFilter(masteryPercentage(set.cards, data.mastered[set.id]), masteryFilter)), [filteredSets, data.mastered, masteryFilter]);
   const recentSets = useMemo(() => data.sets.filter(set => matchesMasteryFilter(masteryPercentage(set.cards, data.mastered[set.id]), masteryFilter)).slice(0, 3), [data.sets, data.mastered, masteryFilter]);
+  const folderSubjectGroups = useMemo(() => groupFolderSets(visibleSets), [visibleSets]);
+  const folderSets = folder ? folderSubjectGroups.flatMap(group => group.sets) : [];
+  const folderSetIndex = folderSets.findIndex((set) => set.id === selectedSet?.id);
+  const previousFolderSet = folderSetIndex > 0 ? folderSets[folderSetIndex - 1] : undefined;
+  const nextFolderSet = folderSetIndex >= 0 && folderSetIndex < folderSets.length - 1
+    ? folderSets[folderSetIndex + 1]
+    : undefined;
   const editorFolderSets = editorFolder
-    ? filteredSets.filter((set) => editorFolder.setIds.includes(set.id))
+    ? groupFolderSets(visibleSets.filter(set => editorFolder.setIds.includes(set.id))).flatMap(group => group.sets)
     : [];
   useLayoutEffect(() => {
     const panel = editorPanelRef.current;
@@ -1429,17 +1427,7 @@ export default function Flashbolt() {
   const editorSetIndex = editorFolderSets.findIndex((set) => set.id === editingSetId);
   const previousEditorSet = editorSetIndex > 0 ? editorFolderSets[editorSetIndex - 1] : undefined;
   const nextEditorSet = editorSetIndex >= 0 && editorSetIndex < editorFolderSets.length - 1 ? editorFolderSets[editorSetIndex + 1] : undefined;
-  const folderSubjectGroups = useMemo(() => {
-    const groups = new Map<string, { subject: string; sets: StudySet[] }>();
-    visibleSets.forEach((set) => {
-      const subject = set.subject.trim() || "General";
-      const key = subject.toLocaleLowerCase();
-      const existing = groups.get(key);
-      if (existing) existing.sets.push(set);
-      else groups.set(key, { subject, sets: [set] });
-    });
-    return [...groups.values()].sort((a, b) => LIBRARY_COLLATOR.compare(a.subject, b.subject));
-  }, [visibleSets]);
+
 
   const testCards = testCardIds ? (selectedSet?.cards.filter(card => testCardIds.includes(card.id)) ?? []) : (selectedSet?.cards.slice(0, 8) ?? []);
   const testMissedCards = testCards.filter(card => normalizeAnswer(testAnswers[card.id] ?? "") !== normalizeAnswer(testCorrectAnswer(card)));
