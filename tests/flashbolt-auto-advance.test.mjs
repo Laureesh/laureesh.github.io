@@ -15,6 +15,8 @@ const combinations = [
 for (const [question, choices, correct, expected] of combinations) {
   test(`question=${question}, choices=${choices}, correct=${correct} advances on ${expected}`, () => {
     assert.equal(activeAutoAdvance(question, choices, correct), expected);
+    assert.equal(activeAutoAdvance(question, choices, correct, false), expected);
+    assert.equal(activeAutoAdvance(question, choices, correct, true), "explanation");
   });
 }
 test('turning the bottom switches off restores the next enabled trigger', () => {

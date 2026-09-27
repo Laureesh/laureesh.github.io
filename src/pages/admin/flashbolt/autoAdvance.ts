@@ -1,7 +1,8 @@
-export type AutoAdvanceEvent = "question" | "choices" | "correct";
+export type AutoAdvanceEvent = "question" | "choices" | "correct" | "explanation";
 
 // Later steps in the card-entry workflow take precedence over earlier ones.
-export function activeAutoAdvance(question: boolean, choices: boolean, correct: boolean): AutoAdvanceEvent | null {
+export function activeAutoAdvance(question: boolean, choices: boolean, correct: boolean, explanation = false): AutoAdvanceEvent | null {
+  if (explanation) return "explanation";
   if (correct) return "correct";
   if (choices) return "choices";
   if (question) return "question";

@@ -201,6 +201,7 @@ const SIDEBAR_COLLAPSED_KEY = `${STORAGE_KEY}.sidebarCollapsed`;
 const EDITOR_PANEL_COLLAPSED_KEY = `${STORAGE_KEY}.editorPanelCollapsed`;
 const AUTO_SCROLL_CHOICES_KEY = `${STORAGE_KEY}.autoScrollChoices`;
 const AUTO_SCROLL_QUESTION_KEY = `${STORAGE_KEY}.autoScrollQuestion`;
+const AUTO_SCROLL_EXPLANATION_KEY = `${STORAGE_KEY}.autoScrollExplanation`;
 const AUTO_SCROLL_CORRECT_KEY = `${STORAGE_KEY}.autoScrollCorrect`;
 const THEME_OPTIONS: Array<{ id: ThemeName; label: string; colors: [string, string] }> = [
   { id: "dark", label: "Dark", colors: ["#0c0c28", "#7b78ff"] },
@@ -855,7 +856,10 @@ export default function Flashbolt() {
   const [autoScrollCorrect, setAutoScrollCorrect] = useState(() => {
     try { return window.localStorage.getItem(AUTO_SCROLL_CORRECT_KEY) === "true"; } catch { return false; }
   });
-  const autoAdvanceOn = activeAutoAdvance(autoScrollQuestion, autoScrollChoices, autoScrollCorrect);
+  const [autoScrollExplanation, setAutoScrollExplanation] = useState(() => {
+    try { return window.localStorage.getItem(AUTO_SCROLL_EXPLANATION_KEY) === "true"; } catch { return false; }
+  });
+  const autoAdvanceOn = activeAutoAdvance(autoScrollQuestion, autoScrollChoices, autoScrollCorrect, autoScrollExplanation);
   const autoAdvanceOnRef = useRef(autoAdvanceOn);
   autoAdvanceOnRef.current = autoAdvanceOn;
   const draftCardElements = useRef(new Map<string, HTMLElement>());
@@ -3430,7 +3434,7 @@ export default function Flashbolt() {
                           {cardQuestionType(card) === "matching" && (
                             <div className="matching-pair-editor"><span>Matching pairs</span><div>{(card.matchingPairs ?? []).map((pair, pairIndex) => <div className="matching-pair-row" key={pair.id}><b>{String.fromCharCode(65 + pairIndex)}</b><input value={pair.left} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, left: event.target.value } : item) })} placeholder="Prompt" /><span>↔</span><input value={pair.right} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, right: event.target.value } : item) })} placeholder="Match" /><button type="button" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.filter((item) => item.id !== pair.id) })} disabled={(card.matchingPairs?.length ?? 0) <= 2} aria-label={`Remove matching pair ${pairIndex + 1}`}>×</button></div>)}</div>{(card.matchingPairs?.length ?? 0) < 26 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: [...(card.matchingPairs ?? []), { id: makeId("pair"), left: "", right: "" }] })}>＋ Add matching pair</button>}</div>
                           )}
-                          <label className="card-explanation-field"><span>Explanation <small>optional · shown after answering</small></span><textarea value={card.explanation ?? ""} onChange={event => updateDraftCardExtras(card.id, { explanation: event.target.value })} placeholder="Explain why this answer is correct, or add a memory tip…" rows={2} /></label>
+                          <label className="card-explanation-field"><span>Explanation <small>optional · shown after answering</small></span><AutoResizeTextarea value={card.explanation ?? ""} onPaste={event => { if (event.clipboardData.getData("text/plain").trim()) scrollToNextDraftCard(card.id, ["explanation"], true); }} onChange={event => updateDraftCardExtras(card.id, { explanation: event.target.value })} placeholder="Explain why this answer is correct, or add a memory tip…" rows={2} /></label>
                           {card.imageData && <div className="card-image-preview"><img width={74} height={58} src={card.imageData} alt={card.imageName ? `Attached ${card.imageName}` : "Attached card image"} /><span>{card.imageName}</span><button onClick={() => updateDraftCardExtras(card.id, { imageData: undefined, imageName: undefined })} aria-label={`Remove image from card ${index + 1}`}>Remove image</button></div>}
                           <footer className="card-editor-footer"><span aria-label={`Card ${index + 1}`}>{String(index + 1).padStart(2, "0")}</span></footer>
                         </article>
@@ -3464,7 +3468,12 @@ export default function Flashbolt() {
                       setAutoScrollCorrect(enabled);
                       try { window.localStorage.setItem(AUTO_SCROLL_CORRECT_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
                     }} /></label>
-                    <p className="editor-auto-scroll-hint">{autoAdvanceOn === "correct" ? "Advances after marking correct." : autoAdvanceOn === "choices" ? "Advances after pasting choices." : autoAdvanceOn === "question" ? "Advances after pasting a question." : "Automatic advance is off."} The lowest enabled option takes priority.</p>
+                    <label className="editor-auto-scroll"><span>Next card after pasting explanation</span><input type="checkbox" role="switch" checked={autoScrollExplanation} onChange={(event) => {
+                      const enabled = event.target.checked;
+                      setAutoScrollExplanation(enabled);
+                      try { window.localStorage.setItem(AUTO_SCROLL_EXPLANATION_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
+                    }} /></label>
+                    <p className="editor-auto-scroll-hint">{autoAdvanceOn === "explanation" ? "Advances after pasting explanation." : autoAdvanceOn === "correct" ? "Advances after marking correct." : autoAdvanceOn === "choices" ? "Advances after pasting choices." : autoAdvanceOn === "question" ? "Advances after pasting a question." : "Automatic advance is off."} The lowest enabled option takes priority.</p>
                     <div className="collapsible-panel-body">
                       <ul>{draftChecklist.map((item) => <li className={item.complete ? "complete" : ""} key={item.label}><span>{item.complete ? "✓" : "○"}</span><div><strong>{item.label}</strong>{!item.complete && <small>{item.detail}</small>}</div></li>)}</ul>
                     </div>
