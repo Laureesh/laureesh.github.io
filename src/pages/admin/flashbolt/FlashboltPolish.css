@@ -260,3 +260,27 @@
   .flashbolt-shell .topbar .new-button { width: 36px; min-width: 36px; height: 36px; padding: 0; }
   .flashbolt-shell .search-picker-field > span { overflow-wrap: normal; }
 }
+
+/* Rainbow palettes: browse brightness first, then a labeled color swatch. */
+.flashbolt-shell .theme-picker-menu {
+  width: min(330px, calc(100vw - 24px)); max-height: min(580px, calc(100dvh - 100px));
+  box-sizing: border-box; overflow-y: auto; overscroll-behavior: contain;
+  left: 0; right: auto; padding: 14px; gap: 12px;
+}
+.flashbolt-shell .theme-picker-heading strong { font-size: 15px; }
+.flashbolt-shell .theme-picker-heading small { font-size: 12px; color: var(--muted); }
+.flashbolt-shell .theme-picker-copy b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.flashbolt-shell .theme-mode-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.flashbolt-shell .theme-mode-tabs button { display: block; width: 100%; min-height: 36px; padding: 6px; border: 0; border-radius: 7px; background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 650; text-align: center; }
+.flashbolt-shell .theme-mode-tabs button[aria-pressed="true"] { color: var(--ink); background: var(--panel-3); box-shadow: 0 1px 4px #0001; }
+.flashbolt-shell .theme-picker-options { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.flashbolt-shell .theme-picker-options button { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 8px; min-height: 76px; padding: 10px 4px; font-size: 12px; font-weight: 650; color: var(--ink); text-align: center; }
+.flashbolt-shell .theme-picker-options button > span:nth-child(2) { white-space: nowrap; overflow-wrap: normal; word-break: normal; }
+.flashbolt-shell .theme-picker-options button .theme-swatch { width: 34px; height: 25px; border: 1px solid var(--line); border-radius: 8px; }
+.flashbolt-shell .theme-picker-options button > b { position: absolute; top: 4px; right: 5px; font-size: 13px; }
+.flashbolt-shell .theme-picker :is(button, summary):focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 2px; }
+.flashbolt-shell .theme-picker.compact .theme-picker-menu { position: fixed; top: 68px; right: 12px; left: auto; bottom: auto; }
+.flashbolt-shell.sidebar-collapsed .theme-picker:not(.compact) .theme-picker-menu { left: 0; right: auto; }
+.flashbolt-shell .theme-picker.compact .theme-picker-menu { width: min(330px, calc(100vw - 24px)); max-height: calc(100dvh - 152px); }
+.flashbolt-shell .theme-picker:not(.compact) .theme-picker-menu { position: fixed; left: 12px; right: auto; bottom: 100px; max-height: min(580px, calc(100dvh - 124px)); }
+.flashbolt-shell .sidebar:has(.theme-picker[open]), .flashbolt-shell .topbar:has(.theme-picker[open]) { backdrop-filter: none; }

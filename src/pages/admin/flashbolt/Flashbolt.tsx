@@ -1,3 +1,4 @@
+import { THEME_OPTIONS, applyThemeToDocument, type ThemeName } from "./themes";
 import { groupFolderSets } from "./folderSetOrder";
 import { manualImportExamples } from "./manualImportExamples";
 
@@ -172,7 +173,6 @@ type AppData = {
 
 type View = "review" | "home" | "library" | "folders" | "create" | "set" | "learn" | "test" | "guide" | "helper";
 type StorageStatus = "loading" | "saved" | "error";
-type ThemeName = "dark" | "extreme" | "light" | "white" | "ocean" | "forest" | "sunset";
 type LibrarySort =
   | "updated-desc" | "updated-asc"
   | "title-asc" | "title-desc"
@@ -214,15 +214,6 @@ const AUTO_SCROLL_CHOICES_KEY = `${STORAGE_KEY}.autoScrollChoices`;
 const AUTO_SCROLL_QUESTION_KEY = `${STORAGE_KEY}.autoScrollQuestion`;
 const AUTO_SCROLL_EXPLANATION_KEY = `${STORAGE_KEY}.autoScrollExplanation`;
 const AUTO_SCROLL_CORRECT_KEY = `${STORAGE_KEY}.autoScrollCorrect`;
-const THEME_OPTIONS: Array<{ id: ThemeName; label: string; colors: [string, string] }> = [
-  { id: "dark", label: "Dark", colors: ["#0c0c28", "#7b78ff"] },
-  { id: "extreme", label: "Extreme dark", colors: ["#000000", "#8b82ff"] },
-  { id: "light", label: "Light", colors: ["#f7f7fc", "#5552e9"] },
-  { id: "white", label: "White", colors: ["#ffffff", "#111827"] },
-  { id: "ocean", label: "Ocean", colors: ["#071b29", "#59cef6"] },
-  { id: "forest", label: "Forest", colors: ["#0a1b16", "#5ed89a"] },
-  { id: "sunset", label: "Sunset", colors: ["#21101d", "#ff83ae"] },
-];
 const THEME_IDS = THEME_OPTIONS.map((option) => option.id);
 const LIBRARY_SORT_VALUES: LibrarySort[] = [
   "updated-desc", "updated-asc", "title-asc", "title-desc", "subject-asc", "subject-desc",
@@ -694,14 +685,6 @@ function removeSetFromLibraryData(data: AppData, setId: string): AppData {
   };
 }
 
-function applyThemeToDocument(theme: ThemeName) {
-  const root = document.documentElement;
-  root.dataset.theme = theme;
-  root.style.colorScheme = theme === "white" ? "only light" : theme === "light" ? "light" : "dark";
-  root.style.backgroundColor = theme === "white" ? "#ffffff" : "";
-  document.body.style.backgroundColor = theme === "white" ? "#ffffff" : "";
-}
-
 function AutoResizeTextarea({
   value,
   onChange,
@@ -779,25 +762,28 @@ function ThemePicker({
   onThemeChange: (theme: ThemeName) => void;
   compact?: boolean;
 }) {
+  const [mode, setMode] = useState<"light" | "dark">(() => THEME_OPTIONS.find(option => option.id === theme)?.mode ?? "dark");
   const selectedTheme = THEME_OPTIONS.find((option) => option.id === theme) ?? THEME_OPTIONS[0];
   return (
-    <details className={`theme-picker ${compact ? "compact" : ""}`}>
-      <summary aria-label={`Change theme. Current theme: ${selectedTheme.label}`}>
+    <details className={`theme-picker ${compact ? "compact" : ""}`} onToggle={event => { if (event.currentTarget.open) setMode(selectedTheme.mode); }}>
+      <summary aria-label={`Change theme. Current theme: ${selectedTheme.label} ${selectedTheme.mode}`}>
         <span className="theme-swatch" aria-hidden="true">
           <i style={{ background: selectedTheme.colors[0] }} />
           <i style={{ background: selectedTheme.colors[1] }} />
         </span>
-        <span className="theme-picker-copy"><small>Theme</small><b>{selectedTheme.label}</b></span>
+        <span className="theme-picker-copy"><small>Theme</small><b>{selectedTheme.label} {selectedTheme.mode}</b></span>
         <span className="theme-picker-chevron" aria-hidden="true">⌄</span>
       </summary>
       <div className="theme-picker-menu" role="group" aria-label="Choose a theme">
         <div className="theme-picker-heading"><strong>Choose a theme</strong><small>Saved on this device</small></div>
+        <div className="theme-mode-tabs" role="group" aria-label="Theme brightness">{(["light", "dark"] as const).map(value => <button type="button" key={value} aria-pressed={mode === value} onClick={() => setMode(value)}>{value === "light" ? "Light" : "Dark"}</button>)}</div>
         <div className="theme-picker-options">
-          {THEME_OPTIONS.map((option) => (
+          {THEME_OPTIONS.filter(option => option.mode === mode).map((option) => (
             <button
               type="button"
               className={option.id === theme ? "active" : ""}
               aria-pressed={option.id === theme}
+              aria-label={`${option.label} ${option.mode}`}
               key={option.id}
               onClick={(event) => {
                 applyThemeToDocument(option.id);
