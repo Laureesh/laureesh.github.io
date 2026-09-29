@@ -17,6 +17,7 @@ import InlineSetDetails from "./InlineSetDetails";
 import SetColorPicker from "./SetColorPicker";
 import SearchPicker from "./SearchPicker";
 import TileFolderPanel from "./TileFolderPanel";
+import ConfirmSetTerms from "./ConfirmSetTerms";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
@@ -879,6 +880,7 @@ export default function Flashbolt() {
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [tileFolderPickerId, setTileFolderPickerId] = useState<string | null>(null);
   const [tileFolderSearch, setTileFolderSearch] = useState("");
+  const [clearTermsSetId, setClearTermsSetId] = useState<string | null>(null);
   const setContextMenuRef = useRef<HTMLDivElement>(null);
   const [setContextMenu, setSetContextMenu] = useState<{ setId: string; x: number; y: number } | null>(null);
   const [draft, setDraft] = useState<StudySet>(blankDraft);
@@ -2746,7 +2748,6 @@ export default function Flashbolt() {
 
   function removeAllSetTerms(setToClear: StudySet) {
     if (!setToClear.cards.length) return;
-    if (!window.confirm(`Remove all ${setToClear.cards.length} terms from “${setToClear.title}”? The set will remain. This cannot be undone.`)) return;
     setData((current) => {
       const mastered = { ...current.mastered };
       const learnProgress = { ...current.learnProgress };
@@ -2940,6 +2941,14 @@ export default function Flashbolt() {
 
   return (
     <div inert={!ready} className={`app-shell flashbolt-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
+      {clearTermsSetId && (() => {
+        const setToClear = data.sets.find(set => set.id === clearTermsSetId);
+        if (!setToClear) return null;
+        return <ConfirmSetTerms title={setToClear.title} count={setToClear.cards.length} onCancel={() => setClearTermsSetId(null)} onConfirm={() => {
+          removeAllSetTerms(setToClear);
+          setClearTermsSetId(null);
+        }} />;
+      })()}
       {setContextMenu && (() => {
         const contextSet = data.sets.find((item) => item.id === setContextMenu.setId);
         if (!contextSet) return null;
@@ -2960,7 +2969,7 @@ export default function Flashbolt() {
             <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "test")}><span>↗</span>Copy test link</button>
             <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "edit")}><span>↗</span>Copy edit link</button>
             <i />
-            <button role="menuitem" className="danger" disabled={!contextSet.cards.length} onClick={() => { setSetContextMenu(null); removeAllSetTerms(contextSet); }}><span>−</span>Remove all terms</button>
+            <button role="menuitem" className="danger" disabled={!contextSet.cards.length} onClick={() => { setSetContextMenu(null); setClearTermsSetId(contextSet.id); }}><span>−</span>Remove all terms</button>
             <button role="menuitem" className="danger" onClick={() => { setSetContextMenu(null); deleteSetFromLibrary(contextSet); }}><span>×</span>Delete set</button>
           </div>, document.body
         );

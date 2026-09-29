@@ -7905,3 +7905,33 @@ kbd {
 .tile-folder-menu[popover] .tile-folder-menu-actions button { font-size: 12px; white-space: nowrap; }
 .folder-compact-view .set-tile { min-height: 0; }
 .folder-compact-view .tile-folder-badge { margin-top: 0; }
+
+.set-terms-confirm {
+  box-sizing: border-box;
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 24px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .4);
+  font-family: inherit;
+}
+.set-terms-confirm::backdrop { background: rgba(5, 6, 20, .62); backdrop-filter: blur(7px); }
+.set-terms-confirm-heading { display: flex; align-items: center; justify-content: space-between; }
+.set-terms-confirm-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: color-mix(in srgb, var(--danger) 12%, var(--panel)); color: var(--danger); font-size: 26px; }
+.set-terms-confirm button { font: inherit; cursor: pointer; }
+.set-terms-confirm-close { width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 24px !important; }
+.set-terms-confirm-close:hover { background: var(--panel-2); }
+.set-terms-confirm h2 { margin: 18px 0 10px; font-size: 23px; letter-spacing: -.03em; }
+.set-terms-confirm p { margin: 0; font-size: 14px; line-height: 1.65; color: var(--muted); overflow-wrap: anywhere; }
+.set-terms-confirm p strong { color: var(--ink); }
+.set-terms-confirm .set-terms-confirm-note { margin-top: 10px; font-size: 12px; }
+.set-terms-confirm-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); }
+.set-terms-confirm-actions button { padding: 10px 16px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel-2); color: var(--ink); font-size: 13px; font-weight: 750; }
+.set-terms-confirm-actions .set-terms-confirm-remove { background: color-mix(in srgb, var(--danger) 13%, var(--panel)); border-color: color-mix(in srgb, var(--danger) 38%, var(--line)); color: var(--danger); }
+.set-terms-confirm-actions button:hover { filter: brightness(1.15); }
+.set-terms-confirm button:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 3px; }
