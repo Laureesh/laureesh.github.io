@@ -7935,3 +7935,14 @@ kbd {
 .set-terms-confirm-actions .set-terms-confirm-remove { background: color-mix(in srgb, var(--danger) 13%, var(--panel)); border-color: color-mix(in srgb, var(--danger) 38%, var(--line)); color: var(--danger); }
 .set-terms-confirm-actions button:hover { filter: brightness(1.15); }
 .set-terms-confirm button:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 3px; }
+
+/* Make numbered study sets recognizable without rereading repeated titles. */
+.search-picker-result.has-section { border-left: 3px solid var(--section-color); gap: 12px; padding: 11px 10px; }
+.search-picker-section { display: flex; flex: 0 0 54px; min-height: 54px; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 9px; background: color-mix(in srgb, var(--section-color) 12%, transparent); color: var(--section-color); }
+.search-picker-section > span { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.search-picker-section > b { font-size: 24px; line-height: 1; font-variant-numeric: tabular-nums; }
+.search-picker-result-copy { min-width: 0; flex: 1; }
+.search-picker-result.has-section strong { font-size: 15px; line-height: 1.35; }
+.search-picker-result small.search-picker-result-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; margin-top: 7px; font-size: 10px; }
+.search-picker-result-meta > span:first-child { padding: 3px 6px; border-radius: 5px; background: #ffffff09; color: #cbc6dc; }
+.search-picker-result.has-section.is-selected { border-color: var(--section-color); background: color-mix(in srgb, var(--section-color) 9%, transparent); }

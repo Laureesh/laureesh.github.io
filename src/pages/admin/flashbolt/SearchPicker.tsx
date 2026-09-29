@@ -81,7 +81,17 @@ export default function SearchPicker({ label, value, options, onChange }: {
         if (event.key === "ArrowUp" && index === 0) input.current?.focus();
         else buttons[index + (event.key === "ArrowDown" ? 1 : -1)]?.focus();
       }}>
-        {visible.map(option => <button type="button" key={option.id} className={`search-picker-result ${option.id === value ? "is-selected" : ""}`} disabled={option.disabled} aria-current={option.id === value ? "true" : undefined} onClick={() => choose(option.id)}><span className={option.color ? "folder-filter-icon folder" : "search-picker-symbol"} style={option.color ? { "--folder-color": option.color } as CSSProperties : undefined} aria-hidden="true">{option.color ? null : "▦"}</span><span><strong>{option.title}</strong><small>{option.detail}</small></span><span className="search-picker-check" aria-hidden="true">{option.id === value ? "✓" : "→"}</span></button>)}
+        {visible.map(option => {
+          const section = !option.color ? /^(Chapter|Module|Quiz)\s+(\d+)\s*(?:[-–—:]\s*)?(.*)$/i.exec(option.title) : null;
+          const course = section?.[3].match(/\s*(\[[^\]]+\])\s*$/)?.[1];
+          const topic = section ? section[3].replace(/\s*\[[^\]]+\]\s*$/, "").trim() : "";
+          const sectionColor = section ? ["#a99aff", "#6dd9ce", "#f1c675", "#f49cb4", "#8fc7ff"][(Number(section[2]) - 1 + 5) % 5] : undefined;
+          return <button type="button" key={option.id} className={`search-picker-result ${section ? "has-section" : ""} ${option.id === value ? "is-selected" : ""}`} style={sectionColor ? { "--section-color": sectionColor } as CSSProperties : undefined} disabled={option.disabled} aria-label={`${option.title}, ${option.detail}`} aria-current={option.id === value ? "true" : undefined} onClick={() => choose(option.id)}>
+            {section ? <span className="search-picker-section" aria-hidden="true"><span>{section[1]}</span><b>{section[2]}</b></span> : <span className={option.color ? "folder-filter-icon folder" : "search-picker-symbol"} style={option.color ? { "--folder-color": option.color } as CSSProperties : undefined} aria-hidden="true">{option.color ? null : "▦"}</span>}
+            <span className="search-picker-result-copy"><strong>{section ? topic || `${section[1]} ${section[2]}` : option.title}</strong>{section ? <small className="search-picker-result-meta"><span>{option.detail.split(" · ")[0]}</span>{course && <span>{course.slice(1, -1)}</span>}</small> : <small>{option.detail}</small>}</span>
+            <span className="search-picker-check" aria-hidden="true">{option.id === value ? "✓" : "→"}</span>
+          </button>;
+        })}
         {!matches.length && <div className="search-picker-empty"><strong>No matches found</strong><p>Try a shorter name or a different keyword.</p></div>}
       </div>
       <footer><span>↑ ↓ to browse · Esc to close</span>{pages > 1 && <nav aria-label="Search results pages"><button type="button" aria-label="Previous results" disabled={!currentPage} onClick={() => setPage(currentPage - 1)}>←</button><span>{currentPage + 1} / {pages}</span><button type="button" aria-label="Next results" disabled={currentPage === pages - 1} onClick={() => setPage(currentPage + 1)}>→</button></nav>}</footer>
