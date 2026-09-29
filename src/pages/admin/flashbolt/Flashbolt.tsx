@@ -3745,7 +3745,7 @@ export default function Flashbolt() {
                     const firstSet = folderId === "all" ? data.sets[0] : data.sets.find(set => data.folders.find(folderItem => folderItem.id === folderId)?.setIds.includes(set.id));
                     setHelperFolderId(folderId); setHelperSetId(firstSet?.id ?? "");
                   }} />
-                  <SearchPicker label="Study set" value={helperSet?.id ?? ""} options={helperAvailableSets.map(set => ({ id: set.id, title: set.title, detail: `${set.cards.length} terms${set.subject ? ` · ${set.subject}` : ""}` }))} onChange={setHelperSetId} />
+                  <SearchPicker label="Study set" value={helperSet?.id ?? ""} options={[...helperAvailableSets].sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: "base" })).map(set => ({ id: set.id, title: set.title, detail: `${set.cards.length} terms${set.subject ? ` · ${set.subject}` : ""}` }))} onChange={setHelperSetId} />
                   <label className="kahoot-helper-search"><span>Search questions and answers</span><div><span>⌕</span><input value={helperSearch} onChange={(event) => setHelperSearch(event.target.value)} placeholder="Search this set instantly" />{helperSearch && <button onClick={() => setHelperSearch("")} aria-label="Clear helper search">×</button>}</div></label>
                 </div>
                 {helperCards.length ? <div className="kahoot-helper-list">
