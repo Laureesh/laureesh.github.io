@@ -1075,6 +1075,18 @@ export default function Flashbolt() {
       return;
     }
     if (routeParts.length === 1 && ["home", "review", "library", "folders", "create", "guide", "helper"].includes(routeParts[0])) {
+      if (routeParts[0] === "helper") {
+        if (!ready) return;
+        const defaultFolder = [...data.folders]
+          .filter(item => /itec\s*3600/i.test(item.name) && /operating\s+systems/i.test(item.name))
+          .sort((a, b) => semesterRank(b.semester ?? "") - semesterRank(a.semester ?? ""))[0];
+        const defaultSets = defaultFolder ? data.sets.filter(set => defaultFolder.setIds.includes(set.id)) : data.sets;
+        const firstSet = [...defaultSets].sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: "base" }))[0];
+        setHelperFolderId(defaultFolder?.id ?? "all");
+        setHelperSetId(firstSet?.id ?? "");
+        setHelperSearch("");
+        setSearch("");
+      }
       handledRouteRef.current = location.pathname;
       setView(routeParts[0] as View);
       if (routeParts[0] === "create" && userId) {
@@ -3033,7 +3045,7 @@ export default function Flashbolt() {
           <a title="Flashcard set" aria-label="Create flashcard set" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><span className="nav-icon"><Plus aria-hidden="true" /></span><span className="nav-label">Flashcard set</span></a>
           <Link title="Study guide" aria-label="Study guide" to={`${FLASHBOLT_BASE}/guide`}><span className="nav-icon"><Compass aria-hidden="true" /></span><span className="nav-label">Study guide</span></Link>
           <Link title="Practice test" aria-label="Practice test" to={selectedSet ? routePathForView("test", selectedSet.id) : `${FLASHBOLT_BASE}/library`}><span className="nav-icon"><ClipboardCheck aria-hidden="true" /></span><span className="nav-label">Practice test</span></Link>
-          <a title="Kahoot Helper" aria-label="Open Kahoot Helper" className={view === "helper" ? "active" : ""} href={routePathForView("helper", selectedSet?.id ?? "")} onClick={(event) => followFlashboltLink(event, openKahootHelper)}><span className="nav-icon"><Zap aria-hidden="true" /></span><span className="nav-label">Kahoot Helper</span></a>
+          <a title="Kahoot Helper" aria-label="Open Kahoot Helper" className={view === "helper" ? "active" : ""} href={`${FLASHBOLT_BASE}/helper`} onClick={(event) => followFlashboltLink(event, () => { setSearch(""); routerNavigate(`${FLASHBOLT_BASE}/helper`); })}><span className="nav-icon"><Zap aria-hidden="true" /></span><span className="nav-label">Kahoot Helper</span></a>
           <Link title="Notebook" aria-label="Open notebook" to="/admin-dashboard/private-pages/notebook"><span className="nav-icon"><NotebookPen aria-hidden="true" /></span><span className="nav-label">Notebook</span></Link>
         </div>
 
