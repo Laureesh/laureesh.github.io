@@ -7,12 +7,13 @@ export type SetDetails = { title: string; subject: string; description: string; 
 type Props = {
   set: SetDetails & { id: string };
   onSave: (details: SetDetails) => void;
+  onQuickLearn: () => void;
   onOpenKahootHelper?: () => void;
   kahootUrl?: string;
   onOpenActions?: (event: MouseEvent<HTMLButtonElement>) => void;
 };
 
-export default function InlineSetDetails({ set, onSave, onOpenKahootHelper, kahootUrl, onOpenActions }: Props) {
+export default function InlineSetDetails({ set, onSave, onQuickLearn, onOpenKahootHelper, kahootUrl, onOpenActions }: Props) {
   const [draft, setDraft] = useState<SetDetails | null>(null);
   const [error, setError] = useState("");
   const cancel = () => { setDraft(null); setError(""); };
@@ -21,6 +22,7 @@ export default function InlineSetDetails({ set, onSave, onOpenKahootHelper, kaho
     <div className="set-tile-title-row">
       <strong className="set-tile-title">{set.title}</strong>
       <div className={`set-tile-actions${onOpenKahootHelper ? " has-kahoot-helper" : ""}`}>
+        <button type="button" className="set-tile-quick-edit" aria-label={`Quick learn ${set.title}`} onClick={onQuickLearn}>Quick learn</button>
         <button type="button" className="set-tile-quick-edit" aria-label={`Quick edit ${set.title}`} onClick={() => {
           setDraft({ title: set.title, subject: set.subject, description: set.description, color: set.color });
           setError("");
