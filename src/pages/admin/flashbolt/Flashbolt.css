@@ -8011,3 +8011,40 @@ kbd {
     scrollbar-width: thin;
   }
 }
+
+@media (max-width: 780px) {
+  .mobile-nav {
+    box-sizing: border-box;
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
+    padding: 5px 5px calc(5px + env(safe-area-inset-bottom, 0px));
+    gap: 2px;
+    align-items: center;
+  }
+  .mobile-nav :is(button, a) {
+    min-width: 0;
+    min-height: 48px;
+    padding: 4px 0;
+    gap: 5px;
+    border-radius: 9px;
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
+    color: var(--muted);
+  }
+  .mobile-nav :is(button, a) > span { font-size: 9px; line-height: 1; letter-spacing: 0; }
+  .mobile-nav svg { width: 18px; height: 18px; flex-shrink: 0; stroke-width: 1.8; }
+  .mobile-nav :is(button, a).active { background: var(--primary-soft); color: var(--primary-strong); }
+  .mobile-nav :is(button, a):focus-visible { outline: 2px solid var(--primary-strong); outline-offset: -2px; }
+  .mobile-nav .mobile-create {
+    justify-self: center;
+    width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0;
+    border-radius: 12px;
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 3px 12px rgba(104, 101, 255, .25);
+  }
+  .mobile-nav .mobile-create svg { width: 22px; height: 22px; stroke-width: 2.3; }
+}

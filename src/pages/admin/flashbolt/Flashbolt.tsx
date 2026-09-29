@@ -21,6 +21,7 @@ import ConfirmSetTerms from "./ConfirmSetTerms";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
+import { House, BookOpen, Folder as FolderIcon, Plus, Compass, History } from "lucide-react";
 import type { CSSProperties, ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { loadFlashboltLibrary, mergeAndSaveFlashboltLibrary, saveFlashboltLibrary } from "../../../services/flashboltLibrary";
@@ -3803,7 +3804,14 @@ export default function Flashbolt() {
           )}
         </main>
 
-        <nav className="mobile-nav" aria-label="Mobile navigation"><Link className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span>⌂</span>Home</Link><Link className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span>▤</span>Library</Link><a className="mobile-create" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><span>＋</span></a><Link className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span>□</span>Folders</Link><Link to={`${FLASHBOLT_BASE}/guide`}><span>≡</span>Guide</Link><Link className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><span>◴</span>Review</Link></nav>
+        <nav className="mobile-nav" aria-label="Mobile navigation">
+          <Link className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><House aria-hidden="true" /><span>Home</span></Link>
+          <Link className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><BookOpen aria-hidden="true" /><span>Library</span></Link>
+          <a className="mobile-create" aria-label="Create a set" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><Plus aria-hidden="true" /></a>
+          <Link className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><FolderIcon aria-hidden="true" /><span>Folders</span></Link>
+          <Link className={view === "guide" ? "active" : ""} to={`${FLASHBOLT_BASE}/guide`}><Compass aria-hidden="true" /><span>Guide</span></Link>
+          <Link className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><History aria-hidden="true" /><span>Review</span></Link>
+        </nav>
       </div>
 
       {folderModalOpen && (
