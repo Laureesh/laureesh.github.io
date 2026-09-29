@@ -15,6 +15,7 @@ import MasteryFilterControls from "./MasteryFilterControls";
 import { DEFAULT_MASTERY_FILTER, MASTERY_FILTER_KEY, masteryPercentage, matchesMasteryFilter, normalizeMasteryFilter } from "./masteryFilter";
 import InlineSetDetails from "./InlineSetDetails";
 import SetColorPicker from "./SetColorPicker";
+import SearchPicker from "./SearchPicker";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { CSSProperties, ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
@@ -3705,8 +3706,14 @@ export default function Flashbolt() {
             <section className="kahoot-helper-page">
               {helperSet ? <>
                 <div className="kahoot-helper-controls">
-                  <label><span>Folder</span><select value={helperFolderId} onChange={(event) => { const folderId = event.target.value; const firstSet = folderId === "all" ? data.sets[0] : data.sets.find((set) => data.folders.find((folderItem) => folderItem.id === folderId)?.setIds.includes(set.id)); setHelperFolderId(folderId); setHelperSetId(firstSet?.id ?? ""); }}><option value="all">All folders ({data.sets.length} sets)</option>{data.folders.map((folderItem) => <option value={folderItem.id} key={folderItem.id} disabled={!folderItem.setIds.length}>{folderItem.name}{folderItem.semester ? ` — ${folderItem.semester}` : ""} ({folderItem.setIds.length})</option>)}</select></label>
-                  <label><span>Study set</span><select value={helperSet?.id ?? ""} onChange={(event) => setHelperSetId(event.target.value)} disabled={!helperAvailableSets.length}>{helperAvailableSets.length ? helperAvailableSets.map((set) => <option value={set.id} key={set.id}>{set.title} ({set.cards.length})</option>) : <option value="">No sets in this folder</option>}</select></label>
+                  <SearchPicker label="Folder" value={helperFolderId} options={[
+                    { id: "all", title: "All folders", detail: `${data.sets.length} sets` },
+                    ...data.folders.map(folderItem => ({ id: folderItem.id, title: folderItem.name, detail: `${folderItem.semester ? `${folderItem.semester} · ` : ""}${folderItem.setIds.length} sets`, disabled: !folderItem.setIds.length })),
+                  ]} onChange={folderId => {
+                    const firstSet = folderId === "all" ? data.sets[0] : data.sets.find(set => data.folders.find(folderItem => folderItem.id === folderId)?.setIds.includes(set.id));
+                    setHelperFolderId(folderId); setHelperSetId(firstSet?.id ?? "");
+                  }} />
+                  <SearchPicker label="Study set" value={helperSet?.id ?? ""} options={helperAvailableSets.map(set => ({ id: set.id, title: set.title, detail: `${set.cards.length} terms${set.subject ? ` · ${set.subject}` : ""}` }))} onChange={setHelperSetId} />
                   <label className="kahoot-helper-search"><span>Search questions and answers</span><div><span>⌕</span><input value={helperSearch} onChange={(event) => setHelperSearch(event.target.value)} placeholder="Search this set instantly" />{helperSearch && <button onClick={() => setHelperSearch("")} aria-label="Clear helper search">×</button>}</div></label>
                 </div>
                 {helperCards.length ? <div className="kahoot-helper-list">
