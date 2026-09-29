@@ -2870,7 +2870,7 @@ export default function Flashbolt() {
               <InlineSetDetails set={set} onOpenActions={event => {
                 const rect = event.currentTarget.getBoundingClientRect();
                 setSetContextMenu({ setId: set.id, x: rect.left, y: rect.bottom + 6 });
-              }} kahootUrl={set.kahootUrl && isSafeKahootUrl(set.kahootUrl) ? set.kahootUrl : undefined} onOpenKahootHelper={set.subject.trim().toLowerCase() === "kahoot import" ? () => openKahootHelper(set) : undefined} onSave={(details) => {
+              }} kahootUrl={set.kahootUrl && isSafeKahootUrl(set.kahootUrl) ? set.kahootUrl : undefined} onOpenKahootHelper={() => openKahootHelper(set)} onSave={(details) => {
                 setData(current => ({ ...current, sets: current.sets.map(item => item.id === set.id ? { ...item, ...details, updatedAt: new Date().toISOString() } : item) }));
                 notify("Set details saved.");
               }} />
@@ -3001,8 +3001,8 @@ export default function Flashbolt() {
             <Link role="menuitem" to={routePathForView("set", contextSet.id)} onClick={() => setSetContextMenu(null)}><span>▣</span>View set</Link>
             <a role="menuitem" href={routePathForView("set", contextSet.id)} target="_blank" rel="noreferrer" onClick={() => setSetContextMenu(null)}><span><UiIcon symbol="↗" /></span>Open in new tab</a>
             <a role="menuitem" href={routePathForView("create", contextSet.id)} onClick={(event) => { setSetContextMenu(null); followFlashboltLink(event, () => startEdit(contextSet)); }}><span><UiIcon symbol="✎" /></span>Edit set</a>
-            {contextSet.subject.trim().toLowerCase() === "kahoot import" && <>
-              <button role="menuitem" onClick={() => { setSetContextMenu(null); openKahootHelper(contextSet); }}><span><UiIcon symbol="◆" /></span>Kahoot Helper</button>
+            <button role="menuitem" onClick={() => { setSetContextMenu(null); openKahootHelper(contextSet); }}><span><UiIcon symbol="◆" /></span>Kahoot Helper</button>
+            {(contextSet.subject.trim().toLowerCase().startsWith("kahoot import") || Boolean(contextSet.kahootUrl)) && <>
               <a role="menuitem" href={contextSet.kahootUrl && isSafeKahootUrl(contextSet.kahootUrl) ? contextSet.kahootUrl : "https://kahoot.it/"} target="_blank" rel="noreferrer" onClick={() => setSetContextMenu(null)}><span><UiIcon symbol="↗" /></span>Open Kahoot</a>
             </>}
             <button role="menuitem" onClick={() => { setSetContextMenu(null); duplicateSet(contextSet); }}><span><UiIcon symbol="⧉" /></span>Duplicate</button>
