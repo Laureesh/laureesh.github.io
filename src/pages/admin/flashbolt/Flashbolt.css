@@ -258,6 +258,24 @@ select:focus-visible {
   color: #111318;
 }
 
+.flashbolt-sidebar-tooltip {
+  position: fixed;
+  z-index: 10000;
+  max-width: 200px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
 .sidebar {
   position: fixed;
   inset: 0 auto 0 0;

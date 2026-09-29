@@ -16,6 +16,7 @@ import { mergeSemesterVisibility, normalizeSemesterVisibility, type SemesterVisi
 import MasteryFilterControls from "./MasteryFilterControls";
 import { DEFAULT_MASTERY_FILTER, MASTERY_FILTER_KEY, masteryPercentage, matchesMasteryFilter, normalizeMasteryFilter } from "./masteryFilter";
 import InlineSetDetails from "./InlineSetDetails";
+import Sidebar from "./Sidebar";
 import SetColorPicker from "./SetColorPicker";
 import SearchPicker from "./SearchPicker";
 import TileFolderPanel from "./TileFolderPanel";
@@ -3017,7 +3018,7 @@ export default function Flashbolt() {
           </div>, document.body
         );
       })()}
-      <aside className="sidebar">
+      <Sidebar>
         <div className="sidebar-brand-row">
           <Link className="brand" to={FLASHBOLT_BASE} aria-label="Flashbolt home" title="Flashbolt home">
             <span className="brand-mark"><i /><i /><i /></span>
@@ -3069,7 +3070,7 @@ export default function Flashbolt() {
           <button title="Back up library" aria-label="Back up library" onClick={exportLibrary}><span className="nav-icon"><Download aria-hidden="true" /></span><span className="nav-label">Back up library</span></button>
           <Link title="Back to private pages" aria-label="Back to private pages" to="/admin-dashboard/private-pages"><span className="nav-icon"><ArrowLeft aria-hidden="true" /></span><span className="nav-label">Back to private pages</span></Link>
         </div>
-      </aside>
+      </Sidebar>
 
       <div className="main-column">
         <header ref={topbarRef} className={`topbar${showEditorTopbar ? " topbar-editing" : ""}`}>
