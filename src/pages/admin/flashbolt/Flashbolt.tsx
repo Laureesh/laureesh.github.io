@@ -2,6 +2,7 @@ import { groupFolderSets } from "./folderSetOrder";
 import { manualImportExamples } from "./manualImportExamples";
 
 import "./Flashbolt.css";
+import "./FlashboltPolish.css";
 import { activeAutoAdvance, shouldAdvanceAfterCorrect, type AutoAdvanceEvent } from "./autoAdvance";
 import { initialFlashboltView } from "./initialView";
 import ReviewToday from "./ReviewToday";
@@ -21,7 +22,7 @@ import ConfirmSetTerms from "./ConfirmSetTerms";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { House, BookOpen, Folder as FolderIcon, Plus, Compass, History } from "lucide-react";
+import { House, BookOpen, Folder as FolderIcon, Plus, Compass, History, ClipboardCheck, Zap, NotebookPen, Download, ArrowLeft, ChevronDown, Search } from "lucide-react";
 import type { CSSProperties, ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { loadFlashboltLibrary, mergeAndSaveFlashboltLibrary, saveFlashboltLibrary } from "../../../services/flashboltLibrary";
@@ -2955,7 +2956,7 @@ export default function Flashbolt() {
   }) ?? [];
 
   return (
-    <div inert={!ready} className={`app-shell flashbolt-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
+    <div inert={!ready} data-view={view} className={`app-shell flashbolt-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       {clearTermsSetId && (() => {
         const setToClear = data.sets.find(set => set.id === clearTermsSetId);
         if (!setToClear) return null;
@@ -2999,10 +3000,10 @@ export default function Flashbolt() {
         </div>
 
         <nav className="main-nav" aria-label="Main navigation">
-          <Link title="Home" aria-label="Home" className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span className="nav-icon">⌂</span><span className="nav-label">Home</span></Link>
-          <Link title="Review today" aria-label="Review today" className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><span className="nav-icon">◴</span><span className="nav-label">Review today</span></Link>
-          <Link title="Your library" aria-label="Your library" className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span className="nav-icon">▤</span><span className="nav-label">Your library</span></Link>
-          <Link title="Folders" aria-label="Folders" className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span className="nav-icon">□</span><span className="nav-label">Folders</span></Link>
+          <Link title="Home" aria-label="Home" className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span className="nav-icon"><House aria-hidden="true" /></span><span className="nav-label">Home</span></Link>
+          <Link title="Review today" aria-label="Review today" className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><span className="nav-icon"><History aria-hidden="true" /></span><span className="nav-label">Review today</span></Link>
+          <Link title="Your library" aria-label="Your library" className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span className="nav-icon"><BookOpen aria-hidden="true" /></span><span className="nav-label">Your library</span></Link>
+          <Link title="Folders" aria-label="Folders" className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span className="nav-icon"><FolderIcon aria-hidden="true" /></span><span className="nav-label">Folders</span></Link>
           {quickLinkSemester && <details open className="sidebar-folder-dropdown" onKeyDown={(event) => {
             if (event.key === "Escape") {
               event.currentTarget.open = false;
@@ -3010,7 +3011,7 @@ export default function Flashbolt() {
             }
           }}>
             <summary title={`${quickLinkSemester.semester} folder quick links`} aria-label={`${quickLinkSemester.semester} folder quick links`}>
-              <span className="nav-icon sidebar-folder-chevron" aria-hidden="true">⌄</span>
+              <span className="nav-icon sidebar-folder-chevron" aria-hidden="true"><ChevronDown /></span>
               <span className="nav-label">{quickLinkSemester.semester}</span>
               <small className="nav-label">{quickLinkSemester.folders.length}</small>
             </summary>
@@ -3028,17 +3029,17 @@ export default function Flashbolt() {
 
         <div className="side-section">
           <p>Study tools</p>
-          <a title="Flashcard set" aria-label="Create flashcard set" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><span className="nav-icon">＋</span><span className="nav-label">Flashcard set</span></a>
-          <Link title="Study guide" aria-label="Study guide" to={`${FLASHBOLT_BASE}/guide`}><span className="nav-icon">≡</span><span className="nav-label">Study guide</span></Link>
-          <Link title="Practice test" aria-label="Practice test" to={selectedSet ? routePathForView("test", selectedSet.id) : `${FLASHBOLT_BASE}/library`}><span className="nav-icon">✓</span><span className="nav-label">Practice test</span></Link>
-          <a title="Kahoot Helper" aria-label="Open Kahoot Helper" className={view === "helper" ? "active" : ""} href={routePathForView("helper", selectedSet?.id ?? "")} onClick={(event) => followFlashboltLink(event, openKahootHelper)}><span className="nav-icon">◆</span><span className="nav-label">Kahoot Helper</span></a>
-          <Link title="Notebook" aria-label="Open notebook" to="/admin-dashboard/private-pages/notebook"><span className="nav-icon">▱</span><span className="nav-label">Notebook</span></Link>
+          <a title="Flashcard set" aria-label="Create flashcard set" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><span className="nav-icon"><Plus aria-hidden="true" /></span><span className="nav-label">Flashcard set</span></a>
+          <Link title="Study guide" aria-label="Study guide" to={`${FLASHBOLT_BASE}/guide`}><span className="nav-icon"><Compass aria-hidden="true" /></span><span className="nav-label">Study guide</span></Link>
+          <Link title="Practice test" aria-label="Practice test" to={selectedSet ? routePathForView("test", selectedSet.id) : `${FLASHBOLT_BASE}/library`}><span className="nav-icon"><ClipboardCheck aria-hidden="true" /></span><span className="nav-label">Practice test</span></Link>
+          <a title="Kahoot Helper" aria-label="Open Kahoot Helper" className={view === "helper" ? "active" : ""} href={routePathForView("helper", selectedSet?.id ?? "")} onClick={(event) => followFlashboltLink(event, openKahootHelper)}><span className="nav-icon"><Zap aria-hidden="true" /></span><span className="nav-label">Kahoot Helper</span></a>
+          <Link title="Notebook" aria-label="Open notebook" to="/admin-dashboard/private-pages/notebook"><span className="nav-icon"><NotebookPen aria-hidden="true" /></span><span className="nav-label">Notebook</span></Link>
         </div>
 
         <div className="sidebar-bottom">
           <ThemePicker theme={theme} onThemeChange={setTheme} />
-          <button title="Back up library" aria-label="Back up library" onClick={exportLibrary}><span className="nav-icon">⇩</span><span className="nav-label">Back up library</span></button>
-          <Link title="Back to private pages" aria-label="Back to private pages" to="/admin-dashboard/private-pages"><span className="nav-icon">←</span><span className="nav-label">Back to private pages</span></Link>
+          <button title="Back up library" aria-label="Back up library" onClick={exportLibrary}><span className="nav-icon"><Download aria-hidden="true" /></span><span className="nav-label">Back up library</span></button>
+          <Link title="Back to private pages" aria-label="Back to private pages" to="/admin-dashboard/private-pages"><span className="nav-icon"><ArrowLeft aria-hidden="true" /></span><span className="nav-label">Back to private pages</span></Link>
         </div>
       </aside>
 
@@ -3064,7 +3065,7 @@ export default function Flashbolt() {
 
           <Link className="mobile-brand" to={FLASHBOLT_BASE} aria-label="Flashbolt home"><span className="brand-mark"><i /><i /><i /></span></Link>
           <label className="search-box">
-            <span>⌕</span>
+            <Search aria-hidden="true" />
             <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search your sets and cards" aria-label="Search your library" />
             {search && <button onClick={() => setSearch("")} aria-label="Clear search">×</button>}
           </label>
@@ -3091,7 +3092,7 @@ export default function Flashbolt() {
         </header>
 
         <main className="workspace">
-          {view !== "library" && (view === "home" || Boolean(search)) && <MasteryFilterControls value={masteryFilter} onChange={setMasteryFilter} shown={!search && view === "home" ? recentSets.length : visibleSets.length} total={!search && view === "home" ? data.sets.length : filteredSets.length} />}
+          {view !== "library" && (view === "home" || Boolean(search)) && <MasteryFilterControls compact="chip" value={masteryFilter} onChange={setMasteryFilter} shown={!search && view === "home" ? recentSets.length : visibleSets.length} total={!search && view === "home" ? data.sets.length : filteredSets.length} />}
           {search && view !== "library" && (
             <section className="search-results-panel">
               <div className="section-heading"><div><span className="eyebrow">Search</span><h2>Results for “{search}”</h2></div><button className="text-button" onClick={() => navigate("library")}>Open library</button></div>
@@ -3594,7 +3595,7 @@ export default function Flashbolt() {
                   </Link> : <span className="folder-set-button next disabled"><span>Next set →</span><strong>Last set in folder</strong></span>}
                 </nav>
               )}
-              <div className="mode-tabs" role="tablist" aria-label="Study modes"><Link className="active" role="tab" to={routePathForView("set", selectedSet.id)}>▱ Flashcards</Link><Link role="tab" to={routePathForView("learn", selectedSet.id)}>◫ Learn</Link><Link role="tab" to={routePathForView("test", selectedSet.id)}>✓ Test</Link></div>
+              <div className="mode-tabs" role="tablist" aria-label="Study modes"><Link className="active" role="tab" to={routePathForView("set", selectedSet.id)}><BookOpen aria-hidden="true" />Flashcards</Link><Link role="tab" to={routePathForView("learn", selectedSet.id)}><Compass aria-hidden="true" />Learn</Link><Link role="tab" to={routePathForView("test", selectedSet.id)}><ClipboardCheck aria-hidden="true" />Test</Link></div>
               {currentFlashcard ? <div className="study-layout">
                 <div>
                   <div className="flash-status"><span>{flashIndex + 1} / {selectedSet.cards.length}</span><button className={isCurrentMastered ? "mastered" : ""} onClick={() => toggleMastered(selectedSet.id, currentFlashcard.id)}>{isCurrentMastered ? "✓ Mastered" : "Mark as mastered"}</button></div>

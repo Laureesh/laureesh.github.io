@@ -1,0 +1,125 @@
+/* Shared UI polish. Helper content retains its purpose-built compact layout. */
+.flashbolt-shell { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; line-height: 1.5; }
+.flashbolt-shell :is(button, input, select, textarea) { font-family: inherit; }
+.flashbolt-shell :is(button, a, input, select, textarea):focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 3px; }
+.flashbolt-shell :is(.main-column, .workspace, .page-heading > div, .heading-actions, .search-box, .search-box input) { min-width: 0; }
+.flashbolt-shell .sidebar { padding-top: 22px; overflow-y: auto; overscroll-behavior: contain; }
+.flashbolt-shell .main-nav :is(a, button), .flashbolt-shell .sidebar-bottom :is(a, button) { font-size: 13px; line-height: 1.35; min-height: 42px; border-radius: 10px; gap: 10px; }
+.flashbolt-shell .nav-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 20px; }
+.flashbolt-shell .nav-icon svg { width: 19px; height: 19px; stroke-width: 1.8; }
+.flashbolt-shell .sidebar .nav-label { overflow-wrap: normal; }
+.flashbolt-shell .topbar { gap: 12px; }
+.flashbolt-shell .search-box { flex: 1 1 260px; max-width: 520px; }
+.flashbolt-shell .search-box input { font-size: 14px; }
+.flashbolt-shell .search-box svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--muted); }
+.flashbolt-shell .local-pill { font-size: 12px; white-space: nowrap; }
+.flashbolt-shell .workspace { padding-top: 26px; }
+.flashbolt-shell:not([data-view="helper"]) .workspace { padding-bottom: 40px; }
+.flashbolt-shell:not([data-view="helper"]) :is(.page-heading, .welcome-row) { margin-bottom: 26px; gap: 20px; }
+.flashbolt-shell:not([data-view="helper"]) :is(.page-heading h1, .welcome-row h1, .results-card h1) { font-size: clamp(27px, 3.2vw, 44px); line-height: 1.15; letter-spacing: -.045em; overflow-wrap: anywhere; }
+.flashbolt-shell:not([data-view="helper"]) :is(.page-heading p, .welcome-row > div > p) { font-size: 14px; line-height: 1.7; margin-top: 12px; color: var(--muted); }
+.flashbolt-shell:not([data-view="helper"]) .eyebrow { font-size: 11px; line-height: 1.5; letter-spacing: .12em; margin-bottom: 9px; }
+.flashbolt-shell:not([data-view="helper"]) :is(.section-heading h2, .folder-subject-heading h2) { font-size: clamp(19px, 2vw, 25px); line-height: 1.3; letter-spacing: -.025em; }
+.flashbolt-shell:not([data-view="helper"]) .button { min-height: 40px; padding: 9px 15px; border-radius: 10px; font-size: 13px; line-height: 1.4; font-weight: 650; text-align: center; }
+.flashbolt-shell:not([data-view="helper"]) :is(.button-row, .heading-actions, .page-heading.split, .section-heading) { flex-wrap: wrap; }
+.flashbolt-shell:not([data-view="helper"]) :is(.set-tile, .folder-card, .stats-row article, .review-set-list article) { border-color: var(--line); box-shadow: 0 4px 18px rgba(0, 0, 0, .08); }
+.flashbolt-shell:not([data-view="helper"]) .set-tile:hover { transform: translateY(-1px); }
+.flashbolt-shell:not([data-view="helper"]) .set-tile-title { font-size: 17px; line-height: 1.45; letter-spacing: -.015em; }
+.flashbolt-shell:not([data-view="helper"]) .tile-kicker { font-size: 11px; line-height: 1.4; }
+.flashbolt-shell:not([data-view="helper"]) .tile-footer { font-size: 12px; }
+.flashbolt-shell:not([data-view="helper"]) .folder-compact-view .set-tile-title { font-size: 13px; }
+.flashbolt-shell:not([data-view="helper"]) :is(.creator-layout, .study-layout, .guide-layout) > * { min-width: 0; }
+.flashbolt-shell:not([data-view="helper"]) :is(.card-editor, .question-card, .test-question, .guide-input-card, .guide-preview, .review-start, .study-summary) { min-width: 0; border-radius: 16px; }
+.flashbolt-shell:not([data-view="helper"]) :is(input, textarea, select) { max-width: 100%; min-width: 0; }
+.flashbolt-shell:not([data-view="helper"]) :is(.test-question h2, .question-card h2, .review-set-list h3) { overflow-wrap: anywhere; line-height: 1.45; }
+.flashbolt-shell:not([data-view="helper"]) .review-set-list article { flex-wrap: wrap; }
+.flashbolt-shell:not([data-view="helper"]) .review-set-list article > div { min-width: 0; flex: 1 1 200px; }
+.flashbolt-shell:not([data-view="helper"]) :is(.study-toolbar, .test-toolbar, .test-submit) { flex-wrap: wrap; gap: 10px; }
+@media (min-width: 781px) and (max-width: 1100px) {
+  .flashbolt-shell .topbar { padding-inline: 18px; }
+  .flashbolt-shell .local-pill { display: none; }
+}
+@media (max-width: 780px) {
+  .flashbolt-shell .topbar { padding-inline: 12px; gap: 8px; }
+  .flashbolt-shell .workspace { width: calc(100% - 28px); padding-top: 20px; }
+  .flashbolt-shell:not([data-view="helper"]) .workspace { padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px)); }
+  .flashbolt-shell:not([data-view="helper"]) .welcome-row { padding: 0; }
+  .flashbolt-shell:not([data-view="helper"]) :is(.page-heading.split, .section-heading) { align-items: flex-start; }
+  .flashbolt-shell:not([data-view="helper"]) :is(.study-layout, .guide-layout) { grid-template-columns: minmax(0, 1fr); }
+  .flashbolt-shell:not([data-view="helper"]) .stats-row { gap: 10px; }
+  .flashbolt-shell:not([data-view="helper"]) .stats-row article { padding: 15px; }
+  .flashbolt-shell:not([data-view="helper"]) :is(.review-start, .review-set-list article) { padding: 16px; }
+}
+@media (max-width: 480px) {
+  .flashbolt-shell .workspace { width: calc(100% - 24px); }
+  .flashbolt-shell .topbar .search-box { height: 38px; padding-inline: 9px; }
+  .flashbolt-shell .topbar .search-box input { font-size: 12px; }
+  .flashbolt-shell:not([data-view="helper"]) :is(.heading-actions, .button-row) { gap: 7px; }
+  .flashbolt-shell:not([data-view="helper"]) :is(.heading-actions, .button-row) .button { flex: 1 1 110px; }
+  .flashbolt-shell:not([data-view="helper"]) :is(.set-grid, .folder-grid, .stats-row) { grid-template-columns: minmax(0, 1fr); }
+  .flashbolt-shell:not([data-view="helper"]) :is(.question-card, .test-question, .guide-input-card, .guide-preview, .study-summary) { padding: 16px; }
+  .flashbolt-shell:not([data-view="helper"]) .card-editor { padding: 12px; }
+  .flashbolt-shell:not([data-view="helper"]) .card-editor :is(header, .card-editor-top) { flex-wrap: wrap; }
+  .flashbolt-shell:not([data-view="helper"]) .folder-compact-view .set-tile { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "folder" "progress"; }
+  .flashbolt-shell:not([data-view="helper"]) .folder-compact-view .tile-folder-badge { width: auto; max-width: 100%; }
+  .flashbolt-shell:not([data-view="helper"]) .folder-compact-view .tile-footer { justify-content: flex-end; }
+}
+@media (hover: none) {
+  .flashbolt-shell .set-tile:hover { transform: none; }
+}
+.flashbolt-shell .avatar { flex: 0 0 40px; white-space: nowrap; line-height: 1; font-size: 13px; }
+.flashbolt-shell .button { text-decoration: none; }
+.flashbolt-shell .workspace > .compact-mastery-filter { margin-bottom: 18px; width: fit-content; max-width: 100%; }
+.flashbolt-shell:not([data-view="helper"]) .mode-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.flashbolt-shell:not([data-view="helper"]) .mode-tabs a { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 12px 8px; font-size: 13px; white-space: nowrap; }
+.flashbolt-shell .mode-tabs svg { width: 17px; height: 17px; flex-shrink: 0; }
+.flashbolt-shell .learn-goal-heading h1 { font-size: clamp(27px, 3.2vw, 44px); letter-spacing: -.04em; line-height: 1.15; }
+.flashbolt-shell .learn-goal-heading p { font-size: 15px; line-height: 1.7; }
+.flashbolt-shell .goal-options p { font-size: 14px; line-height: 1.6; }
+.flashbolt-shell :is(.card-editor-list, .card-editor-wrap, .card-editor-fields, .card-question-type, .card-editor-footer) { min-width: 0; }
+.flashbolt-shell .card-editor-list { grid-template-columns: minmax(0, 1fr); }
+.flashbolt-shell .library-sort-field { font-size: 13px; }
+.flashbolt-shell .library-sort-field :is(select, strong) { font-size: 14px; }
+.flashbolt-shell .library-sort-field small { font-size: 10px; }
+.flashbolt-shell .tile-folder-copy small { font-size: 10px; letter-spacing: .07em; }
+.flashbolt-shell .tile-folder-copy b { font-size: 13px; }
+.flashbolt-shell .side-section > p { font-size: 11px; letter-spacing: .1em; }
+@media (max-width: 780px) {
+  .flashbolt-shell .study-side-panel { order: 0; }
+  .flashbolt-shell .learn-goal-heading { min-height: 0; gap: 16px; }
+  .flashbolt-shell .goal-options > button { padding: 16px; gap: 12px; }
+  .flashbolt-shell .goal-options > button strong { font-size: 16px; }
+  .flashbolt-shell .goal-options > button p { font-size: 14px; }
+  .flashbolt-shell .import-panel, .flashbolt-shell.sidebar-collapsed .import-panel { grid-row: auto; }
+}
+@media (max-width: 480px) {
+  .flashbolt-shell .mode-tabs a { font-size: 11px; gap: 4px; padding: 10px 4px; }
+  .flashbolt-shell .mode-tabs svg { width: 14px; height: 14px; }
+  .flashbolt-shell .card-editor-fields { grid-template-columns: minmax(0, 1fr); }
+  .flashbolt-shell .card-editor-footer { flex-wrap: wrap; gap: 8px; }
+  .flashbolt-shell .card-question-type { gap: 8px; }
+  .flashbolt-shell .card-question-type select { width: 100%; }
+  .flashbolt-shell .learn-goal-heading p { font-size: 14px; }
+}
+.flashbolt-shell .set-metadata-field > .set-field-label,
+.flashbolt-shell .form-card label > span { font-size: 12px; line-height: 1.5; letter-spacing: .04em; }
+.flashbolt-shell .set-field-label :is(button, summary), .flashbolt-shell .recent-folder-button { font-size: 11px; font-weight: 600; line-height: 1.4; }
+.flashbolt-shell .set-field-history { flex-wrap: wrap; }
+.flashbolt-shell .set-field-label button { max-width: 220px; }
+.flashbolt-shell .previous-value-menu > summary { text-transform: none; letter-spacing: 0; }
+.flashbolt-shell .back-link { font-size: 13px; line-height: 1.5; text-decoration: none; }
+.flashbolt-shell .back-link:hover { text-decoration: underline; }
+@media (max-width: 480px) {
+  .flashbolt-shell:not([data-view="helper"]) .mode-tabs a { font-size: 11px; gap: 4px; padding: 10px 4px; }
+  .flashbolt-shell:not([data-view="helper"]) .mode-tabs { gap: 5px; }
+  .flashbolt-shell .flashcard { min-height: 300px; padding: 48px 18px; border-radius: 16px; }
+  .flashbolt-shell .flashcard strong { font-size: 20px; line-height: 1.5; overflow-wrap: anywhere; }
+  .flashbolt-shell .card-side-label { font-size: 10px; letter-spacing: .1em; }
+  .flashbolt-shell .flash-status { font-size: 12px; gap: 8px; }
+  .flashbolt-shell .flash-status button { font-size: 11px; }
+  .flashbolt-shell .form-card.set-details { padding: 16px; }
+  .flashbolt-shell .set-field-label { gap: 6px; }
+  .flashbolt-shell .set-field-history { justify-content: flex-start; gap: 5px; }
+  .flashbolt-shell .set-field-label button { max-width: 100%; text-align: left; }
+  .flashbolt-shell .form-card .field-row { gap: 16px; }
+}
