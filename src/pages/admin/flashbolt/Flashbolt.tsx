@@ -19,6 +19,9 @@ import SetColorPicker from "./SetColorPicker";
 import SearchPicker from "./SearchPicker";
 import TileFolderPanel from "./TileFolderPanel";
 import ConfirmSetTerms from "./ConfirmSetTerms";
+import Confirmation from "./Confirmation";
+import Modal from "./Modal";
+import UiIcon from "./UiIcon";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
@@ -841,6 +844,7 @@ export default function Flashbolt() {
     try { localStorage.setItem(MASTERY_FILTER_KEY, JSON.stringify(masteryFilter)); }
     catch { /* The filter remains usable without browser storage. */ }
   }, [masteryFilter]);
+  const [libraryFiltersOpen, setLibraryFiltersOpen] = useState(false);
   const [librarySort, setLibrarySort] = useState<LibrarySort>("updated-desc");
   const [folderCardView, setFolderCardView] = useState<"default" | "list" | "compact">(() => {
     try { const saved = window.localStorage.getItem(`${STORAGE_KEY}.folderCardView`); return saved === "list" || saved === "compact" ? saved : "default"; }
@@ -890,6 +894,10 @@ export default function Flashbolt() {
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [tileFolderPickerId, setTileFolderPickerId] = useState<string | null>(null);
   const [tileFolderSearch, setTileFolderSearch] = useState("");
+  const [confirmation, setConfirmation] = useState<{ title: string; message: string; confirmLabel: string; resolve: (accepted: boolean) => void } | null>(null);
+  function askConfirmation(message: string, title = "Confirm change", confirmLabel = "Continue"): Promise<boolean> {
+    return new Promise(resolve => setConfirmation({ title, message, confirmLabel, resolve }));
+  }
   const [clearTermsSetId, setClearTermsSetId] = useState<string | null>(null);
   const setContextMenuRef = useRef<HTMLDivElement>(null);
   const [setContextMenu, setSetContextMenu] = useState<{ setId: string; x: number; y: number } | null>(null);
@@ -1255,9 +1263,14 @@ export default function Flashbolt() {
       menu.style.top = `${Math.max(10, Math.min(setContextMenu.y, window.innerHeight - bounds.height - 10))}px`;
     };
     position();
+    const previousFocus = document.activeElement;
+    menu.querySelector<HTMLElement>('[role="menuitem"]')?.focus({ preventScroll: true });
     const observer = new ResizeObserver(position);
     observer.observe(menu);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected && (menu.contains(document.activeElement) || document.activeElement === document.body)) previousFocus.focus({ preventScroll: true });
+    };
   }, [setContextMenu]);
 
   useEffect(() => {
@@ -1475,7 +1488,7 @@ export default function Flashbolt() {
       window.removeEventListener("resize", schedule);
     };
   }, [view, editingSetId, search]);
-  const showEditorTopbar = view === "create" && Boolean(editingSetId) && !search && editorPanelPassed;
+  const showEditorTopbar = view === "create" && !search && (!editingSetId || editorPanelPassed);
   const editorSetIndex = editorFolderSets.findIndex((set) => set.id === editingSetId);
   const previousEditorSet = editorSetIndex > 0 ? editorFolderSets[editorSetIndex - 1] : undefined;
   const nextEditorSet = editorSetIndex >= 0 && editorSetIndex < editorFolderSets.length - 1 ? editorFolderSets[editorSetIndex + 1] : undefined;
@@ -1666,8 +1679,8 @@ export default function Flashbolt() {
     } catch { setToast("Draft backup is unavailable. Keep this page open until you save your set."); }
   }, [draft, draftFolderIds, notebookSource, notebookDraftStorageKey, editingSetId]);
 
-  function discardNotebookDraft() {
-    if (!notebookSource || !window.confirm("Discard this Flashbolt draft and return to your note? No set will be created.")) return;
+  async function discardNotebookDraft() {
+    if (!notebookSource || !await askConfirmation("Discard this Flashbolt draft and return to your note? No set will be created.", "Discard draft?", "Discard draft")) return;
     if (notebookDraftStorageKey) sessionStorage.removeItem(notebookDraftStorageKey);
     routerNavigate(notebookSource.returnTo);
   }
@@ -1752,12 +1765,12 @@ export default function Flashbolt() {
     navigate("create", set.id);
   }
 
-  function openAdjacentEditor(set: StudySet) {
+  async function openAdjacentEditor(set: StudySet) {
     const storedSet = data.sets.find((item) => item.id === editingSetId);
     const storedFolderIds = data.folders.filter((folderItem) => folderItem.setIds.includes(editingSetId ?? "")).map((folderItem) => folderItem.id).sort();
     const hasUnsavedChanges = Boolean(storedSet) && (JSON.stringify(draft) !== JSON.stringify(storedSet)
       || JSON.stringify([...draftFolderIds].sort()) !== JSON.stringify(storedFolderIds));
-    if (hasUnsavedChanges && !window.confirm("Discard your unsaved changes and open the next set?")) return;
+    if (hasUnsavedChanges && !await askConfirmation("Discard your unsaved changes and open the next set?", "Discard changes?", "Discard changes")) return;
     startEdit(set);
   }
 
@@ -2029,9 +2042,9 @@ export default function Flashbolt() {
     });
   }
 
-  function removeAllDraftCards() {
+  async function removeAllDraftCards() {
     if (!draft.cards.length) return;
-    if (!window.confirm(`Remove all ${draft.cards.length} card${draft.cards.length === 1 ? "" : "s"} from this set?`)) return;
+    if (!await askConfirmation(`Remove all ${draft.cards.length} cards from this draft? Save the set to keep this change.`, "Remove all cards?", "Remove all cards")) return;
     recognitionRef.current?.stop();
     setDraggingCardId(null);
     setDictationTarget(null);
@@ -2346,8 +2359,8 @@ export default function Flashbolt() {
     notify("Folder created.");
   }
 
-  function deleteFolder(folderToDelete: Folder) {
-    const confirmed = window.confirm(`Delete “${folderToDelete.name}”? The sets inside it will stay in your library.`);
+  async function deleteFolder(folderToDelete: Folder) {
+    const confirmed = await askConfirmation(`Delete “${folderToDelete.name}”? The sets inside it will stay in your library.`, "Delete folder?", "Delete folder");
     if (!confirmed) return;
     setData((current) => ({
       ...current,
@@ -2719,8 +2732,9 @@ export default function Flashbolt() {
     openSet(newSet.id);
   }
 
-  function deleteSelectedSet() {
+  async function deleteSelectedSet() {
     if (!selectedSet) return;
+    if (!await askConfirmation(`Delete “${selectedSet.title}”? This cannot be undone.`, "Delete set?", "Delete set")) return;
     setData((current) => removeSetFromLibraryData(current, selectedSet.id));
     setSelectedSetId(data.sets.find((set) => set.id !== selectedSet.id)?.id ?? "");
     notify("Set deleted.");
@@ -2794,8 +2808,8 @@ export default function Flashbolt() {
     notify("All terms removed.");
   }
 
-  function deleteSetFromLibrary(setToDelete: StudySet) {
-    if (!window.confirm(`Delete “${setToDelete.title}”? This cannot be undone.`)) return;
+  async function deleteSetFromLibrary(setToDelete: StudySet) {
+    if (!await askConfirmation(`Delete “${setToDelete.title}”? This cannot be undone.`, "Delete set?", "Delete set")) return;
     setData((current) => removeSetFromLibraryData(current, setToDelete.id));
     if (selectedSetId === setToDelete.id) setSelectedSetId(data.sets.find((item) => item.id !== setToDelete.id)?.id ?? "");
     notify("Set deleted.");
@@ -2867,7 +2881,10 @@ export default function Flashbolt() {
               <Link className="set-tile-open" to={routePathForView("set", set.id)} aria-label={`Open ${set.title}`}><span className="visually-hidden">Open {set.title}</span></Link>
               <span className={`set-accent ${set.color}`} />
               <span className="tile-kicker"><span>{set.subject || "General"}</span><span>{formatDate(set.updatedAt)}</span></span>
-              <InlineSetDetails set={set} kahootUrl={set.kahootUrl && isSafeKahootUrl(set.kahootUrl) ? set.kahootUrl : undefined} onOpenKahootHelper={set.subject.trim().toLowerCase() === "kahoot import" ? () => openKahootHelper(set) : undefined} onSave={(details) => {
+              <InlineSetDetails set={set} onOpenActions={event => {
+                const rect = event.currentTarget.getBoundingClientRect();
+                setSetContextMenu({ setId: set.id, x: rect.left, y: rect.bottom + 6 });
+              }} kahootUrl={set.kahootUrl && isSafeKahootUrl(set.kahootUrl) ? set.kahootUrl : undefined} onOpenKahootHelper={set.subject.trim().toLowerCase() === "kahoot import" ? () => openKahootHelper(set) : undefined} onSave={(details) => {
                 setData(current => ({ ...current, sets: current.sets.map(item => item.id === set.id ? { ...item, ...details, updatedAt: new Date().toISOString() } : item) }));
                 notify("Set details saved.");
               }} />
@@ -2884,7 +2901,7 @@ export default function Flashbolt() {
                     setTileFolderSearch("");
                   }}
                 >
-                  <span className="tile-folder-icon" aria-hidden="true">□</span>
+                  <span className="tile-folder-icon" aria-hidden="true"><UiIcon symbol="□" /></span>
                   <span className="tile-folder-copy">
                     <small>{setFolders.length > 1 ? "Folders" : "Folder"}</small>
                     <b>{folderLabel}</b>
@@ -2894,14 +2911,14 @@ export default function Flashbolt() {
                 {tileFolderPickerId === set.id && (
                   <TileFolderPanel id={`tile-folder-menu-${set.id}`} label={`Folders for ${set.title}`}>
                     <div className="tile-folder-menu-heading">
-                      <span className="tile-folder-menu-mark" aria-hidden="true">□</span>
+                      <span className="tile-folder-menu-mark" aria-hidden="true"><UiIcon symbol="□" /></span>
                       <span className="tile-folder-menu-copy"><strong>Choose folders</strong><small>Changes save automatically</small></span>
                       <span className={`tile-folder-selection-count ${setFolders.length ? "has-selection" : ""}`}>{setFolders.length || "None"} selected</span>
                     </div>
                     {data.folders.length ? (
                       <>
                         <div className="tile-folder-search">
-                          <span aria-hidden="true">⌕</span>
+                          <span aria-hidden="true"><UiIcon symbol="⌕" /></span>
                           <input
                             type="search"
                             value={tileFolderSearch}
@@ -2909,7 +2926,7 @@ export default function Flashbolt() {
                             placeholder="Search folders"
                             aria-label={`Search folders for ${set.title}`}
                           />
-                          {tileFolderSearch && <button type="button" onClick={() => setTileFolderSearch("")} aria-label="Clear folder search">×</button>}
+                          {tileFolderSearch && <button type="button" onClick={() => setTileFolderSearch("")} aria-label="Clear folder search"><UiIcon symbol="×" /></button>}
                         </div>
                         {visibleFolders.length ? (
                           <div className="tile-folder-options">
@@ -2933,7 +2950,7 @@ export default function Flashbolt() {
                           </div>
                         ) : (
                           <div className="tile-folder-no-results">
-                            <span aria-hidden="true">⌕</span>
+                            <span aria-hidden="true"><UiIcon symbol="⌕" /></span>
                             <strong>No folders found</strong>
                             <small>Try a different folder name.</small>
                           </div>
@@ -2969,6 +2986,7 @@ export default function Flashbolt() {
 
   return (
     <div inert={!ready} data-view={view} className={`app-shell flashbolt-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
+      {confirmation && <Confirmation title={confirmation.title} message={confirmation.message} confirmLabel={confirmation.confirmLabel} onCancel={() => { confirmation.resolve(false); setConfirmation(null); }} onConfirm={() => { confirmation.resolve(true); setConfirmation(null); }} />}
       {clearTermsSetId && (() => {
         const setToClear = data.sets.find(set => set.id === clearTermsSetId);
         if (!setToClear) return null;
@@ -2981,24 +2999,35 @@ export default function Flashbolt() {
         const contextSet = data.sets.find((item) => item.id === setContextMenu.setId);
         if (!contextSet) return null;
         return createPortal(
-          <div ref={setContextMenuRef} className="set-context-menu" role="menu" aria-label={`Actions for ${contextSet.title}`} style={{ left: setContextMenu.x, top: setContextMenu.y }} onPointerDown={(event) => event.stopPropagation()}>
+          <div ref={setContextMenuRef} className="set-context-menu" role="menu" aria-label={`Actions for ${contextSet.title}`} style={{ left: setContextMenu.x, top: setContextMenu.y }} onPointerDown={(event) => event.stopPropagation()} onKeyDown={event => {
+            const items = [...event.currentTarget.querySelectorAll<HTMLElement>('[role="menuitem"]:not(:disabled)')];
+            const index = items.indexOf(document.activeElement as HTMLElement);
+            let next = index;
+            if (event.key === "ArrowDown") next = (index + 1) % items.length;
+            else if (event.key === "ArrowUp") next = (index - 1 + items.length) % items.length;
+            else if (event.key === "Home") next = 0;
+            else if (event.key === "End") next = items.length - 1;
+            else if (event.key === "Tab") { setSetContextMenu(null); return; }
+            else return;
+            event.preventDefault(); items[next]?.focus();
+          }}>
             <strong>{contextSet.title}</strong>
             <Link role="menuitem" to={routePathForView("set", contextSet.id)} onClick={() => setSetContextMenu(null)}><span>▣</span>View set</Link>
-            <a role="menuitem" href={routePathForView("set", contextSet.id)} target="_blank" rel="noreferrer" onClick={() => setSetContextMenu(null)}><span>↗</span>Open in new tab</a>
-            <a role="menuitem" href={routePathForView("create", contextSet.id)} onClick={(event) => { setSetContextMenu(null); followFlashboltLink(event, () => startEdit(contextSet)); }}><span>✎</span>Edit set</a>
+            <a role="menuitem" href={routePathForView("set", contextSet.id)} target="_blank" rel="noreferrer" onClick={() => setSetContextMenu(null)}><span><UiIcon symbol="↗" /></span>Open in new tab</a>
+            <a role="menuitem" href={routePathForView("create", contextSet.id)} onClick={(event) => { setSetContextMenu(null); followFlashboltLink(event, () => startEdit(contextSet)); }}><span><UiIcon symbol="✎" /></span>Edit set</a>
             {contextSet.subject.trim().toLowerCase() === "kahoot import" && <>
-              <button role="menuitem" onClick={() => { setSetContextMenu(null); openKahootHelper(contextSet); }}><span>◆</span>Kahoot Helper</button>
-              <a role="menuitem" href={contextSet.kahootUrl && isSafeKahootUrl(contextSet.kahootUrl) ? contextSet.kahootUrl : "https://kahoot.it/"} target="_blank" rel="noreferrer" onClick={() => setSetContextMenu(null)}><span>↗</span>Open Kahoot</a>
+              <button role="menuitem" onClick={() => { setSetContextMenu(null); openKahootHelper(contextSet); }}><span><UiIcon symbol="◆" /></span>Kahoot Helper</button>
+              <a role="menuitem" href={contextSet.kahootUrl && isSafeKahootUrl(contextSet.kahootUrl) ? contextSet.kahootUrl : "https://kahoot.it/"} target="_blank" rel="noreferrer" onClick={() => setSetContextMenu(null)}><span><UiIcon symbol="↗" /></span>Open Kahoot</a>
             </>}
-            <button role="menuitem" onClick={() => { setSetContextMenu(null); duplicateSet(contextSet); }}><span>⧉</span>Duplicate</button>
+            <button role="menuitem" onClick={() => { setSetContextMenu(null); duplicateSet(contextSet); }}><span><UiIcon symbol="⧉" /></span>Duplicate</button>
             <i />
-            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "flashcards")}><span>↗</span>Copy flashcards link</button>
-            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "learn")}><span>↗</span>Copy learn link</button>
-            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "test")}><span>↗</span>Copy test link</button>
-            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "edit")}><span>↗</span>Copy edit link</button>
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "flashcards")}><span><UiIcon symbol="↗" /></span>Copy flashcards link</button>
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "learn")}><span><UiIcon symbol="↗" /></span>Copy learn link</button>
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "test")}><span><UiIcon symbol="↗" /></span>Copy test link</button>
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "edit")}><span><UiIcon symbol="↗" /></span>Copy edit link</button>
             <i />
-            <button role="menuitem" className="danger" disabled={!contextSet.cards.length} onClick={() => { setSetContextMenu(null); setClearTermsSetId(contextSet.id); }}><span>−</span>Remove all terms</button>
-            <button role="menuitem" className="danger" onClick={() => { setSetContextMenu(null); deleteSetFromLibrary(contextSet); }}><span>×</span>Delete set</button>
+            <button role="menuitem" className="danger" disabled={!contextSet.cards.length} onClick={() => { setSetContextMenu(null); setClearTermsSetId(contextSet.id); }}><span><UiIcon symbol="−" /></span>Remove all terms</button>
+            <button role="menuitem" className="danger" onClick={() => { setSetContextMenu(null); deleteSetFromLibrary(contextSet); }}><span><UiIcon symbol="×" /></span>Delete set</button>
           </div>, document.body
         );
       })()}
@@ -3069,8 +3098,8 @@ export default function Flashbolt() {
               <span>{draft.cards.length} card{draft.cards.length === 1 ? "" : "s"}</span>
             </div>
             <div className="editor-topbar-actions">
-              {previousEditorSet ? <a className="button quiet" href={routePathForView("create", previousEditorSet.id)} onClick={event => followFlashboltLink(event, () => openAdjacentEditor(previousEditorSet))} title={previousEditorSet.title}>← Previous</a> : <button className="button quiet" disabled>← Previous</button>}
-              {nextEditorSet ? <a className="button quiet" href={routePathForView("create", nextEditorSet.id)} onClick={event => followFlashboltLink(event, () => openAdjacentEditor(nextEditorSet))} title={nextEditorSet.title}>Next →</a> : <button className="button quiet" disabled>Next →</button>}
+              {editingSetId && (previousEditorSet ? <a className="button quiet" href={routePathForView("create", previousEditorSet.id)} onClick={event => followFlashboltLink(event, () => openAdjacentEditor(previousEditorSet))} title={previousEditorSet.title}>← Previous</a> : <button className="button quiet" disabled>← Previous</button>)}
+              {editingSetId && (nextEditorSet ? <a className="button quiet" href={routePathForView("create", nextEditorSet.id)} onClick={event => followFlashboltLink(event, () => openAdjacentEditor(nextEditorSet))} title={nextEditorSet.title}>Next →</a> : <button className="button quiet" disabled>Next →</button>)}
               <button className="button primary" onClick={() => saveDraft(false)}>Save</button>
               <button className="button quiet editor-topbar-next-card" onClick={goToNextAvailableCard} disabled={!draft.cards.length} aria-label="Go to next available card" title="Go to next available card"><span className="editor-topbar-next-full">Go to next available card ↓</span><span className="editor-topbar-next-short">Next empty ↓</span></button>
             </div>
@@ -3079,8 +3108,8 @@ export default function Flashbolt() {
           <Link className="mobile-brand" to={FLASHBOLT_BASE} aria-label="Flashbolt home"><span className="brand-mark"><i /><i /><i /></span></Link>
           <label className="search-box">
             <Search aria-hidden="true" />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search your sets and cards" aria-label="Search your library" />
-            {search && <button onClick={() => setSearch("")} aria-label="Clear search">×</button>}
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search sets…" aria-label="Search your library" />
+            {search && <button onClick={() => setSearch("")} aria-label="Clear search"><UiIcon symbol="×" /></button>}
           </label>
           <span className={`local-pill ${storageStatus === "error" ? "error" : ""}`} role="status" aria-live="polite" title={storageStatus === "error" ? syncError : "Your private library is saved to your signed-in account."}>
             <i />{storageStatus === "loading" ? "Loading library" : storageStatus === "saved" ? "Synced to your account" : syncError || "Sync unavailable"}
@@ -3091,16 +3120,16 @@ export default function Flashbolt() {
             {newMenuOpen && (
               <div className="new-menu" role="menu">
                 <p>Create new</p>
-                <button role="menuitem" onClick={startCreate}><span>▱</span><div><strong>Flashcard set</strong><small>Build cards from scratch</small></div></button>
-                <button role="menuitem" onClick={startQuizletLinkImport}><span>⇩</span><div><strong>Import from Quizlet</strong><small>Paste a public set link</small></div></button>
+                <button role="menuitem" onClick={startCreate}><span><UiIcon symbol="▱" /></span><div><strong>Flashcard set</strong><small>Build cards from scratch</small></div></button>
+                <button role="menuitem" onClick={startQuizletLinkImport}><span><UiIcon symbol="⇩" /></span><div><strong>Import from Quizlet</strong><small>Paste a public set link</small></div></button>
                 <button role="menuitem" onClick={startKahootLinkImport}><span>◇</span><div><strong>Import from Kahoot</strong><small>Paste a public quiz link or ID</small></div></button>
                 <button role="menuitem" onClick={() => navigate("guide")}><span>≡</span><div><strong>Study guide</strong><small>Turn pasted notes into cards</small></div></button>
-                <button role="menuitem" onClick={startTest}><span>✓</span><div><strong>Practice test</strong><small>Quiz yourself from a set</small></div></button>
-                <button role="menuitem" onClick={() => { setNewMenuOpen(false); openNewFolderModal(); }}><span>□</span><div><strong>Folder</strong><small>Keep related sets together</small></div></button>
+                <button role="menuitem" onClick={startTest}><span><UiIcon symbol="✓" /></span><div><strong>Practice test</strong><small>Quiz yourself from a set</small></div></button>
+                <button role="menuitem" onClick={() => { setNewMenuOpen(false); openNewFolderModal(); }}><span><UiIcon symbol="□" /></span><div><strong>Folder</strong><small>Keep related sets together</small></div></button>
               </div>
             )}
           </div>
-          <button className="avatar" aria-label="Private profile">ME</button>
+          <span className="avatar" aria-label="Signed-in account" title={user?.email ?? "Signed-in account"}>ME</span>
           </>}
         </header>
 
@@ -3117,7 +3146,7 @@ export default function Flashbolt() {
 
           {!search && view === "home" && (
             <>
-              <Link className="review-home-link" to={`${FLASHBOLT_BASE}/review`}><span>◴</span><div><strong>Review today</strong><p>Due cards, tricky questions, and a fresh start.</p></div><b>→</b></Link>
+              <Link className="review-home-link" to={`${FLASHBOLT_BASE}/review`}><span><UiIcon symbol="◴" /></span><div><strong>Review today</strong><p>Due cards, tricky questions, and a fresh start.</p></div><b>→</b></Link>
               <section className="welcome-row">
                 <div>
                   <span className="eyebrow">Your private study space</span>
@@ -3141,7 +3170,7 @@ export default function Flashbolt() {
                     <div className="progress-label"><span>{data.mastered[selectedSet.id]?.length ?? 0} mastered</span><span>{selectedSet.cards.length} terms</span></div>
                     <div className="progress-track"><i style={{ width: `${Math.round(((data.mastered[selectedSet.id]?.length ?? 0) / Math.max(1, selectedSet.cards.length)) * 100)}%` }} /></div>
                     <div className="button-row">
-                      <button className="button primary" onClick={() => openSet(selectedSet.id)}>Resume flashcards <span>→</span></button>
+                      <button className="button primary" onClick={() => openSet(selectedSet.id)}>Resume flashcards <span><UiIcon symbol="→" /></span></button>
                       <button className="button quiet" onClick={startLearn}>Learn mode</button>
                       {selectedSet.kahootUrl && isSafeKahootUrl(selectedSet.kahootUrl) && <a className="button quiet" href={selectedSet.kahootUrl} target="_blank" rel="noreferrer">Open Kahoot ↗</a>}
                     </div>
@@ -3150,19 +3179,19 @@ export default function Flashbolt() {
               )}
 
               <section className="stats-row" aria-label="Study overview">
-                <article><span className="stat-symbol violet">▤</span><div><strong>{data.sets.length}</strong><p>Study sets</p></div><small>All yours</small></article>
-                <article><span className="stat-symbol mint">✓</span><div><strong>{masteredCount}</strong><p>Cards mastered</p></div><small>Keep going</small></article>
+                <article><span className="stat-symbol violet"><UiIcon symbol="▤" /></span><div><strong>{data.sets.length}</strong><p>Study sets</p></div><small>All yours</small></article>
+                <article><span className="stat-symbol mint"><UiIcon symbol="✓" /></span><div><strong>{masteredCount}</strong><p>Cards mastered</p></div><small>Keep going</small></article>
                 <article><span className="stat-symbol amber">◒</span><div><strong>{data.sessions}</strong><p>Study sessions</p></div><small>All time</small></article>
               </section>
 
               <section>
-                <div className="section-heading"><div><span className="eyebrow">Library</span><h2>Recently studied</h2></div><button className="text-button" onClick={() => navigate("library")}>View all <span>→</span></button></div>
+                <div className="section-heading"><div><span className="eyebrow">Library</span><h2>Recently studied</h2></div><button className="text-button" onClick={() => navigate("library")}>View all <span><UiIcon symbol="→" /></span></button></div>
                 {renderSetGrid(recentSets)}
               </section>
 
               <section className="notes-callout">
                 <div><span className="eyebrow">Quick start</span><h2>Turn your notes into flashcards.</h2><p>Paste one idea per line, or use <code>term :: definition</code> for precise cards. Everything happens locally.</p></div>
-                <button className="button bright" onClick={() => navigate("guide")}>Create from notes <span>→</span></button>
+                <button className="button bright" onClick={() => navigate("guide")}>Create from notes <span><UiIcon symbol="→" /></span></button>
               </section>
             </>
           )}
@@ -3178,7 +3207,8 @@ export default function Flashbolt() {
                 </div>
               </div>
               <input ref={importInputRef} className="visually-hidden" type="file" accept="application/json" onChange={importLibrary} />
-              {!folder && <div className="library-toolbar">
+              {!folder && <button type="button" className="library-filters-toggle" aria-expanded={libraryFiltersOpen} aria-controls="library-filter-tools" onClick={() => setLibraryFiltersOpen(!libraryFiltersOpen)}>Filter and sort <span>{visibleSets.length} sets · {libraryFiltersOpen ? "Hide" : "Show"}</span></button>}
+              {!folder && <div id="library-filter-tools" className={`library-toolbar${libraryFiltersOpen ? " filters-open" : ""}`}>
                 <div className="folder-filter-panel">
                   <div className="folder-filter-heading">
                     <span>Browse by folder</span>
@@ -3215,7 +3245,7 @@ export default function Flashbolt() {
                 </div>
                 <div className="library-toolbar-actions">
                   <label className="library-sort-control">
-                    <span className="library-sort-icon" aria-hidden="true">⇅</span>
+                    <span className="library-sort-icon" aria-hidden="true"><UiIcon symbol="⇅" /></span>
                     <span className="library-sort-field"><small>Sort by</small><select value={librarySort} onChange={(event) => setLibrarySort(event.target.value as LibrarySort)} aria-label="Sort library sets">
                       <optgroup label="Date">
                         <option value="updated-desc">Recently updated</option>
@@ -3254,7 +3284,7 @@ export default function Flashbolt() {
                 <span><i style={{ "--folder-color": folder.color ?? FOLDER_COLORS[0] } as CSSProperties} />Showing only <strong>{folder.name}</strong></span>
                 <div className="folder-filter-actions">
                 <label className="library-sort-control">
-                  <span className="library-sort-icon" aria-hidden="true">⇅</span>
+                  <span className="library-sort-icon" aria-hidden="true"><UiIcon symbol="⇅" /></span>
                   <span className="library-sort-field"><small>Sort by</small><select value={librarySort} onChange={(event) => setLibrarySort(event.target.value as LibrarySort)} aria-label={`Sort sets in ${folder.name}`}>
                     <option value="updated-desc">Recently updated</option>
                     <option value="updated-asc">Oldest updated</option>
@@ -3340,16 +3370,16 @@ export default function Flashbolt() {
                       <span className="folder-tab" />
                       <div className="folder-tile-actions">
                         <button onClick={(event) => { event.stopPropagation(); editFolder(item); }} aria-label={`Edit ${item.name}`} title="Edit folder">✎</button>
-                        <button className="delete" onClick={(event) => { event.stopPropagation(); deleteFolder(item); }} aria-label={`Delete ${item.name}`} title="Delete folder">×</button>
+                        <button className="delete" onClick={(event) => { event.stopPropagation(); deleteFolder(item); }} aria-label={`Delete ${item.name}`} title="Delete folder"><UiIcon symbol="×" /></button>
                       </div>
                       <Link className="folder-open-button" to={folderPath(item)} onClick={(event) => event.stopPropagation()}>
-                        <span className="folder-icon">□</span>
+                        <span className="folder-icon"><UiIcon symbol="□" /></span>
                         <strong>{item.name}</strong><small>{item.semester ? `${item.semester} · ` : ""}{item.setIds.length} set{item.setIds.length === 1 ? "" : "s"}</small><span>Open <b>→</b></span>
                       </Link>
                     </article>
                     ))}</div>
                   </section>)}
-                  <div className="folder-grid"><button className="folder-tile new-folder" onClick={openNewFolderModal}><span className="folder-icon">＋</span><strong>Create a folder</strong><small>Keep a course or topic together</small></button></div>
+                  <div className="folder-grid"><button className="folder-tile new-folder" onClick={openNewFolderModal}><span className="folder-icon"><UiIcon symbol="＋" /></span><strong>Create a folder</strong><small>Keep a course or topic together</small></button></div>
                 </div>
               ) : (
                 <div className="empty-state"><div className="empty-mark">□</div><h3>No folders yet</h3><p>Create one to organize related study sets.</p><button className="button primary" onClick={openNewFolderModal}>Create a folder</button></div>
@@ -3388,12 +3418,12 @@ export default function Flashbolt() {
                         <>
                         <div className="selected-folder-summary" aria-live="polite">
                           <span>{draftFolderIds.length === 1 ? "Selected folder" : "Selected folders"}</span>
-                          <div>{draftFolderIds.length ? data.folders.filter((folderItem) => draftFolderIds.includes(folderItem.id)).map((folderItem) => <span className="selected-folder-chip" key={folderItem.id} style={{ "--folder-color": folderItem.color ?? FOLDER_COLORS[0] } as CSSProperties}><i aria-hidden="true" /><b>{folderItem.name}</b>{folderItem.semester && <small>{folderItem.semester}</small>}<button type="button" onClick={() => setDraftFolderIds((ids) => ids.filter((id) => id !== folderItem.id))} aria-label={`Remove ${folderItem.name}`}>×</button></span>) : <small className="no-folder-selected">No folder selected</small>}</div>
+                          <div>{draftFolderIds.length ? data.folders.filter((folderItem) => draftFolderIds.includes(folderItem.id)).map((folderItem) => <span className="selected-folder-chip" key={folderItem.id} style={{ "--folder-color": folderItem.color ?? FOLDER_COLORS[0] } as CSSProperties}><i aria-hidden="true" /><b>{folderItem.name}</b>{folderItem.semester && <small>{folderItem.semester}</small>}<button type="button" onClick={() => setDraftFolderIds((ids) => ids.filter((id) => id !== folderItem.id))} aria-label={`Remove ${folderItem.name}`}><UiIcon symbol="×" /></button></span>) : <small className="no-folder-selected">No folder selected</small>}</div>
                         </div>
                         <label className="folder-assignment-search">
-                          <span aria-hidden="true">⌕</span>
+                          <span aria-hidden="true"><UiIcon symbol="⌕" /></span>
                           <input type="search" value={draftFolderSearch} onChange={(event) => setDraftFolderSearch(event.target.value)} placeholder="Search folders by name or course code" aria-label="Search folders" />
-                          {draftFolderSearch && <button type="button" onClick={() => setDraftFolderSearch("")} aria-label="Clear folder search">×</button>}
+                          {draftFolderSearch && <button type="button" onClick={() => setDraftFolderSearch("")} aria-label="Clear folder search"><UiIcon symbol="×" /></button>}
                         </label>
                         <div className="folder-option-grid">
                           {draftFolderOptions.filter((folderItem) => folderItem.name.toLocaleLowerCase().includes(draftFolderSearch.trim().toLocaleLowerCase())).map((folderItem) => {
@@ -3457,7 +3487,7 @@ export default function Flashbolt() {
                                 title="Drag to reorder"
                               >☰</button>
                               <button onClick={() => duplicateDraftCard(card.id)} aria-label={`Duplicate card ${index + 1}`} title="Duplicate card">⧉</button>
-                              <button onClick={() => setDraft((current) => ({ ...current, cards: current.cards.filter((item) => item.id !== card.id) }))} disabled={draft.cards.length === 1} aria-label={`Remove card ${index + 1}`} title="Delete card">×</button>
+                              <button onClick={() => setDraft((current) => ({ ...current, cards: current.cards.filter((item) => item.id !== card.id) }))} disabled={draft.cards.length === 1} aria-label={`Remove card ${index + 1}`} title="Delete card"><UiIcon symbol="×" /></button>
                             </div>
                           </header>
                           <div className="card-question-type">
@@ -3485,7 +3515,7 @@ export default function Flashbolt() {
                                         <button type="button" className="choice-correct-toggle" onClick={() => toggleDraftCorrectAnswer(card, choice)} aria-label={`${isCorrect ? "Unmark" : "Mark"} choice ${String.fromCharCode(65 + choiceIndex)} as correct`} aria-pressed={isCorrect}>{String.fromCharCode(65 + choiceIndex)}</button>
                                         <input value={choice} onChange={(event) => updateDraftChoice(card, choiceIndex, event.target.value)} onPaste={(event) => { if (pasteDraftChoices(card, choiceIndex, event.clipboardData.getData("text/plain"))) event.preventDefault(); }} aria-label={`Choice ${String.fromCharCode(65 + choiceIndex)} for card ${index + 1}`} placeholder={`Choice ${String.fromCharCode(65 + choiceIndex)}`} readOnly={cardQuestionType(card) === "true-false"} />
                                         {isCorrect && <small>Correct</small>}
-                                        {cardQuestionType(card) !== "true-false" && card.answerChoices && card.answerChoices.length > 2 && <button type="button" className="choice-remove" onClick={() => updateDraftCardExtras(card.id, { answerChoices: card.answerChoices?.filter((_, itemIndex) => itemIndex !== choiceIndex), correctAnswers: correctAnswersForCard(card).filter((answer) => normalizeAnswer(answer) !== normalizeAnswer(choice)) })} aria-label={`Remove choice ${String.fromCharCode(65 + choiceIndex)}`}>×</button>}
+                                        {cardQuestionType(card) !== "true-false" && card.answerChoices && card.answerChoices.length > 2 && <button type="button" className="choice-remove" onClick={() => updateDraftCardExtras(card.id, { answerChoices: card.answerChoices?.filter((_, itemIndex) => itemIndex !== choiceIndex), correctAnswers: correctAnswersForCard(card).filter((answer) => normalizeAnswer(answer) !== normalizeAnswer(choice)) })} aria-label={`Remove choice ${String.fromCharCode(65 + choiceIndex)}`}><UiIcon symbol="×" /></button>}
                                       </label>
                                     );
                                   })}
@@ -3504,13 +3534,13 @@ export default function Flashbolt() {
                             </div>}
                           </div>
                           {cardQuestionType(card) === "matching" && (
-                            <div className="matching-pair-editor"><span>Matching pairs</span><div>{(card.matchingPairs ?? []).map((pair, pairIndex) => <div className="matching-pair-row" key={pair.id}><b>{String.fromCharCode(65 + pairIndex)}</b><input value={pair.left} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, left: event.target.value } : item) })} placeholder="Prompt" /><span>↔</span><input value={pair.right} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, right: event.target.value } : item) })} placeholder="Match" /><button type="button" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.filter((item) => item.id !== pair.id) })} disabled={(card.matchingPairs?.length ?? 0) <= 2} aria-label={`Remove matching pair ${pairIndex + 1}`}>×</button></div>)}</div>{(card.matchingPairs?.length ?? 0) < 26 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: [...(card.matchingPairs ?? []), { id: makeId("pair"), left: "", right: "" }] })}>＋ Add matching pair</button>}</div>
+                            <div className="matching-pair-editor"><span>Matching pairs</span><div>{(card.matchingPairs ?? []).map((pair, pairIndex) => <div className="matching-pair-row" key={pair.id}><b>{String.fromCharCode(65 + pairIndex)}</b><input value={pair.left} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, left: event.target.value } : item) })} placeholder="Prompt" /><span>↔</span><input value={pair.right} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, right: event.target.value } : item) })} placeholder="Match" /><button type="button" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.filter((item) => item.id !== pair.id) })} disabled={(card.matchingPairs?.length ?? 0) <= 2} aria-label={`Remove matching pair ${pairIndex + 1}`}><UiIcon symbol="×" /></button></div>)}</div>{(card.matchingPairs?.length ?? 0) < 26 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: [...(card.matchingPairs ?? []), { id: makeId("pair"), left: "", right: "" }] })}>＋ Add matching pair</button>}</div>
                           )}
                           <label className="card-explanation-field"><span>Explanation <small>optional · shown after answering</small></span><AutoResizeTextarea value={card.explanation ?? ""} onPaste={event => { if (event.clipboardData.getData("text/plain").trim()) scrollToNextDraftCard(card.id, ["explanation"], true); }} onChange={event => updateDraftCardExtras(card.id, { explanation: event.target.value })} placeholder="Explain why this answer is correct, or add a memory tip…" rows={2} /></label>
                           {card.imageData && <div className="card-image-preview"><img width={74} height={58} src={card.imageData} alt={card.imageName ? `Attached ${card.imageName}` : "Attached card image"} /><span>{card.imageName}</span><button onClick={() => updateDraftCardExtras(card.id, { imageData: undefined, imageName: undefined })} aria-label={`Remove image from card ${index + 1}`}>Remove image</button></div>}
                           <footer className="card-editor-footer"><span aria-label={`Card ${index + 1}`}>{String(index + 1).padStart(2, "0")}</span></footer>
                         </article>
-                        <button className="insert-card-button" onClick={() => addDraftCard(card.id)} aria-label={`Add a card after card ${index + 1}`}><span>＋</span></button>
+                        <button className="insert-card-button" onClick={() => addDraftCard(card.id)} aria-label={`Add a card after card ${index + 1}`}><span><UiIcon symbol="＋" /></span></button>
                       </div>
                     ))}
                   </div>
@@ -3590,7 +3620,7 @@ export default function Flashbolt() {
             <section className="study-page">
               <div className="page-heading split compact">
                 <div><Link className="back-link" to={`${FLASHBOLT_BASE}/library`}>← Library</Link><span className="eyebrow">{selectedSet.subject}</span><h1>{selectedSet.title}</h1><p>{selectedSet.description}</p></div>
-                <div className="heading-actions">{selectedSet.kahootUrl && isSafeKahootUrl(selectedSet.kahootUrl) && <a className="button quiet" href={selectedSet.kahootUrl} target="_blank" rel="noreferrer">◆ Open Kahoot ↗</a>}<a className="button quiet" href={routePathForView("create", selectedSet.id)} onClick={(event) => followFlashboltLink(event, () => startEdit(selectedSet))}>Edit set</a><button className="icon-button danger" onClick={deleteSelectedSet} aria-label="Delete set">×</button></div>
+                <div className="heading-actions">{selectedSet.kahootUrl && isSafeKahootUrl(selectedSet.kahootUrl) && <a className="button quiet" href={selectedSet.kahootUrl} target="_blank" rel="noreferrer">◆ Open Kahoot ↗</a>}<a className="button quiet" href={routePathForView("create", selectedSet.id)} onClick={(event) => followFlashboltLink(event, () => startEdit(selectedSet))}>Edit set</a><button className="icon-button danger" onClick={deleteSelectedSet} aria-label="Delete set"><UiIcon symbol="×" /></button></div>
               </div>
               {folder && folderSetIndex >= 0 && folderSets.length > 1 && (
                 <nav className="folder-set-navigation" aria-label={`Move between sets in ${folder.name}`}>
@@ -3629,7 +3659,7 @@ export default function Flashbolt() {
               </div>
               : <div className="empty-state" role="status"><h2>No cards in this set yet</h2><p>Add or import cards to start studying.</p><button className="button primary" onClick={() => startEdit(selectedSet)}>Add cards</button></div>}
               <section className="term-list">
-                <div className="section-heading term-list-heading"><div><span className="eyebrow">Review</span><h2>Terms in this set ({selectedSet.cards.length})</h2></div><label className="term-search"><span aria-hidden="true">⌕</span><input type="search" value={termSearch} onChange={(event) => setTermSearch(event.target.value)} placeholder="Search terms and answers" aria-label="Search terms, definitions, and answer choices in this set" />{termSearch && <button type="button" onClick={() => setTermSearch("")} aria-label="Clear term search">×</button>}</label></div>
+                <div className="section-heading term-list-heading"><div><span className="eyebrow">Review</span><h2>Terms in this set ({selectedSet.cards.length})</h2></div><label className="term-search"><span aria-hidden="true"><UiIcon symbol="⌕" /></span><input type="search" value={termSearch} onChange={(event) => setTermSearch(event.target.value)} placeholder="Search terms and answers" aria-label="Search terms, definitions, and answer choices in this set" />{termSearch && <button type="button" onClick={() => setTermSearch("")} aria-label="Clear term search"><UiIcon symbol="×" /></button>}</label></div>
                 {termSearch && <p className="term-search-count" role="status">Showing {visibleSetCards.length} of {selectedSet.cards.length} terms</p>}
                 {visibleSetCards.map((card) => {
                   const index = selectedSet.cards.findIndex((item) => item.id === card.id);
@@ -3663,8 +3693,8 @@ export default function Flashbolt() {
                   <Link className="back-link" to={routePathForView("set", selectedSet.id)}>← Back to set</Link>
                   <div className="learn-goal-heading"><div><span className="eyebrow">{selectedSet.subject}</span><h1>Choose a goal for this session</h1><p>Learn adapts to every answer. Recognition comes first, then verification, then written recall. Difficult cards return sooner and strong cards return in harder formats.</p></div><div className="learn-orbit" aria-hidden="true"><i /><i /><i /></div></div>
                   <div className="goal-options" role="radiogroup" aria-label="Learn session goal">
-                    <button role="radio" aria-checked={learnGoal === "cram"} className={learnGoal === "cram" ? "selected" : ""} onClick={() => setLearnGoal("cram")}><span className="goal-copy"><strong>Cram for a test</strong><small>Move quickly with mixed question types</small></span><span className="goal-icon cram">◴</span></button>
-                    <button role="radio" aria-checked={learnGoal === "memorize"} className={learnGoal === "memorize" ? "selected" : ""} onClick={() => setLearnGoal("memorize")}><span className="goal-copy"><strong>Memorize it all</strong><small>Keep practicing until every card is mastered</small></span><span className="goal-icon memorize">✦</span></button>
+                    <button role="radio" aria-checked={learnGoal === "cram"} className={learnGoal === "cram" ? "selected" : ""} onClick={() => setLearnGoal("cram")}><span className="goal-copy"><strong>Cram for a test</strong><small>Move quickly with mixed question types</small></span><span className="goal-icon cram"><UiIcon symbol="◴" /></span></button>
+                    <button role="radio" aria-checked={learnGoal === "memorize"} className={learnGoal === "memorize" ? "selected" : ""} onClick={() => setLearnGoal("memorize")}><span className="goal-copy"><strong>Memorize it all</strong><small>Keep practicing until every card is mastered</small></span><span className="goal-icon memorize"><UiIcon symbol="✦" /></span></button>
                   </div>
                   <div className="learn-mastery-overview" aria-label="Saved knowledge levels"><span><i className="level-new" />New <b>{learnStatusCounts.new}</b></span><span><i className="level-learning" />Learning <b>{learnStatusCounts.learning}</b></span><span><i className="level-familiar" />Familiar <b>{learnStatusCounts.familiar}</b></span><span><i className="level-mastered" />Mastered <b>{learnStatusCounts.mastered}</b></span></div>
                   <div className="learn-goal-footer"><span>{selectedSet.cards.length} terms · progress saves on this device</span><div className="learn-goal-actions">{resumableLearn && <button className="button quiet learn-start" onClick={resumeLearnSession}>Resume session</button>}<button className="button primary learn-start" onClick={() => beginLearnSession(learnGoal)}>{resumableLearn ? "Start new" : "Start Learn"} <b>→</b></button></div></div>
@@ -3706,11 +3736,11 @@ export default function Flashbolt() {
                         return <button key={option} className={resultClass} onClick={() => chooseLearnAnswer(option)} disabled={Boolean(learnAnswer)}><span>{String.fromCharCode(65 + index)}</span>{option}</button>;
                       })}</div>}
 
-                      {currentLearnQuestionKind === "true-false" && <div className="true-false-question"><p>The matching {currentLearnAnswerSide} is <strong>{currentTrueFalse.statement}</strong>.</p><div><button className={learnAnswer ? (currentTrueFalse.answer ? "correct" : learnAnswer === "True" ? "incorrect" : "muted") : ""} onClick={() => submitTrueFalseLearnAnswer(true)} disabled={Boolean(learnAnswer)}><span>✓</span>True</button><button className={learnAnswer ? (!currentTrueFalse.answer ? "correct" : learnAnswer === "False" ? "incorrect" : "muted") : ""} onClick={() => submitTrueFalseLearnAnswer(false)} disabled={Boolean(learnAnswer)}><span>×</span>False</button></div></div>}
+                      {currentLearnQuestionKind === "true-false" && <div className="true-false-question"><p>The matching {currentLearnAnswerSide} is <strong>{currentTrueFalse.statement}</strong>.</p><div><button className={learnAnswer ? (currentTrueFalse.answer ? "correct" : learnAnswer === "True" ? "incorrect" : "muted") : ""} onClick={() => submitTrueFalseLearnAnswer(true)} disabled={Boolean(learnAnswer)}><span><UiIcon symbol="✓" /></span>True</button><button className={learnAnswer ? (!currentTrueFalse.answer ? "correct" : learnAnswer === "False" ? "incorrect" : "muted") : ""} onClick={() => submitTrueFalseLearnAnswer(false)} disabled={Boolean(learnAnswer)}><span><UiIcon symbol="×" /></span>False</button></div></div>}
 
                       {currentLearnQuestionKind === "written" && <form className="written-answer" onSubmit={(event) => { event.preventDefault(); submitWrittenLearnAnswer(); }}><label><span>Your answer</span><input value={learnWrittenAnswer} onChange={(event) => setLearnWrittenAnswer(event.target.value)} disabled={Boolean(learnAnswer)} placeholder={`Type the ${currentLearnAnswerSide}`} /></label><button className="button primary" disabled={!learnWrittenAnswer.trim() || Boolean(learnAnswer)}>Check answer</button></form>}
 
-                      {currentLearnQuestionKind === "select-all" && <div className="select-all-question"><div className="select-all-grid">{currentSelectAll.choices.map((option) => { const selected = learnSelectedAnswers.includes(option); const correct = currentSelectAll.correctParts.includes(option); const resultClass = learnAnswer ? (correct ? "correct" : selected ? "incorrect" : "muted") : selected ? "selected" : ""; return <label key={option} className={resultClass}><input type="checkbox" checked={selected} onChange={() => setLearnSelectedAnswers((answers) => answers.includes(option) ? answers.filter((answer) => answer !== option) : [...answers, option])} disabled={Boolean(learnAnswer)} /><span>✓</span><p>{option}</p></label>; })}</div><button className="button primary" onClick={submitSelectAllLearnAnswer} disabled={!learnSelectedAnswers.length || Boolean(learnAnswer)}>Check selections</button></div>}
+                      {currentLearnQuestionKind === "select-all" && <div className="select-all-question"><div className="select-all-grid">{currentSelectAll.choices.map((option) => { const selected = learnSelectedAnswers.includes(option); const correct = currentSelectAll.correctParts.includes(option); const resultClass = learnAnswer ? (correct ? "correct" : selected ? "incorrect" : "muted") : selected ? "selected" : ""; return <label key={option} className={resultClass}><input type="checkbox" checked={selected} onChange={() => setLearnSelectedAnswers((answers) => answers.includes(option) ? answers.filter((answer) => answer !== option) : [...answers, option])} disabled={Boolean(learnAnswer)} /><span><UiIcon symbol="✓" /></span><p>{option}</p></label>; })}</div><button className="button primary" onClick={submitSelectAllLearnAnswer} disabled={!learnSelectedAnswers.length || Boolean(learnAnswer)}>Check selections</button></div>}
 
                       {currentLearnQuestionKind === "flashcard" && <div className="learn-flashcard-mode"><button className={`learn-reveal-card ${learnFlashRevealed ? "revealed" : ""}`} onClick={() => setLearnFlashRevealed(true)}><span>{learnFlashRevealed ? currentLearnCorrectAnswer : "Think of the answer before revealing it"}</span><small>{learnFlashRevealed ? "How did you do?" : "Reveal answer"}</small></button>{learnFlashRevealed && !learnAnswer && <div className="recall-buttons"><button className="button quiet" onClick={() => recordLearnResult(false, "Still learning")}>Still learning</button><button className="button primary" onClick={() => recordLearnResult(true, "Got it")}>Got it</button></div>}</div>}
 
@@ -3726,18 +3756,18 @@ export default function Flashbolt() {
               )}
 
               {learnPhase === "complete" && (
-                <><div className="results-card learn-complete"><span className="result-burst">✓</span><span className="eyebrow">100% goal reached</span><h1>You completed the adaptive path.</h1><p className="learn-complete-count"><strong>{learnQuestionsAnswered}</strong> questions answered across <strong>{learnRound}</strong> adaptive round{learnRound === 1 ? "" : "s"}.</p><p>Every card reached the {learnGoal === "cram" ? "familiar" : "mastered"} level. Weak cards repeated, stronger cards advanced to harder recall, and your progress was queued for account sync.</p><div className="button-row center"><button className="button primary" onClick={() => beginLearnSession(learnGoal)}>Practice again</button><button className="button quiet" onClick={() => navigate("set")}>Back to set</button></div></div><StudySummary missed={learnMissedCards} onRetry={() => beginLearnSession(learnGoal, learnOptions, learnMissedIds)} /></>
+                <><div className="results-card learn-complete"><span className="result-burst"><UiIcon symbol="✓" /></span><span className="eyebrow">100% goal reached</span><h1>You completed the adaptive path.</h1><p className="learn-complete-count"><strong>{learnQuestionsAnswered}</strong> questions answered across <strong>{learnRound}</strong> adaptive round{learnRound === 1 ? "" : "s"}.</p><p>Every card reached the {learnGoal === "cram" ? "familiar" : "mastered"} level. Weak cards repeated, stronger cards advanced to harder recall, and your progress was queued for account sync.</p><div className="button-row center"><button className="button primary" onClick={() => beginLearnSession(learnGoal)}>Practice again</button><button className="button quiet" onClick={() => navigate("set")}>Back to set</button></div></div><StudySummary missed={learnMissedCards} onRetry={() => beginLearnSession(learnGoal, learnOptions, learnMissedIds)} /></>
               )}
 
-              {learnOptionsOpen && <div className="modal-backdrop learn-options-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setLearnOptionsOpen(false); }}><div className="learn-options-modal" role="dialog" aria-modal="true" aria-labelledby="learn-options-title">
-                <header><div><span className="eyebrow">Customize Learn</span><h2 id="learn-options-title">Options</h2></div><button className="icon-button" onClick={() => setLearnOptionsOpen(false)} aria-label="Close options">×</button></header>
-                <div className="learn-quick-options"><button className={learnOptionsDraft.shuffle ? "selected" : ""} aria-pressed={learnOptionsDraft.shuffle} onClick={() => setLearnOptionsDraft((options) => ({ ...options, shuffle: !options.shuffle }))}><span>⇄</span>Shuffle</button><button className={learnOptionsDraft.soundEffects ? "selected" : ""} aria-pressed={learnOptionsDraft.soundEffects} onClick={() => setLearnOptionsDraft((options) => ({ ...options, soundEffects: !options.soundEffects }))}><span>♪</span>Sound</button><button className={learnOptionsDraft.textToSpeech ? "selected" : ""} aria-pressed={learnOptionsDraft.textToSpeech} onClick={() => setLearnOptionsDraft((options) => ({ ...options, textToSpeech: !options.textToSpeech }))}><span>◖</span>Read aloud</button></div>
-                <section className="options-section"><h3>Question types</h3>{([['multipleChoice','Multiple choice','▤'],['trueFalse','True or false','◐'],['selectAll','Select all that apply','✓'],['written','Written','✎'],['flashcards','Flashcards','▱']] as const).map(([key,label,icon]) => <label className="option-row" key={key}><span className="option-row-icon">{icon}</span><strong>{label}</strong><input type="checkbox" role="switch" checked={learnOptionsDraft[key]} onChange={() => setLearnOptionsDraft((options) => ({ ...options, [key]: !options[key] }))} /></label>)}</section>
+              {learnOptionsOpen && <Modal className="learn-options-modal" labelledBy="learn-options-title" onClose={() => setLearnOptionsOpen(false)}>
+                <header><div><span className="eyebrow">Customize Learn</span><h2 id="learn-options-title">Options</h2></div><button className="icon-button" onClick={() => setLearnOptionsOpen(false)} aria-label="Close options"><UiIcon symbol="×" /></button></header>
+                <div className="learn-quick-options"><button className={learnOptionsDraft.shuffle ? "selected" : ""} aria-pressed={learnOptionsDraft.shuffle} onClick={() => setLearnOptionsDraft((options) => ({ ...options, shuffle: !options.shuffle }))}><span><UiIcon symbol="⇄" /></span>Shuffle</button><button className={learnOptionsDraft.soundEffects ? "selected" : ""} aria-pressed={learnOptionsDraft.soundEffects} onClick={() => setLearnOptionsDraft((options) => ({ ...options, soundEffects: !options.soundEffects }))}><span><UiIcon symbol="♪" /></span>Sound</button><button className={learnOptionsDraft.textToSpeech ? "selected" : ""} aria-pressed={learnOptionsDraft.textToSpeech} onClick={() => setLearnOptionsDraft((options) => ({ ...options, textToSpeech: !options.textToSpeech }))}><span><UiIcon symbol="◖" /></span>Read aloud</button></div>
+                <section className="options-section"><h3>Question types</h3>{([['multipleChoice','Multiple choice','▤'],['trueFalse','True or false','◐'],['selectAll','Select all that apply','✓'],['written','Written','✎'],['flashcards','Flashcards','▱']] as const).map(([key,label,icon]) => <label className="option-row" key={key}><span className="option-row-icon"><UiIcon symbol={icon} /></span><strong>{label}</strong><input type="checkbox" role="switch" checked={learnOptionsDraft[key]} onChange={() => setLearnOptionsDraft((options) => ({ ...options, [key]: !options[key] }))} /></label>)}</section>
                 <section className="options-section"><h3>Answer with</h3><label className="option-row"><strong>Terms</strong><input type="checkbox" role="switch" checked={learnOptionsDraft.answerTerms} onChange={() => setLearnOptionsDraft((options) => ({ ...options, answerTerms: !options.answerTerms }))} /></label><label aria-label="Definitions, recommended for question cards" className="option-row"><span><strong>Definitions</strong><small>Recommended for question cards</small></span><input type="checkbox" role="switch" checked={learnOptionsDraft.answerDefinitions} onChange={() => setLearnOptionsDraft((options) => ({ ...options, answerDefinitions: !options.answerDefinitions }))} /></label></section>
                 <section className="options-section"><h3>See images with</h3><label className="option-row"><strong>Questions</strong><input type="checkbox" role="switch" checked={learnOptionsDraft.showImagesOnQuestions} onChange={() => setLearnOptionsDraft((options) => ({ ...options, showImagesOnQuestions: !options.showImagesOnQuestions }))} /></label><label className="option-row"><strong>Answer choices</strong><input type="checkbox" role="switch" checked={learnOptionsDraft.showImagesOnAnswers} onChange={() => setLearnOptionsDraft((options) => ({ ...options, showImagesOnAnswers: !options.showImagesOnAnswers }))} /></label></section>
                 <section className="options-section"><h3>Grading</h3><div className="grading-options">{([['relaxed','Relaxed','Meaning and small wording differences count.'],['moderate','Moderate','Close matches and small misspellings count.'],['strict','Strict','The normalized answer must match exactly.']] as const).map(([value,label,description]) => <label aria-label={`${label}: ${description}`} key={value} className={learnOptionsDraft.grading === value ? "selected" : ""}><input type="radio" name="learn-grading" value={value} checked={learnOptionsDraft.grading === value} onChange={() => setLearnOptionsDraft((options) => ({ ...options, grading: value }))} /><span><strong>{label}</strong><small>{description}</small></span></label>)}</div><label aria-label="Retype correct answers" className="option-row"><span><strong>Retype correct answers</strong><small>Required after a missed written question.</small></span><input type="checkbox" role="switch" checked={learnOptionsDraft.retypeCorrectAnswers} onChange={() => setLearnOptionsDraft((options) => ({ ...options, retypeCorrectAnswers: !options.retypeCorrectAnswers }))} /></label></section>
                 <footer><button className="text-button danger-text" onClick={() => { setLearnOptions(learnOptionsDraft); beginLearnSession(learnGoal, learnOptionsDraft); }}>Restart Learn</button><div><button className="button quiet" onClick={() => setLearnOptionsOpen(false)}>Cancel</button><button className="button primary" onClick={saveLearnOptions}>Save</button></div></footer>
-              </div></div>}
+              </Modal>}
             </section>
           )}
 
@@ -3774,7 +3804,7 @@ export default function Flashbolt() {
                     setHelperFolderId(folderId); setHelperSetId(firstSet?.id ?? "");
                   }} />
                   <SearchPicker label="Study set" value={helperSet?.id ?? ""} options={[...helperAvailableSets].sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: "base" })).map(set => ({ id: set.id, title: set.title, detail: `${set.cards.length} terms${set.subject ? ` · ${set.subject}` : ""}` }))} onChange={setHelperSetId} />
-                  <label className="kahoot-helper-search"><span>Search questions and answers</span><div><span>⌕</span><input value={helperSearch} onChange={(event) => setHelperSearch(event.target.value)} placeholder="Search questions…" />{helperSearch && <button onClick={() => setHelperSearch("")} aria-label="Clear helper search">×</button>}</div></label>
+                  <label className="kahoot-helper-search"><span>Search questions and answers</span><div><span><UiIcon symbol="⌕" /></span><input value={helperSearch} onChange={(event) => setHelperSearch(event.target.value)} placeholder="Search questions…" />{helperSearch && <button onClick={() => setHelperSearch("")} aria-label="Clear helper search"><UiIcon symbol="×" /></button>}</div></label>
                 </div>
                 {helperCards.length ? <div className="kahoot-helper-list">
                   {helperCards.map((card, index) => {
@@ -3798,9 +3828,9 @@ export default function Flashbolt() {
                       </div>
                     </article>;
                   })}
-                </div> : <div className="empty-state compact"><span>⌕</span><h2>No matching questions</h2><p>Try a different search.</p><button className="button quiet" onClick={() => setHelperSearch("")}>Clear search</button></div>}
+                </div> : <div className="empty-state compact"><span><UiIcon symbol="⌕" /></span><h2>No matching questions</h2><p>Try a different search.</p><button className="button quiet" onClick={() => setHelperSearch("")}>Clear search</button></div>}
                 <p className="kahoot-helper-notice">Kahoot Helper only displays the Flashbolt set you select. It does not connect to, inspect, or control a live Kahoot game.</p>
-              </> : <div className="empty-state"><span>◆</span><h2>Add a set to get started</h2><p>Create or import a study set you own, then return here to view every question and answer.</p><div className="button-row center"><button className="button primary" onClick={startCreate}>Create set</button><button className="button quiet" onClick={startKahootLinkImport}>Import set</button></div></div>}
+              </> : <div className="empty-state"><span><UiIcon symbol="◆" /></span><h2>Add a set to get started</h2><p>Create or import a study set you own, then return here to view every question and answer.</p><div className="button-row center"><button className="button primary" onClick={startCreate}>Create set</button><button className="button quiet" onClick={startKahootLinkImport}>Import set</button></div></div>}
             </section>
           )}
 
@@ -3830,26 +3860,24 @@ export default function Flashbolt() {
           <Link className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><BookOpen aria-hidden="true" /><span>Library</span></Link>
           <a className="mobile-create" aria-label="Create a set" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><Plus aria-hidden="true" /></a>
           <Link className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><FolderIcon aria-hidden="true" /><span>Folders</span></Link>
-          <Link className={view === "guide" ? "active" : ""} to={`${FLASHBOLT_BASE}/guide`}><Compass aria-hidden="true" /><span>Guide</span></Link>
+          <Link className={view === "helper" ? "active" : ""} to={`${FLASHBOLT_BASE}/helper`}><Zap aria-hidden="true" /><span>Helper</span></Link>
           <Link className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><History aria-hidden="true" /><span>Review</span></Link>
         </nav>
       </div>
 
       {folderModalOpen && (
-        <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeFolderModal(); }}>
-          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="folder-title">
-            <header><div><span className="modal-icon">□</span><span className="eyebrow">{editingFolderId ? "Edit collection" : "New collection"}</span><h2 id="folder-title">{editingFolderId ? "Edit your folder" : "Name your folder"}</h2></div><button className="icon-button" onClick={closeFolderModal} aria-label="Close modal">×</button></header>
+        <Modal className="modal" labelledBy="folder-title" onClose={closeFolderModal}>
+            <header><div><span className="modal-icon"><UiIcon symbol="□" /></span><span className="eyebrow">{editingFolderId ? "Edit collection" : "New collection"}</span><h2 id="folder-title">{editingFolderId ? "Edit your folder" : "Name your folder"}</h2></div><button className="icon-button" onClick={closeFolderModal} aria-label="Close modal"><UiIcon symbol="×" /></button></header>
             <label className="modal-field"><span>Folder name</span><input value={folderName} onChange={(event) => setFolderName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") saveFolder(); }} placeholder="e.g. Fall semester" maxLength={50} /></label>
             <label className="modal-field"><span>Semester <small>optional</small></span><input value={folderSemester} onChange={(event) => setFolderSemester(event.target.value)} placeholder="e.g. Fall 2026" list="flashbolt-semesters" maxLength={11} /><datalist id="flashbolt-semesters">{[2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027].flatMap((year) => ["Spring", "Summer", "Fall"].map((term) => <option value={`${term} ${year}`} key={`${term}-${year}`} />))}</datalist></label>
             <fieldset className="folder-color-field"><legend>Folder icon color</legend><div>{FOLDER_COLORS.map((color) => <button type="button" className={folderColor === color ? "selected" : ""} style={{ "--folder-swatch": color } as CSSProperties} onClick={() => setFolderColor(color)} aria-label={`Use folder color ${color}`} aria-pressed={folderColor === color} key={color}><span /></button>)}</div></fieldset>
             <fieldset><legend>Add sets <small>optional</small></legend>{data.sets.map((set) => <label className="set-check" key={set.id}><span className="visually-hidden">Add set to folder</span><input aria-label={`Add ${set.title} to folder`} type="checkbox" checked={folderSetIds.includes(set.id)} onChange={() => setFolderSetIds((ids) => ids.includes(set.id) ? ids.filter((id) => id !== set.id) : [...ids, set.id])} /><span><strong>{set.title}</strong><small>{set.cards.length} terms</small></span></label>)}</fieldset>
             <p className="modal-privacy">⌁ This private folder syncs with your account and keeps a local backup on this device.</p>
             <footer>{editingFolder && <button className="button danger" onClick={() => deleteFolder(editingFolder)}>Delete folder</button>}<button className="button quiet" onClick={closeFolderModal}>Cancel</button><button className="button primary" onClick={saveFolder}>{editingFolderId ? "Save changes" : "Create folder"}</button></footer>
-          </div>
-        </div>
+        </Modal>
       )}
 
-      {toast && <div className="toast" role="status"><span>✓</span>{toast}</div>}
+      {toast && <div className="toast" role="status"><span><UiIcon symbol="✓" /></span>{toast}</div>}
     </div>
   );
 }

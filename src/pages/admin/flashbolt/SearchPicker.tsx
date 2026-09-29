@@ -1,9 +1,11 @@
 import { useId, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { Grid2X2 } from "lucide-react";
+import UiIcon from "./UiIcon";
 import { createPortal } from "react-dom";
 import { matchesPickerSearch } from "./pickerSearch";
 
 type Option = { id: string; title: string; detail: string; color?: string; disabled?: boolean };
-const PAGE_SIZE = 6;
+
 
 export default function SearchPicker({ label, value, options, onChange }: {
   label: string; value: string; options: Option[]; onChange: (id: string) => void;
@@ -14,12 +16,9 @@ export default function SearchPicker({ label, value, options, onChange }: {
   const input = useRef<HTMLInputElement>(null);
   const titleId = useId();
   const [query, setQuery] = useState("");
-  const [page, setPage] = useState(0);
   const selected = options.find(option => option.id === value);
   const matches = options.filter(option => matchesPickerSearch(query, option.title, option.detail));
-  const pages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pages - 1);
-  const visible = matches.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+  const visible = matches;
   function close() { setOpen(false); trigger.current?.focus(); }
   function choose(id: string) { onChange(id); close(); }
   useLayoutEffect(() => {
@@ -65,15 +64,14 @@ export default function SearchPicker({ label, value, options, onChange }: {
       const rowBounds = selectedRow.getBoundingClientRect();
       list.scrollTop = rowBounds.top - listBounds.top - (list.clientHeight - rowBounds.height) / 2;
     }
-  }, [open, currentPage, query]);
+  }, [open, query]);
   return <div className="search-picker-field">
     <span>{label}</span>
     <button ref={trigger} type="button" className="search-picker-trigger" aria-label={`${label}: ${selected?.title ?? "Choose"}`} aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? titleId : undefined} disabled={!options.length} onClick={() => {
       setQuery("");
-      setPage(Math.floor(Math.max(0, options.findIndex(option => option.id === value)) / PAGE_SIZE));
       setOpen(!open);
     }}>
-      <span className={selected?.color ? "folder-filter-icon folder" : "search-picker-symbol"} style={selected?.color ? { "--folder-color": selected.color } as CSSProperties : undefined} aria-hidden="true">{selected?.color ? null : "▦"}</span>
+      <span className={selected?.color ? "folder-filter-icon folder" : "search-picker-symbol"} style={selected?.color ? { "--folder-color": selected.color } as CSSProperties : undefined} aria-hidden="true">{selected?.color ? null : <Grid2X2 className="flashbolt-ui-icon" />}</span>
       <span className="search-picker-value"><strong>{selected?.title ?? `Choose ${label.toLowerCase()}`}</strong><small>{selected?.detail ?? "Search and choose"}</small></span>
       <span className="search-picker-chevron" aria-hidden="true">{open ? "⌃" : "⌄"}</span>
     </button>
@@ -82,10 +80,10 @@ export default function SearchPicker({ label, value, options, onChange }: {
     }} onBlur={event => {
       if (event.relatedTarget instanceof Node && !event.currentTarget.contains(event.relatedTarget) && !trigger.current?.contains(event.relatedTarget)) setOpen(false);
     }}>
-      <div className="search-picker-input"><span aria-hidden="true">⌕</span><input ref={input} aria-label={`Search ${label.toLowerCase()}`} placeholder={`Search ${label.toLowerCase()} by name…`} value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} onKeyDown={event => {
+      <div className="search-picker-input"><span aria-hidden="true"><UiIcon symbol="⌕" /></span><input ref={input} aria-label={`Search ${label.toLowerCase()}`} placeholder={`Search ${label.toLowerCase()} by name…`} value={query} onChange={event => { setQuery(event.target.value); }} onKeyDown={event => {
         if (event.key === "ArrowDown") { event.preventDefault(); panel.current?.querySelector<HTMLButtonElement>(".search-picker-result:not(:disabled)")?.focus(); }
         if (event.key === "Enter" && matches.filter(option => !option.disabled).length === 1) choose(matches.find(option => !option.disabled)!.id);
-      }} />{query && <button type="button" aria-label="Clear search" onClick={() => { setQuery(""); setPage(0); input.current?.focus(); }}>×</button>}</div>
+      }} />{query && <button type="button" aria-label="Clear search" onClick={() => { setQuery(""); input.current?.focus(); }}><UiIcon symbol="×" /></button>}</div>
       <p className="search-picker-count" role="status">{matches.length} {matches.length === 1 ? "match" : "matches"}{!query && " · Type to narrow it down"}</p>
       <div className="search-picker-results" onKeyDown={event => {
         if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
@@ -101,14 +99,14 @@ export default function SearchPicker({ label, value, options, onChange }: {
           const topic = section ? section[3].replace(/\s*\[[^\]]+\]\s*$/, "").trim() : "";
           const sectionColor = section ? ["#a99aff", "#6dd9ce", "#f1c675", "#f49cb4", "#8fc7ff"][(Number(section[2]) - 1 + 5) % 5] : undefined;
           return <button type="button" key={option.id} className={`search-picker-result ${section ? "has-section" : ""} ${option.id === value ? "is-selected" : ""}`} style={sectionColor ? { "--section-color": sectionColor } as CSSProperties : undefined} disabled={option.disabled} aria-label={`${option.title}, ${option.detail}`} aria-current={option.id === value ? "true" : undefined} onClick={() => choose(option.id)}>
-            {section ? <span className="search-picker-section" aria-hidden="true"><span>{section[1]}</span><b>{section[2]}</b></span> : <span className={option.color ? "folder-filter-icon folder" : "search-picker-symbol"} style={option.color ? { "--folder-color": option.color } as CSSProperties : undefined} aria-hidden="true">{option.color ? null : "▦"}</span>}
+            {section ? <span className="search-picker-section" aria-hidden="true"><span>{section[1]}</span><b>{section[2]}</b></span> : <span className={option.color ? "folder-filter-icon folder" : "search-picker-symbol"} style={option.color ? { "--folder-color": option.color } as CSSProperties : undefined} aria-hidden="true">{option.color ? null : <Grid2X2 className="flashbolt-ui-icon" />}</span>}
             <span className="search-picker-result-copy"><strong>{section ? topic || `${section[1]} ${section[2]}` : option.title}</strong>{section ? <small className="search-picker-result-meta"><span>{option.detail.split(" · ")[0]}</span>{course && <span>{course.slice(1, -1)}</span>}</small> : <small>{option.detail}</small>}</span>
-            <span className="search-picker-check" aria-hidden="true">{option.id === value ? "✓" : "→"}</span>
+            <span className="search-picker-check" aria-hidden="true"><UiIcon symbol={option.id === value ? "✓" : "→"} /></span>
           </button>;
         })}
         {!matches.length && <div className="search-picker-empty"><strong>No matches found</strong><p>Try a shorter name or a different keyword.</p></div>}
       </div>
-      <footer><span>↑ ↓ to browse · Esc to close</span>{pages > 1 && <nav aria-label="Search results pages"><button type="button" aria-label="Previous results" disabled={!currentPage} onClick={() => setPage(currentPage - 1)}>←</button><span>{currentPage + 1} / {pages}</span><button type="button" aria-label="Next results" disabled={currentPage === pages - 1} onClick={() => setPage(currentPage + 1)}>→</button></nav>}</footer>
+      <footer><span>↑ ↓ to browse · Esc to close</span></footer>
     </div>, document.body)}
   </div>;
 }

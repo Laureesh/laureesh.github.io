@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
+import { Ellipsis } from "lucide-react";
 import SetColorPicker from "./SetColorPicker";
 
 export type SetDetails = { title: string; subject: string; description: string; color: string };
@@ -8,9 +9,10 @@ type Props = {
   onSave: (details: SetDetails) => void;
   onOpenKahootHelper?: () => void;
   kahootUrl?: string;
+  onOpenActions?: (event: MouseEvent<HTMLButtonElement>) => void;
 };
 
-export default function InlineSetDetails({ set, onSave, onOpenKahootHelper, kahootUrl }: Props) {
+export default function InlineSetDetails({ set, onSave, onOpenKahootHelper, kahootUrl, onOpenActions }: Props) {
   const [draft, setDraft] = useState<SetDetails | null>(null);
   const [error, setError] = useState("");
   const cancel = () => { setDraft(null); setError(""); };
@@ -23,6 +25,7 @@ export default function InlineSetDetails({ set, onSave, onOpenKahootHelper, kaho
           setDraft({ title: set.title, subject: set.subject, description: set.description, color: set.color });
           setError("");
         }}>Quick edit</button>
+        {onOpenActions && <button type="button" className="set-tile-quick-edit set-actions-trigger" aria-label={`Actions for ${set.title}`} aria-haspopup="menu" onClick={onOpenActions}><Ellipsis aria-hidden="true" /></button>}
         {onOpenKahootHelper && <button type="button" className="set-tile-quick-edit" aria-label={`Open Kahoot Helper for ${set.title}`} onClick={onOpenKahootHelper}>Kahoot Helper</button>}
         {kahootUrl && <a className="tile-kahoot-link" href={kahootUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()} aria-label={`Linked Kahoot for ${set.title}`}>Linked Kahoot <span aria-hidden="true">↗</span></a>}
       </div>

@@ -1,10 +1,14 @@
-import { useId } from "react";
+import { useId, useRef, useState } from "react";
 import { normalizeMasteryFilter, type MasteryFilter } from "./masteryFilter";
+
+import FloatingPanel from "./FloatingPanel";
 
 type Props = { compact?: "chip" | "sort"; value: MasteryFilter; onChange: (value: MasteryFilter) => void; shown: number; total: number };
 
 export default function MasteryFilterControls({ value, onChange, shown, total, compact }: Props) {
   const id = useId();
+  const anchor = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
   const setPercentage = (input: string) => {
     if (input === "") return;
     const percentage = Number(input);
@@ -21,8 +25,8 @@ export default function MasteryFilterControls({ value, onChange, shown, total, c
     <p>{value.mode === "all" ? "Choose which sets to hide, then adjust the slider or enter a percentage." : `Hiding sets ${value.mode} ${value.percentage}% mastery. Sets at exactly ${value.percentage}% stay visible.`}</p>
   </section>;
   if (!compact) return panel;
-  return <details className={`compact-mastery-filter compact-filter-${compact}`} name="flashbolt-list-filter" onKeyDown={event => { if (event.key === "Escape") { event.currentTarget.open = false; event.currentTarget.querySelector("summary")?.focus(); } }}>
-    <summary>{compact === "sort" && <span className="library-sort-icon" aria-hidden="true">%</span>}<span className="compact-filter-copy"><span>Mastery filter</span>{compact === "sort" && <strong>{value.mode === "all" ? "All mastery levels" : `Hide ${value.mode} ${value.percentage}%`}</strong>}</span>{compact === "chip" && value.mode !== "all" && <small>{value.mode === "above" ? "≤" : "≥"} {value.percentage}%</small>}<span aria-hidden="true">⌄</span></summary>
-    <div className="compact-filter-popover">{panel}</div>
-  </details>;
+  return <div className={`compact-mastery-filter compact-filter-${compact}`}>
+    <button ref={anchor} type="button" className="mastery-filter-trigger" aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? `${id}-panel` : undefined} onClick={() => setOpen(!open)}><span>Mastery filter</span>{value.mode !== "all" && <small>{value.mode === "above" ? "≤" : "≥"} {value.percentage}%</small>}<span aria-hidden="true">⌄</span></button>
+    {open && <FloatingPanel anchor={anchor} id={`${id}-panel`} label="Filter sets by mastery" onClose={() => setOpen(false)}>{panel}</FloatingPanel>}
+  </div>;
 }
