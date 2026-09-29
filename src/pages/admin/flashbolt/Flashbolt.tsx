@@ -2681,7 +2681,7 @@ export default function Flashbolt() {
     setSetContextMenu({
       setId,
       x: Math.max(10, Math.min(event.clientX, window.innerWidth - 270)),
-      y: Math.max(10, Math.min(event.clientY, window.innerHeight - (data.sets.find(set => set.id === setId)?.subject.trim().toLowerCase() === "kahoot import" ? 470 : 390))),
+      y: Math.max(10, Math.min(event.clientY, window.innerHeight - (data.sets.find(set => set.id === setId)?.subject.trim().toLowerCase() === "kahoot import" ? 510 : 430))),
     });
   }
 
@@ -2720,6 +2720,27 @@ export default function Flashbolt() {
     }));
     setSelectedSetId(duplicateId);
     notify("Set duplicated.");
+  }
+
+  function removeAllSetTerms(setToClear: StudySet) {
+    if (!setToClear.cards.length) return;
+    if (!window.confirm(`Remove all ${setToClear.cards.length} terms from “${setToClear.title}”? The set will remain. This cannot be undone.`)) return;
+    setData((current) => {
+      const mastered = { ...current.mastered };
+      const learnProgress = { ...current.learnProgress };
+      delete mastered[setToClear.id];
+      delete learnProgress[setToClear.id];
+      return {
+        ...current,
+        sets: current.sets.map((set) => set.id === setToClear.id
+          ? { ...set, cards: [], updatedAt: new Date().toISOString() }
+          : set),
+        mastered,
+        learnProgress,
+        activeLearn: current.activeLearn?.setId === setToClear.id ? undefined : current.activeLearn,
+      };
+    });
+    notify("All terms removed.");
   }
 
   function deleteSetFromLibrary(setToDelete: StudySet) {
@@ -2916,6 +2937,7 @@ export default function Flashbolt() {
             <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "test")}><span>↗</span>Copy test link</button>
             <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "edit")}><span>↗</span>Copy edit link</button>
             <i />
+            <button role="menuitem" className="danger" disabled={!contextSet.cards.length} onClick={() => { setSetContextMenu(null); removeAllSetTerms(contextSet); }}><span>−</span>Remove all terms</button>
             <button role="menuitem" className="danger" onClick={() => { setSetContextMenu(null); deleteSetFromLibrary(contextSet); }}><span>×</span>Delete set</button>
           </div>
         );

@@ -1483,6 +1483,8 @@ select:focus-visible {
   z-index: 1000;
   display: grid;
   width: 190px;
+  max-height: calc(100dvh - 20px);
+  overflow-y: auto;
   padding: 7px;
   border: 1px solid var(--line);
   border-radius: 12px;
