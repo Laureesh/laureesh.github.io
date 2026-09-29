@@ -54,10 +54,24 @@ export default function SearchPicker({ label, value, options, onChange }: {
       document.removeEventListener("pointerdown", outside);
     };
   }, [open]);
+  useLayoutEffect(() => {
+    if (!open) return;
+    const list = panel.current?.querySelector<HTMLDivElement>(".search-picker-results");
+    if (!list) return;
+    list.scrollTop = 0;
+    const selectedRow = !query ? list.querySelector<HTMLButtonElement>('[aria-current="true"]') : null;
+    if (selectedRow) {
+      const listBounds = list.getBoundingClientRect();
+      const rowBounds = selectedRow.getBoundingClientRect();
+      list.scrollTop = rowBounds.top - listBounds.top - (list.clientHeight - rowBounds.height) / 2;
+    }
+  }, [open, currentPage, query]);
   return <div className="search-picker-field">
     <span>{label}</span>
     <button ref={trigger} type="button" className="search-picker-trigger" aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? titleId : undefined} disabled={!options.length} onClick={() => {
-      setQuery(""); setPage(0); setOpen(!open);
+      setQuery("");
+      setPage(Math.floor(Math.max(0, options.findIndex(option => option.id === value)) / PAGE_SIZE));
+      setOpen(!open);
     }}>
       <span className={selected?.color ? "folder-filter-icon folder" : "search-picker-symbol"} style={selected?.color ? { "--folder-color": selected.color } as CSSProperties : undefined} aria-hidden="true">{selected?.color ? null : "▦"}</span>
       <span className="search-picker-value"><strong>{selected?.title ?? `Choose ${label.toLowerCase()}`}</strong><small>{selected?.detail ?? "Search and choose"}</small></span>
