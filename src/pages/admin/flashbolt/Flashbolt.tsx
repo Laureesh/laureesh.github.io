@@ -3019,7 +3019,8 @@ export default function Flashbolt() {
               <div className="folder-chips" role="group" aria-label={`${quickLinkSemester.semester} folders`}>
                 {quickLinkSemester.folders.map(item => <Link key={item.id} to={folderPath(item)} className={selectedFolderId === item.id ? "active" : ""} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name}>
                   <span className="folder-filter-icon folder" aria-hidden="true" style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} />
-                  <span className="folder-filter-name">{item.name}</span>
+                  {item.name.match(/^\[[^\]]+\]/) && <span className="sidebar-folder-course">{item.name.match(/^\[([^\]]+)\]/)?.[1]}</span>}
+                  <span className="folder-filter-name">{item.name.replace(/^\[[^\]]+\]\s*/, "") || item.name}</span>
                   <span className="folder-filter-count">{item.setIds.length}</span>
                 </Link>)}
               </div>

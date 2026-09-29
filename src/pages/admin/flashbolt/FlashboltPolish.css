@@ -123,3 +123,24 @@
   .flashbolt-shell .set-field-label button { max-width: 100%; text-align: left; }
   .flashbolt-shell .form-card .field-row { gap: 16px; }
 }
+
+/* Sidebar shortcuts use the full row for names, even at tablet widths. */
+.flashbolt-shell:not(.sidebar-collapsed) .sidebar-brand-row { gap: 8px; margin-bottom: 24px; }
+.flashbolt-shell:not(.sidebar-collapsed) .sidebar .brand { min-width: 0; margin: 0; gap: 8px; font-size: 19px; line-height: 1.2; white-space: nowrap; letter-spacing: -.04em; }
+.flashbolt-shell:not(.sidebar-collapsed) .sidebar .brand-mark { width: 24px; flex-basis: 24px; }
+.flashbolt-shell:not(.sidebar-collapsed) .sidebar-collapse-button { margin: 0; width: 26px; height: 26px; flex-basis: 26px; }
+.flashbolt-shell:not(.sidebar-collapsed) .sidebar-folder-menu { max-height: min(38vh, 360px); scrollbar-width: thin; padding-right: 3px; }
+.flashbolt-shell:not(.sidebar-collapsed) .sidebar-folder-menu .folder-chips a {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 6px 7px;
+  padding: 10px;
+  border-radius: 10px;
+}
+.flashbolt-shell:not(.sidebar-collapsed) .sidebar-folder-menu .folder-filter-icon { grid-column: 1; grid-row: 1; width: 24px; height: 24px; }
+.flashbolt-shell .sidebar-folder-course { grid-column: 2; grid-row: 1; font-size: 10px; line-height: 1.3; color: var(--muted); white-space: nowrap; }
+.flashbolt-shell:not(.sidebar-collapsed) .sidebar-folder-menu .folder-filter-count { grid-column: 3; grid-row: 1; font-size: 10px; min-width: 22px; padding: 2px 5px; text-align: center; }
+.flashbolt-shell:not(.sidebar-collapsed) .sidebar-folder-menu .folder-filter-name { grid-column: 1 / -1; grid-row: 2; font-size: 12px; line-height: 1.45; font-weight: 650; text-align: left; white-space: normal; overflow-wrap: break-word; word-break: normal; }
+.flashbolt-shell.sidebar-collapsed .sidebar-folder-course { display: none; }
