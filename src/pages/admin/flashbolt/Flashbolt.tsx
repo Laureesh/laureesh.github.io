@@ -3776,7 +3776,7 @@ export default function Flashbolt() {
                       setCollapsedHelperCards(current => current.includes(collapseKey) ? current.filter(key => key !== collapseKey) : [...current, collapseKey]);
 
                     };
-                    return <article id={`helper-card-${card.id}`} className={`kahoot-helper-card${collapsed ? " collapsed" : ""}`} key={card.id} onClick={() => { if (collapsed) toggleCard(); }}>
+                    return <article id={`helper-card-${card.id}`} className={`kahoot-helper-card${collapsed ? " collapsed" : ""}`} key={card.id} onClick={toggleCard}>
                       <header><span><span className="helper-question-label">Question </span>{index + 1}</span><b>{cardQuestionType(card).replaceAll("-", " ")}</b><button type="button" className="kahoot-helper-toggle" aria-expanded={!collapsed} aria-controls={`helper-answer-${card.id}`} aria-label={`${collapsed ? "Expand" : "Minimize"} question ${index + 1}: ${question}`} onClick={(event) => { event.stopPropagation(); toggleCard(); }}>{collapsed ? "＋" : "−"}</button></header>
                       <h2 title={collapsed ? question : undefined}>{question}</h2>
                       <div className="kahoot-helper-card-content" id={`helper-answer-${card.id}`} hidden={collapsed}>
