@@ -226,6 +226,13 @@ const LIBRARY_SORT_VALUES: LibrarySort[] = [
 ];
 const LIBRARY_COLLATOR = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
 const HIGHLIGHT_COLORS: HighlightColor[] = ["none", "yellow", "mint", "violet"];
+function semesterRank(label: string) {
+  const match = /^(Spring|Summer|Fall) (\d{4})$/.exec(label);
+  if (!match) return -1;
+  const termRank = { Spring: 1, Summer: 2, Fall: 3 }[match[1] as "Spring" | "Summer" | "Fall"];
+  return Number(match[2]) * 10 + termRank;
+}
+
 const FOLDER_COLORS = ["#7773ff", "#55c9f3", "#54d29a", "#f4c84a", "#ff8b9d", "#c98cff", "#ff9f5a", "#9ca8c7"];
 const LANGUAGE_OPTIONS = [
   { value: "auto", label: "Auto-detect", speechCode: "" },
@@ -1327,12 +1334,6 @@ export default function Flashbolt() {
       const label = item.semester || "No semester";
       groups.set(label, [...(groups.get(label) ?? []), item]);
     });
-    const semesterRank = (label: string) => {
-      const match = /^(Spring|Summer|Fall) (\d{4})$/.exec(label);
-      if (!match) return -1;
-      const termRank = { Spring: 1, Summer: 2, Fall: 3 }[match[1] as "Spring" | "Summer" | "Fall"];
-      return Number(match[2]) * 10 + termRank;
-    };
     return [...groups.entries()]
       .sort(([a], [b]) => semesterRank(b) - semesterRank(a))
       .map(([semester, folders]) => ({ semester, folders }));
@@ -3739,7 +3740,7 @@ export default function Flashbolt() {
                 <div className="kahoot-helper-controls">
                   <SearchPicker label="Folder" value={helperFolderId} options={[
                     { id: "all", title: "All folders", detail: `${data.sets.length} sets` },
-                    ...data.folders.map(folderItem => ({ id: folderItem.id, title: folderItem.name, detail: `${folderItem.semester ? `${folderItem.semester} · ` : ""}${folderItem.setIds.length} sets`, disabled: !folderItem.setIds.length })),
+                    ...[...data.folders].sort((a, b) => b.setIds.length - a.setIds.length || semesterRank(b.semester ?? "") - semesterRank(a.semester ?? "") || a.name.localeCompare(b.name)).map(folderItem => ({ id: folderItem.id, title: folderItem.name, color: folderItem.color ?? FOLDER_COLORS[0], detail: `${folderItem.semester ? `${folderItem.semester} · ` : ""}${folderItem.setIds.length} sets`, disabled: !folderItem.setIds.length })),
                   ]} onChange={folderId => {
                     const firstSet = folderId === "all" ? data.sets[0] : data.sets.find(set => data.folders.find(folderItem => folderItem.id === folderId)?.setIds.includes(set.id));
                     setHelperFolderId(folderId); setHelperSetId(firstSet?.id ?? "");
