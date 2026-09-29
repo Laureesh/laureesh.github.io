@@ -6785,9 +6785,11 @@ kbd {
 }
 
 .set-context-menu {
+  box-sizing: border-box;
   width: min(250px, calc(100vw - 20px));
-  max-height: calc(100vh - 20px);
+  max-height: calc(100dvh - 20px);
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .set-context-menu > strong {

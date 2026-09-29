@@ -19,6 +19,7 @@ import SearchPicker from "./SearchPicker";
 import TileFolderPanel from "./TileFolderPanel";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
 import type { CSSProperties, ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { loadFlashboltLibrary, mergeAndSaveFlashboltLibrary, saveFlashboltLibrary } from "../../../services/flashboltLibrary";
@@ -878,6 +879,7 @@ export default function Flashbolt() {
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [tileFolderPickerId, setTileFolderPickerId] = useState<string | null>(null);
   const [tileFolderSearch, setTileFolderSearch] = useState("");
+  const setContextMenuRef = useRef<HTMLDivElement>(null);
   const [setContextMenu, setSetContextMenu] = useState<{ setId: string; x: number; y: number } | null>(null);
   const [draft, setDraft] = useState<StudySet>(blankDraft);
   const [notebookSource, setNotebookSource] = useState<NotebookDraftSource | null>(null);
@@ -1208,20 +1210,38 @@ export default function Flashbolt() {
     };
   }, [tileFolderPickerId]);
 
+  useLayoutEffect(() => {
+    const menu = setContextMenuRef.current;
+    if (!setContextMenu || !menu) return;
+    const position = () => {
+      const bounds = menu.getBoundingClientRect();
+      menu.style.left = `${Math.max(10, Math.min(setContextMenu.x, window.innerWidth - bounds.width - 10))}px`;
+      menu.style.top = `${Math.max(10, Math.min(setContextMenu.y, window.innerHeight - bounds.height - 10))}px`;
+    };
+    position();
+    const observer = new ResizeObserver(position);
+    observer.observe(menu);
+    return () => observer.disconnect();
+  }, [setContextMenu]);
+
   useEffect(() => {
     if (!setContextMenu) return;
     const close = () => setSetContextMenu(null);
+    const closeOnOutsideScroll = (event: Event) => {
+      if (event.target instanceof Node && setContextMenuRef.current?.contains(event.target)) return;
+      close();
+    };
     const closeOnEscape = (event: globalThis.KeyboardEvent) => {
       if (event.key === "Escape") close();
     };
     window.addEventListener("pointerdown", close);
     window.addEventListener("keydown", closeOnEscape);
-    window.addEventListener("scroll", close, true);
+    window.addEventListener("scroll", closeOnOutsideScroll, true);
     window.addEventListener("resize", close);
     return () => {
       window.removeEventListener("pointerdown", close);
       window.removeEventListener("keydown", closeOnEscape);
-      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("scroll", closeOnOutsideScroll, true);
       window.removeEventListener("resize", close);
     };
   }, [setContextMenu]);
@@ -2682,8 +2702,8 @@ export default function Flashbolt() {
     setTileFolderPickerId(null);
     setSetContextMenu({
       setId,
-      x: Math.max(10, Math.min(event.clientX, window.innerWidth - 270)),
-      y: Math.max(10, Math.min(event.clientY, window.innerHeight - (data.sets.find(set => set.id === setId)?.subject.trim().toLowerCase() === "kahoot import" ? 510 : 430))),
+      x: event.clientX,
+      y: event.clientY,
     });
   }
 
@@ -2923,8 +2943,8 @@ export default function Flashbolt() {
       {setContextMenu && (() => {
         const contextSet = data.sets.find((item) => item.id === setContextMenu.setId);
         if (!contextSet) return null;
-        return (
-          <div className="set-context-menu" role="menu" aria-label={`Actions for ${contextSet.title}`} style={{ left: setContextMenu.x, top: setContextMenu.y }} onPointerDown={(event) => event.stopPropagation()}>
+        return createPortal(
+          <div ref={setContextMenuRef} className="set-context-menu" role="menu" aria-label={`Actions for ${contextSet.title}`} style={{ left: setContextMenu.x, top: setContextMenu.y }} onPointerDown={(event) => event.stopPropagation()}>
             <strong>{contextSet.title}</strong>
             <Link role="menuitem" to={routePathForView("set", contextSet.id)} onClick={() => setSetContextMenu(null)}><span>▣</span>View set</Link>
             <a role="menuitem" href={routePathForView("set", contextSet.id)} target="_blank" rel="noreferrer" onClick={() => setSetContextMenu(null)}><span>↗</span>Open in new tab</a>
@@ -2942,7 +2962,7 @@ export default function Flashbolt() {
             <i />
             <button role="menuitem" className="danger" disabled={!contextSet.cards.length} onClick={() => { setSetContextMenu(null); removeAllSetTerms(contextSet); }}><span>−</span>Remove all terms</button>
             <button role="menuitem" className="danger" onClick={() => { setSetContextMenu(null); deleteSetFromLibrary(contextSet); }}><span>×</span>Delete set</button>
-          </div>
+          </div>, document.body
         );
       })()}
       <aside className="sidebar">
