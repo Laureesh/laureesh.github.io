@@ -850,6 +850,7 @@ export default function Flashbolt() {
   const [helperFolderId, setHelperFolderId] = useState("all");
   const [helperSetId, setHelperSetId] = useState(initialData.sets[0].id);
   const [helperSearch, setHelperSearch] = useState("");
+  const pendingHelperCard = useRef<string | null>(null);
   const [collapsedHelperCards, setCollapsedHelperCards] = useState<string[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try { return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true"; } catch { return false; }
@@ -1219,6 +1220,48 @@ export default function Flashbolt() {
       window.removeEventListener("keydown", closeOnEscape);
     };
   }, [tileFolderPickerId]);
+
+  useLayoutEffect(() => {
+    if (view !== "helper") return;
+    const narrow = window.matchMedia("(max-width: 780px)");
+    const fitExpandedCards = () => {
+      const viewport = window.visualViewport;
+      const viewportBottom = (viewport?.offsetTop ?? 0) + (viewport?.height ?? window.innerHeight);
+      const navigation = document.querySelector<HTMLElement>(".mobile-nav");
+      const navTop = navigation && getComputedStyle(navigation).display !== "none"
+        ? navigation.getBoundingClientRect().top : viewportBottom;
+      const bottom = Math.min(viewportBottom, navTop) - 12;
+      document.querySelectorAll<HTMLElement>(".kahoot-helper-card:not(.collapsed)").forEach(card => {
+        if (!narrow.matches) { card.style.removeProperty("max-height"); return; }
+        const top = card.getBoundingClientRect().top;
+        // Fit the actual remaining space, not the full viewport height.
+        const available = bottom - Math.max(top, 0);
+        if (available > 100) card.style.maxHeight = `${Math.floor(available)}px`;
+      });
+    };
+    const opened = pendingHelperCard.current ? document.getElementById(pendingHelperCard.current) : null;
+    pendingHelperCard.current = null;
+    if (narrow.matches && opened && !opened.classList.contains("collapsed")) {
+      opened.scrollTop = 0;
+      opened.style.scrollMarginTop = `${Math.max(0, topbarRef.current?.getBoundingClientRect().bottom ?? 0) + 12}px`;
+      opened.scrollIntoView({ block: "start", behavior: "instant" });
+    }
+    fitExpandedCards();
+    const frame = requestAnimationFrame(fitExpandedCards);
+    const onScroll = (event: Event) => {
+      if (event.target instanceof Element && event.target.closest(".kahoot-helper-card")) return;
+      fitExpandedCards();
+    };
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", fitExpandedCards);
+    window.visualViewport?.addEventListener("resize", fitExpandedCards);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", fitExpandedCards);
+      window.visualViewport?.removeEventListener("resize", fitExpandedCards);
+    };
+  }, [collapsedHelperCards, view]);
 
   useLayoutEffect(() => {
     const menu = setContextMenuRef.current;
@@ -3758,17 +3801,11 @@ export default function Flashbolt() {
                     const collapseKey = `${helperSet.id}:${card.id}`;
                     const collapsed = collapsedHelperCards.includes(collapseKey);
                     const toggleCard = () => {
+                      pendingHelperCard.current = collapsed ? `helper-card-${card.id}` : null;
                       setCollapsedHelperCards(current => current.includes(collapseKey) ? current.filter(key => key !== collapseKey) : [...current, collapseKey]);
-                      if (collapsed && window.matchMedia("(max-width: 780px)").matches) {
-                        requestAnimationFrame(() => {
-                          const expandedCard = document.getElementById(`helper-card-${card.id}`);
-                          if (!expandedCard || expandedCard.classList.contains("collapsed")) return;
-                          expandedCard.scrollTop = 0;
-                          expandedCard.scrollIntoView({ block: "start", behavior: "instant" });
-                        });
-                      }
+
                     };
-                    return <article id={`helper-card-${card.id}`} className={`kahoot-helper-card${collapsed ? " collapsed" : ""}`} key={card.id} onClick={toggleCard}>
+                    return <article id={`helper-card-${card.id}`} className={`kahoot-helper-card${collapsed ? " collapsed" : ""}`} key={card.id} onClick={() => { if (collapsed) toggleCard(); }}>
                       <header><span><span className="helper-question-label">Question </span>{index + 1}</span><b>{cardQuestionType(card).replaceAll("-", " ")}</b><button type="button" className="kahoot-helper-toggle" aria-expanded={!collapsed} aria-controls={`helper-answer-${card.id}`} aria-label={`${collapsed ? "Expand" : "Minimize"} question ${index + 1}: ${question}`} onClick={(event) => { event.stopPropagation(); toggleCard(); }}>{collapsed ? "＋" : "−"}</button></header>
                       <h2 title={collapsed ? question : undefined}>{question}</h2>
                       <div className="kahoot-helper-card-content" id={`helper-answer-${card.id}`} hidden={collapsed}>
