@@ -7877,3 +7877,29 @@ kbd {
 .search-picker-empty { padding: 30px 12px; text-align: center; color: #d8d4f0; }
 .search-picker-empty p { font-size: 13px; color: #aaa4c3; }
 @media (max-width: 540px) { .flashbolt-search-picker { padding: 16px; } .search-picker-result { padding: 10px; } }
+
+/* Folder assignment floats above tiles, independent of compact grid columns. */
+.tile-folder-menu[popover] {
+  position: fixed;
+  inset: auto;
+  box-sizing: border-box;
+  width: min(400px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  margin: 0;
+  padding: 16px;
+  overflow-y: auto;
+  color: var(--ink);
+  text-align: left;
+}
+.tile-folder-menu[popover]:not(:popover-open) { display: none; }
+.tile-folder-menu[popover] .tile-folder-menu-heading { flex-wrap: wrap; gap: 10px; }
+.tile-folder-menu[popover] .tile-folder-menu-copy { flex: 1; }
+.tile-folder-menu[popover] .tile-folder-menu-copy strong { font-size: 15px; white-space: nowrap; }
+.tile-folder-menu[popover] .tile-folder-menu-copy small { font-size: 12px; line-height: 1.5; }
+.tile-folder-menu[popover] .tile-folder-selection-count { flex-shrink: 0; font-size: 11px; white-space: nowrap; }
+.tile-folder-menu[popover] .tile-folder-option-copy strong { font-size: 14px; line-height: 1.4; overflow-wrap: break-word; }
+.tile-folder-menu[popover] .tile-folder-option-copy small { font-size: 12px; }
+.tile-folder-menu[popover] .tile-folder-menu-actions { grid-template-columns: 1fr 1fr; }
+.tile-folder-menu[popover] .tile-folder-menu-actions button { font-size: 12px; white-space: nowrap; }
+.folder-compact-view .set-tile { min-height: 0; }
+.folder-compact-view .tile-folder-badge { margin-top: 0; }

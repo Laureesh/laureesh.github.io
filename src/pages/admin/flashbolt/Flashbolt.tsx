@@ -16,6 +16,7 @@ import { DEFAULT_MASTERY_FILTER, MASTERY_FILTER_KEY, masteryPercentage, matchesM
 import InlineSetDetails from "./InlineSetDetails";
 import SetColorPicker from "./SetColorPicker";
 import SearchPicker from "./SearchPicker";
+import TileFolderPanel from "./TileFolderPanel";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { CSSProperties, ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
@@ -2828,6 +2829,7 @@ export default function Flashbolt() {
                   aria-label={`Change folders for ${set.title}. Current: ${folderLabel}`}
                   aria-expanded={tileFolderPickerId === set.id}
                   aria-controls={`tile-folder-menu-${set.id}`}
+                  aria-haspopup="dialog"
                   onClick={() => {
                     setTileFolderPickerId((current) => current === set.id ? null : set.id);
                     setTileFolderSearch("");
@@ -2841,7 +2843,7 @@ export default function Flashbolt() {
                   <span className="tile-folder-chevron" aria-hidden="true">⌄</span>
                 </button>
                 {tileFolderPickerId === set.id && (
-                  <div className="tile-folder-menu" id={`tile-folder-menu-${set.id}`} role="group" aria-label={`Folders for ${set.title}`}>
+                  <TileFolderPanel id={`tile-folder-menu-${set.id}`} label={`Folders for ${set.title}`}>
                     <div className="tile-folder-menu-heading">
                       <span className="tile-folder-menu-mark" aria-hidden="true">□</span>
                       <span className="tile-folder-menu-copy"><strong>Choose folders</strong><small>Changes save automatically</small></span>
@@ -2893,7 +2895,7 @@ export default function Flashbolt() {
                       <button className="clear" onClick={() => clearSetFolderAssignments(set.id)} disabled={!setFolders.length}>Clear selection</button>
                       <button className="create" onClick={() => openNewFolderModalForSet(set.id)}>＋ New folder</button>
                     </div>
-                  </div>
+                  </TileFolderPanel>
                 )}
               </div>
               <span className="tile-footer">
