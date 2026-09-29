@@ -1224,21 +1224,6 @@ export default function Flashbolt() {
   useLayoutEffect(() => {
     if (view !== "helper") return;
     const narrow = window.matchMedia("(max-width: 780px)");
-    const fitExpandedCards = () => {
-      const viewport = window.visualViewport;
-      const viewportBottom = (viewport?.offsetTop ?? 0) + (viewport?.height ?? window.innerHeight);
-      const navigation = document.querySelector<HTMLElement>(".mobile-nav");
-      const navTop = navigation && getComputedStyle(navigation).display !== "none"
-        ? navigation.getBoundingClientRect().top : viewportBottom;
-      const bottom = Math.min(viewportBottom, navTop) - 12;
-      document.querySelectorAll<HTMLElement>(".kahoot-helper-card:not(.collapsed)").forEach(card => {
-        if (!narrow.matches) { card.style.removeProperty("max-height"); return; }
-        const top = card.getBoundingClientRect().top;
-        // Fit the actual remaining space, not the full viewport height.
-        const available = bottom - Math.max(top, 0);
-        if (available > 100) card.style.maxHeight = `${Math.floor(available)}px`;
-      });
-    };
     const opened = pendingHelperCard.current ? document.getElementById(pendingHelperCard.current) : null;
     pendingHelperCard.current = null;
     if (narrow.matches && opened && !opened.classList.contains("collapsed")) {
@@ -1246,21 +1231,6 @@ export default function Flashbolt() {
       opened.style.scrollMarginTop = `${Math.max(0, topbarRef.current?.getBoundingClientRect().bottom ?? 0) + 12}px`;
       opened.scrollIntoView({ block: "start", behavior: "instant" });
     }
-    fitExpandedCards();
-    const frame = requestAnimationFrame(fitExpandedCards);
-    const onScroll = (event: Event) => {
-      if (event.target instanceof Element && event.target.closest(".kahoot-helper-card")) return;
-      fitExpandedCards();
-    };
-    window.addEventListener("scroll", onScroll, true);
-    window.addEventListener("resize", fitExpandedCards);
-    window.visualViewport?.addEventListener("resize", fitExpandedCards);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", onScroll, true);
-      window.removeEventListener("resize", fitExpandedCards);
-      window.visualViewport?.removeEventListener("resize", fitExpandedCards);
-    };
   }, [collapsedHelperCards, view]);
 
   useLayoutEffect(() => {
