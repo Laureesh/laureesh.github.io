@@ -1,5 +1,6 @@
 import { useId, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
+import { matchesPickerSearch } from "./pickerSearch";
 
 type Option = { id: string; title: string; detail: string; color?: string; disabled?: boolean };
 const PAGE_SIZE = 6;
@@ -15,8 +16,7 @@ export default function SearchPicker({ label, value, options, onChange }: {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(0);
   const selected = options.find(option => option.id === value);
-  const words = query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
-  const matches = options.filter(option => words.every(word => `${option.title} ${option.detail}`.toLocaleLowerCase().includes(word)));
+  const matches = options.filter(option => matchesPickerSearch(query, option.title, option.detail));
   const pages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
   const currentPage = Math.min(page, pages - 1);
   const visible = matches.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
