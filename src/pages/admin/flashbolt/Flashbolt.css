@@ -7946,3 +7946,55 @@ kbd {
 .search-picker-result small.search-picker-result-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; margin-top: 7px; font-size: 10px; }
 .search-picker-result-meta > span:first-child { padding: 3px 6px; border-radius: 5px; background: #ffffff09; color: #cbc6dc; }
 .search-picker-result.has-section.is-selected { border-color: var(--section-color); background: color-mix(in srgb, var(--section-color) 9%, transparent); }
+
+/* Keep the helper usable in narrow windows, including long question text. */
+.kahoot-helper-page,
+.kahoot-helper-list,
+.kahoot-helper-card,
+.kahoot-helper-card-content,
+.kahoot-helper-card h2,
+.kahoot-helper-choices,
+.kahoot-helper-choices li,
+.kahoot-helper-choices li > span,
+.kahoot-helper-answer { min-width: 0; box-sizing: border-box; max-width: 100%; }
+.kahoot-helper-card { grid-template-columns: minmax(0, 1fr); }
+.kahoot-helper-card header > span { flex-shrink: 0; white-space: nowrap; }
+.kahoot-helper-card:not(.collapsed) h2,
+.kahoot-helper-answer strong { white-space: normal; overflow-wrap: anywhere; }
+
+@media (max-width: 620px) {
+  .kahoot-helper-controls { gap: 5px; padding: 8px; border-radius: 12px; }
+  .kahoot-helper-controls .search-picker-field { grid-template-columns: 40px minmax(0, 1fr); align-items: center; gap: 6px; }
+  .kahoot-helper-controls .search-picker-field > span { font-size: 9px; letter-spacing: 0; }
+  .kahoot-helper-controls .search-picker-field:nth-child(2) > span { font-size: 0; }
+  .kahoot-helper-controls .search-picker-field:nth-child(2) > span::after { content: "SET"; font-size: 9px; }
+  .kahoot-helper-controls .search-picker-trigger { min-height: 34px; padding: 5px 7px; gap: 6px; border-radius: 8px; }
+  .kahoot-helper-controls .search-picker-value strong { font-size: 11px; }
+  .kahoot-helper-controls .search-picker-value small { display: none; }
+  .kahoot-helper-controls .search-picker-trigger > .folder-filter-icon,
+  .kahoot-helper-controls .search-picker-trigger > .search-picker-symbol { display: none; }
+  .kahoot-helper-controls .kahoot-helper-search > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .kahoot-helper-controls .kahoot-helper-search input { height: 34px; font-size: 12px; }
+  .kahoot-helper-search > div > span { top: 7px; }
+  .kahoot-helper-search button { top: 0; }
+  .kahoot-helper-list { gap: 5px; margin-top: 8px; grid-template-columns: minmax(0, 1fr); }
+  .kahoot-helper-card.collapsed { grid-template-columns: 22px minmax(0, 1fr) 26px; align-items: center; gap: 6px; padding: 6px 8px; min-height: 40px; border-radius: 9px; }
+  .kahoot-helper-card.collapsed header { display: contents; }
+  .kahoot-helper-card.collapsed header > span { grid-column: 1; grid-row: 1; color: #9299bd; font-size: 11px; font-weight: 800; text-align: center; }
+  .kahoot-helper-card.collapsed .helper-question-label { display: none; }
+  .kahoot-helper-card.collapsed h2 { grid-column: 2; grid-row: 1; font-size: 12px; }
+  .kahoot-helper-card.collapsed .kahoot-helper-toggle { grid-column: 3; grid-row: 1; width: 26px; height: 26px; }
+  .kahoot-helper-card:not(.collapsed) { padding: 12px; gap: 10px; border-radius: 12px; max-height: none; overflow: visible; }
+  .kahoot-helper-card:not(.collapsed) h2 { font-size: 17px; line-height: 1.45; }
+  .kahoot-helper-card header { flex-wrap: wrap; gap: 6px; font-size: 10px; letter-spacing: .03em; }
+  .kahoot-helper-card header > b { font-size: 9px; }
+  .kahoot-helper-card-content:not([hidden]) { gap: 10px; }
+  .kahoot-helper-choices li { grid-template-columns: 26px minmax(0, 1fr); gap: 7px; padding: 7px; font-size: 13px; }
+  .kahoot-helper-choices .choice-symbol { width: 26px; height: 26px; font-size: 12px; }
+  .kahoot-helper-choices li > b { grid-column: 2; font-size: 9px; }
+  .kahoot-helper-answer { padding: 10px; }
+  .kahoot-helper-answer strong { font-size: 14px; }
+  .kahoot-helper-matches > div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .kahoot-helper-matches span, .kahoot-helper-matches strong { padding: 9px; font-size: 13px; }
+  .kahoot-helper-notice { margin-top: 12px; font-size: 11px; }
+}

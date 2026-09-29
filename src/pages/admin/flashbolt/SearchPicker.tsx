@@ -68,7 +68,7 @@ export default function SearchPicker({ label, value, options, onChange }: {
   }, [open, currentPage, query]);
   return <div className="search-picker-field">
     <span>{label}</span>
-    <button ref={trigger} type="button" className="search-picker-trigger" aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? titleId : undefined} disabled={!options.length} onClick={() => {
+    <button ref={trigger} type="button" className="search-picker-trigger" aria-label={`${label}: ${selected?.title ?? "Choose"}`} aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? titleId : undefined} disabled={!options.length} onClick={() => {
       setQuery("");
       setPage(Math.floor(Math.max(0, options.findIndex(option => option.id === value)) / PAGE_SIZE));
       setOpen(!open);

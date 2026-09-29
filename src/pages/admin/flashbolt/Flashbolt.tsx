@@ -3746,7 +3746,7 @@ export default function Flashbolt() {
                     setHelperFolderId(folderId); setHelperSetId(firstSet?.id ?? "");
                   }} />
                   <SearchPicker label="Study set" value={helperSet?.id ?? ""} options={[...helperAvailableSets].sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: "base" })).map(set => ({ id: set.id, title: set.title, detail: `${set.cards.length} terms${set.subject ? ` · ${set.subject}` : ""}` }))} onChange={setHelperSetId} />
-                  <label className="kahoot-helper-search"><span>Search questions and answers</span><div><span>⌕</span><input value={helperSearch} onChange={(event) => setHelperSearch(event.target.value)} placeholder="Search this set instantly" />{helperSearch && <button onClick={() => setHelperSearch("")} aria-label="Clear helper search">×</button>}</div></label>
+                  <label className="kahoot-helper-search"><span>Search questions and answers</span><div><span>⌕</span><input value={helperSearch} onChange={(event) => setHelperSearch(event.target.value)} placeholder="Search questions…" />{helperSearch && <button onClick={() => setHelperSearch("")} aria-label="Clear helper search">×</button>}</div></label>
                 </div>
                 {helperCards.length ? <div className="kahoot-helper-list">
                   {helperCards.map((card, index) => {
@@ -3760,7 +3760,7 @@ export default function Flashbolt() {
                       setCollapsedHelperCards(current => current.includes(collapseKey) ? current.filter(key => key !== collapseKey) : [...current, collapseKey]);
                     };
                     return <article id={`helper-card-${card.id}`} className={`kahoot-helper-card${collapsed ? " collapsed" : ""}`} key={card.id} onClick={toggleCard}>
-                      <header><span>Question {index + 1}</span><b>{cardQuestionType(card).replaceAll("-", " ")}</b><button type="button" className="kahoot-helper-toggle" aria-expanded={!collapsed} aria-controls={`helper-answer-${card.id}`} aria-label={`${collapsed ? "Expand" : "Minimize"} question ${index + 1}: ${question}`} onClick={(event) => { event.stopPropagation(); toggleCard(); }}>{collapsed ? "＋" : "−"}</button></header>
+                      <header><span><span className="helper-question-label">Question </span>{index + 1}</span><b>{cardQuestionType(card).replaceAll("-", " ")}</b><button type="button" className="kahoot-helper-toggle" aria-expanded={!collapsed} aria-controls={`helper-answer-${card.id}`} aria-label={`${collapsed ? "Expand" : "Minimize"} question ${index + 1}: ${question}`} onClick={(event) => { event.stopPropagation(); toggleCard(); }}>{collapsed ? "＋" : "−"}</button></header>
                       <h2 title={collapsed ? question : undefined}>{question}</h2>
                       <div className="kahoot-helper-card-content" id={`helper-answer-${card.id}`} hidden={collapsed}>
                       {card.imageData && <img className="kahoot-helper-image" src={card.imageData} alt={card.imageName || "Question study aid"} />}
