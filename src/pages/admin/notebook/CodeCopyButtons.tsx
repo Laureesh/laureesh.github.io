@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
 
-type Block = { element: HTMLPreElement; top: number; right: number };
+type Block = { element: HTMLPreElement; top: number; right: number; left: number };
 
 function CopyButton({ block }: { block: Block }) {
   const [status, setStatus] = useState("Copy");
@@ -17,10 +17,12 @@ function CopyButton({ block }: { block: Block }) {
     }
     timer.current = setTimeout(() => setStatus("Copy"), 2500);
   };
-  return <button type="button" className="code-copy-button"
-    style={{ top: block.top, right: block.right }}
+  return <div className="code-block-header" style={{ top: block.top, right: block.right, left: block.left }}>
+    <span className="code-block-label"><span aria-hidden="true">Aa</span> Editable text</span>
+    <button type="button" className="code-copy-button"
     aria-label={status === "Copy" ? "Copy code" : status}
-    onClick={() => void copy()}><span aria-live="polite">{status}</span></button>;
+    onClick={() => void copy()}><span aria-live="polite">{status}</span></button>
+  </div>;
 }
 
 // Overlay controls stay out of saved HTML and the editable code itself.
@@ -35,10 +37,10 @@ export default function CodeCopyButtons({ editorRef }: { editorRef: RefObject<HT
       const origin = layer.getBoundingClientRect();
       const next = [...editor.querySelectorAll("pre")].map(element => {
         const rect = element.getBoundingClientRect();
-        return { element, top: rect.top - origin.top + 8, right: origin.right - rect.right + 8 };
+        return { element, top: rect.top - origin.top + 1, right: origin.right - rect.right + 1, left: rect.left - origin.left + 3 };
       });
       setBlocks(previous => previous.length === next.length && previous.every((block, i) =>
-        block.element === next[i].element && block.top === next[i].top && block.right === next[i].right
+        block.element === next[i].element && block.top === next[i].top && block.right === next[i].right && block.left === next[i].left
       ) ? previous : next);
     };
     const resize = new ResizeObserver(measure);
