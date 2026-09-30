@@ -225,3 +225,6 @@
 .notebook-shell .code-copy-button:hover { background:#292440; border-color:var(--nb-accent); }
 .notebook-shell .code-copy-button:focus-visible { outline:2px solid var(--nb-mint); outline-offset:2px; }
 @media print { .code-copy-buttons { display:none; } .rich-editor pre, .rich-editor .notebook-steps pre { padding-top:15px; background:white; color:black; box-shadow:none; } }
+
+/* Pasted code may wrap each line in another pre; only the outer block is a card. */
+.rich-editor pre pre, .rich-editor .notebook-steps pre pre { margin:0; padding:0; border:0; border-radius:0; background:transparent; color:inherit; font:inherit; box-shadow:none; transition:none; }

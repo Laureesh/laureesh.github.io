@@ -35,7 +35,7 @@ export default function CodeCopyButtons({ editorRef }: { editorRef: RefObject<HT
     if (!editor || !layer) return;
     const measure = () => {
       const origin = layer.getBoundingClientRect();
-      const next = [...editor.querySelectorAll("pre")].map(element => {
+      const next = [...editor.querySelectorAll("pre")].filter(element => !element.parentElement?.closest("pre")).map(element => {
         const rect = element.getBoundingClientRect();
         return { element, top: rect.top - origin.top + 1, right: origin.right - rect.right + 1, left: rect.left - origin.left + 3 };
       });
