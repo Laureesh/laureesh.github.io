@@ -15,7 +15,7 @@ import { notebookDraftKey, notebookHtmlToText } from "../flashbolt/notebook-draf
 import NoteActionsMenu from "./NoteActionsMenu";
 import { compareNotes, SORT_OPTIONS, type NoteSort } from "./noteSorting";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ClipboardEvent, type DragEvent, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import { loadNotebookLibrary, mergeNotebookLibraries, saveNotebookLibrary } from "../../../services/notebookLibrary";
 
@@ -541,7 +541,7 @@ export default function Notebook() {
     <aside className="notebook-sidebar">
       <header><button className="notebook-logo" onClick={() => navigate("/admin-dashboard/private-pages/flashbolt")}>▱ <strong>Notebook</strong></button><button onClick={() => setSidebarOpen(false)}>‹</button></header>
       <button className="new-note" onClick={() => createNote()}>＋ New note</button>
-      <nav><a href={NOTEBOOK_BASE} className={folderFilter === "all" ? "active" : ""} onClick={(event) => followNotebookLink(event, () => openFolder("all"))}>▤ All notes <b>{data.notes.filter(n => !n.archived).length}</b></a><a href={`${NOTEBOOK_BASE}/view/pinned`} className={folderFilter === "pinned" ? "active" : ""} onClick={(event) => followNotebookLink(event, () => openFolder("pinned"))}>★ Pinned</a><a href={`${NOTEBOOK_BASE}/view/archive`} className={folderFilter === "archive" ? "active" : ""} onClick={(event) => followNotebookLink(event, () => openFolder("archive"))}>⌁ Archive</a></nav>
+      <nav><a href={NOTEBOOK_BASE} className={folderFilter === "all" ? "active" : ""} onClick={(event) => followNotebookLink(event, () => openFolder("all"))}>▤ All notes <b>{data.notes.filter(n => !n.archived).length}</b></a><a href={`${NOTEBOOK_BASE}/view/pinned`} className={folderFilter === "pinned" ? "active" : ""} onClick={(event) => followNotebookLink(event, () => openFolder("pinned"))}>★ Pinned</a><a href={`${NOTEBOOK_BASE}/view/archive`} className={folderFilter === "archive" ? "active" : ""} onClick={(event) => followNotebookLink(event, () => openFolder("archive"))}>⌁ Archive</a><Link to="/admin-dashboard/private-pages/flashbolt"><span aria-hidden="true">ϟ</span> Flashbolt</Link></nav>
       <div className="folder-heading"><span>Folders</span><button onClick={() => addFolder()}>＋</button></div>
       <nav>{data.folders.filter(folder => !folder.parentId).map((folder) => <div key={folder.id}>
         <div className="notebook-folder-row"><a href={`${NOTEBOOK_BASE}/folder/${encodeURIComponent(folder.id)}`} className={folderFilter === folder.id ? "active" : ""} onClick={(event) => followNotebookLink(event, () => openFolder(folder.id))}><i style={{ background: folder.color }} /><span className="folder-name">{folder.name}</span><b>{data.notes.filter(note => note.folderId === folder.id && !note.archived).length}</b></a><span className="folder-actions"><button onClick={() => changeFolderColor(folder)} aria-label={`Change ${folder.name} color`} title="Change color">●</button><button onClick={() => editFolder(folder)} aria-label={`Rename ${folder.name}`} title="Rename folder">✎</button><button className="delete-folder" onClick={() => deleteFolder(folder)} aria-label={`Delete ${folder.name}`} title={`Delete ${folder.name}`}>×</button></span></div>
