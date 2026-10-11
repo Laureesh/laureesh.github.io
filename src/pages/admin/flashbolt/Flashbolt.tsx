@@ -2399,6 +2399,7 @@ export default function Flashbolt() {
 
   function startLearn(setIdOrEvent?: string | ReactMouseEvent) {
     const setId = typeof setIdOrEvent === "string" ? setIdOrEvent : selectedSetId;
+    setSelectedSetId(setId);
     const questionFirstOptions = { ...learnOptions, multipleChoice: true, trueFalse: false, selectAll: false, written: false, flashcards: false, answerTerms: false, answerDefinitions: true };
     setLearnPhase("goal");
     setLearnMissedIds([]);
@@ -2660,6 +2661,7 @@ export default function Flashbolt() {
 
   function startTest(setIdOrEvent?: string | ReactMouseEvent) {
     const setId = typeof setIdOrEvent === "string" ? setIdOrEvent : selectedSetId;
+    setSelectedSetId(setId);
     setTestCardIds(null);
     setTestAnswers({});
     setTestSubmitted(false);
