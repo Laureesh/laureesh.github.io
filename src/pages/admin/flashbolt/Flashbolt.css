@@ -8099,16 +8099,45 @@ kbd {
 }
 .learn-knowledge-panel .learn-mastery-overview > span { background: var(--panel-2); }
 .learn-knowledge-note, .learn-rounds-note { margin: 16px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+/* A single centered badge keeps the label and position visually connected. */
 .learn-current-question {
   display: flex;
-  justify-content: center;
-  align-items: baseline;
-  gap: 10px;
-  margin: 4px 0 24px;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  gap: 14px;
+  margin: 4px auto 24px;
+  padding: 6px 6px 6px 18px;
+  border: 1px solid var(--line-soft);
+  border-radius: 16px;
+  background: var(--panel);
   color: var(--ink);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 8%);
 }
-.learn-current-question > span { font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-.learn-current-question > strong { font-size: clamp(38px, 5vw, 56px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+.learn-current-question > span {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: .02em;
+  color: var(--muted);
+}
+.learn-current-question > strong {
+  display: grid;
+  place-items: center;
+  min-width: 46px;
+  min-height: 44px;
+  padding: 4px 12px;
+  border-radius: 11px;
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -.04em;
+  font-variant-numeric: tabular-nums;
+}
 .learn-round-focus { padding: 14px; border: 1px solid var(--primary); border-radius: 12px; background: var(--primary-soft); }
 .learn-round-focus-title { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .learn-round-focus-title > span { color: var(--ink); font-size: 14px; font-weight: 800; }
