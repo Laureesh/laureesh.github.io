@@ -134,8 +134,70 @@ function parseModuleQuizQuestion(block: string): ParsedCard | null {
   };
 }
 
+/** Keep explanation prose and references, omitting repeated answer summaries. */
+function reviewExplanation(value: string, answers: string[]) {
+  const lines = value.split("\n");
+  while (lines.length && (!lines[0].trim() || /^(?:✅\s*)?Correct answers?\s*:/i.test(lines[0].trim()))) lines.shift();
+  if (/^Answers?\s+(?:is|are)\b/i.test(lines[0]?.trim() ?? "")) {
+    lines.shift();
+    while (lines.length && (!lines[0].trim() || answers.some(answer =>
+      normalizedChoice(lines[0].replace(/^[A-Z][.)]\s*/, "")) === normalizedChoice(answer)))) lines.shift();
+  }
+  return lines.join("\n").trim();
+}
+
+/** Read only study content from copied question-card HTML, never page controls or ads. */
+function parseQuestionCardsHtml(text: string): ParsedCard[] {
+  if (typeof DOMParser === "undefined" || !/class=["'][^"']*\bquestion-card\b/i.test(text)) return [];
+  const document = new DOMParser().parseFromString(text, "text/html");
+  const content = (element: Element | null) => {
+    if (!element) return "";
+    const clone = element.cloneNode(true) as Element;
+    clone.querySelectorAll("script, style, iframe, svg, .option-dot").forEach(node => node.remove());
+    clone.querySelectorAll("br").forEach(node => node.replaceWith("\n"));
+    return (clone.textContent ?? "").replace(/\u00a0/g, " ").trim();
+  };
+  return Array.from(document.querySelectorAll(".question-card")).flatMap(row => {
+    const term = cleanStudyText(content(row.querySelector(".q-text")));
+    const options = Array.from(row.querySelectorAll(".options .option"));
+    const choices = options.map(content);
+    const answers = options.filter(option => option.classList.contains("correct")).map(content);
+    if (!term || choices.length < 2 || choices.some(choice => !choice) || !answers.length) return [];
+    const explanation = reviewExplanation(content(row.querySelector(".q-answer")), answers);
+    return [{
+      ...makeCard(term, answers.join("; "), choices),
+      correctAnswers: answers,
+      questionType: answers.length > 1 ? "select-all" as const
+        : choices.every(choice => /^(true|false)$/i.test(choice)) ? "true-false" as const : "multiple-choice" as const,
+      ...(explanation ? { explanation } : {}),
+    }];
+  });
+}
+
+function parseAnswerShownQuestion(block: string): ParsedCard | null {
+  const lines = block.split("\n").map(line => line.trim()).filter(Boolean);
+  const answerIndex = lines.findIndex(line => /^(?:✅\s*)?Correct answers?\s*:/i.test(line));
+  if (answerIndex < 0) return null;
+  const prompt = lines.slice(0, answerIndex).filter(line =>
+    !/^(?:✅\s*)?Answer Shown$|^(?:💬\s*)?Discuss$|^(?:🚩\s*)?Report$|^AWS Cloud concepts$/i.test(line));
+  const term = cleanStudyText(prompt.join(" "));
+  const definition = lines[answerIndex].replace(/^(?:✅\s*)?Correct answers?\s*:\s*/i, "");
+  if (!term || !definition) return null;
+  const multiple = /\bselect\s+(?:two|three|[2-9]|all)\b/i.test(term);
+  const answers = multiple ? definition.split(/,\s*/).filter(Boolean) : [definition];
+  const explanation = reviewExplanation(lines.slice(answerIndex + 1).join("\n"), answers);
+  return {
+    ...makeCard(term, answers.join("; "), multiple ? answers : undefined),
+    correctAnswers: answers,
+    ...(multiple ? { questionType: "select-all" as const } : {}),
+    ...(explanation ? { explanation } : {}),
+  };
+}
+
 /** Parse question-review text copied from LMS or Kahoot question lists. */
 export function parseQuizResults(text: string): ParsedCard[] {
+  const htmlCards = parseQuestionCardsHtml(text);
+  if (htmlCards.length) return htmlCards;
   const normalized = decodeCopiedQuizText(text).replace(/\r\n?/g, "\n");
   const headers = [...normalized.matchAll(/^Question\s+\d+\b[^\n]*$/gim)];
   if (!headers.length) return parseKahootQuestionList(text);
@@ -146,6 +208,8 @@ export function parseQuizResults(text: string): ParsedCard[] {
     const end = headers[headerIndex + 1]?.index ?? normalized.length;
     const moduleCard = parseModuleQuizQuestion(normalized.slice(start, end));
     if (moduleCard) { cards.push(moduleCard); return; }
+    const shownCard = parseAnswerShownQuestion(normalized.slice(start, end));
+    if (shownCard) { cards.push(shownCard); return; }
     const lines = normalized.slice(start, end).split("\n").map((line) => line.trim()).filter(Boolean);
     const firstChoiceIndex = lines.findIndex((line) => quizChoiceMarker(line, null) !== null || /^(?:Correct Answer|Incorrect Response)$/i.test(line));
     if (firstChoiceIndex <= 0) return;
