@@ -8068,124 +8068,87 @@ kbd {
   .mobile-nav .mobile-create svg { width: 22px; height: 22px; stroke-width: 2.3; }
 }
 
-/* Current position in the adaptive session, including repeated questions. */
-.learn-current-question {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 12px;
-  margin: 18px 0 24px;
-  color: var(--ink);
-}
-.learn-current-question > span {
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-}
-.learn-current-question > strong {
-  font-size: clamp(40px, 6vw, 64px);
-  font-weight: 900;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Keep mastery counts in a left-hand vertical rail during a learn session. */
+/* Learn workspace below the unchanged overall-progress header. */
 .learn-page.session-active .learn-question-shell {
   display: grid;
-  grid-template-columns: 180px minmax(0, 1fr);
-  grid-template-rows: auto auto 1fr;
-  column-gap: 28px;
-  width: min(1120px, 100%);
+  grid-template-columns: 168px minmax(0, 1fr) 232px;
+  grid-template-areas: "knowledge question rounds";
   align-items: start;
+  gap: 24px;
+  width: min(1280px, 100%);
+  margin: 12px auto 0;
 }
-.learn-page.session-active .learn-question-shell > .learn-mastery-overview.compact {
+.learn-question-main { grid-area: question; min-width: 0; }
+.learn-question-main > .question-card { width: 100%; }
+.learn-knowledge-panel { grid-area: knowledge; min-width: 0; }
+.learn-rounds-panel { grid-area: rounds; min-width: 0; }
+.learn-knowledge-panel, .learn-rounds-panel {
+  padding: 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: 18px;
+  background: var(--panel);
+}
+.learn-panel-heading { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; color: var(--primary-strong); }
+.learn-panel-heading > .flashbolt-ui-icon { width: 18px; height: 18px; }
+.learn-page .learn-panel-heading h2 { margin: 0; font-size: 15px; font-weight: 800; color: var(--ink); }
+.learn-page.session-active .learn-knowledge-panel > .learn-mastery-overview.compact {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-column: 1;
-  grid-row: 1 / 4;
   gap: 10px;
   margin: 0;
 }
-.learn-page.session-active .learn-question-shell > .learn-question-meta,
-.learn-page.session-active .learn-question-shell > .learn-current-question,
-.learn-page.session-active .learn-question-shell > .question-card {
-  grid-column: 2;
-  min-width: 0;
-}
-.learn-page.session-active .learn-question-shell > .question-card {
-  width: 100%;
-}
-@media (max-width: 700px) {
-  .learn-page.session-active .learn-question-shell {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto;
-    row-gap: 12px;
-  }
-  .learn-page.session-active .learn-question-shell > .learn-mastery-overview.compact {
-    grid-row: auto;
-    width: min(240px, 100%);
-  }
-  .learn-page.session-active .learn-question-shell > .learn-question-meta,
-  .learn-page.session-active .learn-question-shell > .learn-current-question,
-  .learn-page.session-active .learn-question-shell > .question-card {
-    grid-column: 1;
-  }
-}
-
-
-/* Quiet status badges keep round information separate from the question title. */
-.learn-page.session-active .learn-question-meta {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto 8px;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: normal;
-  text-transform: none;
-}
-.learn-round-badge,
-.learn-remaining-badge {
+.learn-knowledge-panel .learn-mastery-overview > span { background: var(--panel-2); }
+.learn-knowledge-note, .learn-rounds-note { margin: 16px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.learn-current-question {
   display: flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 40px;
-  padding: 8px 13px;
-  border: 1px solid var(--line-soft);
-  border-radius: 12px;
-  background: var(--panel);
-  color: var(--muted);
-}
-.learn-round-badge > .flashbolt-ui-icon {
-  width: 17px;
-  height: 17px;
-  color: var(--primary-strong);
-}
-.learn-round-badge > strong {
-  display: grid;
-  place-items: center;
-  min-width: 26px;
-  height: 26px;
-  padding: 0 6px;
-  border-radius: 8px;
-  background: var(--primary-soft);
-  color: var(--primary-strong);
-}
-.learn-remaining-badge > strong {
+  justify-content: center;
+  align-items: baseline;
+  gap: 10px;
+  margin: 4px 0 24px;
   color: var(--ink);
-  font-size: 16px;
-  font-variant-numeric: tabular-nums;
 }
-.learn-status-dot {
-  width: 7px;
-  height: 7px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--mint);
+.learn-current-question > span { font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.learn-current-question > strong { font-size: clamp(38px, 5vw, 56px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+.learn-round-focus { padding: 14px; border: 1px solid var(--primary); border-radius: 12px; background: var(--primary-soft); }
+.learn-round-focus-title { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.learn-round-focus-title > span { color: var(--ink); font-size: 14px; font-weight: 800; }
+.learn-round-focus-title > small { color: var(--primary-strong); font-size: 10px; font-weight: 700; }
+.learn-round-remaining { display: flex; align-items: baseline; flex-wrap: wrap; gap: 7px; margin: 12px 0; }
+.learn-round-remaining > strong { color: var(--ink); font-size: 38px; line-height: 1; font-variant-numeric: tabular-nums; }
+.learn-round-remaining > span { color: var(--muted); font-size: 12px; }
+.learn-round-focus progress { appearance: none; display: block; width: 100%; height: 5px; border: 0; border-radius: 10px; overflow: hidden; background: var(--panel-2); }
+.learn-round-focus progress::-webkit-progress-bar { background: var(--panel-2); }
+.learn-round-focus progress::-webkit-progress-value { background: var(--primary); border-radius: 10px; }
+.learn-round-focus progress::-moz-progress-bar { background: var(--primary); border-radius: 10px; }
+.learn-round-pass { display: flex; justify-content: space-between; gap: 6px; margin-top: 8px; font-size: 10px; color: var(--muted); }
+.learn-round-pass > b { color: var(--primary-strong); }
+.learn-round-retries { margin: 10px 0 0; font-size: 11px; color: #ff9d5c; }
+.learn-round-list-heading { display: flex; justify-content: space-between; gap: 6px; margin: 20px 0 10px; font-size: 10px; color: var(--muted); }
+.learn-round-list-heading > span:first-child { font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+.learn-round-list { position: relative; display: grid; gap: 6px; max-height: 280px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; list-style: none; margin: 0; padding: 0 4px 0 0; }
+.learn-round-list:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 8px; }
+.learn-round-list > li { display: flex; align-items: center; gap: 10px; padding: 9px; border: 1px solid transparent; border-radius: 10px; color: var(--muted); }
+.learn-round-list > li.current { border-color: var(--line-soft); background: var(--primary-soft); color: var(--ink); }
+.learn-round-step { display: grid; place-items: center; width: 27px; height: 27px; flex-shrink: 0; border: 1px solid var(--line-soft); border-radius: 9px; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.learn-round-step .flashbolt-ui-icon { width: 14px; height: 14px; }
+.learn-round-list .complete .learn-round-step { color: var(--mint); }
+.learn-round-list .current .learn-round-step { color: white; background: var(--primary); border-color: var(--primary); }
+.learn-round-list li > span:nth-child(2) { display: grid; gap: 3px; }
+.learn-round-list strong { font-size: 12px; }
+.learn-round-list small { font-size: 10px; color: var(--muted); }
+.learn-round-list li > i { width: 6px; height: 6px; margin-left: auto; border-radius: 50%; background: var(--primary); }
+@media (max-width: 1100px) and (min-width: 901px) {
+  .learn-page.session-active .learn-question-shell { grid-template-columns: 140px minmax(0, 1fr) 204px; gap: 16px; }
+  .learn-knowledge-panel, .learn-rounds-panel { padding: 12px; }
 }
-.learn-remaining-badge.is-retry .learn-status-dot {
-  background: #ff9d5c;
+@media (max-width: 900px) {
+  .learn-page.session-active .learn-question-shell {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "question question" "knowledge rounds";
+    gap: 20px;
+  }
+}
+@media (max-width: 520px) {
+  .learn-page.session-active .learn-question-shell { grid-template-columns: minmax(0, 1fr); grid-template-areas: "question" "rounds" "knowledge"; }
+  .learn-round-list { max-height: 220px; }
 }

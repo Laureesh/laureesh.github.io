@@ -24,6 +24,7 @@ import ConfirmSetTerms from "./ConfirmSetTerms";
 import Confirmation from "./Confirmation";
 import Modal from "./Modal";
 import UiIcon from "./UiIcon";
+import LearnRoundPanel from "./LearnRoundPanel";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
@@ -3719,19 +3720,12 @@ export default function Flashbolt() {
                   </header>
 
                   <div className="learn-question-shell">
+                    <aside className="learn-knowledge-panel" aria-label="Knowledge progress">
+                      <div className="learn-panel-heading"><UiIcon symbol="✦" /><h2>Knowledge</h2></div>
                     <div className="learn-mastery-overview compact" aria-label="Adaptive knowledge levels"><span><i className="level-new" />New <b>{learnStatusCounts.new}</b></span><span><i className="level-learning" />Learning <b>{learnStatusCounts.learning}</b></span><span><i className="level-familiar" />Familiar <b>{learnStatusCounts.familiar}</b></span><span><i className="level-mastered" />Mastered <b>{learnStatusCounts.mastered}</b></span></div>
-                    <div className="learn-question-meta">
-                      <div className="learn-round-badge">
-                        <UiIcon symbol="◴" />
-                        <span>Adaptive round</span>
-                        <strong>{learnRound}</strong>
-                      </div>
-                      <div className={`learn-remaining-badge ${learnRetryIds.length ? "is-retry" : ""}`}>
-                        <span className="learn-status-dot" aria-hidden="true" />
-                        <strong>{learnRetryIds.length || learnRoundIds.length - learnIndex}</strong>
-                        <span>{learnRetryIds.length ? `weak card${learnRetryIds.length === 1 ? "" : "s"} queued` : "left in this round"}</span>
-                      </div>
-                    </div>
+                      <p className="learn-knowledge-note">Watch your confidence grow with each answer.</p>
+                    </aside>
+                    <div className="learn-question-main">
                     <div className="learn-current-question" aria-live="polite" aria-atomic="true">
                       <span>Question</span>
                       <strong>{learnSequence + 1}</strong>
@@ -3763,6 +3757,8 @@ export default function Flashbolt() {
                       </div>}
                       {(learnAnswer || learnFlashRevealed) && <StudyExplanation text={currentLearnCard.explanation} />}
                     </div>
+                    </div>
+                    <LearnRoundPanel round={learnRound} size={learnRoundIds.length} index={learnIndex} answered={Boolean(learnAnswer)} retries={learnRetryIds.length} pending={learnPendingIds.length} />
                   </div>
                 </>
               )}
