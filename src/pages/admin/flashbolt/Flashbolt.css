@@ -8089,3 +8089,46 @@ kbd {
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
+
+/* Keep mastery counts in a left-hand vertical rail during a learn session. */
+.learn-page.session-active .learn-question-shell {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr;
+  column-gap: 28px;
+  width: min(1120px, 100%);
+  align-items: start;
+}
+.learn-page.session-active .learn-question-shell > .learn-mastery-overview.compact {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-column: 1;
+  grid-row: 1 / 4;
+  gap: 10px;
+  margin: 0;
+}
+.learn-page.session-active .learn-question-shell > .learn-question-meta,
+.learn-page.session-active .learn-question-shell > .learn-current-question,
+.learn-page.session-active .learn-question-shell > .question-card {
+  grid-column: 2;
+  min-width: 0;
+}
+.learn-page.session-active .learn-question-shell > .question-card {
+  width: 100%;
+}
+@media (max-width: 700px) {
+  .learn-page.session-active .learn-question-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    row-gap: 12px;
+  }
+  .learn-page.session-active .learn-question-shell > .learn-mastery-overview.compact {
+    grid-row: auto;
+    width: min(240px, 100%);
+  }
+  .learn-page.session-active .learn-question-shell > .learn-question-meta,
+  .learn-page.session-active .learn-question-shell > .learn-current-question,
+  .learn-page.session-active .learn-question-shell > .question-card {
+    grid-column: 1;
+  }
+}
