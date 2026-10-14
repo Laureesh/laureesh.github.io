@@ -9,7 +9,6 @@ import {
   ExternalLink,
   FolderKanban,
   LockKeyhole,
-  PlusCircle,
   Radio,
   Search,
   Sparkles,
@@ -139,12 +138,6 @@ export default function Blog() {
             </p>
           </div>
           <div className="blog-hero-actions">
-            {isAdmin ? (
-              <Link to="/admin-dashboard/content?section=blogs&mode=create" className="btn btn-primary">
-                <PlusCircle size={16} />
-                Add Post
-              </Link>
-            ) : null}
             <Link to="/blog/archive" className="btn btn-outline">
               <Archive size={16} />
               Archive

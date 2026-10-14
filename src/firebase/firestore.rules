@@ -11,11 +11,15 @@ service cloud.firestore {
     }
 
     function hasAdminBootstrap(uid) {
-      return exists(/databases/$(database)/documents/admin_bootstrap/$(uid));
+      return exists(/databases/$(database)/documents/admin_bootstrap/$(uid))
+        && get(/databases/$(database)/documents/admin_bootstrap/$(uid)).data.enabled == true
+        && get(/databases/$(database)/documents/admin_bootstrap/$(uid)).data.role == 'admin';
     }
 
     function isAdminUser() {
       return signedIn()
+        && request.auth.token.email_verified == true
+        && hasAdminBootstrap(request.auth.uid)
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'active';
@@ -85,7 +89,6 @@ service cloud.firestore {
 
     function canAssignManagedRole(uid) {
       return request.resource.data.role == 'member'
-        || resource.data.role == 'admin'
         || hasAdminBootstrap(uid);
     }
 
@@ -219,6 +222,7 @@ service cloud.firestore {
     function canCreateOwnUser(uid) {
       return isOwner(uid)
         && isValidUserDocument(request.resource.data, uid)
+        && request.resource.data.email == request.auth.token.email
         && request.resource.data.role == 'member'
         && request.resource.data.status == 'active'
         && isDefaultUserMembership(request.resource.data.membership);
@@ -227,7 +231,9 @@ service cloud.firestore {
     function canSetOwnRole(uid) {
       return request.resource.data.role == resource.data.role
         || request.resource.data.role == 'member'
-        || (request.resource.data.role == 'admin' && hasAdminBootstrap(uid));
+        || (request.resource.data.role == 'admin'
+          && request.auth.token.email_verified == true
+          && hasAdminBootstrap(uid));
     }
 
     function canUpdateOwnUser(uid) {
@@ -419,7 +425,10 @@ service cloud.firestore {
     match /rainbow-words/{wordId} {
       allow read: if true;
       allow create: if
-        request.resource.data.word is string
+        signedIn()
+        && request.auth.token.email_verified == true
+        && request.resource.data.addedAt == request.time
+        && request.resource.data.word is string
         && request.resource.data.word.size() >= 1
         && request.resource.data.word.size() <= 50
         && request.resource.data.keys().hasOnly(['word', 'addedAt']);

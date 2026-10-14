@@ -1,5 +1,4 @@
 import { getBlogPostBySlug } from "./blogPosts";
-import { getAdminDashboardSection } from "./adminDashboard";
 
 export interface BreadcrumbCrumb {
   label: string;
@@ -193,62 +192,6 @@ const staticPageMeta: Record<string, PageMeta> = {
       { label: "Settings" },
     ],
   },
-  "/admin-dashboard": {
-    label: "Admin Dashboard",
-    breadcrumbs: [
-      { label: "Home", path: "/" },
-      { label: "Admin Dashboard" },
-    ],
-    trackRecent: false,
-  },
-  "/admin-dashboard/jobs": {
-    label: "Jobs",
-    breadcrumbs: [
-      { label: "Home", path: "/" },
-      { label: "Admin Dashboard", path: "/admin-dashboard" },
-      { label: "Jobs" },
-    ],
-    trackRecent: false,
-  },
-  "/admin-dashboard/good-jobs": {
-    label: "Good Jobs",
-    breadcrumbs: [
-      { label: "Home", path: "/" },
-      { label: "Admin Dashboard", path: "/admin-dashboard" },
-      { label: "Good Jobs" },
-    ],
-    trackRecent: false,
-  },
-  "/admin-dashboard/private-pages/food-routine": {
-    label: "Food Routine",
-    breadcrumbs: [
-      { label: "Home", path: "/" },
-      { label: "Admin Dashboard", path: "/admin-dashboard" },
-      { label: "Private Pages", path: "/admin-dashboard/private-pages" },
-      { label: "Food Routine" },
-    ],
-    trackRecent: false,
-  },
-  "/admin-dashboard/private-pages/face-routine": {
-    label: "Face Routine",
-    breadcrumbs: [
-      { label: "Home", path: "/" },
-      { label: "Admin Dashboard", path: "/admin-dashboard" },
-      { label: "Private Pages", path: "/admin-dashboard/private-pages" },
-      { label: "Face Routine" },
-    ],
-    trackRecent: false,
-  },
-  "/admin-dashboard/private-pages/fn-leaderboard": {
-    label: "UEFN Leaderboard Manager",
-    breadcrumbs: [
-      { label: "Home", path: "/" },
-      { label: "Admin Dashboard", path: "/admin-dashboard" },
-      { label: "Private Pages", path: "/admin-dashboard/private-pages" },
-      { label: "UEFN Leaderboard Manager" },
-    ],
-    trackRecent: false,
-  },
   "/login": {
     label: "Sign In",
     breadcrumbs: [
@@ -324,20 +267,6 @@ export function getPageMeta(pathname: string): PageMeta | null {
         { label: "Community", path: "/community" },
         { label: "Member Portfolio" },
       ],
-    };
-  }
-
-  if (normalizedPath.startsWith("/admin-dashboard/")) {
-    const section = getAdminDashboardSection(normalizedPath);
-
-    return {
-      label: section.label,
-      breadcrumbs: [
-        { label: "Home", path: "/" },
-        { label: "Admin Dashboard", path: "/admin-dashboard" },
-        { label: section.label },
-      ],
-      trackRecent: false,
     };
   }
 

@@ -17,13 +17,6 @@ import {
   LogOut,
   UserPlus,
   Users,
-  LayoutDashboard,
-  ListTodo,
-  LockKeyhole,
-  FilePenLine,
-  SlidersHorizontal,
-  Briefcase,
-  Star,
   type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "./themeContext";
@@ -78,7 +71,7 @@ export default function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const { user, userProfile, logout, loading } = useAuth();
+  const { user, logout, loading } = useAuth();
   const { t, translateRouteLabel } = useDisplayLanguage();
   const pages = localizePages(basePages, translateRouteLabel);
   const authenticatedPages = localizePages(
@@ -92,25 +85,8 @@ export default function CommandPalette() {
     ],
     translateRouteLabel,
   );
-  const adminPages = userProfile?.role === "admin"
-    ? localizePages(
-        [
-          { label: "Admin Dashboard", path: "/admin-dashboard", icon: LayoutDashboard, keywords: "admin dashboard overview shell" },
-          { label: "Admin Content", path: "/admin-dashboard/content", icon: FileText, keywords: "admin cms content blogs projects links pages" },
-          { label: "Admin Pages", path: "/admin-dashboard/pages", icon: FilePenLine, keywords: "admin pages editor structured copy home about contact" },
-          { label: "Admin Users", path: "/admin-dashboard/users", icon: Users, keywords: "admin users roles moderation members" },
-          { label: "Admin Tasks", path: "/admin-dashboard/tasks", icon: ListTodo, keywords: "admin tasks kanban workflow" },
-          { label: "Jobs", path: "/admin-dashboard/jobs", icon: Briefcase, keywords: "admin jobs tracker applications" },
-          { label: "Good Jobs", path: "/admin-dashboard/good-jobs", icon: Star, keywords: "curated jobs salary leads" },
-          { label: "Feature Toggles", path: "/admin-dashboard/feature-toggles", icon: SlidersHorizontal, keywords: "admin feature toggles rollout flags premium stripe" },
-          { label: "Private Pages", path: "/admin-dashboard/private-pages", icon: LockKeyhole, keywords: "admin private pages internal protected" },
-          { label: "UEFN Leaderboard Manager", path: "/admin-dashboard/private-pages/fn-leaderboard", icon: LockKeyhole, keywords: "uefn fortnite leaderboard manager admin private" },
-        ],
-        translateRouteLabel,
-      )
-    : [];
   const availablePages = user
-    ? [...pages, ...authenticatedPages, ...adminPages]
+    ? [...pages, ...authenticatedPages]
     : pages;
 
   const openPalette = useCallback(() => {

@@ -18,8 +18,8 @@ import {
   ChevronUp,
   Plus,
 } from "lucide-react";
-import { addDoc, collection, getDocs } from "firebase/firestore";
-import { db } from "../../firebase/config";
+import { addDoc, collection, getDocs, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "../../firebase/config";
 import "./PasswordGen.css";
 
 const UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -284,6 +284,11 @@ export default function PasswordGen() {
     const word = newWord.trim().slice(0, 50);
     if (!word || !rainbowTable) return;
 
+    if (!auth?.currentUser?.emailVerified) {
+      setAddWordStatus("Sign in with a verified email to contribute words.");
+      return;
+    }
+
     // Block empty or too-short input
     if (word.length < 1) return;
 
@@ -299,7 +304,7 @@ export default function PasswordGen() {
     setAddingWord(true);
     try {
       // Add to Firebase (only word + addedAt, validated by Firestore rules)
-      await addDoc(collection(db, "rainbow-words"), { word, addedAt: Date.now() });
+      await addDoc(collection(db, "rainbow-words"), { word, addedAt: serverTimestamp() });
 
       // Add to local rainbow table
       const [h1, h256, hMd5] = await Promise.all([

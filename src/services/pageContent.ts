@@ -12,7 +12,7 @@ import { logAdminActivity } from "./adminActivity";
 import { assertCurrentUserCanAccessAdmin } from "./adminSecurity";
 import { getRecord, setRecord } from "./repository";
 
-export type EditablePageKey = "home" | "about" | "contact" | "food-routine" | "face-routine";
+export type EditablePageKey = "home" | "about" | "contact";
 
 export interface EditablePageDefinition {
   key: EditablePageKey;
@@ -63,20 +63,6 @@ export const editablePages: EditablePageDefinition[] = [
     route: "/contact",
     description: "Header, hiring pitch, message form, booking notice, and FAQ intros for the Contact page.",
     visibility: "public",
-  },
-  {
-    key: "food-routine",
-    label: "Food Routine",
-    route: "/admin-dashboard/private-pages/food-routine",
-    description: "Admin-only nutrition, meal-prep, and daily eating-flow notes.",
-    visibility: "private",
-  },
-  {
-    key: "face-routine",
-    label: "Face Routine",
-    route: "/admin-dashboard/private-pages/face-routine",
-    description: "Admin-only skincare, product order, and weekly maintenance notes.",
-    visibility: "private",
   },
 ];
 
@@ -221,52 +207,7 @@ const fallbackPageContent: Record<EditablePageKey, { title: string; sections: Pa
       },
     ],
   },
-  "food-routine": {
-    title: "Food Routine",
-    sections: [
-      {
-        id: "header",
-        type: "hero",
-        eyebrow: "Admin Routine",
-        title: "Food Routine",
-        body: "Private admin content is intentionally stored in Firestore only. Seed or publish this page from the admin editor before using it as a reference.",
-      },
-      {
-        id: "placeholder",
-        type: "rich_text",
-        eyebrow: "Security Note",
-        title: "No bundled fallback content",
-        body: "This page no longer ships with embedded private notes in the frontend bundle. Firestore is now the source of truth for admin-only routines.",
-        items: [
-          { text: "Open Admin Pages to seed the placeholder record into Firestore." },
-          { text: "Write and publish the actual routine there instead of relying on local fallbacks." },
-        ],
-      },
-    ],
-  },
-  "face-routine": {
-    title: "Face Routine",
-    sections: [
-      {
-        id: "header",
-        type: "hero",
-        eyebrow: "Admin Routine",
-        title: "Face Routine",
-        body: "Private admin content is intentionally stored in Firestore only. Seed or publish this page from the admin editor before using it as a reference.",
-      },
-      {
-        id: "placeholder",
-        type: "rich_text",
-        eyebrow: "Security Note",
-        title: "No bundled fallback content",
-        body: "This page no longer ships with embedded private notes in the frontend bundle. Firestore is now the source of truth for admin-only routines.",
-        items: [
-          { text: "Open Admin Pages to seed the placeholder record into Firestore." },
-          { text: "Write and publish the actual routine there instead of relying on local fallbacks." },
-        ],
-      },
-    ],
-  },
+
 };
 
 function cloneSections(sections: PageSectionRecord[]) {
