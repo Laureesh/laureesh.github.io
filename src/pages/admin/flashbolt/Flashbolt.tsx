@@ -1,0 +1,3880 @@
+import { THEME_OPTIONS, applyThemeToDocument, type ThemeName } from "./themes";
+import { groupFolderSets } from "./folderSetOrder";
+import { manualImportExamples } from "./manualImportExamples";
+
+import "./Flashbolt.css";
+import "./FlashboltPolish.css";
+import { activeAutoAdvance, shouldAdvanceAfterCorrect, type AutoAdvanceEvent } from "./autoAdvance";
+import { initialFlashboltView } from "./initialView";
+import ReviewToday from "./ReviewToday";
+import StudySummary, { StudyExplanation } from "./StudySummary";
+import { mergeReviewProgress } from "./review-engine";
+import { applyDetectedQuestionType, detectQuestionType, withCorrectChoiceAnswers } from "./questionTypeDetection";
+import { parseQuestionPaste } from "./questionPaste";
+import SemesterVisibilityControls from "./SemesterVisibilityControls";
+import { mergeSemesterVisibility, normalizeSemesterVisibility, type SemesterVisibility } from "./semesterVisibility";
+import MasteryFilterControls from "./MasteryFilterControls";
+import { DEFAULT_MASTERY_FILTER, MASTERY_FILTER_KEY, masteryPercentage, matchesMasteryFilter, normalizeMasteryFilter } from "./masteryFilter";
+import InlineSetDetails from "./InlineSetDetails";
+import Sidebar from "./Sidebar";
+import SetColorPicker from "./SetColorPicker";
+import SearchPicker from "./SearchPicker";
+import TileFolderPanel from "./TileFolderPanel";
+import ConfirmSetTerms from "./ConfirmSetTerms";
+import Confirmation from "./Confirmation";
+import Modal from "./Modal";
+import UiIcon from "./UiIcon";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
+import { House, BookOpen, Folder as FolderIcon, Plus, Compass, History, ClipboardCheck, Zap, NotebookPen, Download, ArrowLeft, ChevronDown, Search } from "lucide-react";
+import type { CSSProperties, ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
+import { useAuth } from "../../../contexts/AuthContext";
+import { loadFlashboltLibrary, mergeAndSaveFlashboltLibrary, saveFlashboltLibrary } from "../../../services/flashboltLibrary";
+import {
+  advanceLearnRound,
+  chooseAdaptiveQuestionKind,
+  EMPTY_LEARN_CARD_PROGRESS,
+  gradeWrittenAnswer,
+  learnConfidenceLabel,
+  normalizeAnswer,
+  projectLearnQuestionTotal,
+  rankAdaptiveCardIds,
+  shuffleValues,
+  updateLearnCardProgress,
+  type GradingMode,
+  type LearnCardProgress,
+  type LearnQuestionKind,
+} from "./learn-engine";
+import type { KahootImportSet } from "./kahoot-import";
+import { parseEmbeddedQuestion, parseNotes, parseQuizletHtml, parseQuizResults, suggestNoteTitles } from "./note-parser";
+import { isNotebookDraftSource, notebookDraftKey, type NotebookDraftSource } from "./notebook-draft";
+import type { QuizletImportSet } from "./quizlet-import";
+
+type HighlightColor = "none" | "yellow" | "mint" | "violet";
+type LearnGoal = "cram" | "memorize";
+type LearnPhase = "goal" | "session" | "complete";
+
+type LearnOptions = {
+  shuffle: boolean;
+  soundEffects: boolean;
+  multipleChoice: boolean;
+  trueFalse: boolean;
+  selectAll: boolean;
+  written: boolean;
+  flashcards: boolean;
+  answerTerms: boolean;
+  answerDefinitions: boolean;
+  showImagesOnQuestions: boolean;
+  showImagesOnAnswers: boolean;
+  grading: GradingMode;
+  retypeCorrectAnswers: boolean;
+  textToSpeech: boolean;
+};
+
+type LearnSetProgress = {
+  cards: Record<string, LearnCardProgress>;
+  updatedAt: string;
+};
+
+type LearnSessionSnapshot = {
+  setId: string;
+  goal: LearnGoal;
+  options: LearnOptions;
+  sessionIds: string[];
+  missedIds?: string[];
+  roundIds: string[];
+  pendingIds: string[];
+  retryIds: string[];
+  masteredIds: string[];
+  round: number;
+  index: number;
+  sequence: number;
+  updatedAt: string;
+};
+
+type Card = {
+  id: string;
+  term: string;
+  definition: string;
+  explanation?: string;
+  answerChoices?: string[];
+  correctAnswers?: string[];
+  questionTypeMode?: "auto" | "manual";
+  autoTypePreviousChoices?: string[];
+  questionType?: "flashcard" | "multiple-choice" | "true-false" | "select-all" | "written" | "matching";
+  matchingPairs?: Array<{ id: string; left: string; right: string }>;
+  termLanguage?: string;
+  definitionLanguage?: string;
+  highlight?: HighlightColor;
+  imageData?: string;
+  imageName?: string;
+};
+
+type CardQuestionType = NonNullable<Card["questionType"]>;
+
+type SpeechResultEvent = {
+  results: {
+    length: number;
+    [index: number]: { [index: number]: { transcript: string } };
+  };
+};
+
+type BrowserSpeechRecognition = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  start(): void;
+  stop(): void;
+  onresult: ((event: SpeechResultEvent) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+};
+
+type SpeechRecognitionFactory = new () => BrowserSpeechRecognition;
+
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionFactory;
+    webkitSpeechRecognition?: SpeechRecognitionFactory;
+  }
+}
+
+type StudySet = {
+  id: string;
+  title: string;
+  description: string;
+  subject: string;
+  color: string;
+  kahootUrl?: string;
+  updatedAt: string;
+  cards: Card[];
+};
+
+type Folder = {
+  id: string;
+  name: string;
+  setIds: string[];
+  color?: string;
+  semester?: string;
+};
+
+type AppData = {
+  deletedSetIds?: string[];
+  semesterVisibility?: SemesterVisibility;
+  sets: StudySet[];
+  folders: Folder[];
+  mastered: Record<string, string[]>;
+  sessions: number;
+  lastCreatedFolderIds?: string[];
+  recentSetValues?: Pick<StudySet, "title" | "subject" | "color" | "description"> & { folderIds: string[] };
+  learnProgress?: Record<string, LearnSetProgress>;
+  activeLearn?: LearnSessionSnapshot;
+};
+
+type View = "review" | "home" | "library" | "folders" | "create" | "set" | "learn" | "test" | "guide" | "helper";
+type StorageStatus = "loading" | "saved" | "error";
+type LibrarySort =
+  | "updated-desc" | "updated-asc"
+  | "title-asc" | "title-desc"
+  | "subject-asc" | "subject-desc"
+  | "folder-asc" | "folder-desc"
+  | "terms-desc" | "terms-asc"
+  | "progress-desc" | "progress-asc"
+  | "mastered-desc" | "mastered-asc"
+  | "remaining-desc" | "remaining-asc"
+  | "unfiled-first" | "filed-first";
+
+async function readImportResponse<T>(response: Response): Promise<T> {
+  const contentType = response.headers.get("content-type") ?? "";
+  const body = await response.text();
+
+  if (!contentType.includes("application/json")) {
+    if (/^\s*<!doctype html|^\s*<html/i.test(body)) {
+      throw new Error(
+        "This deployment does not provide the server-side import service. Paste cards manually or use a JSON backup instead.",
+      );
+    }
+    throw new Error("The import service returned an unsupported response.");
+  }
+
+  try {
+    return JSON.parse(body) as T;
+  } catch {
+    throw new Error("The import service returned invalid JSON. Please try again later.");
+  }
+}
+
+const STORAGE_KEY = "flashbolt.local.v1";
+const FLASHBOLT_BASE = "/admin-dashboard/private-pages/flashbolt";
+const LEGACY_STORAGE_KEY = "studydeck.local.v1";
+const LIBRARY_SORT_KEY = `${STORAGE_KEY}.librarySort`;
+const SIDEBAR_COLLAPSED_KEY = `${STORAGE_KEY}.sidebarCollapsed`;
+const EDITOR_PANEL_COLLAPSED_KEY = `${STORAGE_KEY}.editorPanelCollapsed`;
+const AUTO_SCROLL_CHOICES_KEY = `${STORAGE_KEY}.autoScrollChoices`;
+const AUTO_SCROLL_QUESTION_KEY = `${STORAGE_KEY}.autoScrollQuestion`;
+const AUTO_SCROLL_EXPLANATION_KEY = `${STORAGE_KEY}.autoScrollExplanation`;
+const AUTO_SCROLL_CORRECT_KEY = `${STORAGE_KEY}.autoScrollCorrect`;
+const THEME_IDS = THEME_OPTIONS.map((option) => option.id);
+const LIBRARY_SORT_VALUES: LibrarySort[] = [
+  "updated-desc", "updated-asc", "title-asc", "title-desc", "subject-asc", "subject-desc",
+  "folder-asc", "folder-desc", "terms-desc", "terms-asc", "progress-desc", "progress-asc",
+  "mastered-desc", "mastered-asc", "remaining-desc", "remaining-asc", "unfiled-first", "filed-first",
+];
+const LIBRARY_COLLATOR = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+const HIGHLIGHT_COLORS: HighlightColor[] = ["none", "yellow", "mint", "violet"];
+function semesterRank(label: string) {
+  const match = /^(Spring|Summer|Fall) (\d{4})$/.exec(label);
+  if (!match) return -1;
+  const termRank = { Spring: 1, Summer: 2, Fall: 3 }[match[1] as "Spring" | "Summer" | "Fall"];
+  return Number(match[2]) * 10 + termRank;
+}
+
+const FOLDER_COLORS = ["#7773ff", "#55c9f3", "#54d29a", "#f4c84a", "#ff8b9d", "#c98cff", "#ff9f5a", "#9ca8c7"];
+const LANGUAGE_OPTIONS = [
+  { value: "auto", label: "Auto-detect", speechCode: "" },
+  { value: "en", label: "English", speechCode: "en-US" },
+  { value: "es", label: "Spanish", speechCode: "es-ES" },
+  { value: "fr", label: "French", speechCode: "fr-FR" },
+  { value: "de", label: "German", speechCode: "de-DE" },
+  { value: "it", label: "Italian", speechCode: "it-IT" },
+  { value: "pt", label: "Portuguese", speechCode: "pt-BR" },
+  { value: "ja", label: "Japanese", speechCode: "ja-JP" },
+  { value: "ko", label: "Korean", speechCode: "ko-KR" },
+  { value: "zh", label: "Chinese", speechCode: "zh-CN" },
+];
+const DEFAULT_LEARN_OPTIONS: LearnOptions = {
+  shuffle: false,
+  soundEffects: true,
+  multipleChoice: true,
+  trueFalse: false,
+  selectAll: false,
+  written: false,
+  flashcards: false,
+  answerTerms: false,
+  answerDefinitions: true,
+  showImagesOnQuestions: true,
+  showImagesOnAnswers: true,
+  grading: "relaxed",
+  retypeCorrectAnswers: false,
+  textToSpeech: false,
+};
+
+const mobileCards: Card[] = [
+  {
+    id: "mobile-1",
+    term: "A developer wants to use web technologies and the device camera. Which app type fits best?",
+    definition: "Hybrid app",
+  },
+  {
+    id: "mobile-2",
+    term: "Which type of app generally produces the most responsive user interface?",
+    definition: "Native app",
+  },
+  {
+    id: "mobile-3",
+    term: "Which file would a developer edit to change an Android app's name?",
+    definition: "AndroidManifest.xml",
+  },
+  {
+    id: "mobile-4",
+    term: "Which file determines what an Android app's interface looks like?",
+    definition: "activity_main.xml",
+  },
+  {
+    id: "mobile-5",
+    term: "Which project file contains strings displayed in the interface?",
+    definition: "strings.xml",
+  },
+  {
+    id: "mobile-6",
+    term: "A method Android calls when an event is triggered is called what?",
+    definition: "A callback",
+  },
+  {
+    id: "mobile-7",
+    term: "Where are layout resources stored?",
+    definition: "res/layout",
+  },
+  {
+    id: "mobile-8",
+    term: "How is a string resource named greeting accessed in XML?",
+    definition: "@string/greeting",
+  },
+  {
+    id: "mobile-9",
+    term: "In MVC, user input from the view goes directly to which layer?",
+    definition: "The controller",
+  },
+  {
+    id: "mobile-10",
+    term: "What does the Android unit sp stand for?",
+    definition: "Scale-independent pixels",
+  },
+  {
+    id: "mobile-11",
+    term: "Which generated class references all resources available to an Android app?",
+    definition: "The R class",
+  },
+  {
+    id: "mobile-12",
+    term: "What is a part of a program coded to respond to a specific event?",
+    definition: "An event handler",
+  },
+  {
+    id: "mobile-13",
+    term: "Which method starts another Android Activity?",
+    definition: "startActivity",
+  },
+  {
+    id: "mobile-14",
+    term: "What is the entry-point method of an Android Activity?",
+    definition: "onCreate",
+  },
+  {
+    id: "mobile-15",
+    term: "Where are drawable resources stored?",
+    definition: "res/drawable",
+  },
+];
+
+const initialData: AppData = {
+  sets: [
+    {
+      id: "mobile-midterm",
+      title: "Midterm — Mobile Application Development",
+      description: "Android fundamentals, resources, app types, and activity lifecycle.",
+      subject: "ITEC 4450",
+      color: "violet",
+      updatedAt: "2026-08-13T12:00:00.000Z",
+      cards: mobileCards,
+    },
+    {
+      id: "web-basics",
+      title: "Web development essentials",
+      description: "A small starter set you can edit or replace.",
+      subject: "Web Development",
+      color: "mint",
+      updatedAt: "2026-08-12T12:00:00.000Z",
+      cards: [
+        { id: "web-1", term: "Semantic HTML", definition: "Markup that describes the meaning and structure of content." },
+        { id: "web-2", term: "CSS cascade", definition: "The algorithm browsers use to resolve competing style declarations." },
+        { id: "web-3", term: "Responsive design", definition: "A layout approach that adapts to different screen sizes and input methods." },
+        { id: "web-4", term: "Client-side state", definition: "Data retained by the interface while a user interacts with it." },
+        { id: "web-5", term: "Accessibility", definition: "Designing products so people with diverse abilities can use them." },
+      ],
+    },
+  ],
+  folders: [{ id: "itec-folder", name: "ITEC 4450", setIds: ["mobile-midterm"] }],
+  mastered: {},
+  sessions: 0,
+  learnProgress: {},
+};
+
+const blankDraft: StudySet = {
+  id: "",
+  title: "",
+  description: "",
+  subject: "",
+  color: "violet",
+  updatedAt: "",
+  cards: [
+    { id: "draft-1", term: "", definition: "", questionType: "multiple-choice", answerChoices: ["", "", "", ""] },
+    { id: "draft-2", term: "", definition: "", questionType: "multiple-choice", answerChoices: ["", "", "", ""] },
+  ],
+};
+
+function makeId(prefix: string) {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return `${prefix}-${crypto.randomUUID()}`;
+  return `${prefix}-${Math.random().toString(36).slice(2)}`;
+}
+
+function routeSlug(value: string) {
+  return value.toLocaleLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "untitled";
+}
+
+function isSafeKahootUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && (url.hostname === "kahoot.it" || url.hostname.endsWith(".kahoot.it") || url.hostname === "kahoot.com" || url.hostname.endsWith(".kahoot.com"));
+  } catch {
+    return false;
+  }
+}
+
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    const source = URL.createObjectURL(file);
+    image.onload = () => {
+      const maxWidth = 960;
+      const maxHeight = 720;
+      const scale = Math.min(1, maxWidth / image.width, maxHeight / image.height);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) {
+        URL.revokeObjectURL(source);
+        reject(new Error("Canvas unavailable"));
+        return;
+      }
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/webp", 0.8);
+      URL.revokeObjectURL(source);
+      resolve(dataUrl);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(source);
+      reject(new Error("Image unavailable"));
+    };
+    image.src = source;
+  });
+}
+
+function formatDate(iso: string) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "Recently";
+  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(date);
+}
+
+function answerOptions(set: StudySet, cardIndex: number) {
+  const card = set.cards[cardIndex];
+  const correct = card ? (correctAnswersForCard(card)[0] ?? cleanChoiceAnswer(card.definition)) : "";
+  const suppliedChoices = [...new Set((card?.answerChoices ?? []).map((choice) => choice.trim()).filter(Boolean))];
+  if (suppliedChoices.length >= 2) {
+    return suppliedChoices.some((choice) => normalizeAnswer(choice) === normalizeAnswer(correct))
+      ? suppliedChoices
+      : [...suppliedChoices, correct];
+  }
+  const distractors = set.cards
+    .filter((_, index) => index !== cardIndex)
+    .map((card) => card.definition)
+    .filter((definition) => definition !== correct);
+  const offset = cardIndex % Math.max(1, distractors.length);
+  const rotated = [...distractors.slice(offset), ...distractors.slice(0, offset)];
+  const choices = [correct, ...rotated.slice(0, 3)];
+  if (choices.length < 4) choices.push("None of these");
+  return [...new Set(choices)].sort((a, b) => (a.length + cardIndex) % 7 - (b.length + cardIndex) % 7);
+}
+
+function testCorrectAnswer(card: Card) {
+  return correctAnswersForCard(card)[0] ?? cleanChoiceAnswer(card.definition);
+}
+
+function learnAnswerSide(options: LearnOptions, sequence: number, card?: Card): "term" | "definition" {
+  if (card) {
+    const embedded = parseEmbeddedQuestion(card.term, card.definition);
+    if (embedded.prompt.endsWith("?") || embedded.choices.length >= 2) return "definition";
+  }
+  if (options.answerTerms && !options.answerDefinitions) return "term";
+  if (!options.answerTerms && options.answerDefinitions) return "definition";
+  return sequence % 2 === 0 ? "definition" : "term";
+}
+
+function enabledLearnKinds(options: LearnOptions): LearnQuestionKind[] {
+  const kinds: LearnQuestionKind[] = [];
+  if (options.multipleChoice) kinds.push("multiple-choice");
+  if (options.trueFalse) kinds.push("true-false");
+  if (options.selectAll) kinds.push("select-all");
+  if (options.written) kinds.push("written");
+  if (options.flashcards) kinds.push("flashcard");
+  return kinds.length ? kinds : ["multiple-choice"];
+}
+
+function learnQuestionKind(options: LearnOptions, sequence: number, correctAnswer: string, confidence: number): LearnQuestionKind {
+  const canSelectAll = correctAnswer.split(/\s*(?:;|,|\band\b)\s*/i).filter((part) => part.trim().length > 2).length > 1;
+  return chooseAdaptiveQuestionKind(confidence, enabledLearnKinds(options), sequence, canSelectAll);
+}
+
+function learnChoices(set: StudySet, card: Card, answerSide: "term" | "definition", sequence: number) {
+  const correct = card[answerSide];
+  if (answerSide === "definition") {
+    const embeddedChoices = card.answerChoices?.length
+      ? card.answerChoices
+      : parseEmbeddedQuestion(card.term, card.definition).choices;
+    const suppliedChoices = [...new Set(embeddedChoices.map((choice) => choice.trim()).filter(Boolean))];
+    if (suppliedChoices.length >= 2) {
+      return suppliedChoices.some((choice) => normalizeAnswer(choice) === normalizeAnswer(cleanChoiceAnswer(correct)))
+        ? suppliedChoices
+        : [...suppliedChoices, cleanChoiceAnswer(correct)];
+    }
+  }
+  const distractors = set.cards
+    .filter((item) => item.id !== card.id)
+    .map((item) => item[answerSide])
+    .filter((answer) => answer && answer !== correct);
+  const offset = sequence % Math.max(1, distractors.length);
+  return shuffleValues([correct, ...distractors.slice(offset).concat(distractors.slice(0, offset)).slice(0, 3)]);
+}
+
+function selectAllChoices(set: StudySet, card: Card, answerSide: "term" | "definition") {
+  const correctParts = card[answerSide]
+    .split(/\s*(?:;|,|\band\b)\s*/i)
+    .map((part) => part.trim())
+    .filter((part) => part.length > 2)
+    .slice(0, 4);
+  const distractors = set.cards
+    .filter((item) => item.id !== card.id)
+    .flatMap((item) => item[answerSide].split(/\s*(?:;|,)\s*/))
+    .map((part) => part.trim())
+    .filter((part) => part.length > 2 && !correctParts.includes(part))
+    .slice(0, Math.max(2, 6 - correctParts.length));
+  return { correctParts, choices: shuffleValues([...correctParts, ...distractors]) };
+}
+
+function isValidBackup(value: unknown): value is AppData {
+  if (!value || typeof value !== "object") return false;
+  const data = value as Partial<AppData>;
+  const validCards = Array.isArray(data.sets) && data.sets.every((set) => Boolean(set)
+    && typeof set === "object"
+    && typeof set.id === "string"
+    && typeof set.title === "string"
+    && typeof set.description === "string"
+    && typeof set.subject === "string"
+    && typeof set.color === "string"
+    && typeof set.updatedAt === "string"
+    && Array.isArray(set.cards)
+    && set.cards.every((card) => Boolean(card)
+      && typeof card === "object"
+      && typeof card.id === "string"
+      && typeof card.term === "string"
+      && typeof card.definition === "string"));
+  const validFolders = Array.isArray(data.folders) && data.folders.every((folder) => Boolean(folder)
+    && typeof folder === "object"
+    && typeof folder.id === "string"
+    && typeof folder.name === "string"
+    && Array.isArray(folder.setIds)
+    && folder.setIds.every((setId) => typeof setId === "string"));
+  const validMastery = Boolean(data.mastered) && typeof data.mastered === "object" && !Array.isArray(data.mastered)
+    && Object.values(data.mastered ?? {}).every((cardIds) => Array.isArray(cardIds) && cardIds.every((cardId) => typeof cardId === "string"));
+  return validCards && validFolders && validMastery;
+}
+
+function describeSyncError(error: unknown) {
+  const candidate = error as { code?: string; message?: string };
+  const code = candidate?.code?.replace(/^firestore\//, "") ?? "unknown";
+  if (code === "permission-denied") return "Permission denied by Firestore rules";
+  if (code === "unauthenticated") return "Firebase sign-in expired";
+  if (code === "resource-exhausted" || candidate?.message?.includes("maximum size")) {
+    return "Library is too large for one cloud document";
+  }
+  if (code === "unavailable") return "Firestore is temporarily unavailable";
+  return `Cloud error: ${code}`;
+}
+
+function withDetectedAnswerChoices(card: Card): Card {
+  const embedded = parseEmbeddedQuestion(card.term, card.definition);
+  return embedded.choices.length >= 2
+    ? { ...card, term: embedded.prompt, answerChoices: embedded.choices }
+    : card;
+}
+
+function cardQuestionType(card: Card): CardQuestionType {
+  return card.questionType ?? (card.answerChoices && card.answerChoices.length > 1 ? "multiple-choice" : "flashcard");
+}
+
+function cleanChoiceAnswer(value: string) {
+  return value.replace(/^[A-Z][).:-]\s*/i, "").trim();
+}
+
+function correctAnswersForCard(card: Card) {
+  return (card.correctAnswers?.length ? card.correctAnswers : [cleanChoiceAnswer(card.definition)]).filter((answer) => answer.trim());
+}
+
+function prepareDraftCard(card: Card): Card | null {
+  const term = card.term.trim();
+  const type = cardQuestionType(card);
+  if (!term) return null;
+  if (type === "matching") {
+    const matchingPairs = (card.matchingPairs ?? [])
+      .map((pair) => ({ ...pair, left: pair.left.trim(), right: pair.right.trim() }))
+      .filter((pair) => pair.left || pair.right);
+    if (matchingPairs.length < 2 || matchingPairs.some((pair) => !pair.left || !pair.right)) return null;
+    return { ...card, term, matchingPairs, definition: matchingPairs.map((pair) => `${pair.left} → ${pair.right}`).join("; ") };
+  }
+  if (type === "multiple-choice" || type === "select-all" || type === "true-false") {
+    const answerChoices = [...new Set((card.answerChoices ?? []).map((choice) => choice.trim()).filter(Boolean))];
+    const selectedAnswers = correctAnswersForCard(card)
+      .map((answer) => answerChoices.find((choice) => normalizeAnswer(cleanChoiceAnswer(choice)) === normalizeAnswer(cleanChoiceAnswer(answer))))
+      .filter((answer): answer is string => Boolean(answer));
+    if (answerChoices.length <= 1) {
+      const definition = card.definition.trim() || answerChoices[0] || "";
+      return definition ? { ...card, term, definition, questionType: "flashcard", answerChoices } : null;
+    }
+    if (!selectedAnswers.length) return null;
+    const correctAnswers = type === "select-all" ? selectedAnswers : [selectedAnswers[0]];
+    return { ...card, term, answerChoices, correctAnswers, definition: correctAnswers.join("; ") };
+  }
+  const definition = card.definition.trim();
+  return definition ? { ...card, term, definition } : null;
+}
+
+function withDataDefaults(value: AppData): AppData {
+  const deletedSetIds = [...new Set((value.deletedSetIds ?? []).filter((id) => typeof id === "string"))];
+  const deleted = new Set(deletedSetIds);
+  const normalizedSets = value.sets.filter((set) => !deleted.has(set.id)).map((set) => ({
+    ...set,
+    cards: set.cards.map(card => withCorrectChoiceAnswers(withDetectedAnswerChoices({ ...card, explanation: typeof card.explanation === "string" ? card.explanation : undefined }))),
+  }));
+  const setIds = new Set(normalizedSets.map((set) => set.id));
+  const cardIdsBySet = new Map(normalizedSets.map((set) => [set.id, new Set(set.cards.map((card) => card.id))]));
+  return {
+    ...value,
+    sets: normalizedSets,
+    deletedSetIds,
+    semesterVisibility: normalizeSemesterVisibility(value.semesterVisibility),
+    folders: value.folders.map((folder) => ({
+      ...folder,
+      setIds: [...new Set(folder.setIds)].filter((setId) => setIds.has(setId)),
+    })),
+    mastered: Object.fromEntries(Object.entries(value.mastered ?? {})
+      .filter(([setId]) => setIds.has(setId))
+      .map(([setId, cardIds]) => [setId, [...new Set(cardIds)].filter((cardId) => cardIdsBySet.get(setId)?.has(cardId))])),
+    learnProgress: Object.fromEntries(Object.entries(value.learnProgress ?? {}).filter(([setId]) => setIds.has(setId))),
+    activeLearn: value.activeLearn && setIds.has(value.activeLearn.setId) ? value.activeLearn : undefined,
+  };
+}
+
+function mergeLibraries(cloud: AppData, local: AppData): AppData {
+  const sets = new Map(cloud.sets.map((set) => [set.id, set]));
+  local.sets.forEach((localSet) => {
+    const cloudSet = sets.get(localSet.id);
+    if (!cloudSet || Date.parse(localSet.updatedAt) >= Date.parse(cloudSet.updatedAt)) {
+      sets.set(localSet.id, localSet);
+    }
+  });
+
+  const folders = new Map(cloud.folders.map((folder) => [folder.id, folder]));
+  local.folders.forEach((localFolder) => {
+    const cloudFolder = folders.get(localFolder.id);
+    folders.set(localFolder.id, cloudFolder
+      ? { ...localFolder, setIds: [...new Set([...cloudFolder.setIds, ...localFolder.setIds])] }
+      : localFolder);
+  });
+
+  return withDataDefaults({
+    ...cloud,
+    // Deletions win over stale copies, including edits from another device.
+    deletedSetIds: [...new Set([...(cloud.deletedSetIds ?? []), ...(local.deletedSetIds ?? [])])],
+    sets: [...sets.values()],
+    folders: [...folders.values()],
+    mastered: Object.fromEntries(
+      [...new Set([...Object.keys(cloud.mastered), ...Object.keys(local.mastered)])]
+        .map((setId) => [setId, [...new Set([...(cloud.mastered[setId] ?? []), ...(local.mastered[setId] ?? [])])]]),
+    ),
+    sessions: Math.max(cloud.sessions, local.sessions),
+    semesterVisibility: mergeSemesterVisibility(cloud.semesterVisibility, local.semesterVisibility),
+    learnProgress: mergeReviewProgress(cloud.learnProgress, local.learnProgress),
+    activeLearn: local.activeLearn ?? cloud.activeLearn,
+  });
+}
+
+function removeSetFromLibraryData(data: AppData, setId: string): AppData {
+  const mastered = { ...data.mastered };
+  const learnProgress = { ...(data.learnProgress ?? {}) };
+  delete mastered[setId];
+  delete learnProgress[setId];
+  return {
+    ...data,
+    deletedSetIds: [...new Set([...(data.deletedSetIds ?? []), setId])],
+    sets: data.sets.filter((item) => item.id !== setId),
+    folders: data.folders.map((folder) => ({ ...folder, setIds: folder.setIds.filter((id) => id !== setId) })),
+    mastered,
+    learnProgress,
+    activeLearn: data.activeLearn?.setId === setId ? undefined : data.activeLearn,
+  };
+}
+
+function AutoResizeTextarea({
+  value,
+  onChange,
+  onPaste,
+  className,
+  placeholder,
+  rows = 2,
+  readOnly,
+  "aria-label": ariaLabel,
+}: {
+  value: string;
+  onChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
+  onPaste?: React.ClipboardEventHandler<HTMLTextAreaElement>;
+  className?: string;
+  placeholder?: string;
+  rows?: number;
+  readOnly?: boolean;
+  "aria-label"?: string;
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [value]);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    const container = textarea?.parentElement;
+    if (!textarea || !container) return;
+    const resize = () => {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    };
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(resize);
+    observer?.observe(container);
+    window.addEventListener("resize", resize);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      readOnly={readOnly}
+      aria-label={ariaLabel}
+      className={className}
+      value={value}
+      onPaste={onPaste}
+      onChange={(event) => {
+        event.currentTarget.style.height = "auto";
+        event.currentTarget.style.height = `${event.currentTarget.scrollHeight}px`;
+        onChange(event);
+      }}
+      placeholder={placeholder}
+      rows={rows}
+    />
+  );
+}
+
+function PreviousValueSelect({ label, values, onSelect }: { label: string; values: string[]; onSelect: (value: string) => void }) {
+  if (!values.length) return null;
+  return (
+    <details className="previous-value-menu">
+      <summary aria-label={`Choose a previous ${label}`}>Previous {label}…</summary>
+      <div>{values.map((value) => <button type="button" key={value} onClick={(event) => { onSelect(value); event.currentTarget.closest("details")?.removeAttribute("open"); }}>{value}</button>)}</div>
+    </details>
+  );
+}
+
+function ThemePicker({
+  theme,
+  onThemeChange,
+  compact = false,
+}: {
+  theme: ThemeName;
+  onThemeChange: (theme: ThemeName) => void;
+  compact?: boolean;
+}) {
+  const [mode, setMode] = useState<"light" | "dark">(() => THEME_OPTIONS.find(option => option.id === theme)?.mode ?? "dark");
+  const selectedTheme = THEME_OPTIONS.find((option) => option.id === theme) ?? THEME_OPTIONS[0];
+  return (
+    <details className={`theme-picker ${compact ? "compact" : ""}`} onToggle={event => { if (event.currentTarget.open) setMode(selectedTheme.mode); }}>
+      <summary aria-label={`Change theme. Current theme: ${selectedTheme.label} ${selectedTheme.mode}`}>
+        <span className="theme-swatch" aria-hidden="true">
+          <i style={{ background: selectedTheme.colors[0] }} />
+          <i style={{ background: selectedTheme.colors[1] }} />
+        </span>
+        <span className="theme-picker-copy"><small>Theme</small><b>{selectedTheme.label} {selectedTheme.mode}</b></span>
+        <span className="theme-picker-chevron" aria-hidden="true">⌄</span>
+      </summary>
+      <div className="theme-picker-menu" role="group" aria-label="Choose a theme">
+        <div className="theme-picker-heading"><strong>Choose a theme</strong><small>Saved on this device</small></div>
+        <div className="theme-mode-tabs" role="group" aria-label="Theme brightness">{(["light", "dark"] as const).map(value => <button type="button" key={value} aria-pressed={mode === value} onClick={() => setMode(value)}>{value === "light" ? "Light" : "Dark"}</button>)}</div>
+        <div className="theme-picker-options">
+          {THEME_OPTIONS.filter(option => option.mode === mode).map((option) => (
+            <button
+              type="button"
+              className={option.id === theme ? "active" : ""}
+              aria-pressed={option.id === theme}
+              aria-label={`${option.label} ${option.mode}`}
+              key={option.id}
+              onClick={(event) => {
+                applyThemeToDocument(option.id);
+                onThemeChange(option.id);
+                event.currentTarget.closest("details")?.removeAttribute("open");
+              }}
+            >
+              <span className="theme-swatch" aria-hidden="true">
+                <i style={{ background: option.colors[0] }} />
+                <i style={{ background: option.colors[1] }} />
+              </span>
+              <span>{option.label}</span>
+              {option.id === theme && <b aria-hidden="true">✓</b>}
+            </button>
+          ))}
+        </div>
+      </div>
+    </details>
+  );
+}
+
+export default function Flashbolt() {
+  const { user } = useAuth();
+  const location = useLocation();
+  const routerNavigate = useNavigate();
+  const userId = user?.uid;
+  const [data, setData] = useState<AppData>(() => {
+    try {
+      const saved = window.localStorage.getItem(STORAGE_KEY) ?? window.localStorage.getItem(LEGACY_STORAGE_KEY);
+      const parsed: unknown = saved ? JSON.parse(saved) : null;
+      if (isValidBackup(parsed)) return withDataDefaults(parsed);
+    } catch { /* Account sync will restore the library if the local backup is unavailable. */ }
+    return initialData;
+  });
+  const [ready, setReady] = useState(false);
+  const [view, setView] = useState<View>(() => initialFlashboltView(location.pathname));
+  const [selectedSetId, setSelectedSetId] = useState(initialData.sets[0].id);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [masteryFilter, setMasteryFilter] = useState(() => {
+    try { return normalizeMasteryFilter(JSON.parse(localStorage.getItem(MASTERY_FILTER_KEY) ?? "null")); }
+    catch { return DEFAULT_MASTERY_FILTER; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(MASTERY_FILTER_KEY, JSON.stringify(masteryFilter)); }
+    catch { /* The filter remains usable without browser storage. */ }
+  }, [masteryFilter]);
+  const [libraryFiltersOpen, setLibraryFiltersOpen] = useState(false);
+  const [librarySort, setLibrarySort] = useState<LibrarySort>("updated-desc");
+  const [folderCardView, setFolderCardView] = useState<"default" | "list" | "compact">(() => {
+    try { const saved = window.localStorage.getItem(`${STORAGE_KEY}.folderCardView`); return saved === "list" || saved === "compact" ? saved : "default"; }
+    catch { return "default"; }
+  });
+  const [search, setSearch] = useState("");
+  const [termSearch, setTermSearch] = useState("");
+  const [helperFolderId, setHelperFolderId] = useState("all");
+  const [helperSetId, setHelperSetId] = useState(initialData.sets[0].id);
+  const [helperSearch, setHelperSearch] = useState("");
+  const pendingHelperCard = useRef<string | null>(null);
+  const [collapsedHelperCards, setCollapsedHelperCards] = useState<string[]>([]);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try { return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true"; } catch { return false; }
+  });
+  const [collapsedEditorSections, setCollapsedEditorSections] = useState<string[]>(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(EDITOR_PANEL_COLLAPSED_KEY) ?? "[]");
+      return Array.isArray(saved) ? saved.filter((item): item is string => typeof item === "string") : [];
+    } catch { return []; }
+  });
+  const [newMenuOpen, setNewMenuOpen] = useState(false);
+  const [autoScrollChoices, setAutoScrollChoices] = useState(() => {
+    try { return window.localStorage.getItem(AUTO_SCROLL_CHOICES_KEY) === "true"; } catch { return false; }
+  });
+  const [autoScrollQuestion, setAutoScrollQuestion] = useState(() => {
+    try { return window.localStorage.getItem(AUTO_SCROLL_QUESTION_KEY) !== "false"; } catch { return true; }
+  });
+  const [autoScrollCorrect, setAutoScrollCorrect] = useState(() => {
+    try { return window.localStorage.getItem(AUTO_SCROLL_CORRECT_KEY) === "true"; } catch { return false; }
+  });
+  const [autoScrollExplanation, setAutoScrollExplanation] = useState(() => {
+    try { return window.localStorage.getItem(AUTO_SCROLL_EXPLANATION_KEY) === "true"; } catch { return false; }
+  });
+  const autoAdvanceOn = activeAutoAdvance(autoScrollQuestion, autoScrollChoices, autoScrollCorrect, autoScrollExplanation);
+  const autoAdvanceOnRef = useRef(autoAdvanceOn);
+  autoAdvanceOnRef.current = autoAdvanceOn;
+  const draftCardElements = useRef(new Map<string, HTMLElement>());
+  const editorPanelRef = useRef<HTMLElement>(null);
+  const topbarRef = useRef<HTMLElement>(null);
+  const [editorPanelPassed, setEditorPanelPassed] = useState(false);
+  const [folderModalOpen, setFolderModalOpen] = useState(false);
+  const [folderName, setFolderName] = useState("");
+  const [folderColor, setFolderColor] = useState(FOLDER_COLORS[0]);
+  const [folderSemester, setFolderSemester] = useState("");
+  const [folderSetIds, setFolderSetIds] = useState<string[]>([]);
+  const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
+  const [tileFolderPickerId, setTileFolderPickerId] = useState<string | null>(null);
+  const [tileFolderSearch, setTileFolderSearch] = useState("");
+  const [confirmation, setConfirmation] = useState<{ title: string; message: string; confirmLabel: string; resolve: (accepted: boolean) => void } | null>(null);
+  function askConfirmation(message: string, title = "Confirm change", confirmLabel = "Continue"): Promise<boolean> {
+    return new Promise(resolve => setConfirmation({ title, message, confirmLabel, resolve }));
+  }
+  const [clearTermsSetId, setClearTermsSetId] = useState<string | null>(null);
+  const setContextMenuRef = useRef<HTMLDivElement>(null);
+  const [setContextMenu, setSetContextMenu] = useState<{ setId: string; x: number; y: number } | null>(null);
+  const [draft, setDraft] = useState<StudySet>(blankDraft);
+  const [notebookSource, setNotebookSource] = useState<NotebookDraftSource | null>(null);
+  const [notebookDraftStorageKey, setNotebookDraftStorageKey] = useState("");
+  const [editingSetId, setEditingSetId] = useState<string | null>(null);
+  const [draftFolderIds, setDraftFolderIds] = useState<string[]>([]);
+  const [createOriginFolderId, setCreateOriginFolderId] = useState<string | null>(null);
+  const [draftFolderSearch, setDraftFolderSearch] = useState("");
+  const [pasteImport, setPasteImport] = useState("");
+  const [quizletUrl, setQuizletUrl] = useState("");
+  const [quizletImporting, setQuizletImporting] = useState(false);
+  const [quizletImportMessage, setQuizletImportMessage] = useState("");
+  const [quizletImportFailed, setQuizletImportFailed] = useState(false);
+  const [kahootReference, setKahootReference] = useState("");
+  const [kahootImporting, setKahootImporting] = useState(false);
+  const [kahootImportMessage, setKahootImportMessage] = useState("");
+  const [kahootImportFailed, setKahootImportFailed] = useState(false);
+  const [requestedFlashIndex, setFlashIndex] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const [learnPhase, setLearnPhase] = useState<LearnPhase>("goal");
+  const [learnGoal, setLearnGoal] = useState<LearnGoal>("memorize");
+  const [learnOptions, setLearnOptions] = useState<LearnOptions>(DEFAULT_LEARN_OPTIONS);
+  const [learnOptionsDraft, setLearnOptionsDraft] = useState<LearnOptions>(DEFAULT_LEARN_OPTIONS);
+  const [learnOptionsOpen, setLearnOptionsOpen] = useState(false);
+  const [learnSessionIds, setLearnSessionIds] = useState<string[]>([]);
+  const [learnRoundIds, setLearnRoundIds] = useState<string[]>([]);
+  const [learnPendingIds, setLearnPendingIds] = useState<string[]>([]);
+  const [learnRetryIds, setLearnRetryIds] = useState<string[]>([]);
+  const [learnMasteredIds, setLearnMasteredIds] = useState<string[]>([]);
+  const [learnRound, setLearnRound] = useState(1);
+  const [learnIndex, setLearnIndex] = useState(0);
+  const [learnSequence, setLearnSequence] = useState(0);
+  const [learnQuestionConfidence, setLearnQuestionConfidence] = useState(0);
+  const [learnLastConfidence, setLearnLastConfidence] = useState(0);
+  const [learnAnswer, setLearnAnswer] = useState<string | null>(null);
+  const [learnLastCorrect, setLearnLastCorrect] = useState<boolean | null>(null);
+  const [learnWrittenAnswer, setLearnWrittenAnswer] = useState("");
+  const [learnRetypeAnswer, setLearnRetypeAnswer] = useState("");
+  const [learnSelectedAnswers, setLearnSelectedAnswers] = useState<string[]>([]);
+  const [learnFlashRevealed, setLearnFlashRevealed] = useState(false);
+  const [testAnswers, setTestAnswers] = useState<Record<string, string>>({});
+  const [testSubmitted, setTestSubmitted] = useState(false);
+  const [testCardIds, setTestCardIds] = useState<string[] | null>(null);
+  const [learnMissedIds, setLearnMissedIds] = useState<string[]>([]);
+  const [guideTitle, setGuideTitle] = useState("My study guide");
+  const [guideNotes, setGuideNotes] = useState("");
+  const [generatedCards, setGeneratedCards] = useState<Card[]>([]);
+  const [toast, setToast] = useState("");
+  const [theme, setTheme] = useState<ThemeName>("dark");
+  const [storageStatus, setStorageStatus] = useState<StorageStatus>("loading");
+  const [syncError, setSyncError] = useState("");
+  const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
+  const [dictationTarget, setDictationTarget] = useState<{ cardId: string; field: "term" | "definition" } | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
+  const handledRouteRef = useRef("");
+
+  useEffect(() => {
+    if (!userId) return;
+    const syncUserId = userId;
+    let cancelled = false;
+
+    async function loadLibrary() {
+      await Promise.resolve();
+      if (cancelled) return;
+
+      let loadedData = initialData;
+      let cloudSyncFailed = false;
+      let localData: AppData | null = null;
+
+      try {
+        const saved = window.localStorage.getItem(STORAGE_KEY) ?? window.localStorage.getItem(LEGACY_STORAGE_KEY);
+        const savedTheme = window.localStorage.getItem(`${STORAGE_KEY}.theme`) ?? window.localStorage.getItem(`${LEGACY_STORAGE_KEY}.theme`);
+        const savedLibrarySort = window.localStorage.getItem(LIBRARY_SORT_KEY) ?? window.localStorage.getItem(`${LEGACY_STORAGE_KEY}.librarySort`);
+        if (saved) {
+          const parsed: unknown = JSON.parse(saved);
+          if (isValidBackup(parsed)) {
+            localData = withDataDefaults(parsed);
+            loadedData = localData;
+          }
+        }
+        if (savedTheme && THEME_IDS.includes(savedTheme as ThemeName)) setTheme(savedTheme as ThemeName);
+        if (savedLibrarySort && LIBRARY_SORT_VALUES.includes(savedLibrarySort as LibrarySort)) {
+          setLibrarySort(savedLibrarySort as LibrarySort);
+        }
+      } catch {
+        setToast("Your local backup could not be opened on this device.");
+      }
+
+      try {
+        const cloudData = await loadFlashboltLibrary(syncUserId);
+        if (cancelled) return;
+        if (isValidBackup(cloudData)) {
+          loadedData = localData
+            ? await mergeAndSaveFlashboltLibrary(syncUserId, localData, (latestCloudData, currentLocalData) => isValidBackup(latestCloudData)
+              ? mergeLibraries(withDataDefaults(latestCloudData), currentLocalData)
+              : currentLocalData)
+            : withDataDefaults(cloudData);
+        } else {
+          await saveFlashboltLibrary(syncUserId, localData ?? loadedData);
+        }
+      } catch (error) {
+        cloudSyncFailed = true;
+        const message = describeSyncError(error);
+        setSyncError(message);
+        setToast(`${message}. Flashbolt is temporarily using this device's local backup.`);
+      }
+
+      if (cancelled) return;
+      // Re-resolve the current URL against the merged library before painting.
+      handledRouteRef.current = "";
+      setData(loadedData);
+      setSelectedSetId(current => loadedData.sets.some(set => set.id === current) ? current : loadedData.sets[0]?.id ?? "");
+      setStorageStatus(cloudSyncFailed ? "error" : "saved");
+      setReady(true);
+    }
+
+    void loadLibrary();
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  useEffect(() => {
+    if (!ready || !userId) return;
+    const syncUserId = userId;
+    let cancelled = false;
+
+    async function saveLibrary() {
+      await new Promise((resolve) => window.setTimeout(resolve, 650));
+      if (cancelled) return;
+
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch {
+        // Cloud storage remains the source of truth when local storage is unavailable.
+      }
+
+      try {
+        const mergedData = await mergeAndSaveFlashboltLibrary(syncUserId, data, (cloudData, localData) => {
+          const safeCloudData = isValidBackup(cloudData) ? withDataDefaults(cloudData) : initialData;
+          return mergeLibraries(safeCloudData, localData);
+        });
+        if (cancelled) return;
+        try {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedData));
+        } catch {
+          // The merged cloud copy remains available when local storage is blocked.
+        }
+        if (JSON.stringify(mergedData) !== JSON.stringify(data)) setData(mergedData);
+        setSyncError("");
+        setStorageStatus("saved");
+      } catch (error) {
+        const message = describeSyncError(error);
+        setSyncError(message);
+        setStorageStatus("error");
+        setToast(`${message}. A local backup was kept.`);
+      }
+    }
+
+    void saveLibrary();
+    return () => { cancelled = true; };
+  }, [data, ready, userId]);
+
+  useEffect(() => {
+    applyThemeToDocument(theme);
+    if (ready) window.localStorage.setItem(`${STORAGE_KEY}.theme`, theme);
+  }, [theme, ready]);
+
+  // Resolve internal navigation before paint without replacing the workspace with a loader.
+  useLayoutEffect(() => {
+    if (handledRouteRef.current === location.pathname) return;
+    if (location.pathname === "/flashbolt" || location.pathname.startsWith("/flashbolt/")) {
+      routerNavigate(`${FLASHBOLT_BASE}${location.pathname.slice("/flashbolt".length)}`, { replace: true });
+      return;
+    }
+    const parts = location.pathname.split("/").filter(Boolean);
+    const flashboltIndex = parts.indexOf("flashbolt");
+    const routeParts = flashboltIndex >= 0 ? parts.slice(flashboltIndex + 1) : [];
+    if (routeParts.length === 0) {
+      handledRouteRef.current = location.pathname;
+      setView("home");
+      return;
+    }
+    if (routeParts.length === 1 && ["home", "review", "library", "folders", "create", "guide", "helper"].includes(routeParts[0])) {
+      if (routeParts[0] === "helper") {
+        if (!ready) return;
+        const defaultFolder = [...data.folders]
+          .filter(item => /itec\s*3600/i.test(item.name) && /operating\s+systems/i.test(item.name))
+          .sort((a, b) => semesterRank(b.semester ?? "") - semesterRank(a.semester ?? ""))[0];
+        const defaultSets = defaultFolder ? data.sets.filter(set => defaultFolder.setIds.includes(set.id)) : data.sets;
+        const firstSet = [...defaultSets].sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: "base" }))[0];
+        setHelperFolderId(defaultFolder?.id ?? "all");
+        setHelperSetId(firstSet?.id ?? "");
+        setHelperSearch("");
+        setSearch("");
+      }
+      handledRouteRef.current = location.pathname;
+      setView(routeParts[0] as View);
+      if (routeParts[0] === "create" && userId) {
+        const draftId = new URLSearchParams(location.search).get("notebookDraft");
+        if (draftId) {
+          try {
+            const key = notebookDraftKey(userId, draftId);
+            const saved = JSON.parse(sessionStorage.getItem(key) ?? "null");
+            if (!isNotebookDraftSource(saved?.source)) throw new Error("missing draft");
+            const source: NotebookDraftSource = saved.source;
+            const parsed = parseQuizResults(source.text);
+            const cards = (parsed.length ? parsed : parseNotes(source.text)).map(card => applyDetectedQuestionType({
+              ...card, questionType: card.questionType ?? (card.answerChoices?.length ? "multiple-choice" : "flashcard"),
+            } as Card));
+            const restored = saved.draft && typeof saved.draft.title === "string" && Array.isArray(saved.draft.cards)
+              ? saved.draft as StudySet : null;
+            setDraft(restored ?? {
+              ...blankDraft, title: source.title, subject: source.subject,
+              description: `From Notebook: ${source.title}`,
+              cards: cards.length ? cards : [{ id: makeId("card"), term: "", definition: "", questionType: "flashcard" }],
+            });
+            setEditingSetId(null);
+            setDraftFolderIds(Array.isArray(saved.folderIds) ? saved.folderIds.filter((id: unknown) => typeof id === "string" && data.folders.some(folder => folder.id === id)) : []);
+            setNotebookSource(source);
+            setNotebookDraftStorageKey(key);
+          } catch {
+            setToast("This note draft is unavailable or has already been saved. Return to Notebook and export the note again.");
+          }
+        }
+      }
+      return;
+    }
+    if (routeParts.length === 2) {
+      const [semesterSlug, folderSlug] = routeParts;
+      const routeFolder = data.folders.find((item) => routeSlug(item.semester || "no-semester") === semesterSlug && folderRouteSegment(item) === folderSlug);
+      if (!routeFolder) {
+        if (!ready) return;
+        handledRouteRef.current = location.pathname;
+        setSelectedFolderId(null);
+        setView("folders");
+        return;
+      }
+      handledRouteRef.current = location.pathname;
+      setSelectedFolderId(routeFolder.id);
+      setView("library");
+      return;
+    }
+    if (routeParts.length === 3 && routeParts[2] === "create") {
+      const [semesterSlug, folderSlug] = routeParts;
+      const routeFolder = data.folders.find((item) => routeSlug(item.semester || "no-semester") === semesterSlug && folderRouteSegment(item) === folderSlug);
+      if (!routeFolder) {
+        if (!ready) return;
+        handledRouteRef.current = location.pathname;
+        setView("folders");
+        return;
+      }
+      handledRouteRef.current = location.pathname;
+      startCreate(routeFolder.id);
+      return;
+    }
+    if (routeParts.length < 4) {
+      handledRouteRef.current = location.pathname;
+      setView("library");
+      return;
+    }
+    const [semesterSlug, folderSlug, setSlug, mode] = routeParts;
+    const isUnfiledRoute = semesterSlug === "no-semester" && folderSlug === "unfiled";
+    const routeFolder = data.folders.find((item) => routeSlug(item.semester || "no-semester") === semesterSlug && folderRouteSegment(item) === folderSlug);
+    if (!routeFolder && !isUnfiledRoute) {
+      if (!ready) return;
+      handledRouteRef.current = location.pathname;
+      setView("library");
+      return;
+    }
+    const routeSet = data.sets.find((item) => setRouteSegment(item, routeFolder) === setSlug && (routeFolder
+      ? routeFolder.setIds.includes(item.id)
+      : !data.folders.some((folderItem) => folderItem.setIds.includes(item.id))));
+    if (!routeSet || !["flashcards", "learn", "test", "edit", "helper"].includes(mode)) {
+      if (!ready) return;
+      handledRouteRef.current = location.pathname;
+      setView(routeFolder ? "library" : "folders");
+      return;
+    }
+    handledRouteRef.current = location.pathname;
+    setSelectedSetId(routeSet.id);
+    setSelectedFolderId(routeFolder?.id ?? null);
+    if (mode === "edit") startEdit(routeSet);
+    else if (mode === "learn") startLearn(routeSet.id);
+    else if (mode === "test") startTest(routeSet.id);
+    else if (mode === "helper") {
+      setHelperFolderId(routeFolder?.id ?? "all");
+      setHelperSetId(routeSet.id);
+      setHelperSearch("");
+      setSearch("");
+      setView("helper");
+    }
+    else openSet(routeSet.id);
+  // Route handlers are intentionally re-run only when the route or persisted library changes.
+  // Adding the inline navigation helpers would retrigger this effect on every render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.folders, data.sets, location.pathname, location.search, ready, userId]);
+
+  useEffect(() => {
+    if (ready) window.localStorage.setItem(LIBRARY_SORT_KEY, librarySort);
+  }, [librarySort, ready]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(""), 3200);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  useEffect(() => {
+    if (!folderModalOpen) return;
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setFolderModalOpen(false);
+      setEditingFolderId(null);
+      setFolderName("");
+      setFolderSetIds([]);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [folderModalOpen]);
+
+  useEffect(() => {
+    if (!tileFolderPickerId) return;
+
+    const closeOnPointerDown = (event: globalThis.PointerEvent) => {
+      if (!(event.target instanceof Element)) return;
+      const picker = event.target.closest("[data-tile-folder-picker]");
+      if (picker?.getAttribute("data-tile-folder-picker") !== tileFolderPickerId) {
+        setTileFolderPickerId(null);
+      }
+    };
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") setTileFolderPickerId(null);
+    };
+
+    document.addEventListener("pointerdown", closeOnPointerDown);
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnPointerDown);
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [tileFolderPickerId]);
+
+  useLayoutEffect(() => {
+    if (view !== "helper") return;
+    const narrow = window.matchMedia("(max-width: 780px)");
+    const opened = pendingHelperCard.current ? document.getElementById(pendingHelperCard.current) : null;
+    pendingHelperCard.current = null;
+    if (narrow.matches && opened && !opened.classList.contains("collapsed")) {
+      opened.scrollTop = 0;
+      opened.style.scrollMarginTop = `${Math.max(0, topbarRef.current?.getBoundingClientRect().bottom ?? 0) + 12}px`;
+      opened.scrollIntoView({ block: "start", behavior: "instant" });
+    }
+  }, [collapsedHelperCards, view]);
+
+  useLayoutEffect(() => {
+    const menu = setContextMenuRef.current;
+    if (!setContextMenu || !menu) return;
+    const position = () => {
+      const bounds = menu.getBoundingClientRect();
+      menu.style.left = `${Math.max(10, Math.min(setContextMenu.x, window.innerWidth - bounds.width - 10))}px`;
+      menu.style.top = `${Math.max(10, Math.min(setContextMenu.y, window.innerHeight - bounds.height - 10))}px`;
+    };
+    position();
+    const previousFocus = document.activeElement;
+    menu.querySelector<HTMLElement>('[role="menuitem"]')?.focus({ preventScroll: true });
+    const observer = new ResizeObserver(position);
+    observer.observe(menu);
+    return () => {
+      observer.disconnect();
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected && (menu.contains(document.activeElement) || document.activeElement === document.body)) previousFocus.focus({ preventScroll: true });
+    };
+  }, [setContextMenu]);
+
+  useEffect(() => {
+    if (!setContextMenu) return;
+    const close = () => setSetContextMenu(null);
+    const closeOnOutsideScroll = (event: Event) => {
+      if (event.target instanceof Node && setContextMenuRef.current?.contains(event.target)) return;
+      close();
+    };
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") close();
+    };
+    window.addEventListener("pointerdown", close);
+    window.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("scroll", closeOnOutsideScroll, true);
+    window.addEventListener("resize", close);
+    return () => {
+      window.removeEventListener("pointerdown", close);
+      window.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("scroll", closeOnOutsideScroll, true);
+      window.removeEventListener("resize", close);
+    };
+  }, [setContextMenu]);
+
+  useEffect(() => () => recognitionRef.current?.stop(), []);
+
+  const selectedSet = data.sets.find((set) => set.id === selectedSetId) ?? data.sets[0];
+  const flashIndex = Math.max(0, Math.min(requestedFlashIndex, (selectedSet?.cards.length ?? 0) - 1));
+  const helperAvailableSets = helperFolderId === "all"
+    ? data.sets
+    : data.sets.filter((set) => data.folders.find((folderItem) => folderItem.id === helperFolderId)?.setIds.includes(set.id));
+  const helperSet = helperAvailableSets.find((set) => set.id === helperSetId) ?? helperAvailableSets[0];
+  const helperCards = (helperSet?.cards ?? []).filter((card) => {
+    const query = helperSearch.trim().toLocaleLowerCase();
+    if (!query) return true;
+    const embedded = parseEmbeddedQuestion(card.term, card.definition);
+    return [embedded.prompt, card.term, card.definition, ...(card.answerChoices ?? embedded.choices), ...(card.correctAnswers ?? [])]
+      .some((value) => value.toLocaleLowerCase().includes(query));
+  });
+  const folder = data.folders.find((item) => item.id === selectedFolderId);
+  const editorFolder = editingSetId
+    ? data.folders.find((folderItem) => folderItem.id === selectedFolderId && folderItem.setIds.includes(editingSetId))
+      ?? data.folders.find((folderItem) => folderItem.setIds.includes(editingSetId))
+    : data.folders.find((folderItem) => folderItem.id === createOriginFolderId);
+  const editingFolder = data.folders.find((item) => item.id === editingFolderId);
+  const recentSourceSet = data.sets[0];
+  const recentSetValues = data.recentSetValues ?? (recentSourceSet ? {
+    title: recentSourceSet.title,
+    subject: recentSourceSet.subject,
+    color: recentSourceSet.color,
+    description: recentSourceSet.description,
+    folderIds: data.folders.filter((folderItem) => folderItem.setIds.includes(recentSourceSet.id)).map((folderItem) => folderItem.id),
+  } : undefined);
+  const recentFolderNames = recentSetValues?.folderIds
+    .map((folderId) => data.folders.find((folderItem) => folderItem.id === folderId)?.name)
+    .filter((name): name is string => Boolean(name)) ?? [];
+  const previousTitles = [...new Set(data.sets.map((set) => set.title.trim()).filter(Boolean))];
+  const previousSubjects = [...new Set(data.sets.map((set) => set.subject.trim()).filter(Boolean))];
+  const previousDescriptions = [...new Set(data.sets.map((set) => set.description.trim()).filter(Boolean))];
+  const previousFolderSelections = [...new Map(data.sets.map((set) => {
+    const folderIds = data.folders.filter((folderItem) => folderItem.setIds.includes(set.id)).map((folderItem) => folderItem.id).sort();
+    const label = folderIds.map((folderId) => data.folders.find((folderItem) => folderItem.id === folderId)?.name).filter(Boolean).join(" + ");
+    return [folderIds.join("|"), { folderIds, label }] as const;
+  }).filter(([key]) => key)).values()];
+  const completeDraftCards = draft.cards.filter((card) => card.term.trim() && (cardQuestionType(card) === "matching"
+    ? Boolean(card.matchingPairs?.length && card.matchingPairs.every((pair) => pair.left.trim() && pair.right.trim()))
+    : Boolean(card.definition.trim())));
+  const answerChoicesReady = draft.cards.every((card) => {
+    const type = cardQuestionType(card);
+    if (type === "matching") return Boolean(card.matchingPairs?.length && card.matchingPairs.every((pair) => pair.left.trim() && pair.right.trim()));
+    if (type !== "multiple-choice" && type !== "select-all" && type !== "true-false") return true;
+    if (!card.answerChoices?.length) return false;
+    const correctAnswers = correctAnswersForCard(card).map((answer) => normalizeAnswer(cleanChoiceAnswer(answer)));
+    return card.answerChoices.length >= 2
+      && card.answerChoices.every((choice) => choice.trim())
+      && correctAnswers.length > 0
+      && correctAnswers.every((answer) => card.answerChoices?.some((choice) => normalizeAnswer(cleanChoiceAnswer(choice)) === answer));
+  });
+  const draftChecklist = [
+    { label: "Add a set title", detail: "Required", complete: Boolean(draft.title.trim()) },
+    { label: "Choose a subject", detail: "Recommended", complete: Boolean(draft.subject.trim()) },
+    { label: "Describe what this set covers", detail: "Recommended", complete: Boolean(draft.description.trim()) },
+    { label: "Assign at least one folder", detail: "Optional", complete: draftFolderIds.length > 0 },
+    { label: "Complete at least two cards", detail: `${completeDraftCards.length} ready`, complete: completeDraftCards.length >= 2 },
+    { label: "Finish every card row", detail: `${draft.cards.length - completeDraftCards.length} incomplete`, complete: draft.cards.length >= 2 && completeDraftCards.length === draft.cards.length },
+    { label: "Verify multiple-choice answers", detail: "When included", complete: answerChoicesReady },
+  ];
+  const draftCompletion = Math.round((draftChecklist.filter((item) => item.complete).length / draftChecklist.length) * 100);
+  const masteredCount = Object.values(data.mastered).reduce((total, cards) => total + cards.length, 0);
+  const cardCount = data.sets.reduce((total, set) => total + set.cards.length, 0);
+  const foldersBySetCount = useMemo(() => [...data.folders].sort((a, b) => {
+    const aHasCustomColor = Boolean(a.color && a.color !== FOLDER_COLORS[0]);
+    const bHasCustomColor = Boolean(b.color && b.color !== FOLDER_COLORS[0]);
+    return Number(bHasCustomColor) - Number(aHasCustomColor)
+      || b.setIds.length - a.setIds.length
+      || LIBRARY_COLLATOR.compare(a.name, b.name);
+  }), [data.folders]);
+  const folderSemesterGroups = useMemo(() => {
+    const groups = new Map<string, Folder[]>();
+    foldersBySetCount.forEach((item) => {
+      const label = item.semester || "No semester";
+      groups.set(label, [...(groups.get(label) ?? []), item]);
+    });
+    return [...groups.entries()]
+      .sort(([a], [b]) => semesterRank(b) - semesterRank(a))
+      .map(([semester, folders]) => ({ semester, folders }));
+  }, [foldersBySetCount]);
+  const visibleSemesterGroups = folderSemesterGroups.filter(group => !data.semesterVisibility?.[group.semester]?.hidden);
+  const today = new Date();
+  const currentSemester = `${today.getMonth() < 5 ? "Spring" : today.getMonth() < 7 ? "Summer" : "Fall"} ${today.getFullYear()}`;
+  const quickLinkSemester = visibleSemesterGroups.find(group => group.semester === currentSemester);
+  function setSemesterHidden(semester: string, hidden: boolean) {
+    setData(current => ({ ...current, semesterVisibility: {
+      ...(current.semesterVisibility ?? {}),
+      [semester]: { hidden, updatedAt: Math.max(Date.now(), (current.semesterVisibility?.[semester]?.updatedAt ?? 0) + 1) },
+    } }));
+  }
+  const semesterVisibilityControls = <SemesterVisibilityControls compact={view === "library"} semesters={folderSemesterGroups.map(group => group.semester)} preferences={data.semesterVisibility ?? {}} onChange={setSemesterHidden} />;
+  const draftFolderOptions = useMemo(() => [...data.folders].sort((a, b) =>
+    b.setIds.length - a.setIds.length || LIBRARY_COLLATOR.compare(a.name, b.name),
+  ), [data.folders]);
+  const filteredSets = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const base = folder ? data.sets.filter((set) => folder.setIds.includes(set.id)) : data.sets;
+    const matches = query
+      ? base.filter((set) =>
+          [set.title, set.description, set.subject, ...set.cards.map((card) => `${card.term} ${card.definition}`)]
+            .join(" ")
+            .toLowerCase()
+            .includes(query),
+        )
+      : base;
+    const masteredFor = (set: StudySet) => data.mastered[set.id]?.length ?? 0;
+    const progressFor = (set: StudySet) => set.cards.length ? masteredFor(set) / set.cards.length : 0;
+    const remainingFor = (set: StudySet) => Math.max(0, set.cards.length - masteredFor(set));
+    const foldersFor = (set: StudySet) => data.folders
+      .filter((folderItem) => folderItem.setIds.includes(set.id))
+      .map((folderItem) => folderItem.name)
+      .sort((a, b) => LIBRARY_COLLATOR.compare(a, b))
+      .join(" · ");
+    const titleTieBreaker = (a: StudySet, b: StudySet) => LIBRARY_COLLATOR.compare(a.title, b.title);
+
+    return [...matches].sort((a, b) => {
+      let result = 0;
+      switch (librarySort) {
+        case "updated-desc": result = Date.parse(b.updatedAt) - Date.parse(a.updatedAt); break;
+        case "updated-asc": result = Date.parse(a.updatedAt) - Date.parse(b.updatedAt); break;
+        case "title-asc": result = LIBRARY_COLLATOR.compare(a.title, b.title); break;
+        case "title-desc": result = LIBRARY_COLLATOR.compare(b.title, a.title); break;
+        case "subject-asc": result = LIBRARY_COLLATOR.compare(a.subject || "General", b.subject || "General"); break;
+        case "subject-desc": result = LIBRARY_COLLATOR.compare(b.subject || "General", a.subject || "General"); break;
+        case "terms-desc": result = b.cards.length - a.cards.length; break;
+        case "terms-asc": result = a.cards.length - b.cards.length; break;
+        case "progress-desc": result = progressFor(b) - progressFor(a); break;
+        case "progress-asc": result = progressFor(a) - progressFor(b); break;
+        case "mastered-desc": result = masteredFor(b) - masteredFor(a); break;
+        case "mastered-asc": result = masteredFor(a) - masteredFor(b); break;
+        case "remaining-desc": result = remainingFor(b) - remainingFor(a); break;
+        case "remaining-asc": result = remainingFor(a) - remainingFor(b); break;
+        case "folder-asc": {
+          const aFolder = foldersFor(a);
+          const bFolder = foldersFor(b);
+          result = !aFolder && bFolder ? 1 : aFolder && !bFolder ? -1 : LIBRARY_COLLATOR.compare(aFolder, bFolder);
+          break;
+        }
+        case "folder-desc": {
+          const aFolder = foldersFor(a);
+          const bFolder = foldersFor(b);
+          result = !aFolder && bFolder ? 1 : aFolder && !bFolder ? -1 : LIBRARY_COLLATOR.compare(bFolder, aFolder);
+          break;
+        }
+        case "unfiled-first": result = Number(Boolean(foldersFor(a))) - Number(Boolean(foldersFor(b))); break;
+        case "filed-first": result = Number(Boolean(foldersFor(b))) - Number(Boolean(foldersFor(a))); break;
+      }
+      return result || titleTieBreaker(a, b);
+    });
+  }, [data.folders, data.mastered, data.sets, folder, librarySort, search]);
+  const visibleSets = useMemo(() => filteredSets.filter(set => matchesMasteryFilter(masteryPercentage(set.cards, data.mastered[set.id]), masteryFilter)), [filteredSets, data.mastered, masteryFilter]);
+  const recentSets = useMemo(() => data.sets.filter(set => matchesMasteryFilter(masteryPercentage(set.cards, data.mastered[set.id]), masteryFilter)).slice(0, 3), [data.sets, data.mastered, masteryFilter]);
+  const folderSubjectGroups = useMemo(() => groupFolderSets(visibleSets), [visibleSets]);
+  const folderSets = folder ? folderSubjectGroups.flatMap(group => group.sets) : [];
+  const folderSetIndex = folderSets.findIndex((set) => set.id === selectedSet?.id);
+  const previousFolderSet = folderSetIndex > 0 ? folderSets[folderSetIndex - 1] : undefined;
+  const nextFolderSet = folderSetIndex >= 0 && folderSetIndex < folderSets.length - 1
+    ? folderSets[folderSetIndex + 1]
+    : undefined;
+  const editorFolderSets = editorFolder
+    ? groupFolderSets(visibleSets.filter(set => editorFolder.setIds.includes(set.id))).flatMap(group => group.sets)
+    : [];
+  useLayoutEffect(() => {
+    const panel = editorPanelRef.current;
+    const topbar = topbarRef.current;
+    if (view !== "create" || !editingSetId || search || !panel || !topbar) {
+      setEditorPanelPassed(false);
+      return;
+    }
+    let frame = 0;
+    const measure = () => {
+      setEditorPanelPassed(panel.getBoundingClientRect().bottom <= topbar.getBoundingClientRect().bottom);
+    };
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    };
+    const resize = new ResizeObserver(schedule);
+    resize.observe(panel);
+    resize.observe(topbar);
+    window.addEventListener("scroll", schedule, true);
+    window.addEventListener("resize", schedule);
+    measure();
+    return () => {
+      cancelAnimationFrame(frame);
+      resize.disconnect();
+      window.removeEventListener("scroll", schedule, true);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [view, editingSetId, search]);
+  const showEditorTopbar = view === "create" && !search && (!editingSetId || editorPanelPassed);
+  const editorSetIndex = editorFolderSets.findIndex((set) => set.id === editingSetId);
+  const previousEditorSet = editorSetIndex > 0 ? editorFolderSets[editorSetIndex - 1] : undefined;
+  const nextEditorSet = editorSetIndex >= 0 && editorSetIndex < editorFolderSets.length - 1 ? editorFolderSets[editorSetIndex + 1] : undefined;
+
+
+  const testCards = testCardIds ? (selectedSet?.cards.filter(card => testCardIds.includes(card.id)) ?? []) : (selectedSet?.cards.slice(0, 8) ?? []);
+  const testMissedCards = testCards.filter(card => normalizeAnswer(testAnswers[card.id] ?? "") !== normalizeAnswer(testCorrectAnswer(card)));
+  const learnMissedCards = selectedSet?.cards.filter(card => learnMissedIds.includes(card.id)) ?? [];
+  const testScore = testCards.filter((card) => normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card))).length;
+  const guideTitleSuggestions = useMemo(() => suggestNoteTitles(guideNotes), [guideNotes]);
+  const currentLearnCard = selectedSet?.cards.find((card) => card.id === learnRoundIds[learnIndex]);
+  const currentLearnAnswerSide = learnAnswerSide(learnOptions, learnSequence, currentLearnCard);
+  const currentLearnPromptSide = currentLearnAnswerSide === "definition" ? "term" : "definition";
+  const currentEmbeddedQuestion = useMemo(
+    () => currentLearnCard ? parseEmbeddedQuestion(currentLearnCard.term, currentLearnCard.definition) : { prompt: "", choices: [] },
+    [currentLearnCard],
+  );
+  const currentLearnPrompt = currentLearnPromptSide === "term"
+    ? currentEmbeddedQuestion.prompt
+    : (currentLearnCard?.definition ?? "");
+  const currentLearnCorrectAnswer = currentLearnCard?.[currentLearnAnswerSide] ?? "";
+  const currentLearnQuestionKind = learnQuestionKind(learnOptions, learnSequence, currentLearnCorrectAnswer, learnQuestionConfidence);
+  const currentLearnChoices = useMemo(
+    () => currentLearnCard ? learnChoices(selectedSet, currentLearnCard, currentLearnAnswerSide, learnSequence) : [],
+    [currentLearnAnswerSide, currentLearnCard, learnSequence, selectedSet],
+  );
+  const currentSelectAll = useMemo(
+    () => currentLearnCard ? selectAllChoices(selectedSet, currentLearnCard, currentLearnAnswerSide) : { correctParts: [], choices: [] },
+    [currentLearnAnswerSide, currentLearnCard, selectedSet],
+  );
+  const currentTrueFalse = useMemo(() => {
+    const distractor = currentLearnChoices.find(
+      (choice) => normalizeAnswer(choice) !== normalizeAnswer(currentLearnCorrectAnswer),
+    );
+    const isTrue = learnSequence % 2 === 0 || !distractor;
+    return {
+      answer: isTrue,
+      statement: isTrue ? currentLearnCorrectAnswer : (distractor ?? currentLearnCorrectAnswer),
+    };
+  }, [currentLearnChoices, currentLearnCorrectAnswer, learnSequence]);
+  const learnMasteryTarget = learnGoal === "cram" ? 2 : 3;
+  const selectedLearnProgress = data.learnProgress?.[selectedSet?.id ?? ""]?.cards ?? {};
+  const learnQuestionsAnswered = learnSequence + (learnAnswer ? 1 : 0);
+  const learnQuestionsTotal = projectLearnQuestionTotal(
+    learnSessionIds,
+    learnMasteredIds,
+    selectedLearnProgress,
+    learnMasteryTarget,
+    learnQuestionsAnswered,
+  );
+  const learnQuestionSegmentCount = Math.max(1, Math.ceil(Math.max(1, learnQuestionsTotal) / 7));
+  const learnStatusCounts = (selectedSet?.cards ?? []).reduce((counts, card) => {
+    const confidence = selectedLearnProgress[card.id]?.confidence ?? 0;
+    const key = learnConfidenceLabel(confidence).toLowerCase() as "new" | "learning" | "familiar" | "mastered";
+    counts[key] += 1;
+    return counts;
+  }, { new: 0, learning: 0, familiar: 0, mastered: 0 });
+  const resumableLearn = data.activeLearn?.setId === selectedSet?.id ? data.activeLearn : undefined;
+
+  useEffect(() => {
+    if (view !== "learn" || learnPhase !== "session" || !learnAnswer || learnOptionsOpen) return;
+    const retypeRequired = !learnLastCorrect && learnOptions.retypeCorrectAnswers;
+    const canContinue = !retypeRequired || normalizeAnswer(learnRetypeAnswer) === normalizeAnswer(currentLearnCorrectAnswer);
+    if (!canContinue) return;
+    const continueOnKey = (event: globalThis.KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target;
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement || (target instanceof HTMLElement && target.isContentEditable)) return;
+      event.preventDefault();
+      nextLearnQuestion();
+    };
+    window.addEventListener("keydown", continueOnKey);
+    return () => window.removeEventListener("keydown", continueOnKey);
+    // nextLearnQuestion is intentionally omitted because it is recreated with the current session state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentLearnCorrectAnswer, learnAnswer, learnLastCorrect, learnOptions.retypeCorrectAnswers, learnOptionsOpen, learnPhase, learnRetypeAnswer, view]);
+
+  useEffect(() => {
+    if (view !== "learn" || learnPhase !== "session" || !learnOptions.textToSpeech || !currentLearnPrompt) return;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance(currentLearnPrompt));
+    return () => window.speechSynthesis.cancel();
+  }, [currentLearnPrompt, learnOptions.textToSpeech, learnPhase, view]);
+
+  function notify(message: string) {
+    setToast(message);
+  }
+
+  function acceptPreviousValueOnTab(event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>, values: string[], apply: (value: string) => void) {
+    if (event.key !== "Tab" || event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
+    const current = event.currentTarget.value.trim().toLocaleLowerCase();
+    const match = values.find((value) => value.toLocaleLowerCase().startsWith(current) && value.toLocaleLowerCase() !== current);
+    if (!match) return;
+    event.preventDefault();
+    apply(match);
+  }
+
+  function routePathForView(nextView: View, setId = selectedSetId) {
+    if (!["set", "learn", "test", "create", "helper"].includes(nextView) || (["create", "helper"].includes(nextView) && !setId)) {
+      return nextView === "home" ? FLASHBOLT_BASE : `${FLASHBOLT_BASE}/${nextView}`;
+    }
+    const routeSet = data.sets.find((item) => item.id === setId);
+    if (!routeSet) return `${FLASHBOLT_BASE}/library`;
+    const routeFolder = data.folders.find((item) => item.id === selectedFolderId && item.setIds.includes(routeSet.id))
+      ?? data.folders.find((item) => item.setIds.includes(routeSet.id));
+    const mode = nextView === "set" ? "flashcards" : nextView === "create" ? "edit" : nextView;
+    return `${FLASHBOLT_BASE}/${routeSlug(routeFolder?.semester || "no-semester")}/${routeFolder ? folderRouteSegment(routeFolder) : "unfiled"}/${setRouteSegment(routeSet, routeFolder)}/${mode}`;
+  }
+
+  function setRoutePath(nextView: View, setId = selectedSetId) {
+    const path = routePathForView(nextView, setId);
+    handledRouteRef.current = path;
+    if (location.pathname !== path) routerNavigate(path);
+  }
+
+  function folderPath(folderItem: Folder) {
+    return `${FLASHBOLT_BASE}/${routeSlug(folderItem.semester || "no-semester")}/${folderRouteSegment(folderItem)}`;
+  }
+
+  function navigate(nextView: View, setId = selectedSetId) {
+    setView(nextView);
+    setNewMenuOpen(false);
+    setRoutePath(nextView, setId);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function followFlashboltLink(event: ReactMouseEvent<HTMLAnchorElement>, action: () => void) {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    action();
+  }
+
+  function openFolder(folderItem: Folder) {
+    const path = folderPath(folderItem);
+    setSelectedFolderId(folderItem.id);
+    setView("library");
+    setNewMenuOpen(false);
+    handledRouteRef.current = path;
+    routerNavigate(path);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function folderRouteSegment(folderItem: Folder) {
+    const base = routeSlug(folderItem.name);
+    const collision = data.folders.some((item) => item.id !== folderItem.id
+      && (item.semester ?? "") === (folderItem.semester ?? "")
+      && routeSlug(item.name) === base);
+    return collision ? `${base}--${routeSlug(folderItem.id).slice(-8)}` : base;
+  }
+
+  function setRouteSegment(setItem: StudySet, folderItem?: Folder) {
+    const base = routeSlug(setItem.title);
+    const scopedSets = folderItem
+      ? data.sets.filter((item) => folderItem.setIds.includes(item.id))
+      : data.sets.filter((item) => !data.folders.some((folder) => folder.setIds.includes(item.id)));
+    const collision = scopedSets.some((item) => item.id !== setItem.id && routeSlug(item.title) === base);
+    return collision ? `${base}--${routeSlug(setItem.id).slice(-8)}` : base;
+  }
+
+  function toggleSidebar() {
+    setSidebarCollapsed((collapsed) => {
+      const next = !collapsed;
+      try { window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next)); } catch { /* Keep the in-memory preference. */ }
+      return next;
+    });
+  }
+
+  function toggleEditorSection(section: string) {
+    setCollapsedEditorSections((collapsed) => {
+      const next = collapsed.includes(section) ? collapsed.filter((item) => item !== section) : [...collapsed, section];
+      try { window.localStorage.setItem(EDITOR_PANEL_COLLAPSED_KEY, JSON.stringify(next)); } catch { /* Keep the in-memory preference. */ }
+      return next;
+    });
+  }
+
+  function openSet(setId: string) {
+    setSelectedSetId(setId);
+    setTermSearch("");
+    setFlashIndex(0);
+    setFlipped(false);
+    navigate("set", setId);
+  }
+
+  useEffect(() => {
+    if (!notebookSource || !notebookDraftStorageKey || editingSetId) return;
+    try {
+      sessionStorage.setItem(notebookDraftStorageKey, JSON.stringify({ source: notebookSource, draft, folderIds: draftFolderIds }));
+    } catch { setToast("Draft backup is unavailable. Keep this page open until you save your set."); }
+  }, [draft, draftFolderIds, notebookSource, notebookDraftStorageKey, editingSetId]);
+
+  async function discardNotebookDraft() {
+    if (!notebookSource || !await askConfirmation("Discard this Flashbolt draft and return to your note? No set will be created.", "Discard draft?", "Discard draft")) return;
+    if (notebookDraftStorageKey) sessionStorage.removeItem(notebookDraftStorageKey);
+    routerNavigate(notebookSource.returnTo);
+  }
+
+  function startCreate(folderIdOrEvent?: string | ReactMouseEvent) {
+    const originFolderId = typeof folderIdOrEvent === "string" ? folderIdOrEvent : selectedFolderId;
+    setNotebookSource(null);
+    setNotebookDraftStorageKey("");
+    setEditingSetId(null);
+    setCreateOriginFolderId(originFolderId);
+    setSelectedFolderId(originFolderId);
+    setDraftFolderSearch("");
+    setDraftFolderIds(originFolderId
+      ? [originFolderId]
+      : []);
+    setDraft({
+      ...blankDraft,
+      cards: [
+        { id: makeId("card"), term: "", definition: "", questionType: "multiple-choice", answerChoices: ["", "", "", ""] },
+        { id: makeId("card"), term: "", definition: "", questionType: "multiple-choice", answerChoices: ["", "", "", ""] },
+      ],
+    });
+    setPasteImport("");
+    setQuizletUrl("");
+    setQuizletImportMessage("");
+    setQuizletImportFailed(false);
+    setKahootReference("");
+    setKahootImportMessage("");
+    setKahootImportFailed(false);
+    if (originFolderId) {
+      const originFolder = data.folders.find((folderItem) => folderItem.id === originFolderId);
+      if (originFolder) {
+        const path = `${FLASHBOLT_BASE}/${routeSlug(originFolder.semester || "no-semester")}/${folderRouteSegment(originFolder)}/create`;
+        setView("create");
+        setNewMenuOpen(false);
+        handledRouteRef.current = path;
+        routerNavigate(path);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+    }
+    navigate("create", "");
+  }
+
+  function startQuizletLinkImport() {
+    startCreate();
+    setQuizletImportMessage("Paste a public Quizlet set link to begin.");
+  }
+
+  function startKahootLinkImport() {
+    startCreate();
+    setKahootImportMessage("Paste a public Kahoot details link or quiz ID to begin.");
+  }
+
+  function openKahootHelper(set = selectedSet) {
+    const selectedSetFolder = data.folders.find((folderItem) => folderItem.id === selectedFolderId && folderItem.setIds.includes(set?.id ?? ""))
+      ?? data.folders.find((folderItem) => folderItem.setIds.includes(set?.id ?? ""));
+    setHelperFolderId(selectedSetFolder?.id ?? "all");
+    if (set) {
+      setHelperSetId(set.id);
+      setSelectedSetId(set.id);
+    }
+    setHelperSearch("");
+    setSearch("");
+    navigate("helper", set?.id ?? "");
+  }
+
+  function startEdit(set: StudySet) {
+    setSelectedSetId(set.id);
+    setEditingSetId(set.id);
+    setCreateOriginFolderId(null);
+    setDraftFolderSearch("");
+    setDraftFolderIds(data.folders.filter((folderItem) => folderItem.setIds.includes(set.id)).map((folderItem) => folderItem.id));
+    setDraft({ ...set, cards: set.cards.map((card) => ({ ...card })) });
+    setPasteImport("");
+    setQuizletUrl("");
+    setQuizletImportMessage("");
+    setQuizletImportFailed(false);
+    setKahootReference("");
+    setKahootImportMessage("");
+    setKahootImportFailed(false);
+    navigate("create", set.id);
+  }
+
+  async function openAdjacentEditor(set: StudySet) {
+    const storedSet = data.sets.find((item) => item.id === editingSetId);
+    const storedFolderIds = data.folders.filter((folderItem) => folderItem.setIds.includes(editingSetId ?? "")).map((folderItem) => folderItem.id).sort();
+    const hasUnsavedChanges = Boolean(storedSet) && (JSON.stringify(draft) !== JSON.stringify(storedSet)
+      || JSON.stringify([...draftFolderIds].sort()) !== JSON.stringify(storedFolderIds));
+    if (hasUnsavedChanges && !await askConfirmation("Discard your unsaved changes and open the next set?", "Discard changes?", "Discard changes")) return;
+    startEdit(set);
+  }
+
+  function saveDraft(studyAfter = false) {
+    const startedCards = draft.cards.filter((card) => card.term.trim()
+      || card.definition.trim()
+      || card.answerChoices?.some((choice) => choice.trim())
+      || card.matchingPairs?.some((pair) => pair.left.trim() || pair.right.trim()));
+    const cleanCards = startedCards.map(prepareDraftCard).filter((card): card is Card => Boolean(card));
+    if (!draft.title.trim()) {
+      notify("Add a title before saving this set.");
+      return;
+    }
+    if (studyAfter && cleanCards.length === 0) {
+      notify("Complete at least one card before studying this set.");
+      return;
+    }
+    if (studyAfter && cleanCards.length !== startedCards.length) {
+      notify("Finish every started card and mark the correct answer before saving.");
+      return;
+    }
+    const kahootUrl = draft.kahootUrl?.trim() ?? "";
+    if (kahootUrl && !isSafeKahootUrl(kahootUrl)) {
+      notify("Enter a valid secure Kahoot link, such as https://create.kahoot.it/details/…");
+      return;
+    }
+
+    const savedSet: StudySet = {
+      ...draft,
+      id: editingSetId ?? makeId("set"),
+      title: draft.title.trim(),
+      description: draft.description.trim(),
+      subject: draft.subject.trim() || "General",
+      kahootUrl: kahootUrl || undefined,
+      updatedAt: new Date().toISOString(),
+      cards: studyAfter
+        ? cleanCards.map(withDetectedAnswerChoices)
+        : draft.cards.map((card) => ({
+            ...card,
+            term: card.term.trim(),
+            definition: card.definition.trim(),
+            answerChoices: card.answerChoices?.map((choice) => choice.trim()),
+            correctAnswers: card.correctAnswers?.map((answer) => answer.trim()),
+            matchingPairs: card.matchingPairs?.map((pair) => ({ ...pair, left: pair.left.trim(), right: pair.right.trim() })),
+          })),
+    };
+
+    const nextData: AppData = {
+      ...data,
+      lastCreatedFolderIds: editingSetId ? data.lastCreatedFolderIds : [...draftFolderIds],
+      recentSetValues: editingSetId ? data.recentSetValues : {
+        title: savedSet.title,
+        subject: savedSet.subject,
+        color: savedSet.color,
+        description: savedSet.description,
+        folderIds: [...draftFolderIds],
+      },
+      sets: editingSetId
+        ? data.sets.map((set) => (set.id === editingSetId ? savedSet : set))
+        : [savedSet, ...data.sets],
+      folders: data.folders.map((folderItem) => {
+        const shouldContainSet = draftFolderIds.includes(folderItem.id);
+        const containsSet = folderItem.setIds.includes(savedSet.id);
+        if (shouldContainSet === containsSet) return folderItem;
+        return {
+          ...folderItem,
+          setIds: shouldContainSet
+            ? [...folderItem.setIds, savedSet.id]
+            : folderItem.setIds.filter((setId) => setId !== savedSet.id),
+        };
+      }),
+    };
+    setData(nextData);
+    // Keep the editor aligned with saved normalization and updatedAt so
+    // adjacent-set navigation only warns about edits made after this save.
+    setDraft({ ...savedSet, cards: savedSet.cards.map((card) => ({ ...card })) });
+    if (notebookDraftStorageKey) {
+      sessionStorage.removeItem(notebookDraftStorageKey);
+      setNotebookDraftStorageKey("");
+      setNotebookSource(null);
+    }
+    let immediateBackupFailed = false;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextData));
+    } catch {
+      immediateBackupFailed = true;
+    }
+    setSelectedSetId(savedSet.id);
+    notify(immediateBackupFailed
+      ? "Set saved in this session, but the local backup was blocked. Keep this page open until account sync finishes."
+      : !studyAfter
+        ? "Set saved. You can keep editing and finish the checklist later."
+      : editingSetId
+      ? "Set and folder assignments updated."
+      : draftFolderIds.length
+        ? `Set created, added to ${draftFolderIds.length === 1 ? "a folder" : `${draftFolderIds.length} folders`}, and queued for account sync.`
+        : "Set created and queued for account sync.");
+    const originFolder = createOriginFolderId && draftFolderIds.includes(createOriginFolderId)
+      ? data.folders.find((folderItem) => folderItem.id === createOriginFolderId)
+      : undefined;
+    if (studyAfter) openSet(savedSet.id);
+    else {
+      setEditingSetId(savedSet.id);
+      setCreateOriginFolderId(null);
+      if (!editingSetId) {
+        const routeFolder = originFolder
+          ?? nextData.folders.find((folderItem) => draftFolderIds.includes(folderItem.id));
+        const path = `${FLASHBOLT_BASE}/${routeSlug(routeFolder?.semester || "no-semester")}/${routeFolder ? folderRouteSegment(routeFolder) : "unfiled"}/${setRouteSegment(savedSet, routeFolder)}/edit`;
+        handledRouteRef.current = path;
+        routerNavigate(path, { replace: true });
+      }
+    }
+  }
+
+  function updateDraftCard(cardId: string, field: "term" | "definition", value: string) {
+    setDraft((current) => ({
+      ...current,
+      cards: current.cards.map((card) => (card.id === cardId ? (field === "term" ? applyDetectedQuestionType({ ...card, term: value }) : { ...card, [field]: value }) : card)),
+    }));
+  }
+
+  function updateDraftCardExtras(cardId: string, updates: Partial<Card>) {
+    setDraft((current) => ({
+      ...current,
+      cards: current.cards.map((card) => (card.id === cardId ? { ...card, ...updates } : card)),
+    }));
+  }
+
+  function setDraftCardQuestionType(card: Card, questionType: CardQuestionType) {
+    const updates: Partial<Card> = { questionType, questionTypeMode: "manual" };
+    if (questionType !== "true-false" && card.autoTypePreviousChoices) {
+      updates.answerChoices = [...card.autoTypePreviousChoices];
+      updates.autoTypePreviousChoices = undefined;
+    }
+    if ((questionType === "multiple-choice" || questionType === "select-all") && !updates.answerChoices && (!card.answerChoices || card.answerChoices.length < 2)) {
+      updates.answerChoices = ["", "", "", ""];
+    }
+    if (questionType === "true-false") {
+      updates.answerChoices = ["True", "False"];
+      updates.correctAnswers = /false/i.test(card.definition) ? ["False"] : ["True"];
+      updates.definition = updates.correctAnswers[0];
+    }
+    if (questionType === "matching" && (!card.matchingPairs || card.matchingPairs.length < 2)) {
+      updates.matchingPairs = Array.from({ length: 4 }, () => ({ id: makeId("pair"), left: "", right: "" }));
+    }
+    updateDraftCardExtras(card.id, updates);
+  }
+
+  function updateDraftChoice(card: Card, choiceIndex: number, value: string) {
+    const oldChoice = card.answerChoices?.[choiceIndex] ?? "";
+    const choices = (card.answerChoices ?? []).map((choice, index) => index === choiceIndex ? value : choice);
+    const correctAnswers = correctAnswersForCard(card).map((answer) => normalizeAnswer(answer) === normalizeAnswer(oldChoice) ? value : answer);
+    const updates: Partial<Card> = { answerChoices: choices, correctAnswers };
+    if (cardQuestionType(card) !== "select-all" && correctAnswers.some((answer) => normalizeAnswer(answer) === normalizeAnswer(value))) updates.definition = value;
+    updateDraftCardExtras(card.id, updates);
+  }
+
+  function pasteDraftQuestion(card: Card, event: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const pastedText = event.clipboardData.getData("text/plain");
+    const parsed = parseQuestionPaste(pastedText);
+    if (!parsed) {
+      if (pastedText.trim()) scrollToNextDraftCard(card.id, ["question"], true);
+      return;
+    }
+    event.preventDefault();
+    const field = event.currentTarget;
+    const term = field.value.slice(0, field.selectionStart) + parsed.term + field.value.slice(field.selectionEnd);
+    const detected = detectQuestionType(term);
+    const questionType = detected === "select-all" || card.questionType === "select-all" ? "select-all"
+      : parsed.choices.length === 2 && parsed.choices.every(choice => /^(true|false)$/i.test(choice)) ? "true-false" : "multiple-choice";
+    const correctAnswers = parsed.choices.filter(choice => correctAnswersForCard(card).some(answer => normalizeAnswer(answer) === normalizeAnswer(choice)));
+    updateDraftCardExtras(card.id, {
+      term, answerChoices: parsed.choices, questionType, correctAnswers,
+      definition: correctAnswers.join(questionType === "select-all" ? "; " : ""),
+      autoTypePreviousChoices: undefined,
+    });
+    notify(`Question and ${parsed.choices.length} answer choices populated. Mark the correct answer below.`);
+    scrollToNextDraftCard(card.id, ["question", "choices"], true);
+  }
+
+  function pasteDraftChoices(card: Card, startIndex: number, pastedText: string) {
+    const lines = pastedText
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const parsedChoices: string[] = [];
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+      if (/^[A-Z][.)\]:-]?$/i.test(lines[lineIndex]) && lines[lineIndex + 1]) {
+        // The standalone letter is the label; preserve the following answer verbatim.
+        // It may legitimately begin with an article such as "A hacker" or "A contractor".
+        parsedChoices.push(lines[lineIndex + 1]);
+        lineIndex += 1;
+      } else {
+        parsedChoices.push(lines[lineIndex].replace(/^[A-Z](?:[.)\]:-]|\s+)\s*/i, "").trim());
+      }
+    }
+    const pastedChoices = parsedChoices.filter(Boolean).slice(0, 26 - startIndex);
+    if (pastedChoices.length < 2) return false;
+
+    const previousChoices = card.answerChoices ?? [];
+    const correctIndexes = previousChoices
+      .map((choice, index) => correctAnswersForCard(card).some((answer) => normalizeAnswer(cleanChoiceAnswer(answer)) === normalizeAnswer(cleanChoiceAnswer(choice))) ? index : -1)
+      .filter((index) => index >= 0);
+    const choices = [...previousChoices];
+    while (choices.length < startIndex + pastedChoices.length) choices.push("");
+    pastedChoices.forEach((choice, offset) => { choices[startIndex + offset] = choice; });
+    const correctAnswers = correctIndexes.map((index) => choices[index]).filter(Boolean);
+    updateDraftCardExtras(card.id, {
+      answerChoices: choices,
+      correctAnswers,
+      definition: cardQuestionType(card) === "select-all" ? correctAnswers.join("; ") : correctAnswers[0] ?? card.definition,
+    });
+    notify(`${pastedChoices.length} answer choices populated.`);
+    scrollToNextDraftCard(card.id, ["choices"]);
+    return true;
+  }
+
+  function goToNextAvailableCard() {
+    const nextCard = draft.cards.find((card) => !card.term.trim());
+    if (!nextCard) {
+      notify("No empty terms available. Add another card to continue.");
+      return;
+    }
+    const element = draftCardElements.current.get(nextCard.id);
+    element?.querySelector<HTMLTextAreaElement>('.card-text-field textarea')?.focus({ preventScroll: true });
+    element?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+      block: "start",
+    });
+  }
+
+  function scrollToNextDraftCard(cardId: string, triggers: AutoAdvanceEvent[], focusTerm = false) {
+    const active = autoAdvanceOnRef.current;
+    if (!active || !triggers.includes(active)) return;
+    const index = draft.cards.findIndex((item) => item.id === cardId);
+    const nextCard = index >= 0 ? draft.cards[index + 1] : undefined;
+    if (nextCard) requestAnimationFrame(() => {
+      // A preference change must also cancel an advance already queued by a paste.
+      if (autoAdvanceOnRef.current !== active) return;
+      const element = draftCardElements.current.get(nextCard.id);
+      if (focusTerm) element?.querySelector<HTMLTextAreaElement>('.card-text-field textarea')?.focus({ preventScroll: true });
+      element?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+        block: "start",
+      });
+    });
+  }
+
+  function toggleDraftCorrectAnswer(card: Card, choice: string) {
+    if (!choice.trim()) return;
+    const current = correctAnswersForCard(card);
+    const selected = current.some((answer) => normalizeAnswer(answer) === normalizeAnswer(choice));
+    const isMultiAnswer = cardQuestionType(card) === "select-all";
+    const next = isMultiAnswer
+      ? selected ? current.filter((answer) => normalizeAnswer(answer) !== normalizeAnswer(choice)) : [...current, choice]
+      : [choice];
+    updateDraftCardExtras(card.id, { correctAnswers: next, definition: next.join(isMultiAnswer ? "; " : "") });
+    if (shouldAdvanceAfterCorrect(card.term, isMultiAnswer, next.length, !selected)) scrollToNextDraftCard(card.id, ["correct"]);
+  }
+
+  function addDraftCard(afterCardId?: string) {
+    const card: Card = { id: makeId("card"), term: "", definition: "", questionType: "multiple-choice", answerChoices: ["", "", "", ""] };
+    setDraft((current) => {
+      if (!afterCardId) return { ...current, cards: [...current.cards, card] };
+      const next = [...current.cards];
+      const index = next.findIndex((item) => item.id === afterCardId);
+      next.splice(index + 1, 0, card);
+      return { ...current, cards: next };
+    });
+  }
+
+  async function removeAllDraftCards() {
+    if (!draft.cards.length) return;
+    if (!await askConfirmation(`Remove all ${draft.cards.length} cards from this draft? Save the set to keep this change.`, "Remove all cards?", "Remove all cards")) return;
+    recognitionRef.current?.stop();
+    setDraggingCardId(null);
+    setDictationTarget(null);
+    setDraft((current) => ({ ...current, cards: [] }));
+    notify("All cards removed. Save the set to keep this change.");
+  }
+
+  function duplicateDraftCard(cardId: string) {
+    setDraft((current) => {
+      const index = current.cards.findIndex((card) => card.id === cardId);
+      if (index < 0) return current;
+      const next = [...current.cards];
+      next.splice(index + 1, 0, { ...current.cards[index], id: makeId("card") });
+      return { ...current, cards: next };
+    });
+  }
+
+  function moveDraftCard(cardId: string, direction: -1 | 1) {
+    setDraft((current) => {
+      const index = current.cards.findIndex((card) => card.id === cardId);
+      const target = index + direction;
+      if (index < 0 || target < 0 || target >= current.cards.length) return current;
+      const next = [...current.cards];
+      [next[index], next[target]] = [next[target], next[index]];
+      return { ...current, cards: next };
+    });
+  }
+
+  function dropDraftCard(event: DragEvent<HTMLElement>, targetCardId: string) {
+    event.preventDefault();
+    if (!draggingCardId || draggingCardId === targetCardId) return;
+    setDraft((current) => {
+      const next = [...current.cards];
+      const from = next.findIndex((card) => card.id === draggingCardId);
+      const to = next.findIndex((card) => card.id === targetCardId);
+      if (from < 0 || to < 0) return current;
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return { ...current, cards: next };
+    });
+    setDraggingCardId(null);
+  }
+
+  function cycleHighlight(card: Card) {
+    const currentIndex = HIGHLIGHT_COLORS.indexOf(card.highlight ?? "none");
+    const next = HIGHLIGHT_COLORS[(currentIndex + 1) % HIGHLIGHT_COLORS.length];
+    updateDraftCardExtras(card.id, { highlight: next });
+  }
+
+  async function attachCardImage(cardId: string, file?: File) {
+    if (!file) return;
+    if (![/^image\/(png|jpeg|webp)$/].some((pattern) => pattern.test(file.type))) {
+      notify("Choose a PNG, JPEG, or WebP image.");
+      return;
+    }
+    if (file.size > 8_000_000) {
+      notify("Choose an image smaller than 8 MB.");
+      return;
+    }
+    try {
+      const imageData = await compressImage(file);
+      if (JSON.stringify(data).length + JSON.stringify(draft).length + imageData.length > 4_300_000) {
+        notify("This image would exceed the browser-backup limit. Try a smaller image.");
+        return;
+      }
+      updateDraftCardExtras(cardId, { imageData, imageName: file.name });
+      notify("Image attached and queued for account sync.");
+    } catch {
+      notify("That image could not be attached.");
+    }
+  }
+
+  function startDictation(card: Card, field: "term" | "definition") {
+    const SpeechRecognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      notify("Voice dictation is not supported by this browser.");
+      return;
+    }
+
+    recognitionRef.current?.stop();
+    const recognition = new SpeechRecognition();
+    const languageValue = field === "term" ? card.termLanguage : card.definitionLanguage;
+    const language = LANGUAGE_OPTIONS.find((option) => option.value === languageValue);
+    recognition.lang = language?.speechCode || navigator.language || "en-US";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onresult = (event) => {
+      let transcript = "";
+      for (let index = 0; index < event.results.length; index += 1) {
+        transcript += `${event.results[index][0]?.transcript ?? ""} `;
+      }
+      const existing = card[field].trim();
+      updateDraftCard(card.id, field, `${existing}${existing ? " " : ""}${transcript.trim()}`);
+    };
+    recognition.onerror = () => notify("Dictation stopped before any text was added.");
+    recognition.onend = () => {
+      recognitionRef.current = null;
+      setDictationTarget(null);
+    };
+    recognitionRef.current = recognition;
+    setDictationTarget({ cardId: card.id, field });
+    recognition.start();
+  }
+
+  function applyLinkImport() {
+    if (quizletImporting || kahootImporting) return;
+    const reference = quizletUrl.trim();
+    setQuizletImportMessage("");
+    setKahootImportMessage("");
+    if (!reference) {
+      setQuizletImportFailed(true);
+      setQuizletImportMessage("Paste a Quizlet or Kahoot link or ID first.");
+      return;
+    }
+    if (/^\d+$/.test(reference)) void applyQuizletImport(`https://quizlet.com/${reference}/`);
+    else if (/^(?:https?:\/\/)?(?:www\.)?quizlet\.com\//i.test(reference)) void applyQuizletImport(reference);
+    else void applyKahootImport();
+  }
+
+  async function applyQuizletImport(reference = quizletUrl) {
+    if (!quizletUrl.trim()) {
+      setQuizletImportFailed(true);
+      setQuizletImportMessage("Paste a Quizlet set link first.");
+      return;
+    }
+
+    setQuizletImporting(true);
+    setQuizletImportFailed(false);
+    setQuizletImportMessage("Reading the public set from Quizlet…");
+
+    try {
+      const response = await fetch("/api/import/quizlet", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url: reference.trim() }),
+      });
+      const result = await readImportResponse<QuizletImportSet | { error?: string }>(response);
+      if (!response.ok || !("cards" in result)) {
+        throw new Error("error" in result && result.error ? result.error : "The Quizlet set could not be imported.");
+      }
+
+      const importedCards: Card[] = result.cards.map((card) => applyDetectedQuestionType(withDetectedAnswerChoices({
+        id: makeId("card"),
+        term: card.term,
+        definition: card.definition,
+      })));
+
+      setDraft((current) => {
+        const existingCards = current.cards.filter((card) => card.term.trim() || card.definition.trim());
+        return {
+          ...current,
+          title: current.title.trim() ? current.title : result.title,
+          description: current.description.trim() ? current.description : result.description,
+          subject: current.subject.trim() ? current.subject : result.subject,
+          cards: existingCards.length ? [...existingCards, ...importedCards] : importedCards,
+        };
+      });
+      setQuizletImportMessage(`${importedCards.length} cards imported. Review them, then save the set.`);
+      notify(`${importedCards.length} Quizlet card${importedCards.length === 1 ? "" : "s"} added.`);
+    } catch (error) {
+      setQuizletImportFailed(true);
+      setQuizletImportMessage(error instanceof Error ? error.message : "The Quizlet set could not be imported.");
+    } finally {
+      setQuizletImporting(false);
+    }
+  }
+
+  async function applyKahootImport() {
+    if (!kahootReference.trim()) {
+      setKahootImportFailed(true);
+      setKahootImportMessage("Paste a Kahoot details link or quiz ID first.");
+      return;
+    }
+
+    setKahootImporting(true);
+    setKahootImportFailed(false);
+    setKahootImportMessage("Reading the public quiz from Kahoot…");
+
+    try {
+      const response = await fetch("/api/import/kahoot", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url: kahootReference.trim() }),
+      });
+      const result = await readImportResponse<KahootImportSet | { error?: string }>(response);
+      if (!response.ok || !("cards" in result)) {
+        throw new Error("error" in result && result.error ? result.error : "The Kahoot quiz could not be imported.");
+      }
+
+      const importedCards: Card[] = result.cards.map((card) => ({
+        id: makeId("card"),
+        correctAnswers: card.correctAnswers,
+        term: card.term,
+        definition: card.definition,
+        ...(card.answerChoices?.length ? { answerChoices: card.answerChoices } : {}),
+      })).map(card => applyDetectedQuestionType(card));
+
+      setDraft((current) => {
+        const existingCards = current.cards.filter((card) => card.term.trim() || card.definition.trim());
+        return {
+          ...current,
+          title: current.title.trim() ? current.title : result.title,
+          description: current.description.trim() ? current.description : result.description,
+          subject: current.subject.trim() ? current.subject : result.subject,
+          kahootUrl: current.kahootUrl?.trim() || `https://create.kahoot.it/details/${encodeURIComponent(result.sourceId)}`,
+          cards: existingCards.length ? [...existingCards, ...importedCards] : importedCards,
+        };
+      });
+      setKahootImportMessage(`${importedCards.length} questions imported with their answer choices. Review them, then save the set.`);
+      notify(`${importedCards.length} Kahoot question${importedCards.length === 1 ? "" : "s"} added.`);
+    } catch (error) {
+      setKahootImportFailed(true);
+      setKahootImportMessage(error instanceof Error ? error.message : "The Kahoot quiz could not be imported.");
+    } finally {
+      setKahootImporting(false);
+    }
+  }
+
+  function applyPasteImport() {
+    const quizResultCards = parseQuizResults(pasteImport);
+    if (/^Questions\s*\(\d+\)\s*$/im.test(pasteImport) && !quizResultCards.length) {
+      notify("Could not read every Kahoot question. Copy the full question list with answers shown, including the correct labels.");
+      return;
+    }
+    const htmlCards = quizResultCards.length ? [] : parseQuizletHtml(pasteImport);
+    const cards = quizResultCards.length ? quizResultCards : htmlCards.length ? htmlCards : parseNotes(pasteImport);
+    if (!cards.length) {
+      notify("Paste quiz results, Quizlet term-list HTML, or use term :: definition.");
+      return;
+    }
+    setDraft((current) => ({
+      ...current,
+      cards: [...current.cards.filter((card) => card.term || card.definition), ...cards.map(card => applyDetectedQuestionType(card))],
+    }));
+    setPasteImport("");
+    notify(`${cards.length} card${cards.length === 1 ? "" : "s"} imported${quizResultCards.length ? " from quiz results" : htmlCards.length ? " from Quizlet HTML" : ""}.`);
+  }
+
+  function openNewFolderModal() {
+    setEditingFolderId(null);
+    setFolderName("");
+    setFolderColor(FOLDER_COLORS[0]);
+    setFolderSemester("");
+    setFolderSetIds([]);
+    setFolderModalOpen(true);
+  }
+
+  function openNewFolderModalForSet(setId: string) {
+    setTileFolderPickerId(null);
+    setEditingFolderId(null);
+    setFolderName("");
+    setFolderColor(FOLDER_COLORS[0]);
+    setFolderSemester("");
+    setFolderSetIds([setId]);
+    setFolderModalOpen(true);
+  }
+
+  function editFolder(folderToEdit: Folder) {
+    setEditingFolderId(folderToEdit.id);
+    setFolderName(folderToEdit.name);
+    setFolderColor(folderToEdit.color ?? FOLDER_COLORS[0]);
+    setFolderSemester(folderToEdit.semester ?? "");
+    setFolderSetIds([...folderToEdit.setIds]);
+    setFolderModalOpen(true);
+  }
+
+  function closeFolderModal() {
+    setFolderModalOpen(false);
+    setEditingFolderId(null);
+    setFolderName("");
+    setFolderSemester("");
+    setFolderSetIds([]);
+  }
+
+  function saveFolder() {
+    if (!folderName.trim()) {
+      notify("Give your folder a name first.");
+      return;
+    }
+    const semester = folderSemester.trim();
+    const semesterMatch = /^(Spring|Summer|Fall) (\d{4})$/.exec(semester);
+    if (semester && (!semesterMatch || Number(semesterMatch[2]) < 2020 || Number(semesterMatch[2]) > 2027)) {
+      notify("Choose Spring, Summer, or Fall for a year from 2020 through 2027.");
+      return;
+    }
+    const duplicateFolder = data.folders.some((item) => item.id !== editingFolderId
+      && item.name.trim().toLocaleLowerCase() === folderName.trim().toLocaleLowerCase()
+      && (item.semester ?? "") === semester);
+    if (duplicateFolder) {
+      notify(`A folder named “${folderName.trim()}” already exists${semester ? ` in ${semester}` : " without a semester"}.`);
+      return;
+    }
+
+    if (editingFolderId) {
+      setData((current) => ({
+        ...current,
+        folders: current.folders.map((item) => item.id === editingFolderId
+          ? { ...item, name: folderName.trim(), color: folderColor, semester: semester || undefined, setIds: folderSetIds }
+          : item),
+      }));
+      closeFolderModal();
+      notify("Folder updated.");
+      return;
+    }
+
+    const newFolder: Folder = { id: makeId("folder"), name: folderName.trim(), color: folderColor, semester: semester || undefined, setIds: folderSetIds };
+    setData((current) => ({ ...current, folders: [...current.folders, newFolder] }));
+    if (view === "create") {
+      setDraftFolderIds((ids) => ids.includes(newFolder.id) ? ids : [...ids, newFolder.id]);
+    }
+    closeFolderModal();
+    notify("Folder created.");
+  }
+
+  async function deleteFolder(folderToDelete: Folder) {
+    const confirmed = await askConfirmation(`Delete “${folderToDelete.name}”? The sets inside it will stay in your library.`, "Delete folder?", "Delete folder");
+    if (!confirmed) return;
+    setData((current) => ({
+      ...current,
+      folders: current.folders.filter((item) => item.id !== folderToDelete.id),
+    }));
+    if (selectedFolderId === folderToDelete.id) setSelectedFolderId(null);
+    setDraftFolderIds((ids) => ids.filter((id) => id !== folderToDelete.id));
+    if (editingFolderId === folderToDelete.id) closeFolderModal();
+    notify("Folder deleted. Its sets are still in your library.");
+  }
+
+  function toggleSetFolderAssignment(setId: string, folderId: string) {
+    const targetFolder = data.folders.find((folderItem) => folderItem.id === folderId);
+    if (!targetFolder) return;
+    const isAssigned = targetFolder.setIds.includes(setId);
+
+    setData((current) => ({
+      ...current,
+      folders: current.folders.map((folderItem) => folderItem.id === folderId
+        ? {
+            ...folderItem,
+            setIds: isAssigned
+              ? folderItem.setIds.filter((itemId) => itemId !== setId)
+              : [...folderItem.setIds, setId],
+          }
+        : folderItem),
+    }));
+    notify(isAssigned ? `Removed from ${targetFolder.name}.` : `Added to ${targetFolder.name}.`);
+  }
+
+  function clearSetFolderAssignments(setId: string) {
+    setData((current) => ({
+      ...current,
+      folders: current.folders.map((folderItem) => folderItem.setIds.includes(setId)
+        ? { ...folderItem, setIds: folderItem.setIds.filter((itemId) => itemId !== setId) }
+        : folderItem),
+    }));
+    setTileFolderPickerId(null);
+    notify("Folder set to None.");
+  }
+
+  function toggleMastered(setId: string, cardId: string) {
+    setData((current) => {
+      const existing = current.mastered[setId] ?? [];
+      const next = existing.includes(cardId) ? existing.filter((id) => id !== cardId) : [...existing, cardId];
+      return { ...current, mastered: { ...current.mastered, [setId]: next } };
+    });
+  }
+
+  function startLearn(setIdOrEvent?: string | ReactMouseEvent) {
+    const setId = typeof setIdOrEvent === "string" ? setIdOrEvent : selectedSetId;
+    setSelectedSetId(setId);
+    const questionFirstOptions = { ...learnOptions, multipleChoice: true, trueFalse: false, selectAll: false, written: false, flashcards: false, answerTerms: false, answerDefinitions: true };
+    setLearnPhase("goal");
+    setLearnMissedIds([]);
+    setLearnGoal("memorize");
+    setLearnOptions(questionFirstOptions);
+    setLearnOptionsDraft(questionFirstOptions);
+    setLearnOptionsOpen(false);
+    setLearnSessionIds([]);
+    setLearnRoundIds([]);
+    setLearnPendingIds([]);
+    setLearnRetryIds([]);
+    setLearnMasteredIds([]);
+    setLearnIndex(0);
+    setLearnRound(1);
+    setLearnSequence(0);
+    setLearnQuestionConfidence(0);
+    setLearnLastConfidence(0);
+    setLearnAnswer(null);
+    setLearnLastCorrect(null);
+    setLearnWrittenAnswer("");
+    setLearnRetypeAnswer("");
+    setLearnSelectedAnswers([]);
+    setLearnFlashRevealed(false);
+    navigate("learn", setId);
+  }
+
+  function beginLearnSession(goal = learnGoal, options = learnOptions, cardIds?: string[]) {
+    if (!selectedSet?.cards.length) return;
+    const ids = selectedSet.cards.filter(card => !cardIds || cardIds.includes(card.id)).map((card) => card.id);
+    if (!ids.length) return;
+    setLearnMissedIds([]);
+    const cardProgress = data.learnProgress?.[selectedSet.id]?.cards ?? {};
+    const orderedIds = rankAdaptiveCardIds(ids, cardProgress, options.shuffle);
+    const firstRoundIds = orderedIds.slice(0, 7);
+    const pendingIds = orderedIds.slice(7);
+    setLearnGoal(goal);
+    setLearnOptions(options);
+    setLearnPhase("session");
+    setLearnSessionIds(orderedIds);
+    setLearnRoundIds(firstRoundIds);
+    setLearnPendingIds(pendingIds);
+    setLearnRetryIds([]);
+    setLearnMasteredIds([]);
+    setLearnRound(1);
+    setLearnIndex(0);
+    setLearnSequence(0);
+    setLearnQuestionConfidence(cardProgress[firstRoundIds[0]]?.confidence ?? 0);
+    setLearnLastConfidence(0);
+    setLearnAnswer(null);
+    setLearnLastCorrect(null);
+    setLearnWrittenAnswer("");
+    setLearnRetypeAnswer("");
+    setLearnSelectedAnswers([]);
+    setLearnFlashRevealed(false);
+    setLearnOptionsOpen(false);
+    setData((current) => ({
+      ...current,
+      activeLearn: {
+        setId: selectedSet.id,
+        goal,
+        options,
+        sessionIds: orderedIds,
+        missedIds: [],
+        roundIds: firstRoundIds,
+        pendingIds,
+        retryIds: [],
+        masteredIds: [],
+        round: 1,
+        index: 0,
+        sequence: 0,
+        updatedAt: new Date().toISOString(),
+      },
+    }));
+  }
+
+  function resumeLearnSession() {
+    if (!selectedSet || !resumableLearn) return;
+    const validIds = new Set(selectedSet.cards.map((card) => card.id));
+    setLearnMissedIds((resumableLearn.missedIds ?? []).filter(id => validIds.has(id)));
+    const roundIds = resumableLearn.roundIds.filter((id) => validIds.has(id));
+    if (!roundIds.length) {
+      beginLearnSession(resumableLearn.goal, resumableLearn.options);
+      return;
+    }
+    const index = Math.min(resumableLearn.index, roundIds.length - 1);
+    const currentId = roundIds[index];
+    const questionFirstOptions = { ...resumableLearn.options, answerTerms: false, answerDefinitions: true };
+    setLearnGoal(resumableLearn.goal);
+    setLearnOptions(questionFirstOptions);
+    setLearnOptionsDraft(questionFirstOptions);
+    setLearnPhase("session");
+    setLearnSessionIds(resumableLearn.sessionIds.filter((id) => validIds.has(id)));
+    setLearnRoundIds(roundIds);
+    setLearnPendingIds(resumableLearn.pendingIds.filter((id) => validIds.has(id)));
+    setLearnRetryIds(resumableLearn.retryIds.filter((id) => validIds.has(id)));
+    setLearnMasteredIds(resumableLearn.masteredIds.filter((id) => validIds.has(id)));
+    setLearnRound(resumableLearn.round);
+    setLearnIndex(index);
+    setLearnSequence(resumableLearn.sequence);
+    setLearnQuestionConfidence(selectedLearnProgress[currentId]?.confidence ?? 0);
+    setLearnLastConfidence(0);
+    setLearnAnswer(null);
+    setLearnLastCorrect(null);
+    setLearnWrittenAnswer("");
+    setLearnRetypeAnswer("");
+    setLearnSelectedAnswers([]);
+    setLearnFlashRevealed(false);
+  }
+
+  function playLearnSound(correct: boolean) {
+    if (!learnOptions.soundEffects) return;
+    try {
+      const AudioContextClass = window.AudioContext;
+      const context = new AudioContextClass();
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.frequency.value = correct ? 660 : 210;
+      oscillator.type = correct ? "sine" : "triangle";
+      gain.gain.setValueAtTime(0.08, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.18);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.addEventListener("ended", () => void context.close());
+      oscillator.start();
+      oscillator.stop(context.currentTime + 0.18);
+    } catch {
+      // Sound effects are optional and can be blocked by the browser.
+    }
+  }
+
+  function recordLearnResult(correct: boolean, answer: string) {
+    if (!selectedSet || !currentLearnCard || learnAnswer) return;
+    const previousProgress = selectedLearnProgress[currentLearnCard.id] ?? EMPTY_LEARN_CARD_PROGRESS;
+    const nextProgress = updateLearnCardProgress(previousProgress, correct, learnSequence);
+    if (!correct) setLearnMissedIds(ids => ids.includes(currentLearnCard.id) ? ids : [...ids, currentLearnCard.id]);
+    setLearnAnswer(answer || "Answered");
+    setLearnLastCorrect(correct);
+    setLearnLastConfidence(nextProgress.confidence);
+    playLearnSound(correct);
+    if (correct && nextProgress.confidence >= learnMasteryTarget) {
+      setLearnMasteredIds((ids) => ids.includes(currentLearnCard.id) ? ids : [...ids, currentLearnCard.id]);
+    } else if (correct) {
+      setLearnPendingIds((ids) => ids.includes(currentLearnCard.id) ? ids : [...ids, currentLearnCard.id]);
+    } else {
+      setLearnRetryIds((ids) => ids.includes(currentLearnCard.id) ? ids : [...ids, currentLearnCard.id]);
+    }
+    setData((current) => {
+      const setProgress = current.learnProgress?.[selectedSet.id] ?? { cards: {}, updatedAt: "" };
+      const persistedNext = updateLearnCardProgress(setProgress.cards[currentLearnCard.id], correct, learnSequence);
+      const existingMastered = current.mastered[selectedSet.id] ?? [];
+      const nextMastered = correct && persistedNext.confidence >= learnMasteryTarget
+        ? (existingMastered.includes(currentLearnCard.id) ? existingMastered : [...existingMastered, currentLearnCard.id])
+        : (correct ? existingMastered : existingMastered.filter((id) => id !== currentLearnCard.id));
+      return {
+        ...current,
+        mastered: { ...current.mastered, [selectedSet.id]: nextMastered },
+        activeLearn: current.activeLearn?.setId === selectedSet.id ? { ...current.activeLearn, missedIds: !correct ? [...new Set([...(current.activeLearn.missedIds ?? []), currentLearnCard.id])] : current.activeLearn.missedIds } : current.activeLearn,
+        learnProgress: {
+          ...(current.learnProgress ?? {}),
+          [selectedSet.id]: {
+            cards: { ...setProgress.cards, [currentLearnCard.id]: persistedNext },
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      };
+    });
+  }
+
+  function chooseLearnAnswer(answer: string) {
+    recordLearnResult(normalizeAnswer(answer) === normalizeAnswer(currentLearnCorrectAnswer), answer);
+  }
+
+  function submitWrittenLearnAnswer() {
+    if (!learnWrittenAnswer.trim()) return;
+    recordLearnResult(
+      gradeWrittenAnswer(learnWrittenAnswer, currentLearnCorrectAnswer, learnOptions.grading),
+      learnWrittenAnswer.trim(),
+    );
+  }
+
+  function submitSelectAllLearnAnswer() {
+    const expected = new Set(currentSelectAll.correctParts);
+    const selected = new Set(learnSelectedAnswers);
+    const correct = expected.size === selected.size && [...expected].every((answer) => selected.has(answer));
+    recordLearnResult(correct, learnSelectedAnswers.join("; "));
+  }
+
+  function submitTrueFalseLearnAnswer(answer: boolean) {
+    recordLearnResult(answer === currentTrueFalse.answer, answer ? "True" : "False");
+  }
+
+  function saveLearnOptions() {
+    if (!learnOptionsDraft.multipleChoice && !learnOptionsDraft.trueFalse && !learnOptionsDraft.selectAll && !learnOptionsDraft.written && !learnOptionsDraft.flashcards) {
+      notify("Turn on at least one question type.");
+      return;
+    }
+    if (!learnOptionsDraft.answerTerms && !learnOptionsDraft.answerDefinitions) {
+      notify("Choose terms, definitions, or both as answers.");
+      return;
+    }
+    setLearnOptions(learnOptionsDraft);
+    setData((current) => current.activeLearn?.setId === selectedSet?.id
+      ? { ...current, activeLearn: { ...current.activeLearn, options: learnOptionsDraft, updatedAt: new Date().toISOString() } }
+      : current);
+    setLearnOptionsOpen(false);
+  }
+
+  function nextLearnQuestion() {
+    if (!selectedSet) return;
+    const advance = advanceLearnRound({
+      roundIds: learnRoundIds,
+      pendingIds: learnPendingIds,
+      retryIds: learnRetryIds,
+      index: learnIndex,
+      round: learnRound,
+    });
+
+    if (advance.complete) {
+      setLearnPhase("complete");
+      setData((current) => ({ ...current, sessions: current.sessions + 1, activeLearn: undefined }));
+      return;
+    }
+
+    const nextSequence = learnSequence + 1;
+    const nextCardId = advance.roundIds[advance.index];
+    setLearnRoundIds(advance.roundIds);
+    setLearnPendingIds(advance.pendingIds);
+    setLearnRetryIds(advance.retryIds);
+    setLearnIndex(advance.index);
+    setLearnRound(advance.round);
+    setLearnSequence(nextSequence);
+    setLearnQuestionConfidence(selectedLearnProgress[nextCardId]?.confidence ?? 0);
+    setLearnLastConfidence(0);
+    setLearnAnswer(null);
+    setLearnLastCorrect(null);
+    setLearnWrittenAnswer("");
+    setLearnRetypeAnswer("");
+    setLearnSelectedAnswers([]);
+    setLearnFlashRevealed(false);
+    setData((current) => ({
+      ...current,
+      activeLearn: {
+        setId: selectedSet.id,
+        goal: learnGoal,
+        options: learnOptions,
+        sessionIds: learnSessionIds,
+        missedIds: learnMissedIds,
+        roundIds: advance.roundIds,
+        pendingIds: advance.pendingIds,
+        retryIds: advance.retryIds,
+        masteredIds: learnMasteredIds,
+        round: advance.round,
+        index: advance.index,
+        sequence: nextSequence,
+        updatedAt: new Date().toISOString(),
+      },
+    }));
+  }
+
+  function startTest(setIdOrEvent?: string | ReactMouseEvent) {
+    const setId = typeof setIdOrEvent === "string" ? setIdOrEvent : selectedSetId;
+    setSelectedSetId(setId);
+    setTestCardIds(null);
+    setTestAnswers({});
+    setTestSubmitted(false);
+    navigate("test", setId);
+  }
+
+  function recordReviewResult(setId: string, cardId: string, correct: boolean) {
+    setData(current => {
+      if (!current.sets.some(set => set.id === setId && set.cards.some(card => card.id === cardId))) return current;
+      const previous = current.learnProgress?.[setId];
+      const progress = updateLearnCardProgress(previous?.cards[cardId], correct, 0);
+      return { ...current, learnProgress: { ...current.learnProgress, [setId]: { cards: { ...previous?.cards, [cardId]: progress }, updatedAt: progress.lastReviewedAt! } } };
+    });
+  }
+
+  function retryTestMistakes() {
+    setTestCardIds(testMissedCards.map(card => card.id));
+    setTestAnswers({});
+    setTestSubmitted(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function submitTest() {
+    if (testSubmitted || !selectedSet || !testCards.length || testCards.some(card => !testAnswers[card.id])) return;
+    setTestSubmitted(true);
+    setData((current) => {
+      const previous = current.learnProgress?.[selectedSet.id];
+      const cards = { ...previous?.cards };
+      testCards.forEach(card => { cards[card.id] = updateLearnCardProgress(cards[card.id], normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card)), 0); });
+      return { ...current, sessions: current.sessions + 1, learnProgress: { ...current.learnProgress, [selectedSet.id]: { cards, updatedAt: new Date().toISOString() } } };
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function generateGuide() {
+    const cards = parseNotes(guideNotes);
+    setGeneratedCards(cards);
+    if (!cards.length) notify("Add a few notes first. Full sentences or term :: definition both work.");
+  }
+
+  function saveGeneratedGuide() {
+    if (!generatedCards.length) return;
+    const newSet: StudySet = {
+      id: makeId("set"),
+      title: guideTitle.trim() || "My study guide",
+      description: "Created locally from pasted notes.",
+      subject: "Study guide",
+      color: "amber",
+      updatedAt: new Date().toISOString(),
+      cards: generatedCards,
+    };
+    setData((current) => ({ ...current, sets: [newSet, ...current.sets] }));
+    setSelectedSetId(newSet.id);
+    setGuideNotes("");
+    setGeneratedCards([]);
+    notify("Study guide saved as a flashcard set.");
+    openSet(newSet.id);
+  }
+
+  async function deleteSelectedSet() {
+    if (!selectedSet) return;
+    if (!await askConfirmation(`Delete “${selectedSet.title}”? This cannot be undone.`, "Delete set?", "Delete set")) return;
+    setData((current) => removeSetFromLibraryData(current, selectedSet.id));
+    setSelectedSetId(data.sets.find((set) => set.id !== selectedSet.id)?.id ?? "");
+    notify("Set deleted.");
+    navigate("library");
+  }
+
+  function openSetContextMenu(event: ReactMouseEvent, setId: string) {
+    event.preventDefault();
+    setTileFolderPickerId(null);
+    setSetContextMenu({
+      setId,
+      x: event.clientX,
+      y: event.clientY,
+    });
+  }
+
+  function setModeUrl(set: StudySet, mode: "flashcards" | "learn" | "test" | "edit") {
+    const setFolder = data.folders.find((item) => item.id === selectedFolderId && item.setIds.includes(set.id))
+      ?? data.folders.find((item) => item.setIds.includes(set.id));
+    const path = `${FLASHBOLT_BASE}/${routeSlug(setFolder?.semester || "no-semester")}/${setFolder ? folderRouteSegment(setFolder) : "unfiled"}/${setRouteSegment(set, setFolder)}/${mode}`;
+    return `${window.location.origin}${path}`;
+  }
+
+  async function copySetModeLink(set: StudySet, mode: "flashcards" | "learn" | "test" | "edit") {
+    try {
+      await navigator.clipboard.writeText(setModeUrl(set, mode));
+      notify(`${mode === "flashcards" ? "Flashcards" : mode[0].toUpperCase() + mode.slice(1)} link copied.`);
+    } catch {
+      notify("The link could not be copied. Open the mode and copy it from the address bar.");
+    }
+    setSetContextMenu(null);
+  }
+
+  function duplicateSet(setToDuplicate: StudySet) {
+    const duplicateId = makeId("set");
+    const duplicate: StudySet = {
+      ...setToDuplicate,
+      id: duplicateId,
+      title: `${setToDuplicate.title} copy`,
+      updatedAt: new Date().toISOString(),
+      cards: setToDuplicate.cards.map((card) => ({ ...card, id: makeId("card") })),
+    };
+    setData((current) => ({
+      ...current,
+      sets: [duplicate, ...current.sets],
+      folders: current.folders.map((folderItem) => folderItem.setIds.includes(setToDuplicate.id)
+        ? { ...folderItem, setIds: [...folderItem.setIds, duplicateId] }
+        : folderItem),
+    }));
+    setSelectedSetId(duplicateId);
+    notify("Set duplicated.");
+  }
+
+  function removeAllSetTerms(setToClear: StudySet) {
+    if (!setToClear.cards.length) return;
+    setData((current) => {
+      const mastered = { ...current.mastered };
+      const learnProgress = { ...current.learnProgress };
+      delete mastered[setToClear.id];
+      delete learnProgress[setToClear.id];
+      return {
+        ...current,
+        sets: current.sets.map((set) => set.id === setToClear.id
+          ? { ...set, cards: [], updatedAt: new Date().toISOString() }
+          : set),
+        mastered,
+        learnProgress,
+        activeLearn: current.activeLearn?.setId === setToClear.id ? undefined : current.activeLearn,
+      };
+    });
+    notify("All terms removed.");
+  }
+
+  async function deleteSetFromLibrary(setToDelete: StudySet) {
+    if (!await askConfirmation(`Delete “${setToDelete.title}”? This cannot be undone.`, "Delete set?", "Delete set")) return;
+    setData((current) => removeSetFromLibraryData(current, setToDelete.id));
+    if (selectedSetId === setToDelete.id) setSelectedSetId(data.sets.find((item) => item.id !== setToDelete.id)?.id ?? "");
+    notify("Set deleted.");
+  }
+
+  function exportLibrary() {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `flashbolt-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    notify("Backup downloaded.");
+  }
+
+  async function importLibrary(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const parsed: unknown = JSON.parse(await file.text());
+      if (!isValidBackup(parsed)) throw new Error("Invalid backup");
+      setData(withDataDefaults(parsed));
+      setSelectedSetId(parsed.sets[0]?.id ?? "");
+      notify("Library restored from backup.");
+    } catch {
+      notify("That file is not a valid Flashbolt backup.");
+    }
+    event.target.value = "";
+  }
+
+  function flashcardKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    if (!selectedSet) return;
+    if (event.key === "ArrowRight") {
+      setFlashIndex(Math.min(flashIndex + 1, selectedSet.cards.length - 1));
+      setFlipped(false);
+    }
+    if (event.key === "ArrowLeft") {
+      setFlashIndex(Math.max(flashIndex - 1, 0));
+      setFlipped(false);
+    }
+  }
+
+  function renderSetGrid(sets: StudySet[]) {
+    if (!sets.length) {
+      return (
+        <div className="empty-state">
+          <div className="empty-mark">+</div>
+          <h3>{masteryFilter.mode !== "all" ? "No sets match this filter" : "No sets here yet"}</h3>
+          <p>{masteryFilter.mode !== "all" ? "Adjust the mastery percentage or clear the filter to see more sets." : "Create a set or change your search to see more."}</p>
+          {masteryFilter.mode !== "all" && <button className="button quiet" onClick={() => setMasteryFilter(current => ({ ...current, mode: "all" }))}>Show all mastery levels</button>}
+          <button className="button primary" onClick={startCreate}>Create a set</button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="set-grid">
+        {sets.map((set) => {
+          const progress = masteryPercentage(set.cards, data.mastered[set.id]);
+          const setFolders = data.folders.filter((folderItem) => folderItem.setIds.includes(set.id));
+          const folderLabel = setFolders.length ? setFolders.map((folderItem) => folderItem.name).join(" · ") : "None";
+          const normalizedFolderSearch = tileFolderSearch.trim().toLocaleLowerCase();
+          const visibleFolders = normalizedFolderSearch
+            ? data.folders.filter((folderItem) => folderItem.name.toLocaleLowerCase().includes(normalizedFolderSearch))
+            : data.folders;
+          return (
+            <article className={`set-tile ${progress === 100 ? "completed" : ""}`} data-set-color={set.color} key={set.id} onContextMenu={(event) => openSetContextMenu(event, set.id)}>
+              <Link className="set-tile-open" to={routePathForView("set", set.id)} aria-label={`Open ${set.title}`}><span className="visually-hidden">Open {set.title}</span></Link>
+              <span className={`set-accent ${set.color}`} />
+              <span className="tile-kicker"><span>{set.subject || "General"}</span><span>{formatDate(set.updatedAt)}</span></span>
+              <InlineSetDetails set={set} onQuickLearn={() => startLearn(set.id)} onOpenActions={event => {
+                const rect = event.currentTarget.getBoundingClientRect();
+                setSetContextMenu({ setId: set.id, x: rect.left, y: rect.bottom + 6 });
+              }} kahootUrl={set.kahootUrl && isSafeKahootUrl(set.kahootUrl) ? set.kahootUrl : undefined} onOpenKahootHelper={() => openKahootHelper(set)} onSave={(details) => {
+                setData(current => ({ ...current, sets: current.sets.map(item => item.id === set.id ? { ...item, ...details, updatedAt: new Date().toISOString() } : item) }));
+                notify("Set details saved.");
+              }} />
+              <div className="tile-folder-control" data-tile-folder-picker={set.id}>
+                <button
+                  className={`tile-folder-badge ${setFolders.length ? "assigned" : "unfiled"}`}
+                  title={`${setFolders.length > 1 ? "Folders" : "Folder"}: ${folderLabel}`}
+                  aria-label={`Change folders for ${set.title}. Current: ${folderLabel}`}
+                  aria-expanded={tileFolderPickerId === set.id}
+                  aria-controls={`tile-folder-menu-${set.id}`}
+                  aria-haspopup="dialog"
+                  onClick={() => {
+                    setTileFolderPickerId((current) => current === set.id ? null : set.id);
+                    setTileFolderSearch("");
+                  }}
+                >
+                  <span className="tile-folder-icon" aria-hidden="true"><UiIcon symbol="□" /></span>
+                  <span className="tile-folder-copy">
+                    <small>{setFolders.length > 1 ? "Folders" : "Folder"}</small>
+                    <b>{folderLabel}</b>
+                  </span>
+                  <span className="tile-folder-chevron" aria-hidden="true">⌄</span>
+                </button>
+                {tileFolderPickerId === set.id && (
+                  <TileFolderPanel id={`tile-folder-menu-${set.id}`} label={`Folders for ${set.title}`}>
+                    <div className="tile-folder-menu-heading">
+                      <span className="tile-folder-menu-mark" aria-hidden="true"><UiIcon symbol="□" /></span>
+                      <span className="tile-folder-menu-copy"><strong>Choose folders</strong><small>Changes save automatically</small></span>
+                      <span className={`tile-folder-selection-count ${setFolders.length ? "has-selection" : ""}`}>{setFolders.length || "None"} selected</span>
+                    </div>
+                    {data.folders.length ? (
+                      <>
+                        <div className="tile-folder-search">
+                          <span aria-hidden="true"><UiIcon symbol="⌕" /></span>
+                          <input
+                            type="search"
+                            value={tileFolderSearch}
+                            onChange={(event) => setTileFolderSearch(event.target.value)}
+                            placeholder="Search folders"
+                            aria-label={`Search folders for ${set.title}`}
+                          />
+                          {tileFolderSearch && <button type="button" onClick={() => setTileFolderSearch("")} aria-label="Clear folder search"><UiIcon symbol="×" /></button>}
+                        </div>
+                        {visibleFolders.length ? (
+                          <div className="tile-folder-options">
+                            {visibleFolders.map((folderItem) => {
+                              const checked = folderItem.setIds.includes(set.id);
+                              return (
+                                <label className={`tile-folder-option ${checked ? "checked" : ""}`} key={folderItem.id}>
+                                  <input
+                                    type="checkbox"
+                                    aria-label={`${checked ? "Remove" : "Add"} ${set.title} ${checked ? "from" : "to"} ${folderItem.name}`}
+                                    checked={checked}
+                                    onChange={() => toggleSetFolderAssignment(set.id, folderItem.id)}
+                                  />
+                                  <span className="tile-folder-option-copy">
+                                    <strong>{folderItem.name}</strong>
+                                    <small>{folderItem.setIds.length} set{folderItem.setIds.length === 1 ? "" : "s"}</small>
+                                  </span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="tile-folder-no-results">
+                            <span aria-hidden="true"><UiIcon symbol="⌕" /></span>
+                            <strong>No folders found</strong>
+                            <small>Try a different folder name.</small>
+                          </div>
+                        )}
+                      </>
+                    ) : <p className="tile-folder-empty">No folders yet.</p>}
+                    <div className="tile-folder-menu-actions">
+                      <button className="clear" onClick={() => clearSetFolderAssignments(set.id)} disabled={!setFolders.length}>Clear selection</button>
+                      <button className="create" onClick={() => openNewFolderModalForSet(set.id)}>＋ New folder</button>
+                    </div>
+                  </TileFolderPanel>
+                )}
+              </div>
+              <span className="tile-footer">
+                <span>{set.cards.length} terms</span>
+                <span className="mini-progress"><i style={{ width: `${progress}%` }} /></span>
+                <span>{progress}%</span>
+              </span>
+            </article>
+          );
+        })}
+      </div>
+    );
+  }
+
+  const currentFlashcard = selectedSet?.cards[flashIndex];
+  const isCurrentMastered = Boolean(selectedSet && currentFlashcard && data.mastered[selectedSet.id]?.includes(currentFlashcard.id));
+  const visibleSetCards = selectedSet?.cards.filter((card) => {
+    const query = termSearch.trim().toLocaleLowerCase();
+    if (!query) return true;
+    return [card.term, card.definition, ...(card.answerChoices ?? []), ...(card.correctAnswers ?? [])].some((value) => value.toLocaleLowerCase().includes(query));
+  }) ?? [];
+
+  return (
+    <div inert={!ready} data-view={view} className={`app-shell flashbolt-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
+      {confirmation && <Confirmation title={confirmation.title} message={confirmation.message} confirmLabel={confirmation.confirmLabel} onCancel={() => { confirmation.resolve(false); setConfirmation(null); }} onConfirm={() => { confirmation.resolve(true); setConfirmation(null); }} />}
+      {clearTermsSetId && (() => {
+        const setToClear = data.sets.find(set => set.id === clearTermsSetId);
+        if (!setToClear) return null;
+        return <ConfirmSetTerms title={setToClear.title} count={setToClear.cards.length} onCancel={() => setClearTermsSetId(null)} onConfirm={() => {
+          removeAllSetTerms(setToClear);
+          setClearTermsSetId(null);
+        }} />;
+      })()}
+      {setContextMenu && (() => {
+        const contextSet = data.sets.find((item) => item.id === setContextMenu.setId);
+        if (!contextSet) return null;
+        return createPortal(
+          <div ref={setContextMenuRef} className="set-context-menu" role="menu" aria-label={`Actions for ${contextSet.title}`} style={{ left: setContextMenu.x, top: setContextMenu.y }} onPointerDown={(event) => event.stopPropagation()} onKeyDown={event => {
+            const items = [...event.currentTarget.querySelectorAll<HTMLElement>('[role="menuitem"]:not(:disabled)')];
+            const index = items.indexOf(document.activeElement as HTMLElement);
+            let next = index;
+            if (event.key === "ArrowDown") next = (index + 1) % items.length;
+            else if (event.key === "ArrowUp") next = (index - 1 + items.length) % items.length;
+            else if (event.key === "Home") next = 0;
+            else if (event.key === "End") next = items.length - 1;
+            else if (event.key === "Tab") { setSetContextMenu(null); return; }
+            else return;
+            event.preventDefault(); items[next]?.focus();
+          }}>
+            <strong>{contextSet.title}</strong>
+            <Link role="menuitem" to={routePathForView("set", contextSet.id)} onClick={() => setSetContextMenu(null)}><span>▣</span>View set</Link>
+            <a role="menuitem" href={routePathForView("set", contextSet.id)} target="_blank" rel="noreferrer" onClick={() => setSetContextMenu(null)}><span><UiIcon symbol="↗" /></span>Open in new tab</a>
+            <a role="menuitem" href={routePathForView("create", contextSet.id)} onClick={(event) => { setSetContextMenu(null); followFlashboltLink(event, () => startEdit(contextSet)); }}><span><UiIcon symbol="✎" /></span>Edit set</a>
+            <button role="menuitem" onClick={() => { setSetContextMenu(null); openKahootHelper(contextSet); }}><span><UiIcon symbol="◆" /></span>Kahoot Helper</button>
+            {(contextSet.subject.trim().toLowerCase().startsWith("kahoot import") || Boolean(contextSet.kahootUrl)) && <>
+              <a role="menuitem" href={contextSet.kahootUrl && isSafeKahootUrl(contextSet.kahootUrl) ? contextSet.kahootUrl : "https://kahoot.it/"} target="_blank" rel="noreferrer" onClick={() => setSetContextMenu(null)}><span><UiIcon symbol="↗" /></span>Open Kahoot</a>
+            </>}
+            <button role="menuitem" onClick={() => { setSetContextMenu(null); duplicateSet(contextSet); }}><span><UiIcon symbol="⧉" /></span>Duplicate</button>
+            <i />
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "flashcards")}><span><UiIcon symbol="↗" /></span>Copy flashcards link</button>
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "learn")}><span><UiIcon symbol="↗" /></span>Copy learn link</button>
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "test")}><span><UiIcon symbol="↗" /></span>Copy test link</button>
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "edit")}><span><UiIcon symbol="↗" /></span>Copy edit link</button>
+            <i />
+            <button role="menuitem" className="danger" disabled={!contextSet.cards.length} onClick={() => { setSetContextMenu(null); setClearTermsSetId(contextSet.id); }}><span><UiIcon symbol="−" /></span>Remove all terms</button>
+            <button role="menuitem" className="danger" onClick={() => { setSetContextMenu(null); deleteSetFromLibrary(contextSet); }}><span><UiIcon symbol="×" /></span>Delete set</button>
+          </div>, document.body
+        );
+      })()}
+      <Sidebar>
+        <div className="sidebar-brand-row">
+          <Link className="brand" to={FLASHBOLT_BASE} aria-label="Flashbolt home" title="Flashbolt home">
+            <span className="brand-mark"><i /><i /><i /></span>
+            <span>Flashbolt</span>
+          </Link>
+          <button className="sidebar-collapse-button" onClick={toggleSidebar} aria-label={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"} title={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"}>{sidebarCollapsed ? "›" : "‹"}</button>
+        </div>
+
+        <nav className="main-nav" aria-label="Main navigation">
+          <Link title="Home" aria-label="Home" className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span className="nav-icon"><House aria-hidden="true" /></span><span className="nav-label">Home</span></Link>
+          <Link title="Review today" aria-label="Review today" className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><span className="nav-icon"><History aria-hidden="true" /></span><span className="nav-label">Review today</span></Link>
+          <Link title="Your library" aria-label="Your library" className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span className="nav-icon"><BookOpen aria-hidden="true" /></span><span className="nav-label">Your library</span></Link>
+          <Link title="Folders" aria-label="Folders" className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span className="nav-icon"><FolderIcon aria-hidden="true" /></span><span className="nav-label">Folders</span></Link>
+          {quickLinkSemester && <details open className="sidebar-folder-dropdown" onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.currentTarget.open = false;
+              event.currentTarget.querySelector("summary")?.focus();
+            }
+          }}>
+            <summary title={`${quickLinkSemester.semester} folder quick links`} aria-label={`${quickLinkSemester.semester} folder quick links`}>
+              <span className="nav-icon sidebar-folder-chevron" aria-hidden="true"><ChevronDown /></span>
+              <span className="nav-label">{quickLinkSemester.semester}</span>
+              <small className="nav-label">{quickLinkSemester.folders.length}</small>
+            </summary>
+            <div className="sidebar-folder-menu">
+              <div className="folder-chips" role="group" aria-label={`${quickLinkSemester.semester} folders`}>
+                {quickLinkSemester.folders.map(item => <Link key={item.id} to={folderPath(item)} className={selectedFolderId === item.id ? "active" : ""} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name}>
+                  <span className="folder-filter-icon folder" aria-hidden="true" style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} />
+                  {item.name.match(/^\[[^\]]+\]/) && <span className="sidebar-folder-course">{item.name.match(/^\[([^\]]+)\]/)?.[1]}</span>}
+                  <span className="folder-filter-name">{item.name.replace(/^\[[^\]]+\]\s*/, "") || item.name}</span>
+                  <span className="folder-filter-count">{item.setIds.length}</span>
+                </Link>)}
+              </div>
+            </div>
+          </details>}
+        </nav>
+
+        <div className="side-section">
+          <p>Study tools</p>
+          <a title="Flashcard set" aria-label="Create flashcard set" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><span className="nav-icon"><Plus aria-hidden="true" /></span><span className="nav-label">Flashcard set</span></a>
+          <Link title="Study guide" aria-label="Study guide" to={`${FLASHBOLT_BASE}/guide`}><span className="nav-icon"><Compass aria-hidden="true" /></span><span className="nav-label">Study guide</span></Link>
+          <Link title="Practice test" aria-label="Practice test" to={selectedSet ? routePathForView("test", selectedSet.id) : `${FLASHBOLT_BASE}/library`}><span className="nav-icon"><ClipboardCheck aria-hidden="true" /></span><span className="nav-label">Practice test</span></Link>
+          <a title="Kahoot Helper" aria-label="Open Kahoot Helper" className={view === "helper" ? "active" : ""} href={`${FLASHBOLT_BASE}/helper`} onClick={(event) => followFlashboltLink(event, () => { setSearch(""); routerNavigate(`${FLASHBOLT_BASE}/helper`); })}><span className="nav-icon"><Zap aria-hidden="true" /></span><span className="nav-label">Kahoot Helper</span></a>
+          <Link title="Notebook" aria-label="Open notebook" to="/admin-dashboard/private-pages/notebook"><span className="nav-icon"><NotebookPen aria-hidden="true" /></span><span className="nav-label">Notebook</span></Link>
+        </div>
+
+        <div className="sidebar-bottom">
+          <ThemePicker theme={theme} onThemeChange={setTheme} />
+          <button title="Back up library" aria-label="Back up library" onClick={exportLibrary}><span className="nav-icon"><Download aria-hidden="true" /></span><span className="nav-label">Back up library</span></button>
+          <Link title="Back to private pages" aria-label="Back to private pages" to="/admin-dashboard/private-pages"><span className="nav-icon"><ArrowLeft aria-hidden="true" /></span><span className="nav-label">Back to private pages</span></Link>
+        </div>
+      </Sidebar>
+
+      <div className="main-column">
+        <header ref={topbarRef} className={`topbar${showEditorTopbar ? " topbar-editing" : ""}`}>
+          {showEditorTopbar ? <nav className="editor-topbar-controls" aria-label="Set editing controls">
+            <div className="editor-topbar-context">
+              <div className="editor-topbar-heading">
+                {editorFolder && <strong className="editor-topbar-position" title={`${editorSetIndex + 1} of ${editorFolderSets.length} in ${editorFolder.name}`}>
+                  {editorSetIndex + 1} of {editorFolderSets.length} in {editorFolder.name}
+                </strong>}
+                <strong className="editor-topbar-set-title" title={draft.title || "Untitled set"}>{draft.title || "Untitled set"}</strong>
+              </div>
+              <span>{draft.cards.length} card{draft.cards.length === 1 ? "" : "s"}</span>
+            </div>
+            <div className="editor-topbar-actions">
+              {editingSetId && (previousEditorSet ? <a className="button quiet" href={routePathForView("create", previousEditorSet.id)} onClick={event => followFlashboltLink(event, () => openAdjacentEditor(previousEditorSet))} title={previousEditorSet.title}>← Previous</a> : <button className="button quiet" disabled>← Previous</button>)}
+              {editingSetId && (nextEditorSet ? <a className="button quiet" href={routePathForView("create", nextEditorSet.id)} onClick={event => followFlashboltLink(event, () => openAdjacentEditor(nextEditorSet))} title={nextEditorSet.title}>Next →</a> : <button className="button quiet" disabled>Next →</button>)}
+              <button className="button primary" onClick={() => saveDraft(false)}>Save</button>
+              <button className="button quiet editor-topbar-next-card" onClick={goToNextAvailableCard} disabled={!draft.cards.length} aria-label="Go to next available card" title="Go to next available card"><span className="editor-topbar-next-full">Go to next available card ↓</span><span className="editor-topbar-next-short">Next empty ↓</span></button>
+            </div>
+          </nav> : <>
+
+          <Link className="mobile-brand" to={FLASHBOLT_BASE} aria-label="Flashbolt home"><span className="brand-mark"><i /><i /><i /></span></Link>
+          <label className="search-box">
+            <Search aria-hidden="true" />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search sets…" aria-label="Search your library" />
+            {search && <button onClick={() => setSearch("")} aria-label="Clear search"><UiIcon symbol="×" /></button>}
+          </label>
+          <span className={`local-pill ${storageStatus === "error" ? "error" : ""}`} role="status" aria-live="polite" title={storageStatus === "error" ? syncError : "Your private library is saved to your signed-in account."}>
+            <i />{storageStatus === "loading" ? "Loading library" : storageStatus === "saved" ? "Synced to your account" : syncError || "Sync unavailable"}
+          </span>
+          <ThemePicker compact theme={theme} onThemeChange={setTheme} />
+          <div className="new-menu-wrap">
+            <button className="new-button" onClick={() => setNewMenuOpen((open) => !open)} aria-expanded={newMenuOpen} aria-label="Create new">＋<span>New</span></button>
+            {newMenuOpen && (
+              <div className="new-menu" role="menu">
+                <p>Create new</p>
+                <button role="menuitem" onClick={startCreate}><span><UiIcon symbol="▱" /></span><div><strong>Flashcard set</strong><small>Build cards from scratch</small></div></button>
+                <button role="menuitem" onClick={startQuizletLinkImport}><span><UiIcon symbol="⇩" /></span><div><strong>Import from Quizlet</strong><small>Paste a public set link</small></div></button>
+                <button role="menuitem" onClick={startKahootLinkImport}><span>◇</span><div><strong>Import from Kahoot</strong><small>Paste a public quiz link or ID</small></div></button>
+                <button role="menuitem" onClick={() => navigate("guide")}><span>≡</span><div><strong>Study guide</strong><small>Turn pasted notes into cards</small></div></button>
+                <button role="menuitem" onClick={startTest}><span><UiIcon symbol="✓" /></span><div><strong>Practice test</strong><small>Quiz yourself from a set</small></div></button>
+                <button role="menuitem" onClick={() => { setNewMenuOpen(false); openNewFolderModal(); }}><span><UiIcon symbol="□" /></span><div><strong>Folder</strong><small>Keep related sets together</small></div></button>
+              </div>
+            )}
+          </div>
+          <span className="avatar" aria-label="Signed-in account" title={user?.email ?? "Signed-in account"}>ME</span>
+          </>}
+        </header>
+
+        <main className="workspace">
+          {view !== "library" && (view === "home" || Boolean(search)) && <MasteryFilterControls compact="chip" value={masteryFilter} onChange={setMasteryFilter} shown={!search && view === "home" ? recentSets.length : visibleSets.length} total={!search && view === "home" ? data.sets.length : filteredSets.length} />}
+          {search && view !== "library" && (
+            <section className="search-results-panel">
+              <div className="section-heading"><div><span className="eyebrow">Search</span><h2>Results for “{search}”</h2></div><button className="text-button" onClick={() => navigate("library")}>Open library</button></div>
+              {renderSetGrid(visibleSets)}
+            </section>
+          )}
+
+          {!search && view === "review" && <ReviewToday sets={data.sets} progress={data.learnProgress ?? {}} onAnswer={recordReviewResult} onComplete={() => setData(current => ({ ...current, sessions: current.sessions + 1 }))} />}
+
+          {!search && view === "home" && (
+            <>
+              <Link className="review-home-link" to={`${FLASHBOLT_BASE}/review`}><span><UiIcon symbol="◴" /></span><div><strong>Review today</strong><p>Due cards, tricky questions, and a fresh start.</p></div><b>→</b></Link>
+              <section className="welcome-row">
+                <div>
+                  <span className="eyebrow">Your private study space</span>
+                  <h1>Good evening.<br /><em>What are we learning?</em></h1>
+                  <p>Everything you make here is saved privately to your account, so your library follows you across your signed-in devices.</p>
+                </div>
+                <div className="focus-orbit" aria-hidden="true"><span>15</span><small>day focus</small><i className="orbit-one" /><i className="orbit-two" /></div>
+              </section>
+
+              {selectedSet && (
+                <section className="continue-card">
+                  <div className={`continue-art ${selectedSet.color}`}>
+                    <span className="stack-card card-back" />
+                    <span className="stack-card card-middle" />
+                    <span className="stack-card card-front"><small>QUESTION</small><b>{selectedSet.cards[0]?.term}</b><i>Tap to reveal</i></span>
+                  </div>
+                  <div className="continue-copy">
+                    <span className="eyebrow">Continue learning</span>
+                    <h2>{selectedSet.title}</h2>
+                    <p>{selectedSet.description}</p>
+                    <div className="progress-label"><span>{data.mastered[selectedSet.id]?.length ?? 0} mastered</span><span>{selectedSet.cards.length} terms</span></div>
+                    <div className="progress-track"><i style={{ width: `${Math.round(((data.mastered[selectedSet.id]?.length ?? 0) / Math.max(1, selectedSet.cards.length)) * 100)}%` }} /></div>
+                    <div className="button-row">
+                      <button className="button primary" onClick={() => openSet(selectedSet.id)}>Resume flashcards <span><UiIcon symbol="→" /></span></button>
+                      <button className="button quiet" onClick={startLearn}>Learn mode</button>
+                      {selectedSet.kahootUrl && isSafeKahootUrl(selectedSet.kahootUrl) && <a className="button quiet" href={selectedSet.kahootUrl} target="_blank" rel="noreferrer">Open Kahoot ↗</a>}
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              <section className="stats-row" aria-label="Study overview">
+                <article><span className="stat-symbol violet"><UiIcon symbol="▤" /></span><div><strong>{data.sets.length}</strong><p>Study sets</p></div><small>All yours</small></article>
+                <article><span className="stat-symbol mint"><UiIcon symbol="✓" /></span><div><strong>{masteredCount}</strong><p>Cards mastered</p></div><small>Keep going</small></article>
+                <article><span className="stat-symbol amber">◒</span><div><strong>{data.sessions}</strong><p>Study sessions</p></div><small>All time</small></article>
+              </section>
+
+              <section>
+                <div className="section-heading"><div><span className="eyebrow">Library</span><h2>Recently studied</h2></div><button className="text-button" onClick={() => navigate("library")}>View all <span><UiIcon symbol="→" /></span></button></div>
+                {renderSetGrid(recentSets)}
+              </section>
+
+              <section className="notes-callout">
+                <div><span className="eyebrow">Quick start</span><h2>Turn your notes into flashcards.</h2><p>Paste one idea per line, or use <code>term :: definition</code> for precise cards. Everything happens locally.</p></div>
+                <button className="button bright" onClick={() => navigate("guide")}>Create from notes <span><UiIcon symbol="→" /></span></button>
+              </section>
+            </>
+          )}
+
+          {view === "library" && (
+            <section>
+              <div className="page-heading split">
+                <div>{folder && <Link className="back-link" to={`${FLASHBOLT_BASE}/folders`}>← All folders</Link>}<span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
+                <div className="heading-actions">
+                  {folder && <button className="button quiet" onClick={() => editFolder(folder)}>Edit folder</button>}
+                  {!folder && <button className="button quiet" onClick={() => importInputRef.current?.click()}>Restore backup</button>}
+                  <a className="button primary" href={folder ? `${folderPath(folder)}/create` : `${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, folder ? () => startCreate(folder.id) : startCreate)}>＋ Create set</a>
+                </div>
+              </div>
+              <input ref={importInputRef} className="visually-hidden" type="file" accept="application/json" onChange={importLibrary} />
+              {!folder && <button type="button" className="library-filters-toggle" aria-expanded={libraryFiltersOpen} aria-controls="library-filter-tools" onClick={() => setLibraryFiltersOpen(!libraryFiltersOpen)}>Filter and sort <span>{visibleSets.length} sets · {libraryFiltersOpen ? "Hide" : "Show"}</span></button>}
+              {!folder && <div id="library-filter-tools" className={`library-toolbar${libraryFiltersOpen ? " filters-open" : ""}`}>
+                <div className="folder-filter-panel">
+                  <div className="folder-filter-heading">
+                    <span>Browse by folder</span>
+                    <small>{data.folders.length} folder{data.folders.length === 1 ? "" : "s"}</small>
+                  </div>
+                  <div className="library-filter-row">
+                  <div className="folder-chips library-all-sets">
+                    <button
+                      className={!selectedFolderId ? "active" : ""}
+                      aria-pressed={!selectedFolderId}
+                      aria-label={`Show all ${data.sets.length} sets`}
+                      onClick={() => setSelectedFolderId(null)}
+                    >
+                      <span className="folder-filter-icon all" aria-hidden="true"><i /></span>
+                      <span className="folder-filter-name">All sets</span>
+                      <span className="folder-filter-count">{data.sets.length}</span>
+                    </button>
+                  </div>
+                  {semesterVisibilityControls}
+                  <MasteryFilterControls compact="chip" value={masteryFilter} onChange={setMasteryFilter} shown={visibleSets.length} total={filteredSets.length} />
+                  </div>
+                  <div className="folder-chips" role="group" aria-label="Filter library by folder">
+                    {visibleSemesterGroups.map((group) => <section className="folder-semester-group" key={group.semester}>
+                      <h3>{group.semester}<small>{group.folders.length} folder{group.folders.length === 1 ? "" : "s"}</small></h3>
+                      <div className="folder-semester-chips">{group.folders.map((item) => (
+                        <Link className={selectedFolderId === item.id ? "active" : ""} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name} key={item.id} to={folderPath(item)}>
+                          <span className="folder-filter-icon folder" aria-hidden="true" style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} />
+                          <span className="folder-filter-name">{item.name}</span>
+                          <span className="folder-filter-count">{item.setIds.length}</span>
+                        </Link>
+                      ))}</div>
+                    </section>)}
+                  </div>
+                </div>
+                <div className="library-toolbar-actions">
+                  <label className="library-sort-control">
+                    <span className="library-sort-icon" aria-hidden="true"><UiIcon symbol="⇅" /></span>
+                    <span className="library-sort-field"><small>Sort by</small><select value={librarySort} onChange={(event) => setLibrarySort(event.target.value as LibrarySort)} aria-label="Sort library sets">
+                      <optgroup label="Date">
+                        <option value="updated-desc">Recently updated</option>
+                        <option value="updated-asc">Oldest updated</option>
+                      </optgroup>
+                      <optgroup label="Name">
+                        <option value="title-asc">Title: A–Z</option>
+                        <option value="title-desc">Title: Z–A</option>
+                        <option value="subject-asc">Subject: A–Z</option>
+                        <option value="subject-desc">Subject: Z–A</option>
+                        <option value="folder-asc">Folder: A–Z</option>
+                        <option value="folder-desc">Folder: Z–A</option>
+                      </optgroup>
+                      <optgroup label="Set size">
+                        <option value="terms-desc">Most terms</option>
+                        <option value="terms-asc">Fewest terms</option>
+                      </optgroup>
+                      <optgroup label="Study progress">
+                        <option value="progress-desc">Highest mastery %</option>
+                        <option value="progress-asc">Lowest mastery %</option>
+                        <option value="mastered-desc">Most mastered cards</option>
+                        <option value="mastered-asc">Fewest mastered cards</option>
+                        <option value="remaining-desc">Most cards left</option>
+                        <option value="remaining-asc">Fewest cards left</option>
+                      </optgroup>
+                      <optgroup label="Organization">
+                        <option value="unfiled-first">Unfiled first</option>
+                        <option value="filed-first">Filed first</option>
+                      </optgroup>
+                    </select></span>
+                  </label>
+                  <button className="text-button" onClick={exportLibrary}>⇩ Download backup</button>
+                </div>
+              </div>}
+              {folder && <div className="folder-dedicated-toolbar">
+                <span><i style={{ "--folder-color": folder.color ?? FOLDER_COLORS[0] } as CSSProperties} />Showing only <strong>{folder.name}</strong></span>
+                <div className="folder-filter-actions">
+                <label className="library-sort-control">
+                  <span className="library-sort-icon" aria-hidden="true"><UiIcon symbol="⇅" /></span>
+                  <span className="library-sort-field"><small>Sort by</small><select value={librarySort} onChange={(event) => setLibrarySort(event.target.value as LibrarySort)} aria-label={`Sort sets in ${folder.name}`}>
+                    <option value="updated-desc">Recently updated</option>
+                    <option value="updated-asc">Oldest updated</option>
+                    <option value="title-asc">Title: A–Z</option>
+                    <option value="title-desc">Title: Z–A</option>
+                    <option value="subject-asc">Subject: A–Z</option>
+                    <option value="subject-desc">Subject: Z–A</option>
+                    <option value="folder-asc">Folder: A–Z</option>
+                    <option value="folder-desc">Folder: Z–A</option>
+                    <option value="terms-desc">Most terms</option>
+                    <option value="terms-asc">Fewest terms</option>
+                    <option value="progress-desc">Highest mastery %</option>
+                    <option value="progress-asc">Lowest mastery %</option>
+                    <option value="mastered-desc">Most mastered cards</option>
+                    <option value="mastered-asc">Fewest mastered cards</option>
+                    <option value="remaining-desc">Most cards left</option>
+                    <option value="remaining-asc">Fewest cards left</option>
+                    <option value="unfiled-first">Unfiled first</option>
+                    <option value="filed-first">Filed first</option>
+                  </select></span>
+                </label>
+                <MasteryFilterControls compact="sort" value={masteryFilter} onChange={setMasteryFilter} shown={visibleSets.length} total={filteredSets.length} />
+                <label className="library-sort-control full-area-select">
+                  <span className="library-sort-icon" aria-hidden="true">↧</span>
+                  <span className="library-sort-field"><small>Go to subject</small><strong className="full-area-select-value" aria-hidden="true">{folderSubjectGroups.length ? "Choose a subject" : "No visible subjects"}</strong><select
+                    value=""
+                    disabled={!folderSubjectGroups.length}
+                    aria-label="Go to subject"
+                    onChange={(event) => {
+                      const heading = document.getElementById(event.target.value);
+                      if (!heading) return;
+                      heading.focus({ preventScroll: true });
+                      heading.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+                    }}
+                  >
+                    <option value="" disabled>{folderSubjectGroups.length ? "Choose a subject" : "No visible subjects"}</option>
+                    {folderSubjectGroups.map((group) => <option key={group.subject.toLocaleLowerCase()} value={`folder-subject-${encodeURIComponent(group.subject.toLocaleLowerCase())}`}>{group.subject}</option>)}
+                  </select></span>
+                </label>
+                <label className="library-sort-control full-area-select">
+                  <span className="library-sort-icon" aria-hidden="true">☷</span>
+                  <span className="library-sort-field"><small>View</small><strong className="full-area-select-value" aria-hidden="true">{folderCardView === "compact" ? "Horizontal list Compact" : folderCardView === "list" ? "Horizontal list" : "Default"}</strong><select value={folderCardView} aria-label="Folder set card view" onChange={(event) => {
+                    const nextView = event.target.value === "compact" ? "compact" : event.target.value === "list" ? "list" : "default";
+                    setFolderCardView(nextView);
+                    try { window.localStorage.setItem(`${STORAGE_KEY}.folderCardView`, nextView); } catch { /* Keep the current view when storage is unavailable. */ }
+                  }}>
+                    <option value="default">Default</option>
+                    <option value="list">Horizontal list</option>
+                    <option value="compact">Horizontal list Compact</option>
+                  </select></span>
+                </label>
+                </div>
+              </div>}
+              {folder && visibleSets.length ? (
+                <div className={`folder-subject-sections${folderCardView !== "default" ? " folder-list-view" : ""}${folderCardView === "compact" ? " folder-compact-view" : ""}`}>
+                  {folderSubjectGroups.map((group) => (
+                    <section className="folder-subject-section" key={group.subject.toLocaleLowerCase()}>
+                      <div className="folder-subject-heading">
+                        <div><span className="eyebrow">Subject</span><h2 id={`folder-subject-${encodeURIComponent(group.subject.toLocaleLowerCase())}`} tabIndex={-1}>{group.subject}</h2></div>
+                        <small>{group.sets.length} set{group.sets.length === 1 ? "" : "s"}</small>
+                      </div>
+                      {renderSetGrid(group.sets)}
+                    </section>
+                  ))}
+                </div>
+              ) : renderSetGrid(visibleSets)}
+            </section>
+          )}
+
+          {!search && view === "folders" && (
+            <section>
+              <div className="page-heading split">
+                <div><span className="eyebrow">Folders</span><h1>Organize your way.</h1><p>Group related sets without sharing anything publicly.</p></div>
+                <button className="button primary" onClick={openNewFolderModal}>＋ New folder</button>
+              </div>
+              {semesterVisibilityControls}
+              {data.folders.length ? (
+                <div className="folder-semester-sections">
+                  {visibleSemesterGroups.map((group) => <section className="folder-page-semester" key={group.semester}>
+                    <div className="folder-semester-title"><div><span className="eyebrow">Semester</span><h2>{group.semester}</h2></div><small>{group.folders.length} folder{group.folders.length === 1 ? "" : "s"}</small></div>
+                    <div className="folder-grid">{group.folders.map((item) => (
+                    <article key={item.id} className="folder-tile" onClick={() => openFolder(item)}>
+                      <span className="folder-tab" />
+                      <div className="folder-tile-actions">
+                        <button onClick={(event) => { event.stopPropagation(); editFolder(item); }} aria-label={`Edit ${item.name}`} title="Edit folder">✎</button>
+                        <button className="delete" onClick={(event) => { event.stopPropagation(); deleteFolder(item); }} aria-label={`Delete ${item.name}`} title="Delete folder"><UiIcon symbol="×" /></button>
+                      </div>
+                      <Link className="folder-open-button" to={folderPath(item)} onClick={(event) => event.stopPropagation()}>
+                        <span className="folder-icon"><UiIcon symbol="□" /></span>
+                        <strong>{item.name}</strong><small>{item.semester ? `${item.semester} · ` : ""}{item.setIds.length} set{item.setIds.length === 1 ? "" : "s"}</small><span>Open <b>→</b></span>
+                      </Link>
+                    </article>
+                    ))}</div>
+                  </section>)}
+                  <div className="folder-grid"><button className="folder-tile new-folder" onClick={openNewFolderModal}><span className="folder-icon"><UiIcon symbol="＋" /></span><strong>Create a folder</strong><small>Keep a course or topic together</small></button></div>
+                </div>
+              ) : (
+                <div className="empty-state"><div className="empty-mark">□</div><h3>No folders yet</h3><p>Create one to organize related study sets.</p><button className="button primary" onClick={openNewFolderModal}>Create a folder</button></div>
+              )}
+            </section>
+          )}
+
+          {!search && view === "create" && (
+            <section className="creator-page">
+              <div className="page-heading split">
+                <div><Link className="back-link" to={editorFolder ? folderPath(editorFolder) : `${FLASHBOLT_BASE}/library`}>← {editorFolder ? editorFolder.name : "Library"}</Link><span className="eyebrow">{editingSetId ? "Edit set" : "New flashcard set"}</span><h1>{editingSetId ? "Make it better." : "Build a set that sticks."}</h1></div>
+              </div>
+              {notebookSource && <aside className="form-card notebook-draft-notice">
+                <h2>Review cards from “{notebookSource.title}”</h2>
+                <p>This is an unsaved draft. Check every question and answer, then choose Save or Save &amp; study to create your set.</p>
+                <p>Cards are suggested from the note’s text; they may need corrections. {notebookSource.attachmentCount > 0 && "Attachments are not included."}</p>
+                <details><summary>Original note text</summary><pre style={{ whiteSpace: "pre-wrap", maxHeight: 240, overflow: "auto" }}>{notebookSource.text || "This note has no text yet. Add cards below."}</pre></details>
+                <div className="editor-save-actions"><Link className="button quiet" to={notebookSource.returnTo}>Back to note (keep draft)</Link><button className="button quiet" onClick={discardNotebookDraft}>Discard draft</button></div>
+              </aside>}
+              <div className="creator-layout">
+                <div className="creator-main">
+                  <article className="form-card set-details">
+                    <div className="set-metadata-field"><span className="set-field-label"><label htmlFor="set-title">Title</label><span className="set-field-history">{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, title: recentSetValues.title }))} title={recentSetValues.title}>Use recent: {recentSetValues.title || "Empty"}</button>}<PreviousValueSelect label="title" values={previousTitles} onSelect={(title) => setDraft((current) => ({ ...current, title }))} /></span></span><input id="set-title" value={draft.title} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} onKeyDown={(event) => acceptPreviousValueOnTab(event, previousTitles, (title) => setDraft((current) => ({ ...current, title })))} placeholder="e.g. [ITEC 3600] Chapter 1 - Part 1" maxLength={100} /></div>
+                    <div className="field-row">
+                      <div className="set-metadata-field"><span className="set-field-label"><label htmlFor="set-subject">Subject</label><span className="set-field-history">{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, subject: recentSetValues.subject }))} title={recentSetValues.subject}>Use recent: {recentSetValues.subject || "Empty"}</button>}<PreviousValueSelect label="subject" values={previousSubjects} onSelect={(subject) => setDraft((current) => ({ ...current, subject }))} /></span></span><input id="set-subject" value={draft.subject} onChange={(event) => setDraft({ ...draft, subject: event.target.value })} onKeyDown={(event) => acceptPreviousValueOnTab(event, previousSubjects, (subject) => setDraft((current) => ({ ...current, subject })))} placeholder="Course or topic" /></div>
+                      <div className="set-metadata-field"><span className="set-field-label"><label htmlFor="set-color">Color</label>{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, color: recentSetValues.color }))}>Use recent: {recentSetValues.color}</button>}</span><SetColorPicker id="set-color" value={draft.color} onChange={color => setDraft({ ...draft, color })} /></div>
+                    </div>
+                    <div className="set-metadata-field"><span className="set-field-label"><label htmlFor="set-description">Description <small>optional</small></label><span className="set-field-history">{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, description: recentSetValues.description }))} title={recentSetValues.description}>Use recent: {recentSetValues.description || "Empty"}</button>}<PreviousValueSelect label="description" values={previousDescriptions} onSelect={(description) => setDraft((current) => ({ ...current, description }))} /></span></span><textarea id="set-description" value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} onKeyDown={(event) => acceptPreviousValueOnTab(event, previousDescriptions, (description) => setDraft((current) => ({ ...current, description })))} placeholder="What will this set help you learn?" rows={3} /></div>
+                    <label className="kahoot-link-field"><span className="set-field-label"><b>Kahoot link <small>optional</small></b>{draft.kahootUrl && isSafeKahootUrl(draft.kahootUrl) && <a href={draft.kahootUrl} target="_blank" rel="noreferrer">Open link ↗</a>}</span><input type="url" inputMode="url" value={draft.kahootUrl ?? ""} onChange={(event) => setDraft((current) => ({ ...current, kahootUrl: event.target.value }))} placeholder="https://create.kahoot.it/details/…" spellCheck={false} /></label>
+                    <div className="folder-assignment">
+                      <div className="folder-assignment-heading">
+                        <div><span>Folders <small>optional</small></span><p>Add this set to one or more folders.</p></div>
+                        <div className="folder-assignment-actions">{!editingSetId && recentSetValues && <button className="recent-folder-button" type="button" onClick={() => setDraftFolderIds(recentSetValues.folderIds.filter((folderId) => data.folders.some((folderItem) => folderItem.id === folderId)))} title={recentFolderNames.join(", ") || "No folders"}>Use recent: {recentFolderNames.join(", ") || "None"}</button>}{previousFolderSelections.length > 0 && <details className="previous-value-menu previous-folder-menu"><summary>Previous folders…</summary><div>{previousFolderSelections.map((selection) => <button type="button" key={selection.folderIds.join("|")} onClick={(event) => { setDraftFolderIds(selection.folderIds); event.currentTarget.closest("details")?.removeAttribute("open"); }}>{selection.label}</button>)}</div></details>}<button className="text-button" onClick={openNewFolderModal}>＋ New folder</button></div>
+                      </div>
+                      {data.folders.length ? (
+                        <>
+                        <div className="selected-folder-summary" aria-live="polite">
+                          <span>{draftFolderIds.length === 1 ? "Selected folder" : "Selected folders"}</span>
+                          <div>{draftFolderIds.length ? data.folders.filter((folderItem) => draftFolderIds.includes(folderItem.id)).map((folderItem) => <span className="selected-folder-chip" key={folderItem.id} style={{ "--folder-color": folderItem.color ?? FOLDER_COLORS[0] } as CSSProperties}><i aria-hidden="true" /><b>{folderItem.name}</b>{folderItem.semester && <small>{folderItem.semester}</small>}<button type="button" onClick={() => setDraftFolderIds((ids) => ids.filter((id) => id !== folderItem.id))} aria-label={`Remove ${folderItem.name}`}><UiIcon symbol="×" /></button></span>) : <small className="no-folder-selected">No folder selected</small>}</div>
+                        </div>
+                        <label className="folder-assignment-search">
+                          <span aria-hidden="true"><UiIcon symbol="⌕" /></span>
+                          <input type="search" value={draftFolderSearch} onChange={(event) => setDraftFolderSearch(event.target.value)} placeholder="Search folders by name or course code" aria-label="Search folders" />
+                          {draftFolderSearch && <button type="button" onClick={() => setDraftFolderSearch("")} aria-label="Clear folder search"><UiIcon symbol="×" /></button>}
+                        </label>
+                        <div className="folder-option-grid">
+                          {draftFolderOptions.filter((folderItem) => folderItem.name.toLocaleLowerCase().includes(draftFolderSearch.trim().toLocaleLowerCase())).map((folderItem) => {
+                            const checked = draftFolderIds.includes(folderItem.id);
+                            return (
+                              <label className={`folder-option ${checked ? "checked" : ""}`} key={folderItem.id}>
+                                <input
+                                  type="checkbox"
+                                  aria-label={`Add this set to ${folderItem.name}`}
+                                  checked={checked}
+                                  onChange={() => setDraftFolderIds((ids) => ids.includes(folderItem.id)
+                                    ? ids.filter((id) => id !== folderItem.id)
+                                    : [...ids, folderItem.id])}
+                                />
+                                <span><strong>□ {folderItem.name}</strong><small>{folderItem.setIds.length} existing set{folderItem.setIds.length === 1 ? "" : "s"}</small></span>
+                              </label>
+                            );
+                          })}
+                          {draftFolderSearch && !data.folders.some((folderItem) => folderItem.name.toLocaleLowerCase().includes(draftFolderSearch.trim().toLocaleLowerCase())) && <p className="folder-search-empty">No folders match “{draftFolderSearch.trim()}”.</p>}
+                        </div>
+                        </>
+                      ) : (
+                        <p className="folder-assignment-empty">No folders yet. Create one here, then it will be selected automatically.</p>
+                      )}
+                    </div>
+                  </article>
+
+                  <div className="card-editor-section-heading">
+                    <div><span className="eyebrow">Cards</span><h2>Cards in this set</h2><small>{draft.cards.length} total</small></div>
+                    <button type="button" className="button danger" onClick={removeAllDraftCards} disabled={!draft.cards.length}>Remove all cards</button>
+                  </div>
+                  <div className="card-editor-list">
+                    {!draft.cards.length && <div className="card-editor-empty"><strong>No cards in this set</strong><span>Add a card below or import questions from the tools beside the editor.</span></div>}
+                    {draft.cards.map((card, index) => (
+                      <div className="card-editor-wrap" key={card.id}>
+                        <article
+                          ref={(element) => { if (element) draftCardElements.current.set(card.id, element); else draftCardElements.current.delete(card.id); }}
+                          className={`card-editor ${draggingCardId === card.id ? "dragging" : ""}`}
+                          onDragOver={(event) => event.preventDefault()}
+                          onDrop={(event) => dropDraftCard(event, card.id)}
+                        >
+                          <header>
+                            <span>{String(index + 1).padStart(2, "0")}</span>
+                            <div className="card-tools">
+                              <button className="highlight-button" data-color={card.highlight ?? "none"} onClick={() => cycleHighlight(card)} aria-label={`Change card highlight. Current color: ${card.highlight ?? "none"}`} title="Change card highlight">A</button>
+                              <button onClick={() => startDictation(card, "term")} className={dictationTarget?.cardId === card.id && dictationTarget.field === "term" ? "recording" : ""} aria-label={`Dictate term for card ${index + 1}`} title="Dictate term">◉</button>
+                              <button onClick={() => moveDraftCard(card.id, -1)} disabled={index === 0} aria-label={`Move card ${index + 1} up`} title="Move up">↑</button>
+                              <button onClick={() => moveDraftCard(card.id, 1)} disabled={index === draft.cards.length - 1} aria-label={`Move card ${index + 1} down`} title="Move down">↓</button>
+                              <button
+                                type="button"
+                                className="drag-handle"
+                                draggable
+                                onDragStart={(event) => {
+                                  event.stopPropagation();
+                                  event.dataTransfer.effectAllowed = "move";
+                                  event.dataTransfer.setData("text/plain", card.id);
+                                  setDraggingCardId(card.id);
+                                }}
+                                onDragEnd={() => setDraggingCardId(null)}
+                                aria-label={`Drag card ${index + 1} to reorder`}
+                                title="Drag to reorder"
+                              >☰</button>
+                              <button onClick={() => duplicateDraftCard(card.id)} aria-label={`Duplicate card ${index + 1}`} title="Duplicate card">⧉</button>
+                              <button onClick={() => setDraft((current) => ({ ...current, cards: current.cards.filter((item) => item.id !== card.id) }))} disabled={draft.cards.length === 1} aria-label={`Remove card ${index + 1}`} title="Delete card"><UiIcon symbol="×" /></button>
+                            </div>
+                          </header>
+                          <div className="card-question-type">
+                            <label className="auto-question-type"><input type="checkbox" checked={card.questionTypeMode !== "manual"} onChange={event => {
+                              const questionTypeMode = event.target.checked ? "auto" : "manual";
+                              setDraft(current => ({ ...current, cards: current.cards.map(item => item.id === card.id ? applyDetectedQuestionType({ ...item, questionTypeMode }) : item) }));
+                            }} /><span>Auto-detect from question</span></label>
+                            <label><span>Question type</span><select value={cardQuestionType(card)} onChange={(event) => setDraftCardQuestionType(card, event.target.value as CardQuestionType)}><option value="flashcard">Flashcard</option><option value="multiple-choice">Multiple choice</option><option value="true-false">True or false</option><option value="select-all">Select all that apply</option><option value="written">Written answer</option><option value="matching">Matching</option></select></label>
+                            <small>{cardQuestionType(card) === "matching" ? "Create pairs learners will match." : cardQuestionType(card) === "written" ? "Learners type the definition." : cardQuestionType(card) === "flashcard" ? "Reveal the definition after recalling it." : "Enter choices and mark the correct answer."}</small>{cardQuestionType(card) === "flashcard" && <button type="button" className="quick-add-choices" onClick={() => setDraftCardQuestionType(card, "multiple-choice")}>＋ Add answer choices</button>}
+                          </div>
+                          <div className="card-editor-fields">
+                            <label className="card-text-field">
+                              <AutoResizeTextarea className={`highlight-${card.highlight ?? "none"}`} value={card.term} onChange={(event) => updateDraftCard(card.id, "term", event.target.value)} onPaste={(event) => pasteDraftQuestion(card, event)} placeholder="Enter term or paste a question with answer choices" />
+                              <span className="field-meta"><b>TERM</b><select aria-label={`Term language for card ${index + 1}`} value={card.termLanguage ?? "auto"} onChange={(event) => updateDraftCardExtras(card.id, { termLanguage: event.target.value })}>{LANGUAGE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></span>
+                            </label>
+                            <i />
+                            {(cardQuestionType(card) === "multiple-choice" || cardQuestionType(card) === "select-all" || cardQuestionType(card) === "true-false") && card.answerChoices ? (
+                              <div className="card-editor-choices">
+                                <span>{cardQuestionType(card) === "select-all" ? "Answer choices · select every correct answer" : "Answer choices · select the correct answer"}</span>
+                                <div>
+                                  {card.answerChoices.map((choice, choiceIndex) => {
+                                    const isCorrect = correctAnswersForCard(card).some((answer) => normalizeAnswer(answer) === normalizeAnswer(choice));
+                                    return (
+                                      <label className={isCorrect ? "correct" : ""} key={`${card.id}-choice-${choiceIndex}`}>
+                                        <button type="button" className="choice-correct-toggle" onClick={() => toggleDraftCorrectAnswer(card, choice)} aria-label={`${isCorrect ? "Unmark" : "Mark"} choice ${String.fromCharCode(65 + choiceIndex)} as correct`} aria-pressed={isCorrect}>{String.fromCharCode(65 + choiceIndex)}</button>
+                                        <AutoResizeTextarea rows={1} value={choice} onChange={(event) => updateDraftChoice(card, choiceIndex, event.target.value)} onPaste={(event) => { if (pasteDraftChoices(card, choiceIndex, event.clipboardData.getData("text/plain"))) event.preventDefault(); }} aria-label={`Choice ${String.fromCharCode(65 + choiceIndex)} for card ${index + 1}`} placeholder={`Choice ${String.fromCharCode(65 + choiceIndex)}`} readOnly={cardQuestionType(card) === "true-false"} />
+                                        {isCorrect && <small>Correct</small>}
+                                        {cardQuestionType(card) !== "true-false" && card.answerChoices && card.answerChoices.length > 2 && <button type="button" className="choice-remove" onClick={() => updateDraftCardExtras(card.id, { answerChoices: card.answerChoices?.filter((_, itemIndex) => itemIndex !== choiceIndex), correctAnswers: correctAnswersForCard(card).filter((answer) => normalizeAnswer(answer) !== normalizeAnswer(choice)) })} aria-label={`Remove choice ${String.fromCharCode(65 + choiceIndex)}`}><UiIcon symbol="×" /></button>}
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                                {cardQuestionType(card) !== "true-false" && card.answerChoices.length < 26 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { answerChoices: [...(card.answerChoices ?? []), ""] })}>＋ Add answer {String.fromCharCode(65 + card.answerChoices.length)}</button>}
+                              </div>
+                            ) : <div className="definition-field-wrap">
+                              <label className="card-text-field">
+                                <AutoResizeTextarea className={`highlight-${card.highlight ?? "none"}`} value={card.definition} onChange={(event) => updateDraftCard(card.id, "definition", event.target.value)} placeholder="Enter definition" />
+                                <span className="field-meta"><b>DEFINITION</b><select aria-label={`Definition language for card ${index + 1}`} value={card.definitionLanguage ?? "auto"} onChange={(event) => updateDraftCardExtras(card.id, { definitionLanguage: event.target.value })}>{LANGUAGE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></span>
+                              </label>
+                              <div className="definition-actions">
+                                <button onClick={() => startDictation(card, "definition")} className={dictationTarget?.cardId === card.id && dictationTarget.field === "definition" ? "recording" : ""} aria-label={`Dictate definition for card ${index + 1}`} title="Dictate definition">◉</button>
+                                <label className="image-upload-button" title="Add image"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { void attachCardImage(card.id, event.target.files?.[0]); event.target.value = ""; }} /><span>▧</span>Image</label>
+                              </div>
+                            </div>}
+                          </div>
+                          {cardQuestionType(card) === "matching" && (
+                            <div className="matching-pair-editor"><span>Matching pairs</span><div>{(card.matchingPairs ?? []).map((pair, pairIndex) => <div className="matching-pair-row" key={pair.id}><b>{String.fromCharCode(65 + pairIndex)}</b><input value={pair.left} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, left: event.target.value } : item) })} placeholder="Prompt" /><span>↔</span><input value={pair.right} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, right: event.target.value } : item) })} placeholder="Match" /><button type="button" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.filter((item) => item.id !== pair.id) })} disabled={(card.matchingPairs?.length ?? 0) <= 2} aria-label={`Remove matching pair ${pairIndex + 1}`}><UiIcon symbol="×" /></button></div>)}</div>{(card.matchingPairs?.length ?? 0) < 26 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: [...(card.matchingPairs ?? []), { id: makeId("pair"), left: "", right: "" }] })}>＋ Add matching pair</button>}</div>
+                          )}
+                          <label className="card-explanation-field"><span>Explanation <small>optional · shown after answering</small></span><AutoResizeTextarea value={card.explanation ?? ""} onPaste={event => { if (event.clipboardData.getData("text/plain").trim()) scrollToNextDraftCard(card.id, ["explanation"], true); }} onChange={event => updateDraftCardExtras(card.id, { explanation: event.target.value })} placeholder="Explain why this answer is correct, or add a memory tip…" rows={2} /></label>
+                          {card.imageData && <div className="card-image-preview"><img width={74} height={58} src={card.imageData} alt={card.imageName ? `Attached ${card.imageName}` : "Attached card image"} /><span>{card.imageName}</span><button onClick={() => updateDraftCardExtras(card.id, { imageData: undefined, imageName: undefined })} aria-label={`Remove image from card ${index + 1}`}>Remove image</button></div>}
+                          <footer className="card-editor-footer"><span aria-label={`Card ${index + 1}`}>{String(index + 1).padStart(2, "0")}</span></footer>
+                        </article>
+                        <button className="insert-card-button" onClick={() => addDraftCard(card.id)} aria-label={`Add a card after card ${index + 1}`}><span><UiIcon symbol="＋" /></span></button>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="add-card-button" onClick={() => addDraftCard()}>＋ Add another card</button>
+                </div>
+
+                <aside ref={editorPanelRef} className="import-panel">
+                  <section className={`creation-checklist collapsible-panel-section ${collapsedEditorSections.includes("checklist") ? "collapsed" : ""} ${draftCompletion === 100 ? "complete" : ""}`} aria-label={`Set creation ${draftCompletion}% complete`}>
+                    {editingSetId && editorFolder && editorFolderSets.length > 1 && <nav className="editor-set-navigation" aria-label={`Move between sets in ${editorFolder.name}`}><span>{editorSetIndex + 1} of {editorFolderSets.length} in {editorFolder.name}</span><div>{previousEditorSet ? <a className="button quiet" href={routePathForView("create", previousEditorSet.id)} onClick={(event) => followFlashboltLink(event, () => openAdjacentEditor(previousEditorSet))} title={previousEditorSet.title}>← Previous</a> : <button className="button quiet" disabled title="First set in folder">← Previous</button>}{nextEditorSet ? <a className="button quiet" href={routePathForView("create", nextEditorSet.id)} onClick={(event) => followFlashboltLink(event, () => openAdjacentEditor(nextEditorSet))} title={nextEditorSet.title}>Next →</a> : <button className="button quiet" disabled title="Last set in folder">Next →</button>}</div></nav>}
+                    <button className="side-panel-collapse-button creation-checklist-heading" type="button" onClick={() => toggleEditorSection("checklist")} aria-expanded={!collapsedEditorSections.includes("checklist")}><div><span className="eyebrow">Set checklist</span><h3>{draftCompletion === 100 ? "Ready to study" : "Finish your set"}</h3></div><i aria-hidden="true">⌃</i></button>
+                    <div className="creation-checklist-summary" aria-live="polite"><strong>{draftCompletion}%</strong><span>{draft.cards.length} card{draft.cards.length === 1 ? "" : "s"}</span></div>
+                    <div className="creation-progress" role="progressbar" aria-label="Set completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={draftCompletion}><i style={{ width: `${draftCompletion}%` }} /></div>
+                    <div className="editor-save-actions"><button className="button quiet" onClick={() => saveDraft(false)}>Save</button><button className="button primary" onClick={() => saveDraft(true)}>Save &amp; study</button></div>
+                    <button type="button" className="button quiet full" onClick={goToNextAvailableCard} disabled={!draft.cards.length} title="Jump to the first card with an empty term">Go to next available card ↓</button>
+                    <label className="editor-auto-scroll"><span>Next card after pasting a question</span><input type="checkbox" role="switch" checked={autoScrollQuestion} onChange={(event) => {
+                      const enabled = event.target.checked;
+                      setAutoScrollQuestion(enabled);
+                      try { window.localStorage.setItem(AUTO_SCROLL_QUESTION_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
+                    }} /></label>
+                    <label className="editor-auto-scroll"><span>Next card after pasting choices</span><input type="checkbox" role="switch" checked={autoScrollChoices} onChange={(event) => {
+                      const enabled = event.target.checked;
+                      setAutoScrollChoices(enabled);
+                      try { window.localStorage.setItem(AUTO_SCROLL_CHOICES_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
+                    }} /></label>
+                    <label className="editor-auto-scroll"><span>Next card after marking correct</span><input type="checkbox" role="switch" checked={autoScrollCorrect} onChange={(event) => {
+                      const enabled = event.target.checked;
+                      setAutoScrollCorrect(enabled);
+                      try { window.localStorage.setItem(AUTO_SCROLL_CORRECT_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
+                    }} /></label>
+                    <label className="editor-auto-scroll"><span>Next card after pasting explanation</span><input type="checkbox" role="switch" checked={autoScrollExplanation} onChange={(event) => {
+                      const enabled = event.target.checked;
+                      setAutoScrollExplanation(enabled);
+                      try { window.localStorage.setItem(AUTO_SCROLL_EXPLANATION_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
+                    }} /></label>
+                    <p className="editor-auto-scroll-hint">{autoAdvanceOn === "explanation" ? "Advances after pasting explanation." : autoAdvanceOn === "correct" ? "Advances after marking correct." : autoAdvanceOn === "choices" ? "Advances after pasting choices." : autoAdvanceOn === "question" ? "Advances after pasting a question." : "Automatic advance is off."} The lowest enabled option takes priority.</p>
+                    <div className="collapsible-panel-body">
+                      <ul>{draftChecklist.map((item) => <li className={item.complete ? "complete" : ""} key={item.label}><span>{item.complete ? "✓" : "○"}</span><div><strong>{item.label}</strong>{!item.complete && <small>{item.detail}</small>}</div></li>)}</ul>
+                    </div>
+                  </section>
+                  <div className="import-divider"><span>Import tools</span></div>
+                  <div className={`quizlet-import-block collapsible-panel-section ${collapsedEditorSections.includes("quizlet") ? "collapsed" : ""}`}>
+                    <button className="side-panel-collapse-button" type="button" onClick={() => toggleEditorSection("quizlet")} aria-expanded={!collapsedEditorSections.includes("quizlet")}><span><small>From Quizlet or Kahoot</small><strong>Import by link or ID</strong></span><i aria-hidden="true">⌃</i></button>
+                    <div className="collapsible-panel-body"><p>Paste a public Quizlet or Kahoot link, or a set or quiz ID. Imported cards will fill this editor.</p>
+                      <label className="quizlet-link-field"><span className="visually-hidden">Quizlet or Kahoot link or ID</span><input type="text" value={quizletUrl} onChange={(event) => { setQuizletUrl(event.target.value); setKahootReference(event.target.value); setQuizletImportMessage(""); setKahootImportMessage(""); setQuizletImportFailed(false); setKahootImportFailed(false); }} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); applyLinkImport(); } }} placeholder="Quizlet or Kahoot link or ID" autoComplete="url" disabled={quizletImporting || kahootImporting} /></label>
+                      <button className="button primary full" onClick={applyLinkImport} disabled={quizletImporting || kahootImporting}>{quizletImporting || kahootImporting ? "Importing…" : "Import cards"}</button>
+                      {quizletImportMessage && <p className={`import-status ${quizletImportFailed ? "error" : ""}`} role={quizletImportFailed ? "alert" : "status"}>{quizletImportMessage}</p>}
+                      {kahootImportMessage && <p className={`import-status ${kahootImportFailed ? "error" : ""}`} role={kahootImportFailed ? "alert" : "status"}>{kahootImportMessage}</p>}
+                    </div>
+                  </div>
+                  <div className={`paste-import-block collapsible-panel-section ${collapsedEditorSections.includes("paste") ? "collapsed" : ""}`}>
+                    <button className="side-panel-collapse-button" type="button" onClick={() => toggleEditorSection("paste")} aria-expanded={!collapsedEditorSections.includes("paste")}><span><small>Manual import</small><strong>Paste a list</strong></span><i aria-hidden="true">⌃</i></button>
+                    <div className="collapsible-panel-body"><p>Paste a Kahoot question list with answers shown and “correct” labels, CyberDefense Pro module quizzes (including explanations), LMS quiz results, Quizlet HTML, or one <code>term :: definition</code> per line.</p>
+                      <textarea value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} placeholder={'Paste copied quiz results here, or use:\n\nLifecycle :: The stages an activity moves through\nIntent :: A request to perform an action'} rows={7} />
+                      <button className="button quiet full" onClick={applyPasteImport}>Import pasted cards</button>
+                      <details className="manual-import-examples">
+                        <summary className="manual-import-examples-heading">Supported formats &amp; examples</summary>
+                        <div className="manual-import-examples-body">
+                          <p>Expand any format to see an example. Use one format per import.</p>
+                          {manualImportExamples.map(example => (
+                            <details key={example.title}>
+                              <summary>{example.title}</summary>
+                              <p>{example.description}</p>
+                              <pre><code>{example.text}</code></pre>
+                            </details>
+                          ))}
+                        </div>
+                      </details>
+                    </div>
+                  </div>
+                  <div className="privacy-note"><span>⌁</span><p><strong>Saved privately.</strong> Imported cards sync to your account and remain available as a local backup.</p></div>
+                </aside>
+              </div>
+            </section>
+          )}
+
+          {!search && view === "set" && !selectedSet && <section className="empty-state"><h1>Set unavailable</h1><p>This set is no longer in your library.</p><Link className="button primary" to={`${FLASHBOLT_BASE}/library`}>Back to library</Link></section>}
+
+          {!search && view === "set" && selectedSet && (
+            <section className="study-page">
+              <div className="page-heading split compact">
+                <div><Link className="back-link" to={`${FLASHBOLT_BASE}/library`}>← Library</Link><span className="eyebrow">{selectedSet.subject}</span><h1>{selectedSet.title}</h1><p>{selectedSet.description}</p></div>
+                <div className="heading-actions">{selectedSet.kahootUrl && isSafeKahootUrl(selectedSet.kahootUrl) && <a className="button quiet" href={selectedSet.kahootUrl} target="_blank" rel="noreferrer">◆ Open Kahoot ↗</a>}<a className="button quiet" href={routePathForView("create", selectedSet.id)} onClick={(event) => followFlashboltLink(event, () => startEdit(selectedSet))}>Edit set</a><button className="icon-button danger" onClick={deleteSelectedSet} aria-label="Delete set"><UiIcon symbol="×" /></button></div>
+              </div>
+              {folder && folderSetIndex >= 0 && folderSets.length > 1 && (
+                <nav className="folder-set-navigation" aria-label={`Move between sets in ${folder.name}`}>
+                  {previousFolderSet ? <Link className="folder-set-button previous" to={routePathForView("set", previousFolderSet.id)}>
+                    <span>← Previous set</span>
+                    <strong>{previousFolderSet.title}</strong>
+                  </Link> : <span className="folder-set-button previous disabled"><span>← Previous set</span><strong>First set in folder</strong></span>}
+                  <div className="folder-set-position">
+                    <span className="eyebrow">{folder.name}</span>
+                    <strong>{folderSetIndex + 1} of {folderSets.length}</strong>
+                  </div>
+                  {nextFolderSet ? <Link className="folder-set-button next" to={routePathForView("set", nextFolderSet.id)}>
+                    <span>Next set →</span>
+                    <strong>{nextFolderSet.title}</strong>
+                  </Link> : <span className="folder-set-button next disabled"><span>Next set →</span><strong>Last set in folder</strong></span>}
+                </nav>
+              )}
+              <div className="mode-tabs" role="tablist" aria-label="Study modes"><Link className="active" role="tab" to={routePathForView("set", selectedSet.id)}><BookOpen aria-hidden="true" />Flashcards</Link><Link role="tab" to={routePathForView("learn", selectedSet.id)}><Compass aria-hidden="true" />Learn</Link><Link role="tab" to={routePathForView("test", selectedSet.id)}><ClipboardCheck aria-hidden="true" />Test</Link></div>
+              {currentFlashcard ? <div className="study-layout">
+                <div>
+                  <div className="flash-status"><span>{flashIndex + 1} / {selectedSet.cards.length}</span><button className={isCurrentMastered ? "mastered" : ""} onClick={() => toggleMastered(selectedSet.id, currentFlashcard.id)}>{isCurrentMastered ? "✓ Mastered" : "Mark as mastered"}</button></div>
+                  <button className={`flashcard ${flipped ? "flipped" : ""} highlight-${currentFlashcard.highlight ?? "none"}`} onClick={() => setFlipped((value) => !value)} onKeyDown={flashcardKeyDown} aria-label={`Flashcard ${flashIndex + 1}. ${flipped ? "Showing answer" : "Showing question"}. Press to flip.`}>
+                    <span className="card-side-label">{flipped ? "ANSWER" : "QUESTION"}</span>
+                    <strong>{flipped ? currentFlashcard.definition : currentFlashcard.term}</strong>
+                    {currentFlashcard.imageData && <img width={320} height={185} className="flashcard-image" src={currentFlashcard.imageData} alt={currentFlashcard.imageName ? `Study aid: ${currentFlashcard.imageName}` : "Study aid"} />}
+                    <small>{flipped ? "Tap to see the question" : "Tap to reveal the answer"}</small>
+                  </button>
+                  {flipped && <StudyExplanation text={currentFlashcard.explanation} />}
+                  <div className="flash-controls"><button onClick={() => { setFlashIndex(Math.max(flashIndex - 1, 0)); setFlipped(false); }} disabled={flashIndex === 0} aria-label="Previous card">←</button><button className="flip-hint" onClick={() => setFlipped((value) => !value)}>Flip card <kbd>Space</kbd></button><button onClick={() => { setFlashIndex(Math.min(flashIndex + 1, selectedSet.cards.length - 1)); setFlipped(false); }} disabled={flashIndex === selectedSet.cards.length - 1} aria-label="Next card">→</button></div>
+                </div>
+                <aside className="study-side-panel">
+                  <span className="eyebrow">Set progress</span><div className="score-ring" style={{ "--score": `${Math.round(((data.mastered[selectedSet.id]?.length ?? 0) / selectedSet.cards.length) * 100)}%` } as React.CSSProperties}><span>{Math.round(((data.mastered[selectedSet.id]?.length ?? 0) / selectedSet.cards.length) * 100)}<small>%</small></span></div>
+                  <h3>{data.mastered[selectedSet.id]?.length ?? 0} of {selectedSet.cards.length} mastered</h3><p>Mark cards as mastered when you can answer without peeking.</p>
+                  <Link className="button primary full" to={routePathForView("learn", selectedSet.id)}>Practice in Learn</Link><Link className="button quiet full" to={routePathForView("test", selectedSet.id)}>Take a test</Link>
+                </aside>
+              </div>
+              : <div className="empty-state" role="status"><h2>No cards in this set yet</h2><p>Add or import cards to start studying.</p><button className="button primary" onClick={() => startEdit(selectedSet)}>Add cards</button></div>}
+              <section className="term-list">
+                <div className="section-heading term-list-heading"><div><span className="eyebrow">Review</span><h2>Terms in this set ({selectedSet.cards.length})</h2></div><label className="term-search"><span aria-hidden="true"><UiIcon symbol="⌕" /></span><input type="search" value={termSearch} onChange={(event) => setTermSearch(event.target.value)} placeholder="Search terms and answers" aria-label="Search terms, definitions, and answer choices in this set" />{termSearch && <button type="button" onClick={() => setTermSearch("")} aria-label="Clear term search"><UiIcon symbol="×" /></button>}</label></div>
+                {termSearch && <p className="term-search-count" role="status">Showing {visibleSetCards.length} of {selectedSet.cards.length} terms</p>}
+                {visibleSetCards.map((card) => {
+                  const index = selectedSet.cards.findIndex((item) => item.id === card.id);
+                  return (
+                  <article className={`highlight-${card.highlight ?? "none"}${card.answerChoices && card.answerChoices.length > 1 ? " multiple-choice-review" : " flashcard-review"}`} key={card.id}>
+                    <span>{index + 1}</span>
+                    <strong>{card.term}</strong>
+                    {(!card.answerChoices || card.answerChoices.length <= 1) && <p>{card.definition}</p>}
+                    {card.answerChoices && card.answerChoices.length > 1 && (
+                      <ol className="term-review-choices" aria-label={`Answer choices for ${card.term}`}>
+                        {card.answerChoices.map((choice, choiceIndex) => {
+                          const isCorrect = correctAnswersForCard(card).some((answer) => normalizeAnswer(answer) === normalizeAnswer(choice));
+                          return <li className={isCorrect ? "correct" : ""} key={`${card.id}-${choiceIndex}`}><span>{String.fromCharCode(65 + choiceIndex)}</span><b>{choice}</b>{isCorrect && <em>Correct</em>}</li>;
+                        })}
+                      </ol>
+                    )}
+                    {card.imageData && <img width={50} height={42} src={card.imageData} alt="" />}
+                    <button className={data.mastered[selectedSet.id]?.includes(card.id) ? "done" : ""} onClick={() => toggleMastered(selectedSet.id, card.id)} aria-label="Toggle mastered">✓</button>
+                  </article>
+                  );
+                })}
+                {termSearch && !visibleSetCards.length && <div className="term-search-empty"><strong>No matching terms</strong><p>Try another keyword or clear the search.</p><button className="button quiet" onClick={() => setTermSearch("")}>Clear search</button></div>}
+              </section>
+            </section>
+          )}
+
+          {!search && view === "learn" && selectedSet && (
+            <section className={`learn-page ${learnPhase === "session" ? "session-active" : ""}`}>
+              {learnPhase === "goal" && (
+                <div className="learn-goal-screen">
+                  <Link className="back-link" to={routePathForView("set", selectedSet.id)}>← Back to set</Link>
+                  <div className="learn-goal-heading"><div><span className="eyebrow">{selectedSet.subject}</span><h1>Choose a goal for this session</h1><p>Learn adapts to every answer. Recognition comes first, then verification, then written recall. Difficult cards return sooner and strong cards return in harder formats.</p></div><div className="learn-orbit" aria-hidden="true"><i /><i /><i /></div></div>
+                  <div className="goal-options" role="radiogroup" aria-label="Learn session goal">
+                    <button role="radio" aria-checked={learnGoal === "cram"} className={learnGoal === "cram" ? "selected" : ""} onClick={() => setLearnGoal("cram")}><span className="goal-copy"><strong>Cram for a test</strong><small>Move quickly with mixed question types</small></span><span className="goal-icon cram"><UiIcon symbol="◴" /></span></button>
+                    <button role="radio" aria-checked={learnGoal === "memorize"} className={learnGoal === "memorize" ? "selected" : ""} onClick={() => setLearnGoal("memorize")}><span className="goal-copy"><strong>Memorize it all</strong><small>Keep practicing until every card is mastered</small></span><span className="goal-icon memorize"><UiIcon symbol="✦" /></span></button>
+                  </div>
+                  <div className="learn-mastery-overview" aria-label="Saved knowledge levels"><span><i className="level-new" />New <b>{learnStatusCounts.new}</b></span><span><i className="level-learning" />Learning <b>{learnStatusCounts.learning}</b></span><span><i className="level-familiar" />Familiar <b>{learnStatusCounts.familiar}</b></span><span><i className="level-mastered" />Mastered <b>{learnStatusCounts.mastered}</b></span></div>
+                  <div className="learn-goal-footer"><span>{selectedSet.cards.length} terms · progress saves on this device</span><div className="learn-goal-actions">{resumableLearn && <button className="button quiet learn-start" onClick={resumeLearnSession}>Resume session</button>}<button className="button primary learn-start" onClick={() => beginLearnSession(learnGoal)}>{resumableLearn ? "Start new" : "Start Learn"} <b>→</b></button></div></div>
+                </div>
+              )}
+
+              {learnPhase === "session" && currentLearnCard && (
+                <>
+                  <header className="learn-session-header">
+                    <Link className="learn-exit" to={routePathForView("set", selectedSet.id)} aria-label="Exit Learn">×</Link>
+                    <div className="learn-session-progress" aria-live="polite">
+                      <div className="learn-round-track" aria-label={`${learnQuestionsAnswered} of ${learnQuestionsTotal} total questions answered`}>
+                        <span>{learnQuestionsAnswered}</span>
+                        <div className="learn-segments">{Array.from({ length: learnQuestionSegmentCount }, (_, groupIndex) => {
+                          const segmentStart = groupIndex * 7;
+                          const segmentSize = Math.min(7, Math.max(1, learnQuestionsTotal - segmentStart));
+                          const answeredInSegment = Math.min(segmentSize, Math.max(0, learnQuestionsAnswered - segmentStart));
+                          return <i key={groupIndex}><b style={{ width: `${(answeredInSegment / segmentSize) * 100}%` }} /></i>;
+                        })}</div>
+                        <span>{learnQuestionsTotal}</span>
+                      </div>
+                      <div className="learn-progress-caption"><span>{learnQuestionsAnswered} answered</span><span>{learnQuestionsTotal} total questions</span></div>
+                    </div>
+                    <button className="learn-options-button" onClick={() => { setLearnOptionsDraft(learnOptions); setLearnOptionsOpen(true); }}>⚙ Options</button>
+                  </header>
+
+                  <div className="learn-question-shell">
+                    <div className="learn-mastery-overview compact" aria-label="Adaptive knowledge levels"><span><i className="level-new" />New <b>{learnStatusCounts.new}</b></span><span><i className="level-learning" />Learning <b>{learnStatusCounts.learning}</b></span><span><i className="level-familiar" />Familiar <b>{learnStatusCounts.familiar}</b></span><span><i className="level-mastered" />Mastered <b>{learnStatusCounts.mastered}</b></span></div>
+                    <div className="learn-question-meta"><span>Adaptive round {learnRound}</span><span>{learnRetryIds.length ? `${learnRetryIds.length} weak card${learnRetryIds.length === 1 ? "" : "s"} queued` : `${learnRoundIds.length - learnIndex} left in this round`}</span></div>
+                    <div className={`question-card ${learnAnswer ? "ready-to-continue" : ""}`} onClick={(event) => { if (!learnAnswer || event.target instanceof Element && event.target.closest("button, input, textarea, select, a, label, .study-explanation")) return; const retypeRequired = !learnLastCorrect && learnOptions.retypeCorrectAnswers; if (retypeRequired && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer)) return; nextLearnQuestion(); }}>
+                      <div className="learn-question-stage"><span className="eyebrow">{currentLearnQuestionKind === "written" ? `Write the ${currentLearnAnswerSide}` : currentLearnQuestionKind === "true-false" ? "True or false" : currentLearnQuestionKind === "select-all" ? "Select all that apply" : currentLearnQuestionKind === "flashcard" ? "Recall, then reveal" : `Choose the ${currentLearnAnswerSide}`}</span><span>{learnConfidenceLabel(learnQuestionConfidence)} · stage {Math.min(3, learnQuestionConfidence + 1)}</span></div>
+                      <h1>{currentLearnPrompt}</h1>
+                      {learnOptions.showImagesOnQuestions && currentLearnCard.imageData && <img width={320} height={185} className="learn-question-image" src={currentLearnCard.imageData} alt={currentLearnCard.imageName ?? "Question study aid"} />}
+
+                      {currentLearnQuestionKind === "multiple-choice" && <div className="answer-grid">{currentLearnChoices.map((option, index) => {
+                        const isCorrect = normalizeAnswer(option) === normalizeAnswer(currentLearnCorrectAnswer);
+                        const isChosen = option === learnAnswer;
+                        const resultClass = learnAnswer ? (isCorrect ? "correct" : isChosen ? "incorrect" : "muted") : "";
+                        return <button key={option} className={resultClass} onClick={() => chooseLearnAnswer(option)} disabled={Boolean(learnAnswer)}><span>{String.fromCharCode(65 + index)}</span>{option}</button>;
+                      })}</div>}
+
+                      {currentLearnQuestionKind === "true-false" && <div className="true-false-question"><p>The matching {currentLearnAnswerSide} is <strong>{currentTrueFalse.statement}</strong>.</p><div><button className={learnAnswer ? (currentTrueFalse.answer ? "correct" : learnAnswer === "True" ? "incorrect" : "muted") : ""} onClick={() => submitTrueFalseLearnAnswer(true)} disabled={Boolean(learnAnswer)}><span><UiIcon symbol="✓" /></span>True</button><button className={learnAnswer ? (!currentTrueFalse.answer ? "correct" : learnAnswer === "False" ? "incorrect" : "muted") : ""} onClick={() => submitTrueFalseLearnAnswer(false)} disabled={Boolean(learnAnswer)}><span><UiIcon symbol="×" /></span>False</button></div></div>}
+
+                      {currentLearnQuestionKind === "written" && <form className="written-answer" onSubmit={(event) => { event.preventDefault(); submitWrittenLearnAnswer(); }}><label><span>Your answer</span><input value={learnWrittenAnswer} onChange={(event) => setLearnWrittenAnswer(event.target.value)} disabled={Boolean(learnAnswer)} placeholder={`Type the ${currentLearnAnswerSide}`} /></label><button className="button primary" disabled={!learnWrittenAnswer.trim() || Boolean(learnAnswer)}>Check answer</button></form>}
+
+                      {currentLearnQuestionKind === "select-all" && <div className="select-all-question"><div className="select-all-grid">{currentSelectAll.choices.map((option) => { const selected = learnSelectedAnswers.includes(option); const correct = currentSelectAll.correctParts.includes(option); const resultClass = learnAnswer ? (correct ? "correct" : selected ? "incorrect" : "muted") : selected ? "selected" : ""; return <label key={option} className={resultClass}><input type="checkbox" checked={selected} onChange={() => setLearnSelectedAnswers((answers) => answers.includes(option) ? answers.filter((answer) => answer !== option) : [...answers, option])} disabled={Boolean(learnAnswer)} /><span><UiIcon symbol="✓" /></span><p>{option}</p></label>; })}</div><button className="button primary" onClick={submitSelectAllLearnAnswer} disabled={!learnSelectedAnswers.length || Boolean(learnAnswer)}>Check selections</button></div>}
+
+                      {currentLearnQuestionKind === "flashcard" && <div className="learn-flashcard-mode"><button className={`learn-reveal-card ${learnFlashRevealed ? "revealed" : ""}`} onClick={() => setLearnFlashRevealed(true)}><span>{learnFlashRevealed ? currentLearnCorrectAnswer : "Think of the answer before revealing it"}</span><small>{learnFlashRevealed ? "How did you do?" : "Reveal answer"}</small></button>{learnFlashRevealed && !learnAnswer && <div className="recall-buttons"><button className="button quiet" onClick={() => recordLearnResult(false, "Still learning")}>Still learning</button><button className="button primary" onClick={() => recordLearnResult(true, "Got it")}>Got it</button></div>}</div>}
+
+                      {learnAnswer && <div className={`answer-feedback ${learnLastCorrect ? "correct" : "incorrect"}`}>
+                        <div className="feedback-copy"><strong>{learnLastCorrect ? "Nice work." : "Not quite yet."}</strong><p>{learnLastCorrect ? (learnLastConfidence >= learnMasteryTarget ? "This card reached your session goal." : `Confidence moved to ${learnConfidenceLabel(learnLastConfidence)}. It will return later in a harder format.`) : <>The correct answer is <b>{currentLearnCorrectAnswer}</b>. This weak card will return before the next batch.</>}</p>{!learnLastCorrect && learnOptions.retypeCorrectAnswers && <label className="retype-answer"><span>Retype the correct answer to continue</span><input value={learnRetypeAnswer} onChange={(event) => setLearnRetypeAnswer(event.target.value)} placeholder={currentLearnCorrectAnswer} /></label>}</div>
+                        {learnOptions.showImagesOnAnswers && currentLearnCard.imageData && <img width={74} height={58} className="learn-feedback-image" src={currentLearnCard.imageData} alt="Answer study aid" />}
+                        <div className="learn-continue-action"><small>Press any key or click to continue</small><button className="button primary" onClick={nextLearnQuestion} disabled={!learnLastCorrect && learnOptions.retypeCorrectAnswers && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer)}>{learnIndex === learnRoundIds.length - 1 && learnRetryIds.length ? "Retry missed" : learnIndex === learnRoundIds.length - 1 && learnPendingIds.length ? "Next round" : learnIndex === learnRoundIds.length - 1 ? "Finish" : "Next question"} →</button></div>
+                      </div>}
+                      {(learnAnswer || learnFlashRevealed) && <StudyExplanation text={currentLearnCard.explanation} />}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {learnPhase === "complete" && (
+                <><div className="results-card learn-complete"><span className="result-burst"><UiIcon symbol="✓" /></span><span className="eyebrow">100% goal reached</span><h1>You completed the adaptive path.</h1><p className="learn-complete-count"><strong>{learnQuestionsAnswered}</strong> questions answered across <strong>{learnRound}</strong> adaptive round{learnRound === 1 ? "" : "s"}.</p><p>Every card reached the {learnGoal === "cram" ? "familiar" : "mastered"} level. Weak cards repeated, stronger cards advanced to harder recall, and your progress was queued for account sync.</p><div className="button-row center"><button className="button primary" onClick={() => beginLearnSession(learnGoal)}>Practice again</button><button className="button quiet" onClick={() => navigate("set")}>Back to set</button></div></div><StudySummary missed={learnMissedCards} onRetry={() => beginLearnSession(learnGoal, learnOptions, learnMissedIds)} /></>
+              )}
+
+              {learnOptionsOpen && <Modal className="learn-options-modal" labelledBy="learn-options-title" onClose={() => setLearnOptionsOpen(false)}>
+                <header><div><span className="eyebrow">Customize Learn</span><h2 id="learn-options-title">Options</h2></div><button className="icon-button" onClick={() => setLearnOptionsOpen(false)} aria-label="Close options"><UiIcon symbol="×" /></button></header>
+                <div className="learn-quick-options"><button className={learnOptionsDraft.shuffle ? "selected" : ""} aria-pressed={learnOptionsDraft.shuffle} onClick={() => setLearnOptionsDraft((options) => ({ ...options, shuffle: !options.shuffle }))}><span><UiIcon symbol="⇄" /></span>Shuffle</button><button className={learnOptionsDraft.soundEffects ? "selected" : ""} aria-pressed={learnOptionsDraft.soundEffects} onClick={() => setLearnOptionsDraft((options) => ({ ...options, soundEffects: !options.soundEffects }))}><span><UiIcon symbol="♪" /></span>Sound</button><button className={learnOptionsDraft.textToSpeech ? "selected" : ""} aria-pressed={learnOptionsDraft.textToSpeech} onClick={() => setLearnOptionsDraft((options) => ({ ...options, textToSpeech: !options.textToSpeech }))}><span><UiIcon symbol="◖" /></span>Read aloud</button></div>
+                <section className="options-section"><h3>Question types</h3>{([['multipleChoice','Multiple choice','▤'],['trueFalse','True or false','◐'],['selectAll','Select all that apply','✓'],['written','Written','✎'],['flashcards','Flashcards','▱']] as const).map(([key,label,icon]) => <label className="option-row" key={key}><span className="option-row-icon"><UiIcon symbol={icon} /></span><strong>{label}</strong><input type="checkbox" role="switch" checked={learnOptionsDraft[key]} onChange={() => setLearnOptionsDraft((options) => ({ ...options, [key]: !options[key] }))} /></label>)}</section>
+                <section className="options-section"><h3>Answer with</h3><label className="option-row"><strong>Terms</strong><input type="checkbox" role="switch" checked={learnOptionsDraft.answerTerms} onChange={() => setLearnOptionsDraft((options) => ({ ...options, answerTerms: !options.answerTerms }))} /></label><label aria-label="Definitions, recommended for question cards" className="option-row"><span><strong>Definitions</strong><small>Recommended for question cards</small></span><input type="checkbox" role="switch" checked={learnOptionsDraft.answerDefinitions} onChange={() => setLearnOptionsDraft((options) => ({ ...options, answerDefinitions: !options.answerDefinitions }))} /></label></section>
+                <section className="options-section"><h3>See images with</h3><label className="option-row"><strong>Questions</strong><input type="checkbox" role="switch" checked={learnOptionsDraft.showImagesOnQuestions} onChange={() => setLearnOptionsDraft((options) => ({ ...options, showImagesOnQuestions: !options.showImagesOnQuestions }))} /></label><label className="option-row"><strong>Answer choices</strong><input type="checkbox" role="switch" checked={learnOptionsDraft.showImagesOnAnswers} onChange={() => setLearnOptionsDraft((options) => ({ ...options, showImagesOnAnswers: !options.showImagesOnAnswers }))} /></label></section>
+                <section className="options-section"><h3>Grading</h3><div className="grading-options">{([['relaxed','Relaxed','Meaning and small wording differences count.'],['moderate','Moderate','Close matches and small misspellings count.'],['strict','Strict','The normalized answer must match exactly.']] as const).map(([value,label,description]) => <label aria-label={`${label}: ${description}`} key={value} className={learnOptionsDraft.grading === value ? "selected" : ""}><input type="radio" name="learn-grading" value={value} checked={learnOptionsDraft.grading === value} onChange={() => setLearnOptionsDraft((options) => ({ ...options, grading: value }))} /><span><strong>{label}</strong><small>{description}</small></span></label>)}</div><label aria-label="Retype correct answers" className="option-row"><span><strong>Retype correct answers</strong><small>Required after a missed written question.</small></span><input type="checkbox" role="switch" checked={learnOptionsDraft.retypeCorrectAnswers} onChange={() => setLearnOptionsDraft((options) => ({ ...options, retypeCorrectAnswers: !options.retypeCorrectAnswers }))} /></label></section>
+                <footer><button className="text-button danger-text" onClick={() => { setLearnOptions(learnOptionsDraft); beginLearnSession(learnGoal, learnOptionsDraft); }}>Restart Learn</button><div><button className="button quiet" onClick={() => setLearnOptionsOpen(false)}>Cancel</button><button className="button primary" onClick={saveLearnOptions}>Save</button></div></footer>
+              </Modal>}
+            </section>
+          )}
+
+          {!search && view === "test" && selectedSet && (
+            <section className="test-page">
+              <div className="page-heading split compact"><div><Link className="back-link" to={routePathForView("set", selectedSet.id)}>← Back to set</Link><span className="eyebrow">Practice test</span><h1>{selectedSet.title}</h1><p>{testCards.length} questions generated from your flashcards.</p></div>{testSubmitted && <div className="test-score"><strong>{testScore}/{testCards.length}</strong><span>{Math.round((testScore / Math.max(1, testCards.length)) * 100)}% score</span></div>}</div>
+              {testSubmitted && <StudySummary missed={testMissedCards} onRetry={retryTestMistakes} />}
+              <div className="test-list">
+                {testCards.map((card, cardIndex) => (
+                  <article key={card.id} className={testSubmitted ? (normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card)) ? "correct-card" : "incorrect-card") : ""}>
+                    <header><span>Question {cardIndex + 1}</span>{testSubmitted && <b>{normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card)) ? "Correct" : "Review"}</b>}</header>
+                    <h2>{card.term}</h2>
+                    <div className="test-options">
+                      {answerOptions(selectedSet, selectedSet.cards.findIndex(item => item.id === card.id)).map((option, optionIndex) => <label key={option} className={testSubmitted && normalizeAnswer(option) === normalizeAnswer(testCorrectAnswer(card)) ? "answer-key" : ""}><input type="radio" name={card.id} value={option} checked={testAnswers[card.id] === option} onChange={() => setTestAnswers((answers) => ({ ...answers, [card.id]: option }))} disabled={testSubmitted} /><span>{String.fromCharCode(65 + optionIndex)}</span><p>{option}</p></label>)}
+                    </div>
+                    {testSubmitted && <StudyExplanation text={card.explanation} />}
+                    {testSubmitted && normalizeAnswer(testAnswers[card.id] ?? "") !== normalizeAnswer(testCorrectAnswer(card)) && <p className="test-explanation">Correct answer: <strong>{testCorrectAnswer(card)}</strong></p>}
+                  </article>
+                ))}
+              </div>
+              <div className="test-submit"><span>{Object.keys(testAnswers).length} of {testCards.length} answered</span>{testSubmitted ? <button className="button primary" onClick={startTest}>Retake test</button> : <button className="button primary" onClick={submitTest} disabled={!testCards.length || Object.keys(testAnswers).length !== testCards.length}>Grade my test</button>}</div>
+            </section>
+          )}
+
+          {!search && view === "helper" && (
+            <section className="kahoot-helper-page">
+              {helperSet ? <>
+                <div className="kahoot-helper-controls">
+                  <SearchPicker label="Folder" value={helperFolderId} options={[
+                    { id: "all", title: "All folders", detail: `${data.sets.length} sets` },
+                    ...[...data.folders].sort((a, b) => b.setIds.length - a.setIds.length || semesterRank(b.semester ?? "") - semesterRank(a.semester ?? "") || a.name.localeCompare(b.name)).map(folderItem => ({ id: folderItem.id, title: folderItem.name, color: folderItem.color ?? FOLDER_COLORS[0], detail: `${folderItem.semester ? `${folderItem.semester} · ` : ""}${folderItem.setIds.length} sets`, disabled: !folderItem.setIds.length })),
+                  ]} onChange={folderId => {
+                    const firstSet = folderId === "all" ? data.sets[0] : data.sets.find(set => data.folders.find(folderItem => folderItem.id === folderId)?.setIds.includes(set.id));
+                    setHelperFolderId(folderId); setHelperSetId(firstSet?.id ?? "");
+                  }} />
+                  <SearchPicker label="Study set" value={helperSet?.id ?? ""} options={[...helperAvailableSets].sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: "base" })).map(set => ({ id: set.id, title: set.title, detail: `${set.cards.length} terms${set.subject ? ` · ${set.subject}` : ""}` }))} onChange={setHelperSetId} />
+                  <label className="kahoot-helper-search"><span>Search questions and answers</span><div><span><UiIcon symbol="⌕" /></span><input value={helperSearch} onChange={(event) => setHelperSearch(event.target.value)} placeholder="Search questions…" />{helperSearch && <button onClick={() => setHelperSearch("")} aria-label="Clear helper search"><UiIcon symbol="×" /></button>}</div></label>
+                </div>
+                {helperCards.length ? <div className="kahoot-helper-list">
+                  {helperCards.map((card, index) => {
+                    const embedded = parseEmbeddedQuestion(card.term, card.definition);
+                    const choices = card.answerChoices?.length ? card.answerChoices : embedded.choices;
+                    const answers = correctAnswersForCard(card).map(normalizeAnswer);
+                    const question = embedded.prompt || card.term;
+                    const collapseKey = `${helperSet.id}:${card.id}`;
+                    const collapsed = collapsedHelperCards.includes(collapseKey);
+                    const toggleCard = () => {
+                      pendingHelperCard.current = collapsed ? `helper-card-${card.id}` : null;
+                      setCollapsedHelperCards(current => current.includes(collapseKey) ? current.filter(key => key !== collapseKey) : [...current, collapseKey]);
+
+                    };
+                    return <article id={`helper-card-${card.id}`} className={`kahoot-helper-card${collapsed ? " collapsed" : ""}`} key={card.id} onClick={toggleCard}>
+                      <header><span><span className="helper-question-label">Question </span>{index + 1}</span><b>{cardQuestionType(card).replaceAll("-", " ")}</b><button type="button" className="kahoot-helper-toggle" aria-expanded={!collapsed} aria-controls={`helper-answer-${card.id}`} aria-label={`${collapsed ? "Expand" : "Minimize"} question ${index + 1}: ${question}`} onClick={(event) => { event.stopPropagation(); toggleCard(); }}>{collapsed ? "＋" : "−"}</button></header>
+                      <h2 title={collapsed ? question : undefined}>{question}</h2>
+                      <div className="kahoot-helper-card-content" id={`helper-answer-${card.id}`} hidden={collapsed}>
+                      {card.imageData && <img className="kahoot-helper-image" src={card.imageData} alt={card.imageName || "Question study aid"} />}
+                      {cardQuestionType(card) === "matching" && card.matchingPairs?.length ? <div className="kahoot-helper-matches">{card.matchingPairs.map((pair) => <div key={pair.id}><span>{pair.left}</span><strong>{pair.right}</strong></div>)}</div> : choices.length > 1 ? <ol className="kahoot-helper-choices">{choices.map((choice, choiceIndex) => { const correct = answers.includes(normalizeAnswer(choice)); return <li className={correct ? "correct" : ""} key={`${choice}-${choiceIndex}`}><span className={`choice-symbol choice-${choiceIndex % 4}`} aria-label={`Choice ${String.fromCharCode(65 + choiceIndex)}`}>{String.fromCharCode(65 + choiceIndex)}</span><span>{choice}</span>{correct && <b>Correct</b>}</li>; })}</ol> : <div className="kahoot-helper-answer"><span>Answer</span><strong>{card.definition}</strong></div>}
+                      </div>
+                    </article>;
+                  })}
+                </div> : <div className="empty-state compact"><span><UiIcon symbol="⌕" /></span><h2>No matching questions</h2><p>Try a different search.</p><button className="button quiet" onClick={() => setHelperSearch("")}>Clear search</button></div>}
+                <p className="kahoot-helper-notice">Kahoot Helper only displays the Flashbolt set you select. It does not connect to, inspect, or control a live Kahoot game.</p>
+              </> : <div className="empty-state"><span><UiIcon symbol="◆" /></span><h2>Add a set to get started</h2><p>Create or import a study set you own, then return here to view every question and answer.</p><div className="button-row center"><button className="button primary" onClick={startCreate}>Create set</button><button className="button quiet" onClick={startKahootLinkImport}>Import set</button></div></div>}
+            </section>
+          )}
+
+          {!search && view === "guide" && (
+            <section className="guide-page">
+              <div className="page-heading"><Link className="back-link" to={FLASHBOLT_BASE}>← Home</Link><span className="eyebrow">Local study guide</span><h1>Turn notes into something <em>studyable.</em></h1><p>Paste notes below. Flashbolt finds line pairs or turns full sentences into key ideas—without sending your text anywhere.</p></div>
+              <div className="guide-layout">
+                <article className="guide-input-card">
+                  <div className="guide-title-field">
+                    <label><span>Guide title</span><input value={guideTitle} onChange={(event) => setGuideTitle(event.target.value)} /></label>
+                    {guideTitleSuggestions.length > 0 && <div className="title-suggestions"><span>Suggested titles</span><div>{guideTitleSuggestions.map((title) => <button key={title} onClick={() => setGuideTitle(title)} className={guideTitle === title ? "selected" : ""}>{title}</button>)}</div></div>}
+                  </div>
+                  <label><span>Your notes</span><textarea value={guideNotes} onChange={(event) => setGuideNotes(event.target.value)} placeholder={'Paste a paragraph, or use one pair per line:\n\nActivity lifecycle :: The states an Android activity moves through\nIntent :: A request to perform an action'} rows={14} /></label>
+                  <div className="guide-actions"><small>{guideNotes.length.toLocaleString()} characters · processed locally</small><button className="button bright" onClick={generateGuide}>Generate cards →</button></div>
+                </article>
+                <aside className="guide-preview">
+                  <div className="guide-preview-heading"><div><span className="eyebrow">Preview</span><h2>{generatedCards.length ? `${generatedCards.length} cards ready` : "Your cards appear here"}</h2></div>{generatedCards.length > 0 && <button className="button primary" onClick={saveGeneratedGuide}>Save as set</button>}</div>
+                  {generatedCards.length ? <div className="preview-cards">{generatedCards.slice(0, 8).map((card, index) => <article key={card.id}><span>{index + 1}</span><div><strong>{card.term}</strong><p>{card.definition}</p></div></article>)}</div> : <div className="guide-placeholder"><span>≡</span><p>Tip: <code>term :: definition</code> gives you the cleanest cards.</p></div>}
+                </aside>
+              </div>
+            </section>
+          )}
+        </main>
+
+        <nav className="mobile-nav" aria-label="Mobile navigation">
+          <Link className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><House aria-hidden="true" /><span>Home</span></Link>
+          <Link className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><BookOpen aria-hidden="true" /><span>Library</span></Link>
+          <a className="mobile-create" aria-label="Create a set" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><Plus aria-hidden="true" /></a>
+          <Link className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><FolderIcon aria-hidden="true" /><span>Folders</span></Link>
+          <Link className={view === "helper" ? "active" : ""} to={`${FLASHBOLT_BASE}/helper`}><Zap aria-hidden="true" /><span>Helper</span></Link>
+          <Link className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><History aria-hidden="true" /><span>Review</span></Link>
+        </nav>
+      </div>
+
+      {folderModalOpen && (
+        <Modal className="modal" labelledBy="folder-title" onClose={closeFolderModal}>
+            <header><div><span className="modal-icon"><UiIcon symbol="□" /></span><span className="eyebrow">{editingFolderId ? "Edit collection" : "New collection"}</span><h2 id="folder-title">{editingFolderId ? "Edit your folder" : "Name your folder"}</h2></div><button className="icon-button" onClick={closeFolderModal} aria-label="Close modal"><UiIcon symbol="×" /></button></header>
+            <label className="modal-field"><span>Folder name</span><input value={folderName} onChange={(event) => setFolderName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") saveFolder(); }} placeholder="e.g. Fall semester" maxLength={50} /></label>
+            <label className="modal-field"><span>Semester <small>optional</small></span><input value={folderSemester} onChange={(event) => setFolderSemester(event.target.value)} placeholder="e.g. Fall 2026" list="flashbolt-semesters" maxLength={11} /><datalist id="flashbolt-semesters">{[2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027].flatMap((year) => ["Spring", "Summer", "Fall"].map((term) => <option value={`${term} ${year}`} key={`${term}-${year}`} />))}</datalist></label>
+            <fieldset className="folder-color-field"><legend>Folder icon color</legend><div>{FOLDER_COLORS.map((color) => <button type="button" className={folderColor === color ? "selected" : ""} style={{ "--folder-swatch": color } as CSSProperties} onClick={() => setFolderColor(color)} aria-label={`Use folder color ${color}`} aria-pressed={folderColor === color} key={color}><span /></button>)}</div></fieldset>
+            <fieldset><legend>Add sets <small>optional</small></legend>{data.sets.map((set) => <label className="set-check" key={set.id}><span className="visually-hidden">Add set to folder</span><input aria-label={`Add ${set.title} to folder`} type="checkbox" checked={folderSetIds.includes(set.id)} onChange={() => setFolderSetIds((ids) => ids.includes(set.id) ? ids.filter((id) => id !== set.id) : [...ids, set.id])} /><span><strong>{set.title}</strong><small>{set.cards.length} terms</small></span></label>)}</fieldset>
+            <p className="modal-privacy">⌁ This private folder syncs with your account and keeps a local backup on this device.</p>
+            <footer>{editingFolder && <button className="button danger" onClick={() => deleteFolder(editingFolder)}>Delete folder</button>}<button className="button quiet" onClick={closeFolderModal}>Cancel</button><button className="button primary" onClick={saveFolder}>{editingFolderId ? "Save changes" : "Create folder"}</button></footer>
+        </Modal>
+      )}
+
+      {toast && <div className="toast" role="status"><span><UiIcon symbol="✓" /></span>{toast}</div>}
+    </div>
+  );
+}

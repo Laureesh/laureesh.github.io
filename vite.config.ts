@@ -5,9 +5,4 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   base: "/",
   plugins: [react()],
-  server: {
-    fs: {
-      deny: [".env", ".env.*", "*.{crt,pem}", "**/.git/**", "**/.private-workspace/**", "**/*backup*.json"],
-    },
-  },
 });

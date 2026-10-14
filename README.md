@@ -1,8 +1,8 @@
-# Laureesh Volmar — Portfolio
+# Laureesh Volmar — Portfolio & Personal Workspace
 
-A React and TypeScript portfolio website featuring projects, articles, account pages, and browser tools. Built with Vite and deployed to GitHub Pages.
+A React and TypeScript website combining a personal portfolio, blog, browser tools, and a private workspace for studying, notes, and administration.
 
-This public repository contains the public website. Private workspace applications, personal exports, and operational setup instructions are maintained separately and are not included in the public build.
+The project includes **Flashbolt**, a study library with quiz imports and several study modes, and **Notebook**, a rich-text notebook with local backups and Firebase synchronization. The frontend is built with Vite and deployed to GitHub Pages.
 
 **Website:** [laureesh.github.io](https://laureesh.github.io)  
 **Repository:** [Laureesh/laureesh.github.io](https://github.com/Laureesh/laureesh.github.io)
@@ -13,8 +13,10 @@ This public repository contains the public website. Private workspace applicatio
 - [Technology](#technology)
 - [Getting started](#getting-started)
 - [Environment configuration](#environment-configuration)
-- [Firebase configuration](#firebase-configuration)
+- [Firebase and administrator access](#firebase-and-administrator-access)
 - [Routes](#routes)
+- [Flashbolt guide](#flashbolt-guide)
+- [Notebook and backups](#notebook-and-backups)
 - [Project structure](#project-structure)
 - [Development commands](#development-commands)
 - [Testing](#testing)
@@ -28,18 +30,40 @@ This public repository contains the public website. Private workspace applicatio
 ### Portfolio and public pages
 
 - Home, about, skills, projects, contact, and résumé pages.
-- Blog listing, archive, individual posts, and premium article previews. Full premium bodies are not shipped in the public bundle.
+- Blog listing, archive, individual posts, and premium-content routes.
 - Community and member portfolio pages with access checks.
 - Shared navigation, page titles, styling, and responsive layouts.
 - Static assets including icons, a web manifest, and an RSS file.
 
-### Accounts
+### Accounts and administration
 
 - Firebase authentication with email/password and Google sign-in flows.
 - Account switching, profile editing, preferences, and membership pages.
-- Protected account routes and database authorization rules.
+- Protected routes with role-based access to the administrator workspace.
+- Content, page, user, task, job, and feature-toggle management interfaces.
+- Private tools for routines, inventory, weight tracking, and leaderboard management.
 
-Membership purchasing requires billing services beyond GitHub Pages. A frontend setting does not provide server-side authorization.
+The presence of a route does not mean it is publicly accessible or that its external services are configured. Membership purchasing, for example, requires billing configuration beyond GitHub Pages.
+
+### Flashbolt
+
+- Organize study sets into folders and semesters.
+- Create and edit questions, answer choices, correct answers, and explanations.
+- Study with flashcards, learn mode, tests, and a daily review view.
+- Work with multiple-choice, select-all, true/false, written, and matching question types.
+- Detect question types from instructions such as “Select two.”
+- Filter study content by mastery and select which material to practice.
+- Import structured text, copied quiz reviews, supported HTML, and study notes.
+- Save and merge signed-in study libraries through Firestore.
+
+### Notebook
+
+- Write formatted notes and organize them using folders, tags, search, and archives.
+- Use step layouts and note-editing controls.
+- Keep attachments and note versions.
+- Save local recovery data in IndexedDB.
+- Synchronize notebook content with Firestore using chunked storage and merge handling.
+- Download JSON backups and export individual notes.
 
 ### Other browser tools
 
@@ -72,7 +96,7 @@ Versions below describe the dependency ranges in [package.json](package.json). [
 - A modern browser.
 - Your own Firebase project to use authentication, cloud storage, and protected features.
 
-The checked-in deployment workflow uses Node 24 for building. Local Node-based tests and the deployment build are separate paths: some development tests import `.ts` files directly, so use Node 24 for the test commands below.
+The checked-in deployment workflow uses Node 20 for building. Local Node-based tests and the deployment build are separate paths: the tests import `.ts` files directly, so use Node 24 for the test commands below.
 
 ### Install and start
 
@@ -102,6 +126,9 @@ VITE_FIREBASE_APP_ID=your-firebase-web-app-id
 # Registration widget
 VITE_TURNSTILE_SITE_KEY=your-turnstile-site-key
 
+# Optional administrator idle timeout
+VITE_ADMIN_IDLE_TIMEOUT_MINUTES=15
+
 # Optional membership and billing integration
 VITE_STRIPE_PUBLISHABLE_KEY=
 VITE_STRIPE_PRICING_TABLE_ID=
@@ -120,6 +147,7 @@ Copy Firebase values from the web app configuration for your project, including 
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase web configuration value |
 | `VITE_FIREBASE_APP_ID` | Registered Firebase web app ID |
 | `VITE_TURNSTILE_SITE_KEY` | Turnstile widget configuration used during registration |
+| `VITE_ADMIN_IDLE_TIMEOUT_MINUTES` | Admin idle timeout; defaults to 15 when absent, invalid, or below 5 |
 | `VITE_STRIPE_PUBLISHABLE_KEY` | Public Stripe client configuration |
 | `VITE_STRIPE_PRICING_TABLE_ID` | Pricing table used by the membership page |
 | `VITE_STRIPE_API_BASE_URL` | Base URL of the external billing API |
@@ -129,7 +157,7 @@ All `VITE_` variables are frontend build inputs and can appear in the delivered 
 
 The repository contains the frontend billing integration, not a complete billing server. GitHub Pages does not execute backend endpoints.
 
-## Firebase configuration
+## Firebase and administrator access
 
 ### Service setup
 
@@ -140,7 +168,38 @@ The repository contains the frontend billing integration, not a complete billing
 5. Enable and configure Storage if you need features such as profile-photo uploads. Storage authorization is separate from Firestore rules.
 6. Configure Turnstile for registration on the relevant hostnames.
 
-The Pages workflow deploys static frontend files. It does **not** publish Firebase rules or provision Firebase services. The checked-in `firebase.emulator.json` is for local rule testing; production publishing is a separate operation. Storage rules for profile-photo uploads are provided in [src/firebase/storage.rules](src/firebase/storage.rules).
+The Pages workflow deploys static frontend files. It does **not** publish Firebase rules or provision Firebase services. There is no checked-in Firebase CLI deployment configuration; manage those services separately.
+
+### Administrator bootstrap
+
+Administrator access depends on the signed-in user profile and the bootstrap mechanism in [src/services/adminBootstrap.ts](src/services/adminBootstrap.ts).
+
+For a Firebase Authentication user with UID `<uid>`, a trusted project administrator can create the Firestore document `admin_bootstrap/<uid>` containing:
+
+```json
+{
+  "enabled": true,
+  "role": "admin"
+}
+```
+
+The application reads that record during role synchronization. The supplied Firestore rules deny browser writes to bootstrap documents, so provisioning must happen through a trusted administrative channel, such as the Firebase console. The account also needs an active user profile for administrative access.
+
+Both `/flashbolt/*` and the longer private Flashbolt route currently require the `admin` role. The shorter URL does not bypass authorization.
+
+### Data organization
+
+| Data | Location / implementation |
+| --- | --- |
+| User profiles | `users/<uid>` |
+| Flashbolt library | `flashboltLibrary` field on `users/<uid>` |
+| Notebook manifest | `users/<uid>/notebook/library` |
+| Notebook chunks | Sibling `library-chunk-<index>` documents |
+| Administrator bootstrap | `admin_bootstrap/<uid>` |
+| CMS and administration | Collections declared in `src/services/collections.ts` |
+| Notebook local recovery | IndexedDB database `flashbolt-notebook` |
+
+Flashbolt uses transactional merge-and-save logic. Notebook stores a manifest and chunks, reads them in a transaction, and merges local and remote records. These mechanisms help preserve edits, but downloaded backups remain useful when changing storage or recovering data.
 
 ## Routes
 
@@ -158,6 +217,123 @@ The route definitions and access wrappers live in [src/App.tsx](src/App.tsx).
 | `/game`, `/solo-game` | Game interfaces |
 | `/movie-app`, `/mediahub` | Media interfaces |
 | `/yt-tags`, `/password-gen`, `/media-converter` | Browser utilities |
+| `/admin-dashboard` | Administrator dashboard |
+| `/admin-dashboard/content`, `/admin-dashboard/pages` | Content and page management |
+| `/admin-dashboard/users`, `/admin-dashboard/tasks` | User and task management |
+| `/admin-dashboard/jobs`, `/admin-dashboard/good-jobs` | Job-related tools |
+| `/admin-dashboard/feature-toggles` | Feature management |
+| `/admin-dashboard/private-pages` | Private tool directory |
+| `/admin-dashboard/private-pages/flashbolt/*` | Flashbolt workspace |
+| `/flashbolt/*` | Alternate Flashbolt entry route |
+| `/admin-dashboard/private-pages/notebook/*` | Notebook workspace |
+| `/admin-dashboard/private-pages/fn-leaderboard` | Leaderboard manager |
+
+## Flashbolt guide
+
+### Creating a study set
+
+1. Sign in with an authorized administrator account and open Flashbolt.
+2. Create a set and enter its details.
+3. Add cards manually or use the paste/import controls.
+4. Review the prompt, question type, choices, marked answers, and explanation for each card.
+5. Save the set and choose a study mode.
+
+Question-type detection recognizes several explicit instructions. Review the result after importing: source formatting varies, and copied text may omit information that exists in the source HTML.
+
+### Supported paste formats
+
+Examples are defined in [manualImportExamples.ts](src/pages/admin/flashbolt/manualImportExamples.ts); parsing is implemented in [note-parser.ts](src/pages/admin/flashbolt/note-parser.ts).
+
+| Format | Expected input |
+| --- | --- |
+| Term and definition | One `term :: definition` pair per line |
+| Spreadsheet | Two tab-separated columns |
+| Multiline pair | `::` before the answer, blank lines between cards |
+| Multiple-choice question | Prompt, lettered choices, and an `Answer:` key |
+| Embedded choices | Choices inside the term before `::` |
+| True/false | Statement and True/False choices with a supplied answer |
+| Module quiz | Question blocks, lettered answers, correctness markers, explanations |
+| LMS results | Selected/Unselected and correctness labels |
+| Kahoot question list | Full copied list with its question count and correct labels |
+| Quizlet HTML | Supported term-list markup containing both card sides |
+| Exam question-card HTML | `.question-card` blocks with prompts, options, and answers |
+| Answer-shown text | Numbered question blocks with `Correct answer:` lines |
+| Plain notes | Statements from which the parser creates review cards |
+
+#### Simple pairs
+
+```text
+Elasticity :: Adjusting resources as demand changes.
+High availability :: Keeping a service available despite component failures.
+```
+
+#### Multiple choice
+
+```text
+Which tool captures packets?
+A. Wireshark
+B. A text editor
+C. A calculator
+Answer: A
+```
+
+#### Copied question-card HTML
+
+Paste the HTML into the import field, including the `questionList` container when available:
+
+```html
+<div id="questionList">
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-num">Question 21</span>
+      <span class="q-section">AWS Cloud concepts</span>
+    </div>
+    <div class="q-body">
+      <div class="q-text">Which concept adjusts resources to demand?</div>
+      <div class="options">
+        <div class="option">
+          <div class="option-dot">A</div>
+          <span>Elasticity</span>
+        </div>
+        <div class="option">
+          <div class="option-dot">B</div>
+          <span>Fixed capacity</span>
+        </div>
+      </div>
+      <div class="q-answer">
+        ✅ <strong>Correct answer:</strong> Elasticity<br>
+        Answer is Elasticity<br>
+        Resources can grow and shrink with demand.
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+The importer reads `.q-text`, `.options .option`, and `.q-answer`. It excludes question-number and category headers, option letters, page buttons, and advertising content. It preserves explanation text and references.
+
+Revealed answers can be identified by the `correct` class on choices. For unrevealed cards, the importer can resolve the hidden `Correct answer:` text against the available choices. You do not need to click **Show Answer** first when the copied HTML already contains that key. Multiple correct answers become select-all cards.
+
+This is support for a particular HTML structure, not arbitrary quiz websites. If a source omits its answer key entirely, the importer cannot recover it. Plain copied text may also omit incorrect choices; use HTML when you need the full choice list.
+
+## Notebook and backups
+
+Notebook combines browser-local recovery with signed-in cloud synchronization:
+
+- Local snapshots are written to IndexedDB, with serialized saves to avoid older writes finishing after newer ones.
+- Legacy local-storage recovery data is removed only after its replacement has been saved successfully.
+- Firestore synchronization uses a manifest and chunk documents for larger notebooks.
+- Merge handling includes deletion records and preservation of conflicting note versions.
+
+### Export and restore
+
+Use **Download notebook backup** in Settings or **Download full backup** in a note footer to save notes, folders, attachments, and versions as JSON.
+
+Individual notes also provide export options, including HTML, plain-text Markdown, and print/PDF workflows. Browser preferences are stored separately from notebook backups.
+
+**Restore backup replaces the local notebook after confirmation.** Subsequent signed-in synchronization may merge existing cloud content. Export a current backup before restoring if you need to preserve both states. Clearing browser storage removes local recovery data and preferences; it is not a backup strategy.
+
+See [NotebookHelp.tsx](src/pages/admin/notebook/NotebookHelp.tsx) for the in-app usage guide.
 
 ## Project structure
 
@@ -175,13 +351,18 @@ The route definitions and access wrappers live in [src/App.tsx](src/App.tsx).
 │   ├── hooks/                    # Shared hooks
 │   ├── pages/
 │   │   ├── account/              # Profile, preferences, membership
+│   │   ├── admin/
+│   │   │   ├── flashbolt/        # Study UI, parsing, review and learn logic
+│   │   │   └── notebook/         # Note editor, controls, help, preferences
 │   │   └── ...                   # Portfolio, authentication, tools, games
 │   ├── services/                 # Persistence and application data operations
 │   ├── types/                    # Shared TypeScript models
 │   ├── utils/                    # Shared utilities
 │   ├── App.tsx                   # Routes and application shell
 │   └── main.tsx                  # React entry point
+├── study-materials/              # Sample study content
 ├── tests/                        # Node and browser regression tests
+│   └── fixtures/                 # Import regression inputs
 ├── index.html                    # Vite HTML entry
 ├── package.json                  # Dependencies and npm scripts
 ├── package-lock.json             # Locked dependency graph
@@ -209,41 +390,60 @@ npm run preview
 
 The build script uses `cp`, so it expects a compatible shell. On Windows, use an environment such as WSL or Git Bash, or adapt the copy step for your shell.
 
-## Testing and security checks
+## Testing
 
-Use Node 24 for the repository tests:
+There is no `npm test` script. Tests are run directly with Node.
+
+### Node regression tests
+
+Use Node 24, then run:
 
 ```bash
 node --test tests/*.test.mjs
-npm run lint
-npm run build
-npm audit
 ```
 
-The public repository includes regression checks for its release boundary. Private-workspace tests are kept with that workspace. Database rules also have emulator tests. Install their tooling separately and use the demo project, never a production project:
+A focused import regression run:
 
 ```bash
-npm install --prefix /tmp/portfolio-security-tools firebase-tools @firebase/rules-unit-testing firebase
-SECURITY_TOOLS_PACKAGE=/tmp/portfolio-security-tools/package.json \
-  /tmp/portfolio-security-tools/node_modules/.bin/firebase emulators:exec \
-  --project demo-portfolio-security --config firebase.emulator.json \
-  --only firestore,storage 'node --test tests/*.emulator.mjs'
+node --test \
+  tests/flashbolt-answer-shown.test.mjs \
+  tests/flashbolt-manual-import.test.mjs \
+  tests/flashbolt-module-quiz.test.mjs \
+  tests/flashbolt-kahoot-paste.test.mjs
 ```
 
-These commands use a POSIX shell and require a compatible Java runtime for the emulators. The tests use synthetic identities and local services.
+The suite also covers study selection, mastery filtering, review logic, notebook storage, backups, sorting, clipboard handling, and other behavior. Some tests inspect source code, so a failure can reflect an assumption in the test as well as a runtime defect.
 
-`npm audit` checks known dependency advisories. Passing the audit does not prove that an application or its deployed services are secure. The build checks TypeScript and generates the static site; it does not deploy Firebase rules.
+### Browser regression tests
 
-### Deployment security responsibilities
+Browser tests use Playwright, which is not currently a declared project dependency. To install it locally without modifying the package manifest or lockfile:
 
-- Publish the reviewed Firestore and Storage rules to the correct Firebase project separately from Pages.
-- Keep service-account keys, server secrets, user exports, and local configuration out of Git.
-- Treat browser route checks as interface behavior. Enforce authorization in database rules and backend services.
-- Validate billing operations and any anti-abuse challenges on a trusted server. A browser widget alone does not prevent direct API requests.
-- Keep authentication providers, authorized domains, and quotas configured for the deployed application.
-- Review production settings after changing environments or creating a fork.
+```bash
+npm install --no-save --package-lock=false playwright
+npx playwright install chromium
+```
 
-Private applications must not be added to `public/` or imported into the public entry point. Static JavaScript served to a browser can be downloaded even when the interface requires sign-in.
+The HTML importer browser tests run without a development server:
+
+```bash
+node --test tests/flashbolt-question-cards.browser.mjs
+```
+
+For the broader browser suite, start Vite in another terminal and open its local URL once so dependency optimization can finish:
+
+```bash
+npm run dev -- --host 127.0.0.1
+```
+
+Then run:
+
+```bash
+node --test tests/*.browser.mjs
+```
+
+Most UI browser tests expect `http://127.0.0.1:5173`. Tests that expose these settings support `TEST_ORIGIN` for a different server address and `PLAYWRIGHT_MODULE` for an externally installed Playwright package. Inspect the individual test if its setup differs.
+
+A later `npm ci` restores the lockfile-defined dependencies and may remove the temporary Playwright installation.
 
 ## GitHub Pages deployment
 
@@ -253,13 +453,13 @@ Deployment is configured in [.github/workflows/deploy.yml](.github/workflows/dep
 
 1. A push to `main`, or a manual workflow dispatch, starts the workflow.
 2. GitHub checks out the repository and configures Pages.
-3. Node 24 is installed and npm caching is enabled.
+3. Node 20 is installed and npm caching is enabled.
 4. `npm ci` installs dependencies.
 5. `npm run build` creates `dist/`.
 6. The workflow uploads `dist/` as a Pages artifact.
 7. A separate deployment job publishes that artifact to the `github-pages` environment.
 
-The workflow runs a source-boundary test, dependency audit, build, and output-boundary check. Run lint and relevant emulator tests before merging changes.
+The workflow currently runs the build, **not** the lint or regression suites. Run the relevant checks before merging changes.
 
 ### Repository configuration
 
@@ -275,7 +475,7 @@ VITE_FIREBASE_APP_ID
 VITE_TURNSTILE_SITE_KEY
 ```
 
-Optional Stripe variables are not currently forwarded by the workflow. Add explicit build-environment mappings in `deploy.yml` if you need those settings in production. Creating a repository variable alone does not inject it into Vite.
+Optional Stripe and administrator-timeout variables are not currently forwarded by the workflow. Add explicit build-environment mappings in `deploy.yml` if you need those settings in production. Creating a repository variable alone does not inject it into Vite.
 
 Environment changes require a new build and deployment because this is a static site.
 
@@ -294,8 +494,14 @@ The repository also contains `public/404.html`; the final build step overwrites 
 | Authentication or cloud features are unavailable | Verify all six Firebase variables; restart Vite or rebuild the deployment. |
 | Google sign-in rejects the domain | Check the authorized domains in the Firebase project used by this build. |
 | Registration reports missing Turnstile configuration | Set `VITE_TURNSTILE_SITE_KEY` for the current environment and rebuild. |
+| Administrator pages redirect to the profile page | Check the signed-in UID, bootstrap record, synchronized role, and account status. |
 | Firestore returns permission denied | Compare the deployed rules, user identity, role, and document shape with the checked-in rules. |
 | Profile-photo upload fails | Check the Storage bucket, service configuration, and Storage rules. |
+| An exam HTML import produces no questions | Include complete `.question-card` blocks, choices, and either correct-choice classes or hidden answer keys. |
+| Imported text lacks answer choices | Copy the source HTML; visible text may not include the option elements. |
+| Notebook content appears missing | Check folders, search, tags, and Archive before restoring a backup. |
+| Notebook synchronization fails | Keep the page open, download a backup, and retry after checking connectivity and permissions. |
+| Browser tests cannot resolve Playwright | Install it locally or set `PLAYWRIGHT_MODULE` to its installed module path. |
 | Tests cannot import TypeScript | Use Node 24 for the direct Node test commands. |
 | A direct URL fails after deployment | Inspect the Pages artifact, `404.html`, base path, and router setup. |
 | Build reports large chunks | Inspect the generated assets; Firebase and media-processing dependencies contribute to bundle size. |
@@ -306,12 +512,12 @@ The repository also contains `public/404.html`; the final build step overwrites 
 1. Create a branch for a focused change.
 2. Install dependencies with `npm ci`.
 3. Keep changes in source files and avoid committing environment files or generated output.
-4. Add regression coverage for changed behavior and authorization boundaries.
-5. Check that private code, credentials, and personal data are absent from the public build.
+4. For parser changes, add representative inputs and assertions for prompts, answers, choices, and explanations.
+5. For storage changes, cover recovery, merging, and deletion behavior where relevant.
 6. Run the relevant Node/browser tests, `npm run lint`, and `npm run build`.
 7. Describe the behavior change and validation in the pull request.
 
-Use synthetic or sanitized test fixtures. Do not commit personal backups, production user records, session tokens, or credentials.
+When adding test fixtures from copied pages, remove unrelated advertising markup, tracking parameters, and account-specific data. Keep enough structure to reproduce the behavior being tested.
 
 ## License
 

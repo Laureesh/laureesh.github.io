@@ -68,7 +68,7 @@ export default function PremiumBlogPost() {
           <div className="blog-card-topline">
             <span className="blog-premium-pill">
               {canRead ? <Crown size={13} /> : <LockKeyhole size={13} />}
-              {canRead ? `${subscriptionState.planName} member` : "Premium preview"}
+              {canRead ? `${subscriptionState.planName} access` : "Premium preview"}
             </span>
           </div>
           <div className="blog-meta blog-post-meta">
@@ -93,11 +93,11 @@ export default function PremiumBlogPost() {
                 <Sparkles size={14} />
                 Access status
               </p>
-              <h3>{canRead ? "Your membership" : "Unlock this briefing"}</h3>
+              <h3>{canRead ? "This briefing is unlocked" : "Unlock this briefing"}</h3>
               <p>
                 {canRead
-                  ? "Your membership is active. Full briefing delivery is not available on this site yet."
-                  : "You can read the public preview below. Full briefing delivery is not available on this site yet."}
+                  ? "Your Stripe-synced subscription can access Creator briefings right now."
+                  : "Upgrade to Creator or Pro to read the full private briefing and future premium posts."}
               </p>
               <div className="blog-premium-status-actions">
                 <Link to={user ? "/memberships" : "/login"} className="btn btn-primary">
@@ -117,13 +117,43 @@ export default function PremiumBlogPost() {
               ))}
             </section>
 
-            <section className="card blog-post-section blog-paywall-preview">
-              <h2>Inside the full briefing</h2>
-              <ul className="blog-post-list">
-                {briefing.teaserBullets.map((bullet) => <li key={bullet}>{bullet}</li>)}
-              </ul>
-              <p>Full briefings are not available on this site yet. This page contains a public preview only.</p>
-            </section>
+            {!canRead ? (
+              <section className="card blog-post-section blog-paywall-preview">
+                <h2>Inside the full briefing</h2>
+                <ul className="blog-post-list">
+                  {briefing.teaserBullets.map((bullet) => (
+                    <li key={bullet}>{bullet}</li>
+                  ))}
+                </ul>
+                <p>
+                  Full access is only rendered for active Creator or Pro subscriptions synced from
+                  Firestore.
+                </p>
+              </section>
+            ) : (
+              <>
+                {briefing.sections.map((section) => (
+                  <section className="card blog-post-section" key={section.heading}>
+                    <h2>{section.heading}</h2>
+                    {section.paragraphs.map((paragraph) => (
+                      <p key={paragraph}>{paragraph}</p>
+                    ))}
+                    {section.bullets?.length ? (
+                      <ul className="blog-post-list">
+                        {section.bullets.map((bullet) => (
+                          <li key={bullet}>{bullet}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </section>
+                ))}
+
+                <section className="card blog-post-section blog-post-closing">
+                  <h2>Wrap up</h2>
+                  <p>{briefing.closing}</p>
+                </section>
+              </>
+            )}
           </div>
         </div>
       </div>

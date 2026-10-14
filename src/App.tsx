@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Breadcrumbs from "./components/Breadcrumbs";
@@ -39,9 +39,25 @@ import AccountSettingsPage from "./pages/account/AccountSettingsPage";
 import MembershipsPage from "./pages/account/MembershipsPage";
 import ProfilePage from "./pages/account/ProfilePage";
 import SettingsPage from "./pages/account/SettingsPage";
+import AdminContentPage from "./pages/admin/AdminContentPage";
+import AdminDashboardLayout from "./pages/admin/AdminDashboardLayout";
+import AdminDashboardHome from "./pages/admin/AdminDashboardHome";
+import AdminFeatureTogglesPage from "./pages/admin/AdminFeatureTogglesPage";
+import AdminPagesPage from "./pages/admin/AdminPagesPage";
+import AdminPrivatePagesPage from "./pages/admin/AdminPrivatePagesPage";
+import AdminPrivatePageView from "./pages/admin/AdminPrivatePageView";
+import AdminPetSimulatorInventoryPage from "./pages/admin/AdminPetSimulatorInventoryPage";
+import AdminWeightTrackerPage from "./pages/admin/AdminWeightTrackerPage";
+import AdminTasksPage from "./pages/admin/AdminTasksPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminJobsPage from "./pages/admin/AdminJobsPage";
+import AdminGoodJobsPage from "./pages/admin/AdminGoodJobsPage";
 import { getSwipeTarget } from "./data/siteNavigation";
 import "./App.css";
 
+const AdminFnLeaderboardPage = lazy(() => import("./pages/admin/AdminFnLeaderboardPage"));
+const Flashbolt = lazy(() => import("./pages/admin/flashbolt/Flashbolt"));
+const Notebook = lazy(() => import("./pages/admin/notebook/Notebook"));
 
 const PAGE_TITLES: Record<string, string> = {
   "/": "Laureesh Volmar | Developer Portfolio",
@@ -68,7 +84,21 @@ const PAGE_TITLES: Record<string, string> = {
   "/login": "Sign In | Laureesh Volmar",
   "/register": "Create Account | Laureesh Volmar",
   "/switch-account": "Switch Account | Laureesh Volmar",
-
+  "/admin-dashboard": "Admin Dashboard | Laureesh Volmar",
+  "/admin-dashboard/content": "Content Manager | Admin Dashboard",
+  "/admin-dashboard/pages": "Page Manager | Admin Dashboard",
+  "/admin-dashboard/users": "User Manager | Admin Dashboard",
+  "/admin-dashboard/tasks": "Task Manager | Admin Dashboard",
+  "/admin-dashboard/jobs": "Job Tracker | Admin Dashboard",
+  "/admin-dashboard/good-jobs": "Saved Jobs | Admin Dashboard",
+  "/admin-dashboard/feature-toggles": "Feature Toggles | Admin Dashboard",
+  "/admin-dashboard/private-pages": "Private Pages | Admin Dashboard",
+  "/admin-dashboard/private-pages/food-routine": "Food Routine | Private Pages",
+  "/admin-dashboard/private-pages/face-routine": "Face Routine | Private Pages",
+  "/admin-dashboard/private-pages/ps99-inventory": "Pet Simulator Inventory | Private Pages",
+  "/admin-dashboard/private-pages/weight-tracker": "Weight Tracker | Private Pages",
+  "/admin-dashboard/private-pages/fn-leaderboard": "UEFN Leaderboard Manager | Private Pages",
+  "/admin-dashboard/private-pages/notebook": "Notebook | Private Pages",
 };
 
 function readableRouteSegment(segment: string) {
@@ -81,19 +111,47 @@ function pageTitleForPath(pathname: string) {
   if (pathname.startsWith("/blog/")) return `${readableRouteSegment(pathname.split("/").filter(Boolean).at(-1) ?? "Article")} | Laureesh Volmar`;
   if (pathname.startsWith("/user/")) return "Member Portfolio | Laureesh Volmar";
 
+  const parts = pathname.split("/").filter(Boolean);
+  const flashboltIndex = parts.indexOf("flashbolt");
+  if (flashboltIndex >= 0) {
+    const flashboltParts = parts.slice(flashboltIndex + 1);
+    if (!flashboltParts.length || flashboltParts[0] === "home") return "Flashbolt | Private Study Library";
+    if (flashboltParts.length === 1) {
+      const titles: Record<string, string> = { review: "Review Today | Flashbolt", library: "Flashbolt Library", folders: "Flashbolt Folders", create: "Create Set | Flashbolt", guide: "Study Guide | Flashbolt", helper: "Kahoot Helper | Flashbolt" };
+      return titles[flashboltParts[0]] ?? "Flashbolt | Private Study Library";
+    }
+    const mode = flashboltParts.at(-1) ?? "";
+    if (["flashcards", "learn", "test", "edit"].includes(mode) && flashboltParts.length >= 4) {
+      const setName = readableRouteSegment(flashboltParts.at(-2) ?? "Study Set");
+      const modeName = mode === "edit" ? "Edit" : readableRouteSegment(mode);
+      return `${setName} — ${modeName} | Flashbolt`;
+    }
+    return `${readableRouteSegment(flashboltParts.at(-1) ?? "Folder")} | Flashbolt Folder`;
+  }
+  if (pathname.startsWith("/admin-dashboard/private-pages/notebook/")) return "Notebook | Private Pages";
   return "Page Not Found | Laureesh Volmar";
 }
 
 export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
+  const standaloneAdminToolRoutes = [
+    "/admin-dashboard/private-pages/fn-leaderboard",
+    "/admin-dashboard/private-pages/flashbolt",
+    "/admin-dashboard/private-pages/notebook",
+  ];
+  const isStandaloneAdminToolRoute = standaloneAdminToolRoutes.includes(location.pathname)
+    || location.pathname.startsWith("/admin-dashboard/private-pages/flashbolt/")
+    || location.pathname.startsWith("/admin-dashboard/private-pages/notebook/")
+    || location.pathname === "/flashbolt"
+    || location.pathname.startsWith("/flashbolt/");
   const isAuthRoute = (
     location.pathname === "/login" ||
     location.pathname === "/register" ||
     location.pathname === "/switch-account"
   );
-  const showAppChrome = true;
-  const showBreadcrumbs = location.pathname !== "/" && !isAuthRoute;
+  const showAppChrome = !isStandaloneAdminToolRoute;
+  const showBreadcrumbs = location.pathname !== "/" && !isAuthRoute && !isStandaloneAdminToolRoute;
 
   // Set the route fallback before pages apply titles from their loaded content.
   useLayoutEffect(() => {
@@ -109,6 +167,10 @@ export default function App() {
       "/yt-tags",
       "/password-gen",
       "/media-converter",
+      "/admin-dashboard/private-pages/fn-leaderboard",
+      "/admin-dashboard/private-pages/flashbolt",
+      "/admin-dashboard/private-pages/notebook",
+      "/flashbolt",
       "/login",
       "/register",
       "/switch-account",
@@ -196,9 +258,9 @@ export default function App() {
       <main
         id="main-content"
         tabIndex={-1}
-        className={`app-main ${showBreadcrumbs ? "app-main-with-breadcrumbs" : ""}`}
+        className={`app-main ${showBreadcrumbs ? "app-main-with-breadcrumbs" : ""} ${isStandaloneAdminToolRoute ? "app-main--standalone" : ""}`}
       >
-        <PageTransition>
+        <PageTransition disableAnimation={isStandaloneAdminToolRoute}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
@@ -266,6 +328,106 @@ export default function App() {
                 </ProtectedRoute>
               )}
             />
+            <Route
+              path="/admin-dashboard/private-pages/fn-leaderboard"
+              element={(
+                <ProtectedRoute requiredRole="admin" unauthorizedRedirectTo="/profile">
+                  <Suspense
+                    fallback={(
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          minHeight: "100vh",
+                        }}
+                      >
+                        <div className="auth-spinner" />
+                      </div>
+                    )}
+                  >
+                    <AdminFnLeaderboardPage />
+                  </Suspense>
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/admin-dashboard/private-pages/flashbolt/*"
+              element={(
+                <ProtectedRoute requiredRole="admin" unauthorizedRedirectTo="/profile">
+                  <Suspense
+                    fallback={(
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          minHeight: "100vh",
+                        }}
+                      >
+                        <div className="auth-spinner" />
+                      </div>
+                    )}
+                  >
+                    <Flashbolt />
+                  </Suspense>
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/admin-dashboard/private-pages/notebook/*"
+              element={(
+                <ProtectedRoute requiredRole="admin" unauthorizedRedirectTo="/profile">
+                  <Suspense fallback={<div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}><div className="auth-spinner" /></div>}>
+                    <Notebook />
+                  </Suspense>
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/flashbolt/*"
+              element={(
+                <ProtectedRoute requiredRole="admin" unauthorizedRedirectTo="/profile">
+                  <Suspense fallback={<div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}><div className="auth-spinner" /></div>}>
+                    <Flashbolt />
+                  </Suspense>
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/admin-dashboard"
+              element={(
+                <ProtectedRoute requiredRole="admin" unauthorizedRedirectTo="/profile">
+                  <AdminDashboardLayout />
+                </ProtectedRoute>
+              )}
+            >
+              <Route index element={<AdminDashboardHome />} />
+              <Route path="content" element={<AdminContentPage />} />
+              <Route path="pages" element={<AdminPagesPage />} />
+              <Route path="users" element={<AdminUsersPage />} />
+              <Route path="tasks" element={<AdminTasksPage />} />
+              <Route path="jobs" element={<AdminJobsPage />} />
+              <Route path="good-jobs" element={<AdminGoodJobsPage />} />
+              <Route path="feature-toggles" element={<AdminFeatureTogglesPage />} />
+              <Route path="private-pages" element={<AdminPrivatePagesPage />} />
+              <Route
+                path="private-pages/food-routine"
+                element={<AdminPrivatePageView pageKey="food-routine" />}
+              />
+              <Route
+                path="private-pages/face-routine"
+                element={<AdminPrivatePageView pageKey="face-routine" />}
+              />
+              <Route
+                path="private-pages/ps99-inventory"
+                element={<AdminPetSimulatorInventoryPage />}
+              />
+              <Route
+                path="private-pages/weight-tracker"
+                element={<AdminWeightTrackerPage />}
+              />
+            </Route>
             <Route
               path="/login"
               element={(

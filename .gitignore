@@ -24,13 +24,3 @@ dist-ssr
 *.sln
 *.sw?
 .codex
-
-# Private workspace and personal exports
-.private-workspace/
-src/pages/admin/
-src/assets/admin/
-src/data/adminDashboard.ts
-src/data/adminPrivatePages.ts
-notebook-backup*.json
-.env.*
-!.env.example

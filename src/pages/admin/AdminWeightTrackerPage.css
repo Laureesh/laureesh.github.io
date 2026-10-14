@@ -1,0 +1,944 @@
+.admin-shell:has(.weight-tracker) {
+  max-width: min(1560px, 100%);
+}
+
+.weight-tracker {
+  --weight-green: #4d7f2a;
+  --weight-blue: #3b82f6;
+  --weight-red: #ef4444;
+  --weight-yellow: #f59e0b;
+}
+
+.weight-tracker__grid,
+.weight-tracker__results,
+.weight-tracker__references,
+.weight-tracker__plan,
+.weight-tracker__age,
+.weight-tracker__body-metrics,
+.weight-tracker__macro-section,
+.weight-tracker__converter,
+.weight-tracker__water {
+  display: grid;
+  gap: 1rem;
+}
+
+.weight-tracker__grid {
+  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
+  align-items: start;
+}
+
+.weight-tracker__form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.weight-tracker__custom-macros {
+  margin-top: 0.9rem;
+}
+
+.weight-tracker__calculator-stack,
+.weight-tracker__result-group {
+  display: grid;
+  gap: 1rem;
+}
+
+.weight-tracker__calculator-group,
+.weight-tracker__result-group {
+  padding-top: 0.95rem;
+  border-top: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+}
+
+.weight-tracker__calculator-group:first-child,
+.weight-tracker__result-group:first-of-type {
+  padding-top: 0;
+  border-top: none;
+}
+
+.weight-tracker__collapse-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.weight-tracker__collapse-heading svg {
+  color: var(--accent-hover);
+  flex: 0 0 auto;
+}
+
+.weight-tracker__panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.weight-tracker__collapse-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.weight-tracker__collapse-icon:hover,
+.weight-tracker__collapse-heading:hover {
+  color: var(--accent-hover);
+}
+
+.weight-tracker__form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.weight-tracker__radio-row,
+.weight-tracker__toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.weight-tracker__radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.weight-tracker__result-card,
+.weight-tracker__macro-card,
+.weight-tracker__age-answer,
+.weight-tracker__bmi-card,
+.weight-tracker__ideal-card,
+.weight-tracker__info-card,
+.weight-tracker__food-card,
+.weight-tracker__exercise-card,
+.weight-tracker__macro-result,
+.weight-tracker__conversion-answer,
+.weight-tracker__water-result,
+.weight-tracker__workout-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-secondary);
+}
+
+.weight-tracker__result-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.weight-tracker__result-card strong {
+  color: var(--text-primary);
+  font-size: 1.55rem;
+}
+
+.weight-tracker__result-card span,
+.weight-tracker__result-card small,
+.weight-tracker__macro-card span,
+.weight-tracker__age-answer span,
+.weight-tracker__age-answer p,
+.weight-tracker__bmi-card span,
+.weight-tracker__bmi-card p,
+.weight-tracker__ideal-card > span,
+.weight-tracker__info-card p,
+.weight-tracker__info-card li,
+.weight-tracker__food-card span,
+.weight-tracker__exercise-card span,
+.weight-tracker__macro-result span,
+.weight-tracker__macro-result small,
+.weight-tracker__conversion-answer span,
+.weight-tracker__water-result p,
+.weight-tracker__hint,
+.weight-tracker__workout-card span,
+.weight-tracker__workout-card p {
+  color: var(--text-secondary);
+}
+
+.weight-tracker__result-card.is-maintain {
+  border-color: color-mix(in srgb, var(--weight-green) 48%, var(--border));
+  background: color-mix(in srgb, var(--weight-green) 12%, var(--bg-secondary));
+}
+
+.weight-tracker__body-grid,
+.weight-tracker__info-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.weight-tracker__body-grid {
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1fr);
+}
+
+.weight-tracker__info-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.weight-tracker__bmi-card,
+.weight-tracker__ideal-card,
+.weight-tracker__info-card {
+  align-content: start;
+}
+
+.weight-tracker__bmi-card > span,
+.weight-tracker__ideal-card > span {
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.weight-tracker__bmi-card strong {
+  color: var(--text-primary);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.weight-tracker__bmi-card em {
+  width: fit-content;
+  padding: 0.28rem 0.62rem;
+  border-radius: 999px;
+  background: rgba(52, 211, 153, 0.12);
+  color: #34d399;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.weight-tracker__bmi-meter {
+  position: relative;
+  height: 0.75rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #93c5fd 0 36%, #86efac 36% 56%, #fde68a 56% 67%, #fca5a5 67% 89%, #991b1b 89%);
+}
+
+.weight-tracker__bmi-meter span {
+  position: absolute;
+  top: 50%;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--bg-card);
+  border-radius: 999px;
+  background: var(--text-primary);
+  transform: translate(-50%, -50%);
+}
+
+.weight-tracker__ideal-row,
+.weight-tracker__bmi-table div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.62rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+}
+
+.weight-tracker__ideal-row:last-child,
+.weight-tracker__bmi-table div:last-child {
+  border-bottom: none;
+}
+
+.weight-tracker__ideal-row strong,
+.weight-tracker__info-card h3,
+.weight-tracker__bmi-table strong {
+  color: var(--text-primary);
+}
+
+.weight-tracker__ideal-row span {
+  color: #86efac;
+  font-weight: 900;
+}
+
+.weight-tracker__ideal-row.is-range span {
+  color: #fbbf24;
+}
+
+.weight-tracker__info-card h3 {
+  margin: 0;
+}
+
+.weight-tracker__info-card p,
+.weight-tracker__info-card ul {
+  margin: 0;
+  line-height: 1.58;
+}
+
+.weight-tracker__info-card ul {
+  display: grid;
+  gap: 0.45rem;
+  padding-left: 1.1rem;
+}
+
+.weight-tracker__bmi-table {
+  display: grid;
+}
+
+.weight-tracker__formula-box {
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.weight-tracker__formula-box span {
+  color: var(--text-secondary);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.weight-tracker__section-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: end;
+}
+
+.weight-tracker__section-head .ui-select-wrapper {
+  min-width: min(100%, 260px);
+}
+
+.weight-tracker__macro-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.weight-tracker__macro-result {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--weight-green) 12%, transparent), var(--bg-secondary));
+}
+
+.weight-tracker__macro-result span {
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.weight-tracker__macro-result strong {
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  line-height: 1.05;
+}
+
+.weight-tracker__macro-result em {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.weight-tracker__macro-result small,
+.weight-tracker__hint {
+  line-height: 1.5;
+}
+
+.weight-tracker__utility-grid {
+  display: grid;
+  grid-template-columns: minmax(340px, 0.85fr) minmax(0, 1.15fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.weight-tracker__results-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.weight-tracker__converter-form,
+.weight-tracker__water-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.weight-tracker__converter-form {
+  grid-template-columns: minmax(120px, 0.7fr) minmax(190px, 1fr);
+  align-items: end;
+}
+
+.weight-tracker__conversion-answer {
+  grid-column: 1 / -1;
+  border-color: color-mix(in srgb, var(--weight-blue) 42%, var(--border));
+  background: color-mix(in srgb, var(--weight-blue) 10%, var(--bg-secondary));
+}
+
+.weight-tracker__conversion-answer strong,
+.weight-tracker__water-result strong {
+  color: var(--text-primary);
+  font-size: 1.05rem;
+}
+
+.weight-tracker__conversion-table {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.45rem;
+}
+
+.weight-tracker__conversion-table div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.48rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+}
+
+.weight-tracker__conversion-table span {
+  color: var(--text-secondary);
+}
+
+.weight-tracker__conversion-table strong {
+  color: var(--text-primary);
+}
+
+.weight-tracker__water-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(130px, 0.55fr);
+  gap: 0.75rem;
+}
+
+.weight-tracker__water-result {
+  border-color: color-mix(in srgb, #14b8a6 54%, var(--border));
+  background:
+    linear-gradient(180deg, rgba(20, 184, 166, 0.16), rgba(20, 184, 166, 0.06)),
+    var(--bg-secondary);
+}
+
+.weight-tracker__water-result span {
+  justify-self: stretch;
+  padding: 0.68rem;
+  border-radius: 10px;
+  background: rgba(20, 184, 166, 0.32);
+  color: var(--text-primary);
+  font-weight: 900;
+  text-align: center;
+}
+
+.weight-tracker__water-result p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.weight-tracker__age-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.42fr) minmax(0, 0.58fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.weight-tracker__age-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.weight-tracker__age-answer {
+  gap: 0.45rem;
+}
+
+.weight-tracker__age-answer div {
+  display: grid;
+  gap: 0.3rem;
+  justify-items: center;
+  padding: 0.5rem 0;
+}
+
+.weight-tracker__age-answer span {
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.weight-tracker__age-answer strong {
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+
+.weight-tracker__age-answer p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.weight-tracker__age-answer hr {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+.weight-tracker__macro-grid,
+.weight-tracker__food-grid,
+.weight-tracker__exercise-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.weight-tracker__reference-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.weight-tracker__reference-controls .ui-input-wrapper,
+.weight-tracker__reference-controls .ui-select-wrapper {
+  flex: 1 1 220px;
+}
+
+.weight-tracker__food-card strong,
+.weight-tracker__exercise-card strong,
+.weight-tracker__workout-card strong {
+  color: var(--text-primary);
+}
+
+.weight-tracker__food-meta,
+.weight-tracker__exercise-meta,
+.weight-tracker__workout-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.weight-tracker__chip {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.24rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.weight-tracker__plan-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: end;
+}
+
+.weight-tracker__plan-head .ui-input-wrapper {
+  min-width: min(100%, 260px);
+}
+
+.weight-tracker__batch-links {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-secondary);
+}
+
+.weight-tracker__batch-link-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+
+.weight-tracker__batch-workout-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+
+.weight-tracker__batch-workout-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.weight-tracker__batch-workout-card strong {
+  color: var(--text-primary);
+}
+
+.weight-tracker__meal-plan {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.weight-tracker__meal-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.weight-tracker__meal-summary-card {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+}
+
+.weight-tracker__meal-summary-card.is-total {
+  border-color: color-mix(in srgb, var(--accent-hover) 32%, var(--border));
+  background: color-mix(in srgb, var(--accent-hover) 10%, var(--bg-secondary));
+}
+
+.weight-tracker__meal-summary-card strong,
+.weight-tracker__meal-active strong,
+.weight-tracker__meal-option-title {
+  color: var(--text-primary);
+}
+
+.weight-tracker__meal-summary-card span,
+.weight-tracker__meal-card-subtitle,
+.weight-tracker__meal-active span,
+.weight-tracker__meal-option-details {
+  color: var(--text-secondary);
+}
+
+.weight-tracker__meal-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.weight-tracker__meal-card {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-secondary);
+}
+
+.weight-tracker__meal-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.weight-tracker__meal-card-top .ui-input-wrapper,
+.weight-tracker__meal-card-top .ui-select-wrapper {
+  min-width: min(100%, 260px);
+  flex: 1 1 260px;
+}
+
+.weight-tracker__meal-card-subtitle {
+  margin: 0;
+}
+
+.weight-tracker__meal-active {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.weight-tracker__meal-active-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.weight-tracker__meal-active-meta span {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.24rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.weight-tracker__meal-options {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.weight-tracker__meal-options-head,
+.weight-tracker__meal-option {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.4fr) minmax(120px, 1fr) repeat(4, minmax(72px, 0.55fr)) minmax(160px, 1.1fr);
+  gap: 0.6rem;
+  align-items: start;
+}
+
+.weight-tracker__meal-options-head {
+  padding: 0 0.4rem;
+  color: var(--text-secondary);
+  font-size: 0.73rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.weight-tracker__meal-option {
+  padding: 0.75rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.weight-tracker__meal-option.is-selected {
+  border-color: color-mix(in srgb, var(--accent-hover) 48%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-hover) 22%, transparent);
+}
+
+.weight-tracker__meal-option-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.weight-tracker__meal-option-details {
+  grid-column: 1 / -1;
+  padding-top: 0.35rem;
+}
+
+.weight-tracker__meal-option-details p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.weight-tracker__meal-editor {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.85rem;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-card) 85%, transparent);
+}
+
+.weight-tracker__meal-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.weight-tracker__workout-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.weight-tracker__workout-week {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.weight-tracker__workout-week.is-current {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-hover) 30%, transparent);
+}
+
+.weight-tracker__workout-week.is-collapsed {
+  gap: 0;
+}
+
+.weight-tracker__workout-week.is-odd {
+  background: color-mix(in srgb, var(--weight-blue) 5%, var(--bg-secondary));
+}
+
+.weight-tracker__workout-week.is-even {
+  background: color-mix(in srgb, var(--weight-green) 7%, var(--bg-secondary));
+}
+
+.weight-tracker__week-divider {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  appearance: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.65rem;
+  align-items: center;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.weight-tracker__week-divider span {
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.weight-tracker__week-divider strong {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.weight-tracker__week-divider-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--accent-hover);
+}
+
+.weight-tracker__workout-card {
+  grid-template-columns: minmax(110px, 0.3fr) minmax(0, 0.9fr) minmax(0, 1.3fr) minmax(190px, 0.7fr);
+  align-items: start;
+}
+
+.weight-tracker__workout-card.is-today {
+  border-color: rgba(251, 191, 36, 0.46);
+  background:
+    linear-gradient(90deg, rgba(251, 191, 36, 0.1), transparent 34%),
+    var(--bg-secondary);
+}
+
+.weight-tracker__workout-date {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--text-primary);
+}
+
+.weight-tracker__workout-date span {
+  color: var(--accent-hover);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.weight-tracker__workout-date strong {
+  color: var(--text-primary);
+  font-size: 1.05rem;
+}
+
+.weight-tracker__workout-date em {
+  width: fit-content;
+  padding: 0.22rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.14);
+  color: #fbbf24;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.weight-tracker__workout-block {
+  display: grid;
+  gap: 0.42rem;
+  min-width: 0;
+}
+
+.weight-tracker__workout-block.is-done {
+  opacity: 0.58;
+}
+
+.weight-tracker__workout-block.is-done strong,
+.weight-tracker__workout-block.is-done p,
+.weight-tracker__workout-block.is-done .weight-tracker__level {
+  color: #34d399;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.weight-tracker__workout-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.weight-tracker__workout-title-row a {
+  display: inline-flex;
+  align-items: center;
+  color: var(--accent-hover);
+}
+
+.weight-tracker__workout-card p {
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.weight-tracker__level {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.3rem 0.58rem;
+  border-radius: 10px;
+  background: rgba(251, 191, 36, 0.14);
+  color: #fbbf24;
+  font-weight: 900;
+}
+
+.weight-tracker__workout-edit {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 1rem;
+}
+
+.weight-tracker__workout-edit .ui-textarea-wrapper {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1040px) {
+  .weight-tracker__grid,
+  .weight-tracker__utility-grid,
+  .weight-tracker__results-row,
+  .weight-tracker__age-grid,
+  .weight-tracker__body-grid,
+  .weight-tracker__info-grid,
+  .weight-tracker__workout-card,
+  .weight-tracker__meal-options-head,
+  .weight-tracker__meal-option {
+    grid-template-columns: 1fr;
+  }
+
+  .weight-tracker__meal-option-actions {
+    padding-top: 0.15rem;
+  }
+
+  .weight-tracker__meal-option-details {
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 680px) {
+  .weight-tracker__form-grid,
+  .weight-tracker__form-row,
+  .weight-tracker__converter-form,
+  .weight-tracker__water-row,
+  .weight-tracker__macro-results {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,38 @@
+.admin-standalone-tool-shell {
+  min-height: 100vh;
+}
+
+.admin-standalone-tool__mount {
+  min-height: 100vh;
+}
+
+.admin-standalone-tool__back {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.78);
+  color: #fff5e0;
+  text-decoration: none;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+}
+
+.admin-standalone-tool__back:hover {
+  background: rgba(24, 24, 24, 0.92);
+}
+
+@media (max-width: 640px) {
+  .admin-standalone-tool__back {
+    top: 0.75rem;
+    left: 0.75rem;
+    padding: 0.62rem 0.88rem;
+    font-size: 0.92rem;
+  }
+}
