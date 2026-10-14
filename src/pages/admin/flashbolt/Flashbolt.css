@@ -8187,3 +8187,23 @@ kbd {
   .learn-knowledge-modal { padding: 16px; }
   .knowledge-position { grid-template-columns: 1fr; }
 }
+
+.goal-options:has(> button:nth-child(3)) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.understand-answer { margin-top: 24px; padding: 22px; border: 1px solid var(--line-soft); border-radius: 16px; background: var(--panel); cursor: default; }
+.understand-answer h2 { margin: 0; font-size: 22px; }
+.understand-answer p { font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+.understand-reflection { display: grid; gap: 8px; margin: 18px 0; font-weight: 700; }
+.understand-reflection small { font-weight: 400; color: var(--muted); }
+.understand-reflection textarea { width: 100%; padding: 12px; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--panel-2); color: var(--ink); font: inherit; resize: vertical; }
+.understand-choices { display: grid; gap: 12px; margin: 16px 0; }
+.understand-choices article { padding: 16px; border: 1px solid var(--line-soft); border-radius: 12px; background: var(--panel-2); }
+.understand-choices article > strong { font-size: 12px; color: var(--muted); }
+.understand-choices .is-correct { border-color: var(--mint); }
+.understand-choices .is-correct > strong { color: var(--mint); }
+.understand-choices h3 { margin: 8px 0; font-size: 16px; }
+.understand-missing { color: var(--muted); }
+.understand-review { display: flex; align-items: start; gap: 10px; font-size: 14px; line-height: 1.5; }
+.understand-review input { margin-top: 4px; }
+.choice-explanation-editor { margin-top: 16px; }
+.choice-explanation-editor summary { cursor: pointer; color: var(--primary-strong); }
+@media (max-width: 900px) { .goal-options:has(> button:nth-child(3)) { grid-template-columns: 1fr; } }

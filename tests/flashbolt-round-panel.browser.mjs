@@ -86,3 +86,28 @@ test('round panel tracks answers and fits beside the question', async () => {
     await page.getByRole('button', { name: 'Close knowledge overview' }).click();
   } finally { await page.close(); }
 });
+
+test('understand goal requires explanation review and preserves reasoning until continuing', async () => {
+  const page = await mount('learn', 1491);
+  try {
+    await page.getByRole('radio', { name: /Understand the concepts/ }).click();
+    await page.getByRole('button', { name: /Start Learn/ }).click();
+    await page.locator('.understand-reflection textarea').fill('Web technology with device access suggests a hybrid app.');
+    assert.equal(await page.locator('.understand-choices').count(), 0);
+    await page.locator('.answer-grid button').filter({ hasText: 'Hybrid app' }).click();
+    assert.equal(await page.locator('.understand-choices article').count(), 4);
+    assert.equal(await page.locator('.understand-choices .is-correct').count(), 1);
+    const next = page.getByRole('button', { name: /Next question/ });
+    assert(await next.isDisabled());
+    await page.keyboard.press('ArrowDown');
+    assert.equal(await page.locator('.learn-current-question strong').innerText(), '1');
+    await page.locator('.understand-review input').check();
+    assert.equal(await page.locator('.understand-reflection textarea').inputValue(), 'Web technology with device access suggests a hybrid app.');
+    await next.click();
+    assert.equal(await page.locator('.learn-current-question strong').innerText(), '2');
+    assert.equal(await page.locator('.understand-reflection textarea').inputValue(), '');
+    await page.setViewportSize({ width: 375, height: 850 });
+    const box = await page.locator('.understand-answer').boundingBox();
+    assert(box.x >= 0 && box.x + box.width <= 376);
+  } finally { await page.close(); }
+});

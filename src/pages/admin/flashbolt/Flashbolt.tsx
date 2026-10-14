@@ -25,6 +25,7 @@ import Confirmation from "./Confirmation";
 import Modal from "./Modal";
 import UiIcon from "./UiIcon";
 import LearnRoundPanel from "./LearnRoundPanel";
+import UnderstandAnswer from "./UnderstandAnswer";
 import LearnKnowledgeDetails, { type KnowledgeLevel } from "./LearnKnowledgeDetails";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -54,7 +55,7 @@ import { isNotebookDraftSource, notebookDraftKey, type NotebookDraftSource } fro
 import type { QuizletImportSet } from "./quizlet-import";
 
 type HighlightColor = "none" | "yellow" | "mint" | "violet";
-type LearnGoal = "cram" | "memorize";
+type LearnGoal = "cram" | "memorize" | "understand";
 type LearnPhase = "goal" | "session" | "complete";
 
 type LearnOptions = {
@@ -100,6 +101,7 @@ type Card = {
   term: string;
   definition: string;
   explanation?: string;
+  choiceExplanations?: Record<string, string>;
   answerChoices?: string[];
   correctAnswers?: string[];
   questionTypeMode?: "auto" | "manual";
@@ -915,6 +917,7 @@ export default function Flashbolt() {
   const [requestedFlashIndex, setFlashIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [learnPhase, setLearnPhase] = useState<LearnPhase>("goal");
+  const [understandReviewed, setUnderstandReviewed] = useState(false);
   const [learnGoal, setLearnGoal] = useState<LearnGoal>("memorize");
   const [learnOptions, setLearnOptions] = useState<LearnOptions>(DEFAULT_LEARN_OPTIONS);
   const [learnOptionsDraft, setLearnOptionsDraft] = useState<LearnOptions>(DEFAULT_LEARN_OPTIONS);
@@ -1496,7 +1499,7 @@ export default function Flashbolt() {
   const testScore = testCards.filter((card) => normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card))).length;
   const guideTitleSuggestions = useMemo(() => suggestNoteTitles(guideNotes), [guideNotes]);
   const currentLearnCard = selectedSet?.cards.find((card) => card.id === learnRoundIds[learnIndex]);
-  const currentLearnAnswerSide = learnAnswerSide(learnOptions, learnSequence, currentLearnCard);
+  const currentLearnAnswerSide = learnGoal === "understand" ? "definition" : learnAnswerSide(learnOptions, learnSequence, currentLearnCard);
   const currentLearnPromptSide = currentLearnAnswerSide === "definition" ? "term" : "definition";
   const currentEmbeddedQuestion = useMemo(
     () => currentLearnCard ? parseEmbeddedQuestion(currentLearnCard.term, currentLearnCard.definition) : { prompt: "", choices: [] },
@@ -1506,14 +1509,14 @@ export default function Flashbolt() {
     ? currentEmbeddedQuestion.prompt
     : (currentLearnCard?.definition ?? "");
   const currentLearnCorrectAnswer = currentLearnCard?.[currentLearnAnswerSide] ?? "";
-  const currentLearnQuestionKind = learnQuestionKind(learnOptions, learnSequence, currentLearnCorrectAnswer, learnQuestionConfidence);
+  const currentLearnQuestionKind = learnGoal === "understand" ? (currentLearnCard && correctAnswersForCard(currentLearnCard).length > 1 ? "select-all" : "multiple-choice") : learnQuestionKind(learnOptions, learnSequence, currentLearnCorrectAnswer, learnQuestionConfidence);
   const currentLearnChoices = useMemo(
     () => currentLearnCard ? learnChoices(selectedSet, currentLearnCard, currentLearnAnswerSide, learnSequence) : [],
     [currentLearnAnswerSide, currentLearnCard, learnSequence, selectedSet],
   );
   const currentSelectAll = useMemo(
-    () => currentLearnCard ? selectAllChoices(selectedSet, currentLearnCard, currentLearnAnswerSide) : { correctParts: [], choices: [] },
-    [currentLearnAnswerSide, currentLearnCard, selectedSet],
+    () => currentLearnCard ? (learnGoal === "understand" ? { correctParts: correctAnswersForCard(currentLearnCard), choices: [...new Set([...(currentLearnCard.answerChoices ?? currentEmbeddedQuestion.choices), ...correctAnswersForCard(currentLearnCard)])] } : selectAllChoices(selectedSet, currentLearnCard, currentLearnAnswerSide)) : { correctParts: [], choices: [] },
+    [currentLearnAnswerSide, currentLearnCard, selectedSet, learnGoal, currentEmbeddedQuestion.choices],
   );
   const currentTrueFalse = useMemo(() => {
     const distractor = currentLearnChoices.find(
@@ -1545,7 +1548,7 @@ export default function Flashbolt() {
   const resumableLearn = data.activeLearn?.setId === selectedSet?.id ? data.activeLearn : undefined;
 
   useEffect(() => {
-    if (view !== "learn" || learnPhase !== "session" || !learnAnswer || learnOptionsOpen || knowledgeLevel) return;
+    if (view !== "learn" || learnPhase !== "session" || !learnAnswer || learnOptionsOpen || knowledgeLevel || learnGoal === "understand") return;
     const retypeRequired = !learnLastCorrect && learnOptions.retypeCorrectAnswers;
     const canContinue = !retypeRequired || normalizeAnswer(learnRetypeAnswer) === normalizeAnswer(currentLearnCorrectAnswer);
     if (!canContinue) return;
@@ -1560,7 +1563,7 @@ export default function Flashbolt() {
     return () => window.removeEventListener("keydown", continueOnKey);
     // nextLearnQuestion is intentionally omitted because it is recreated with the current session state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentLearnCorrectAnswer, learnAnswer, learnLastCorrect, learnOptions.retypeCorrectAnswers, learnOptionsOpen, knowledgeLevel, learnPhase, learnRetypeAnswer, view]);
+  }, [currentLearnCorrectAnswer, learnAnswer, learnLastCorrect, learnOptions.retypeCorrectAnswers, learnOptionsOpen, knowledgeLevel, learnGoal, learnPhase, learnRetypeAnswer, view]);
 
   useEffect(() => {
     if (view !== "learn" || learnPhase !== "session" || !learnOptions.textToSpeech || !currentLearnPrompt) return;
@@ -2427,6 +2430,7 @@ export default function Flashbolt() {
     setLearnQuestionConfidence(0);
     setLearnLastConfidence(0);
     setLearnAnswer(null);
+    setUnderstandReviewed(false);
     setLearnLastCorrect(null);
     setLearnWrittenAnswer("");
     setLearnRetypeAnswer("");
@@ -2458,6 +2462,7 @@ export default function Flashbolt() {
     setLearnQuestionConfidence(cardProgress[firstRoundIds[0]]?.confidence ?? 0);
     setLearnLastConfidence(0);
     setLearnAnswer(null);
+    setUnderstandReviewed(false);
     setLearnLastCorrect(null);
     setLearnWrittenAnswer("");
     setLearnRetypeAnswer("");
@@ -2511,6 +2516,7 @@ export default function Flashbolt() {
     setLearnQuestionConfidence(selectedLearnProgress[currentId]?.confidence ?? 0);
     setLearnLastConfidence(0);
     setLearnAnswer(null);
+    setUnderstandReviewed(false);
     setLearnLastCorrect(null);
     setLearnWrittenAnswer("");
     setLearnRetypeAnswer("");
@@ -2617,7 +2623,7 @@ export default function Flashbolt() {
   }
 
   function nextLearnQuestion() {
-    if (!selectedSet) return;
+    if (!selectedSet || (learnGoal === "understand" && !understandReviewed)) return;
     const advance = advanceLearnRound({
       roundIds: learnRoundIds,
       pendingIds: learnPendingIds,
@@ -2643,6 +2649,7 @@ export default function Flashbolt() {
     setLearnQuestionConfidence(selectedLearnProgress[nextCardId]?.confidence ?? 0);
     setLearnLastConfidence(0);
     setLearnAnswer(null);
+    setUnderstandReviewed(false);
     setLearnLastCorrect(null);
     setLearnWrittenAnswer("");
     setLearnRetypeAnswer("");
@@ -3535,6 +3542,8 @@ export default function Flashbolt() {
                             <div className="matching-pair-editor"><span>Matching pairs</span><div>{(card.matchingPairs ?? []).map((pair, pairIndex) => <div className="matching-pair-row" key={pair.id}><b>{String.fromCharCode(65 + pairIndex)}</b><input value={pair.left} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, left: event.target.value } : item) })} placeholder="Prompt" /><span>↔</span><input value={pair.right} onChange={(event) => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.map((item) => item.id === pair.id ? { ...item, right: event.target.value } : item) })} placeholder="Match" /><button type="button" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: card.matchingPairs?.filter((item) => item.id !== pair.id) })} disabled={(card.matchingPairs?.length ?? 0) <= 2} aria-label={`Remove matching pair ${pairIndex + 1}`}><UiIcon symbol="×" /></button></div>)}</div>{(card.matchingPairs?.length ?? 0) < 26 && <button type="button" className="add-answer-choice" onClick={() => updateDraftCardExtras(card.id, { matchingPairs: [...(card.matchingPairs ?? []), { id: makeId("pair"), left: "", right: "" }] })}>＋ Add matching pair</button>}</div>
                           )}
                           <label className="card-explanation-field"><span>Explanation <small>optional · shown after answering</small></span><AutoResizeTextarea value={card.explanation ?? ""} onPaste={event => { if (event.clipboardData.getData("text/plain").trim()) scrollToNextDraftCard(card.id, ["explanation"], true); }} onChange={event => updateDraftCardExtras(card.id, { explanation: event.target.value })} placeholder="Explain why this answer is correct, or add a memory tip…" rows={2} /></label>
+                          {!!card.answerChoices?.length && <details className="choice-explanation-editor"><summary>Why each choice is correct or incorrect</summary>{card.answerChoices.map((choice, choiceIndex) => <label className="card-explanation-field" key={choiceIndex}><span>{String.fromCharCode(65 + choiceIndex)}. {choice || "Empty choice"}</span><AutoResizeTextarea rows={2} value={card.choiceExplanations?.[choice] ?? ""} onChange={event => updateDraftCardExtras(card.id, { choiceExplanations: { ...card.choiceExplanations, [choice]: event.target.value } })} placeholder="Explain the concept and why this choice fits or fails…" /></label>)}</details>}
+
                           {card.imageData && <div className="card-image-preview"><img width={74} height={58} src={card.imageData} alt={card.imageName ? `Attached ${card.imageName}` : "Attached card image"} /><span>{card.imageName}</span><button onClick={() => updateDraftCardExtras(card.id, { imageData: undefined, imageName: undefined })} aria-label={`Remove image from card ${index + 1}`}>Remove image</button></div>}
                           <footer className="card-editor-footer"><span aria-label={`Card ${index + 1}`}>{String(index + 1).padStart(2, "0")}</span></footer>
                         </article>
@@ -3695,6 +3704,7 @@ export default function Flashbolt() {
                   <div className="goal-options" role="radiogroup" aria-label="Learn session goal">
                     <button role="radio" aria-checked={learnGoal === "cram"} className={learnGoal === "cram" ? "selected" : ""} onClick={() => setLearnGoal("cram")}><span className="goal-copy"><strong>Cram for a test</strong><small>Move quickly with mixed question types</small></span><span className="goal-icon cram"><UiIcon symbol="◴" /></span></button>
                     <button role="radio" aria-checked={learnGoal === "memorize"} className={learnGoal === "memorize" ? "selected" : ""} onClick={() => setLearnGoal("memorize")}><span className="goal-copy"><strong>Memorize it all</strong><small>Keep practicing until every card is mastered</small></span><span className="goal-icon memorize"><UiIcon symbol="✦" /></span></button>
+                    <button role="radio" aria-checked={learnGoal === "understand"} className={learnGoal === "understand" ? "selected" : ""} onClick={() => setLearnGoal("understand")}><span className="goal-copy"><strong>Understand the concepts</strong><small>Study saved explanations and why each choice fits or fails</small></span><span className="goal-icon memorize"><UiIcon symbol="✦" /></span></button>
                   </div>
                   <div className="learn-mastery-overview" aria-label="Saved knowledge levels"><span><i className="level-new" />New <b>{learnStatusCounts.new}</b></span><span><i className="level-learning" />Learning <b>{learnStatusCounts.learning}</b></span><span><i className="level-familiar" />Familiar <b>{learnStatusCounts.familiar}</b></span><span><i className="level-mastered" />Mastered <b>{learnStatusCounts.mastered}</b></span></div>
                   <div className="learn-goal-footer"><span>{selectedSet.cards.length} terms · progress saves on this device</span><div className="learn-goal-actions">{resumableLearn && <button className="button quiet learn-start" onClick={resumeLearnSession}>Resume session</button>}<button className="button primary learn-start" onClick={() => beginLearnSession(learnGoal)}>{resumableLearn ? "Start new" : "Start Learn"} <b>→</b></button></div></div>
@@ -3733,7 +3743,7 @@ export default function Flashbolt() {
                       <span>Question</span>
                       <strong>{learnSequence + 1}</strong>
                     </div>
-                    <div className={`question-card ${learnAnswer ? "ready-to-continue" : ""}`} onClick={(event) => { if (!learnAnswer || event.target instanceof Element && event.target.closest("button, input, textarea, select, a, label, .study-explanation")) return; const retypeRequired = !learnLastCorrect && learnOptions.retypeCorrectAnswers; if (retypeRequired && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer)) return; nextLearnQuestion(); }}>
+                    <div className={`question-card ${learnAnswer ? "ready-to-continue" : ""}`} onClick={(event) => { if (learnGoal === "understand" || !learnAnswer || event.target instanceof Element && event.target.closest("button, input, textarea, select, a, label, .study-explanation")) return; const retypeRequired = !learnLastCorrect && learnOptions.retypeCorrectAnswers; if (retypeRequired && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer)) return; nextLearnQuestion(); }}>
                       <div className="learn-question-stage"><span className="eyebrow">{currentLearnQuestionKind === "written" ? `Write the ${currentLearnAnswerSide}` : currentLearnQuestionKind === "true-false" ? "True or false" : currentLearnQuestionKind === "select-all" ? "Select all that apply" : currentLearnQuestionKind === "flashcard" ? "Recall, then reveal" : `Choose the ${currentLearnAnswerSide}`}</span><span>{learnConfidenceLabel(learnQuestionConfidence)} · stage {Math.min(3, learnQuestionConfidence + 1)}</span></div>
                       <h1>{currentLearnPrompt}</h1>
                       {learnOptions.showImagesOnQuestions && currentLearnCard.imageData && <img width={320} height={185} className="learn-question-image" src={currentLearnCard.imageData} alt={currentLearnCard.imageName ?? "Question study aid"} />}
@@ -3754,11 +3764,11 @@ export default function Flashbolt() {
                       {currentLearnQuestionKind === "flashcard" && <div className="learn-flashcard-mode"><button className={`learn-reveal-card ${learnFlashRevealed ? "revealed" : ""}`} onClick={() => setLearnFlashRevealed(true)}><span>{learnFlashRevealed ? currentLearnCorrectAnswer : "Think of the answer before revealing it"}</span><small>{learnFlashRevealed ? "How did you do?" : "Reveal answer"}</small></button>{learnFlashRevealed && !learnAnswer && <div className="recall-buttons"><button className="button quiet" onClick={() => recordLearnResult(false, "Still learning")}>Still learning</button><button className="button primary" onClick={() => recordLearnResult(true, "Got it")}>Got it</button></div>}</div>}
 
                       {learnAnswer && <div className={`answer-feedback ${learnLastCorrect ? "correct" : "incorrect"}`}>
-                        <div className="feedback-copy"><strong>{learnLastCorrect ? "Nice work." : "Not quite yet."}</strong><p>{learnLastCorrect ? (learnLastConfidence >= learnMasteryTarget ? "This card reached your session goal." : `Confidence moved to ${learnConfidenceLabel(learnLastConfidence)}. It will return later in a harder format.`) : <>The correct answer is <b>{currentLearnCorrectAnswer}</b>. This weak card will return before the next batch.</>}</p>{!learnLastCorrect && learnOptions.retypeCorrectAnswers && <label className="retype-answer"><span>Retype the correct answer to continue</span><input value={learnRetypeAnswer} onChange={(event) => setLearnRetypeAnswer(event.target.value)} placeholder={currentLearnCorrectAnswer} /></label>}</div>
+                        <div className="feedback-copy"><strong>{learnLastCorrect ? "Nice work." : "Not quite yet."}</strong><p>{learnLastCorrect ? (learnLastConfidence >= learnMasteryTarget ? "This card reached your session goal." : `Confidence moved to ${learnConfidenceLabel(learnLastConfidence)}. ${learnGoal === "understand" ? "It will return for another reasoning check." : "It will return later in a harder format."}`) : <>The correct answer is <b>{currentLearnCorrectAnswer}</b>. This weak card will return before the next batch.</>}</p>{!learnLastCorrect && learnOptions.retypeCorrectAnswers && <label className="retype-answer"><span>Retype the correct answer to continue</span><input value={learnRetypeAnswer} onChange={(event) => setLearnRetypeAnswer(event.target.value)} placeholder={currentLearnCorrectAnswer} /></label>}</div>
                         {learnOptions.showImagesOnAnswers && currentLearnCard.imageData && <img width={74} height={58} className="learn-feedback-image" src={currentLearnCard.imageData} alt="Answer study aid" />}
-                        <div className="learn-continue-action"><small>Press any key or click to continue</small><button className="button primary" onClick={nextLearnQuestion} disabled={!learnLastCorrect && learnOptions.retypeCorrectAnswers && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer)}>{learnIndex === learnRoundIds.length - 1 && learnRetryIds.length ? "Retry missed" : learnIndex === learnRoundIds.length - 1 && learnPendingIds.length ? "Next round" : learnIndex === learnRoundIds.length - 1 ? "Finish" : "Next question"} →</button></div>
+                        <div className="learn-continue-action"><small>{learnGoal === "understand" ? "Review the reasoning below before continuing" : "Press any key or click to continue"}</small><button className="button primary" onClick={nextLearnQuestion} disabled={(learnGoal === "understand" && !understandReviewed) || (!learnLastCorrect && learnOptions.retypeCorrectAnswers && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer))}>{learnIndex === learnRoundIds.length - 1 && learnRetryIds.length ? "Retry missed" : learnIndex === learnRoundIds.length - 1 && learnPendingIds.length ? "Next round" : learnIndex === learnRoundIds.length - 1 ? "Finish" : "Next question"} →</button></div>
                       </div>}
-                      {(learnAnswer || learnFlashRevealed) && <StudyExplanation text={currentLearnCard.explanation} />}
+                      {learnGoal === "understand" ? <UnderstandAnswer key={`${currentLearnCard.id}-${learnSequence}`} revealed={Boolean(learnAnswer)} explanation={currentLearnCard.explanation} choices={currentLearnQuestionKind === "select-all" ? currentSelectAll.choices : currentLearnChoices} correctAnswers={correctAnswersForCard(currentLearnCard)} reasons={currentLearnCard.choiceExplanations} reviewed={understandReviewed} onReviewed={setUnderstandReviewed} /> : (learnAnswer || learnFlashRevealed) && <StudyExplanation text={currentLearnCard.explanation} />}
                     </div>
                     </div>
                     <LearnRoundPanel round={learnRound} size={learnRoundIds.length} index={learnIndex} answered={Boolean(learnAnswer)} retries={learnRetryIds.length} pending={learnPendingIds.length} />
@@ -3767,7 +3777,7 @@ export default function Flashbolt() {
               )}
 
               {learnPhase === "complete" && (
-                <><div className="results-card learn-complete"><span className="result-burst"><UiIcon symbol="✓" /></span><span className="eyebrow">100% goal reached</span><h1>You completed the adaptive path.</h1><p className="learn-complete-count"><strong>{learnQuestionsAnswered}</strong> questions answered across <strong>{learnRound}</strong> adaptive round{learnRound === 1 ? "" : "s"}.</p><p>Every card reached the {learnGoal === "cram" ? "familiar" : "mastered"} level. Weak cards repeated, stronger cards advanced to harder recall, and your progress was queued for account sync.</p><div className="button-row center"><button className="button primary" onClick={() => beginLearnSession(learnGoal)}>Practice again</button><button className="button quiet" onClick={() => navigate("set")}>Back to set</button></div></div><StudySummary missed={learnMissedCards} onRetry={() => beginLearnSession(learnGoal, learnOptions, learnMissedIds)} /></>
+                <><div className="results-card learn-complete"><span className="result-burst"><UiIcon symbol="✓" /></span><span className="eyebrow">100% goal reached</span><h1>You completed the adaptive path.</h1><p className="learn-complete-count"><strong>{learnQuestionsAnswered}</strong> questions answered across <strong>{learnRound}</strong> adaptive round{learnRound === 1 ? "" : "s"}.</p><p>Every card reached the {learnGoal === "cram" ? "familiar" : "mastered"} level. {learnGoal === "understand" ? "You practiced answers and reviewed their reasoning. Your written reflections were not graded." : "Weak cards repeated and stronger cards advanced to harder recall."} Your progress was queued for account sync.</p><div className="button-row center"><button className="button primary" onClick={() => beginLearnSession(learnGoal)}>Practice again</button><button className="button quiet" onClick={() => navigate("set")}>Back to set</button></div></div><StudySummary missed={learnMissedCards} onRetry={() => beginLearnSession(learnGoal, learnOptions, learnMissedIds)} /></>
               )}
 
               {knowledgeLevel && learnPhase === "session" && <LearnKnowledgeDetails
