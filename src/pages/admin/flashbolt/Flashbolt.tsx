@@ -25,6 +25,7 @@ import Confirmation from "./Confirmation";
 import Modal from "./Modal";
 import UiIcon from "./UiIcon";
 import LearnRoundPanel from "./LearnRoundPanel";
+import LearnKnowledgeDetails, { type KnowledgeLevel } from "./LearnKnowledgeDetails";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
@@ -918,6 +919,7 @@ export default function Flashbolt() {
   const [learnOptions, setLearnOptions] = useState<LearnOptions>(DEFAULT_LEARN_OPTIONS);
   const [learnOptionsDraft, setLearnOptionsDraft] = useState<LearnOptions>(DEFAULT_LEARN_OPTIONS);
   const [learnOptionsOpen, setLearnOptionsOpen] = useState(false);
+  const [knowledgeLevel, setKnowledgeLevel] = useState<KnowledgeLevel | null>(null);
   const [learnSessionIds, setLearnSessionIds] = useState<string[]>([]);
   const [learnRoundIds, setLearnRoundIds] = useState<string[]>([]);
   const [learnPendingIds, setLearnPendingIds] = useState<string[]>([]);
@@ -1543,7 +1545,7 @@ export default function Flashbolt() {
   const resumableLearn = data.activeLearn?.setId === selectedSet?.id ? data.activeLearn : undefined;
 
   useEffect(() => {
-    if (view !== "learn" || learnPhase !== "session" || !learnAnswer || learnOptionsOpen) return;
+    if (view !== "learn" || learnPhase !== "session" || !learnAnswer || learnOptionsOpen || knowledgeLevel) return;
     const retypeRequired = !learnLastCorrect && learnOptions.retypeCorrectAnswers;
     const canContinue = !retypeRequired || normalizeAnswer(learnRetypeAnswer) === normalizeAnswer(currentLearnCorrectAnswer);
     if (!canContinue) return;
@@ -1558,7 +1560,7 @@ export default function Flashbolt() {
     return () => window.removeEventListener("keydown", continueOnKey);
     // nextLearnQuestion is intentionally omitted because it is recreated with the current session state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentLearnCorrectAnswer, learnAnswer, learnLastCorrect, learnOptions.retypeCorrectAnswers, learnOptionsOpen, learnPhase, learnRetypeAnswer, view]);
+  }, [currentLearnCorrectAnswer, learnAnswer, learnLastCorrect, learnOptions.retypeCorrectAnswers, learnOptionsOpen, knowledgeLevel, learnPhase, learnRetypeAnswer, view]);
 
   useEffect(() => {
     if (view !== "learn" || learnPhase !== "session" || !learnOptions.textToSpeech || !currentLearnPrompt) return;
@@ -3721,8 +3723,10 @@ export default function Flashbolt() {
                   <div className="learn-question-shell">
                     <aside className="learn-knowledge-panel" aria-label="Knowledge progress">
                       <div className="learn-panel-heading"><UiIcon symbol="✦" /><h2>Knowledge</h2></div>
-                    <div className="learn-mastery-overview compact" aria-label="Adaptive knowledge levels"><span><i className="level-new" />New <b>{learnStatusCounts.new}</b></span><span><i className="level-learning" />Learning <b>{learnStatusCounts.learning}</b></span><span><i className="level-familiar" />Familiar <b>{learnStatusCounts.familiar}</b></span><span><i className="level-mastered" />Mastered <b>{learnStatusCounts.mastered}</b></span></div>
-                      <p className="learn-knowledge-note">Watch your confidence grow with each answer.</p>
+                    <div className="learn-mastery-overview compact" aria-label="Adaptive knowledge levels">
+                      {(["new", "learning", "familiar", "mastered"] as const).map(level => <button type="button" className="knowledge-level-button" key={level} onClick={() => setKnowledgeLevel(level)} aria-haspopup="dialog"><i className={`level-${level}`} /><span>{level}</span><b>{learnStatusCounts[level]}</b></button>)}
+                    </div>
+                      <p className="learn-knowledge-note">Select a level to see its questions and what’s next.</p>
                     </aside>
                     <div className="learn-question-main">
                     <div className="learn-current-question" aria-live="polite" aria-atomic="true">
@@ -3765,6 +3769,15 @@ export default function Flashbolt() {
               {learnPhase === "complete" && (
                 <><div className="results-card learn-complete"><span className="result-burst"><UiIcon symbol="✓" /></span><span className="eyebrow">100% goal reached</span><h1>You completed the adaptive path.</h1><p className="learn-complete-count"><strong>{learnQuestionsAnswered}</strong> questions answered across <strong>{learnRound}</strong> adaptive round{learnRound === 1 ? "" : "s"}.</p><p>Every card reached the {learnGoal === "cram" ? "familiar" : "mastered"} level. Weak cards repeated, stronger cards advanced to harder recall, and your progress was queued for account sync.</p><div className="button-row center"><button className="button primary" onClick={() => beginLearnSession(learnGoal)}>Practice again</button><button className="button quiet" onClick={() => navigate("set")}>Back to set</button></div></div><StudySummary missed={learnMissedCards} onRetry={() => beginLearnSession(learnGoal, learnOptions, learnMissedIds)} /></>
               )}
+
+              {knowledgeLevel && learnPhase === "session" && <LearnKnowledgeDetails
+                level={knowledgeLevel}
+                questions={(selectedSet?.cards ?? []).map(card => ({ id: card.id, prompt: parseEmbeddedQuestion(card.term, card.definition).prompt, level: learnConfidenceLabel(selectedLearnProgress[card.id]?.confidence ?? 0).toLowerCase() as KnowledgeLevel }))}
+                currentId={currentLearnCard?.id}
+                nextId={(() => { const next = advanceLearnRound({ roundIds: learnRoundIds, pendingIds: learnPendingIds, retryIds: learnRetryIds, index: learnIndex, round: learnRound }); return next.complete ? undefined : next.roundIds[next.index]; })()}
+                answered={Boolean(learnAnswer)}
+                onClose={() => setKnowledgeLevel(null)}
+              />}
 
               {learnOptionsOpen && <Modal className="learn-options-modal" labelledBy="learn-options-title" onClose={() => setLearnOptionsOpen(false)}>
                 <header><div><span className="eyebrow">Customize Learn</span><h2 id="learn-options-title">Options</h2></div><button className="icon-button" onClick={() => setLearnOptionsOpen(false)} aria-label="Close options"><UiIcon symbol="×" /></button></header>

@@ -8152,3 +8152,38 @@ kbd {
   .learn-page.session-active .learn-question-shell { grid-template-columns: minmax(0, 1fr); grid-template-areas: "question" "rounds" "knowledge"; }
   .learn-round-list { max-height: 220px; }
 }
+
+.learn-knowledge-panel .knowledge-level-button {
+  display: flex; align-items: center; gap: 7px; width: 100%; min-height: 38px;
+  padding: 8px; border: 1px solid var(--line-soft); border-radius: 10px;
+  background: var(--panel-2); color: var(--muted); font-size: 13px; font-weight: 800; cursor: pointer;
+}
+.knowledge-level-button > span { text-transform: capitalize; }
+.knowledge-level-button > i { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.knowledge-level-button > b { margin-left: auto; color: var(--ink); }
+.learn-knowledge-panel .knowledge-level-button:hover { border-color: var(--primary); background: var(--primary-soft); color: var(--ink); }
+.knowledge-level-button:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.learn-knowledge-modal { width: min(760px, calc(100vw - 32px)); max-height: 85dvh; overflow-y: auto; padding: 24px; color: var(--ink); }
+.learn-knowledge-modal > header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
+.learn-knowledge-modal header small, .knowledge-hint { color: var(--muted); font-size: 12px; }
+.learn-knowledge-modal h2 { margin: 4px 0 0; text-transform: capitalize; font-size: 26px; }
+.learn-knowledge-modal h2 span { margin-left: 8px; color: var(--primary-strong); }
+.learn-knowledge-modal header button { width: 40px; height: 40px; border: 1px solid var(--line-soft); border-radius: 12px; background: var(--panel-2); color: var(--ink); font-size: 24px; cursor: pointer; }
+.knowledge-position { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.knowledge-position section { padding: 16px; background: var(--panel-2); border: 1px solid var(--line-soft); border-radius: 12px; }
+.knowledge-position section:first-child { border-color: var(--primary); background: var(--primary-soft); }
+.knowledge-position strong { color: var(--primary-strong); font-size: 12px; }
+.knowledge-position p, .knowledge-question-list p { margin: 8px 0 0; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.knowledge-hint { margin: 14px 0; line-height: 1.5; }
+.knowledge-question-list { display: grid; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.knowledge-question-list li { display: flex; gap: 12px; padding: 14px; border: 1px solid var(--line-soft); border-radius: 12px; background: var(--panel-2); }
+.knowledge-question-list li.is-current { border-color: var(--primary); background: var(--primary-soft); }
+.knowledge-question-number { color: var(--muted); font-size: 13px; min-width: 24px; padding-top: 2px; }
+.knowledge-question-list p { margin-top: 0; }
+.knowledge-question-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+.knowledge-question-tags strong { margin-top: 8px; padding: 4px 8px; border-radius: 20px; background: var(--primary-soft); color: var(--primary-strong); font-size: 11px; }
+.knowledge-empty { text-align: center; padding: 28px 12px; color: var(--muted); line-height: 1.6; }
+@media (max-width: 600px) {
+  .learn-knowledge-modal { padding: 16px; }
+  .knowledge-position { grid-template-columns: 1fr; }
+}

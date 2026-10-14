@@ -49,6 +49,26 @@ test('round panel tracks answers and fits beside the question', async () => {
     await page.screenshot({ path: '/tmp/flashbolt-round-panel-desktop.png', fullPage: true });
     await page.locator('.answer-grid button').filter({ hasText: 'Hybrid app' }).click();
     assert.equal(await page.locator('.learn-round-remaining strong').innerText(), '6');
+    await page.getByRole('button', { name: /^Learning/i }).click();
+    const overview = page.getByRole('dialog', { name: /learning/i });
+    await overview.waitFor();
+    assert.equal(await overview.locator('.knowledge-question-list li').count(), 1);
+    assert.match(await overview.locator('.knowledge-question-list li').innerText(), /Current question/);
+    assert.match(await overview.locator('.knowledge-position section').nth(1).innerText(), /Which type of app/);
+    await page.keyboard.press('ArrowDown');
+    assert.equal(await page.locator('.learn-current-question strong').innerText(), '1');
+    await page.keyboard.press('Escape');
+    assert.equal(await page.getByRole('dialog').count(), 0);
+    assert.equal(await page.locator('.learn-current-question strong').innerText(), '1');
+    await page.locator('.learn-knowledge-panel').getByRole('button', { name: /^New/i }).click();
+    assert.equal(await page.locator('.knowledge-question-list li').count(), 14);
+    assert.equal(await page.locator('.knowledge-question-tags').filter({ hasText: 'Up next' }).count(), 1);
+    await page.getByRole('button', { name: 'Close knowledge overview' }).click();
+    for (const level of ['Familiar', 'Mastered']) {
+      await page.getByRole('button', { name: new RegExp('^' + level, 'i') }).click();
+      assert.match(await page.locator('.knowledge-empty').innerText(), /No questions/);
+      await page.getByRole('button', { name: 'Close knowledge overview' }).click();
+    }
     await page.getByRole('button', { name: /Next question/ }).click();
     assert.equal(await page.locator('.learn-current-question strong').innerText(), '2');
     assert.equal(await page.locator('.learn-round-remaining strong').innerText(), '6');
@@ -59,6 +79,10 @@ test('round panel tracks answers and fits beside the question', async () => {
         assert(box.x >= 0 && box.x + box.width <= width + 1, selector + ' overflows at ' + width);
       }
     }
-    await page.screenshot({ path: '/tmp/flashbolt-round-panel-mobile.png', fullPage: true });
+    await page.locator('.learn-knowledge-panel').getByRole('button', { name: /^New/i }).click();
+    const modalBox = await page.locator('.learn-knowledge-modal').boundingBox();
+    assert(modalBox.x >= 0 && modalBox.x + modalBox.width <= 376);
+    await page.screenshot({ path: '/tmp/flashbolt-knowledge-mobile.png', fullPage: true });
+    await page.getByRole('button', { name: 'Close knowledge overview' }).click();
   } finally { await page.close(); }
 });
