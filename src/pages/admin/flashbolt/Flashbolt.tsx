@@ -3721,6 +3721,10 @@ export default function Flashbolt() {
                   <div className="learn-question-shell">
                     <div className="learn-mastery-overview compact" aria-label="Adaptive knowledge levels"><span><i className="level-new" />New <b>{learnStatusCounts.new}</b></span><span><i className="level-learning" />Learning <b>{learnStatusCounts.learning}</b></span><span><i className="level-familiar" />Familiar <b>{learnStatusCounts.familiar}</b></span><span><i className="level-mastered" />Mastered <b>{learnStatusCounts.mastered}</b></span></div>
                     <div className="learn-question-meta"><span>Adaptive round {learnRound}</span><span>{learnRetryIds.length ? `${learnRetryIds.length} weak card${learnRetryIds.length === 1 ? "" : "s"} queued` : `${learnRoundIds.length - learnIndex} left in this round`}</span></div>
+                    <div className="learn-current-question" aria-live="polite" aria-atomic="true">
+                      <span>Question</span>
+                      <strong>{learnSequence + 1}</strong>
+                    </div>
                     <div className={`question-card ${learnAnswer ? "ready-to-continue" : ""}`} onClick={(event) => { if (!learnAnswer || event.target instanceof Element && event.target.closest("button, input, textarea, select, a, label, .study-explanation")) return; const retypeRequired = !learnLastCorrect && learnOptions.retypeCorrectAnswers; if (retypeRequired && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer)) return; nextLearnQuestion(); }}>
                       <div className="learn-question-stage"><span className="eyebrow">{currentLearnQuestionKind === "written" ? `Write the ${currentLearnAnswerSide}` : currentLearnQuestionKind === "true-false" ? "True or false" : currentLearnQuestionKind === "select-all" ? "Select all that apply" : currentLearnQuestionKind === "flashcard" ? "Recall, then reveal" : `Choose the ${currentLearnAnswerSide}`}</span><span>{learnConfidenceLabel(learnQuestionConfidence)} · stage {Math.min(3, learnQuestionConfidence + 1)}</span></div>
                       <h1>{currentLearnPrompt}</h1>
