@@ -1,5 +1,10 @@
 export const manualImportExamples = [
   {
+    title: "Exam question cards",
+    description: "Paste question-card HTML to keep choices, marked correct answers, and explanations. Copied text with Correct answer: lines also works. Question numbers, AWS Cloud concepts labels, and page controls are omitted.",
+    text: "Question 21\nAWS Cloud concepts\nWhich concept adjusts resources to demand?\n✅ Answer Shown\n💬 Discuss\n🚩 Report\n✅ Correct answer: Elasticity\nAnswer is Elasticity\nResources grow and shrink with demand.",
+  },
+  {
     title: "Term :: definition",
     description: "One card per line. Separate the question or term from its answer with ::.",
     text: "Firewall :: Filters network traffic.\nIDS :: Detects suspicious network activity.",
