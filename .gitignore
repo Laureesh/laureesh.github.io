@@ -24,6 +24,7 @@ dist-ssr
 *.sln
 *.sw?
 .codex
+
 # Private workspace and personal exports
 .private-workspace/
 src/pages/admin/
