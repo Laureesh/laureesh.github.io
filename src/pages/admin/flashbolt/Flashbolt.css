@@ -7856,8 +7856,10 @@ kbd {
 
 .card-explanation-field textarea { box-sizing:content-box; width:auto; resize:none; overflow:hidden; }
 
-.manual-import-examples { display:grid; gap:8px; min-width:0; margin-top:14px; }
-.manual-import-examples h4 { margin:0; color:var(--ink); font-size:14px; }
+.manual-import-examples { min-width:0; margin-top:14px; }
+.manual-import-examples-body { display:grid; gap:8px; margin-top:10px; min-width:0; }
+.manual-import-examples > .manual-import-examples-heading { font-size:14px; }
+.manual-import-examples summary:focus-visible { outline:2px solid var(--ink); outline-offset:4px; border-radius:2px; }
 .manual-import-examples p { margin:0; color:var(--muted); font-size:13px; line-height:1.5; }
 .manual-import-examples details { min-width:0; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--panel); }
 .manual-import-examples summary { cursor:pointer; color:var(--ink); font-size:13px; font-weight:600; }
