@@ -319,3 +319,18 @@
   .learn-progress-badge > strong { font-size: 21px; }
   .learn-progress-badge > small { font-size: 9px; }
 }
+
+/* Let active study sessions use the available desktop canvas. */
+@media (min-width: 901px) {
+  .flashbolt-shell .workspace:has(.learn-page.session-active) {
+    width: calc(100% - 64px);
+  }
+  .flashbolt-shell .learn-page.session-active .learn-question-shell,
+  .flashbolt-shell .learn-page.session-active .learn-session-header {
+    width: 100%;
+  }
+  .flashbolt-shell .learn-question-main > .question-card,
+  .flashbolt-shell .learn-question-main > .question-card h1 {
+    max-width: none;
+  }
+}
