@@ -161,9 +161,25 @@ function parseQuestionCardsHtml(text: string): ParsedCard[] {
     const term = cleanStudyText(content(row.querySelector(".q-text")));
     const options = Array.from(row.querySelectorAll(".options .option"));
     const choices = options.map(content);
-    const answers = options.filter(option => option.classList.contains("correct")).map(content);
+    const answerText = content(row.querySelector(".q-answer"));
+    let answers = options.filter(option => option.classList.contains("correct")).map(content);
+    if (!answers.length) {
+      // Unrevealed cards still contain an answer key, but have no .correct classes.
+      const key = answerText.split("\n")[0].replace(/^(?:✅\s*)?Correct answers?\s*:\s*/i, "").trim();
+      let remaining = key;
+      const matched: string[] = [];
+      while (remaining) {
+        // Match whole choices, including commas inside a choice.
+        const choice = [...choices].sort((a, b) => b.length - a.length).find(candidate =>
+          remaining === candidate || remaining.startsWith(candidate + ", "));
+        if (!choice || matched.includes(choice)) break;
+        matched.push(choice);
+        remaining = remaining.slice(choice.length).replace(/^,\s*/, "");
+      }
+      if (!remaining) answers = matched;
+    }
     if (!term || choices.length < 2 || choices.some(choice => !choice) || !answers.length) return [];
-    const explanation = reviewExplanation(content(row.querySelector(".q-answer")), answers);
+    const explanation = reviewExplanation(answerText, answers);
     return [{
       ...makeCard(term, answers.join("; "), choices),
       correctAnswers: answers,
