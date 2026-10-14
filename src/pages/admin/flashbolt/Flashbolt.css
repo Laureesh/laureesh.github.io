@@ -3828,10 +3828,15 @@ select {
   color: #08251d;
 }
 
-.card-editor-choices label input {
+.card-editor-choices label textarea {
   width: 100%;
   min-width: 0;
-  height: 29px;
+  min-height: 29px;
+  resize: none;
+  overflow: hidden;
+  font: inherit;
+  color: inherit;
+  line-height: 1.5;
   padding: 0;
   border: 0;
   outline: 0;
@@ -6848,7 +6853,7 @@ kbd {
   min-height: 42px;
 }
 
-.card-editor-choices label input,
+.card-editor-choices label textarea,
 .matching-pair-row input {
   overflow-wrap: anywhere;
 }

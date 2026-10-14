@@ -693,6 +693,8 @@ function AutoResizeTextarea({
   className,
   placeholder,
   rows = 2,
+  readOnly,
+  "aria-label": ariaLabel,
 }: {
   value: string;
   onChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
@@ -700,6 +702,8 @@ function AutoResizeTextarea({
   className?: string;
   placeholder?: string;
   rows?: number;
+  readOnly?: boolean;
+  "aria-label"?: string;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -730,6 +734,8 @@ function AutoResizeTextarea({
   return (
     <textarea
       ref={textareaRef}
+      readOnly={readOnly}
+      aria-label={ariaLabel}
       className={className}
       value={value}
       onPaste={onPaste}
@@ -3502,7 +3508,7 @@ export default function Flashbolt() {
                                     return (
                                       <label className={isCorrect ? "correct" : ""} key={`${card.id}-choice-${choiceIndex}`}>
                                         <button type="button" className="choice-correct-toggle" onClick={() => toggleDraftCorrectAnswer(card, choice)} aria-label={`${isCorrect ? "Unmark" : "Mark"} choice ${String.fromCharCode(65 + choiceIndex)} as correct`} aria-pressed={isCorrect}>{String.fromCharCode(65 + choiceIndex)}</button>
-                                        <input value={choice} onChange={(event) => updateDraftChoice(card, choiceIndex, event.target.value)} onPaste={(event) => { if (pasteDraftChoices(card, choiceIndex, event.clipboardData.getData("text/plain"))) event.preventDefault(); }} aria-label={`Choice ${String.fromCharCode(65 + choiceIndex)} for card ${index + 1}`} placeholder={`Choice ${String.fromCharCode(65 + choiceIndex)}`} readOnly={cardQuestionType(card) === "true-false"} />
+                                        <AutoResizeTextarea rows={1} value={choice} onChange={(event) => updateDraftChoice(card, choiceIndex, event.target.value)} onPaste={(event) => { if (pasteDraftChoices(card, choiceIndex, event.clipboardData.getData("text/plain"))) event.preventDefault(); }} aria-label={`Choice ${String.fromCharCode(65 + choiceIndex)} for card ${index + 1}`} placeholder={`Choice ${String.fromCharCode(65 + choiceIndex)}`} readOnly={cardQuestionType(card) === "true-false"} />
                                         {isCorrect && <small>Correct</small>}
                                         {cardQuestionType(card) !== "true-false" && card.answerChoices && card.answerChoices.length > 2 && <button type="button" className="choice-remove" onClick={() => updateDraftCardExtras(card.id, { answerChoices: card.answerChoices?.filter((_, itemIndex) => itemIndex !== choiceIndex), correctAnswers: correctAnswersForCard(card).filter((answer) => normalizeAnswer(answer) !== normalizeAnswer(choice)) })} aria-label={`Remove choice ${String.fromCharCode(65 + choiceIndex)}`}><UiIcon symbol="×" /></button>}
                                       </label>
