@@ -3705,16 +3705,15 @@ export default function Flashbolt() {
                     <Link className="learn-exit" to={routePathForView("set", selectedSet.id)} aria-label="Exit Learn">×</Link>
                     <div className="learn-session-progress" aria-live="polite">
                       <div className="learn-round-track" aria-label={`${learnQuestionsAnswered} of ${learnQuestionsTotal} total questions answered`}>
-                        <span>{learnQuestionsAnswered}</span>
+                        <span className="learn-progress-badge"><strong>{learnQuestionsAnswered}</strong><small>Answered</small></span>
                         <div className="learn-segments">{Array.from({ length: learnQuestionSegmentCount }, (_, groupIndex) => {
                           const segmentStart = groupIndex * 7;
                           const segmentSize = Math.min(7, Math.max(1, learnQuestionsTotal - segmentStart));
                           const answeredInSegment = Math.min(segmentSize, Math.max(0, learnQuestionsAnswered - segmentStart));
                           return <i key={groupIndex}><b style={{ width: `${(answeredInSegment / segmentSize) * 100}%` }} /></i>;
                         })}</div>
-                        <span>{learnQuestionsTotal}</span>
+                        <span className="learn-progress-badge"><strong>{learnQuestionsTotal}</strong><small>Total questions</small></span>
                       </div>
-                      <div className="learn-progress-caption"><span>{learnQuestionsAnswered} answered</span><span>{learnQuestionsTotal} total questions</span></div>
                     </div>
                     <button className="learn-options-button" onClick={() => { setLearnOptionsDraft(learnOptions); setLearnOptionsOpen(true); }}>⚙ Options</button>
                   </header>

@@ -284,3 +284,38 @@
 .flashbolt-shell .theme-picker.compact .theme-picker-menu { width: min(330px, calc(100vw - 24px)); max-height: calc(100dvh - 152px); }
 .flashbolt-shell .theme-picker:not(.compact) .theme-picker-menu { position: fixed; left: 12px; right: auto; bottom: 100px; max-height: min(580px, calc(100dvh - 124px)); }
 .flashbolt-shell .sidebar:has(.theme-picker[open]), .flashbolt-shell .topbar:has(.theme-picker[open]) { backdrop-filter: none; }
+
+/* Keep session counts and their labels together inside the end badges. */
+.flashbolt-shell .learn-round-track {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+}
+.flashbolt-shell .learn-round-track > .learn-progress-badge {
+  min-width: 88px;
+  height: auto;
+  min-height: 56px;
+  padding: 8px 16px;
+  align-content: center;
+  gap: 3px;
+  border-radius: 28px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%);
+}
+.learn-progress-badge > strong {
+  font-size: 23px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.learn-progress-badge > small {
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+@media (max-width: 780px) {
+  .flashbolt-shell .learn-round-track { gap: 8px; }
+  .flashbolt-shell .learn-round-track > .learn-progress-badge { min-width: 70px; min-height: 50px; padding: 7px 10px; }
+  .learn-progress-badge > strong { font-size: 21px; }
+  .learn-progress-badge > small { font-size: 9px; }
+}
