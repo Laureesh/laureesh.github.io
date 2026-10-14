@@ -3720,7 +3720,18 @@ export default function Flashbolt() {
 
                   <div className="learn-question-shell">
                     <div className="learn-mastery-overview compact" aria-label="Adaptive knowledge levels"><span><i className="level-new" />New <b>{learnStatusCounts.new}</b></span><span><i className="level-learning" />Learning <b>{learnStatusCounts.learning}</b></span><span><i className="level-familiar" />Familiar <b>{learnStatusCounts.familiar}</b></span><span><i className="level-mastered" />Mastered <b>{learnStatusCounts.mastered}</b></span></div>
-                    <div className="learn-question-meta"><span>Adaptive round {learnRound}</span><span>{learnRetryIds.length ? `${learnRetryIds.length} weak card${learnRetryIds.length === 1 ? "" : "s"} queued` : `${learnRoundIds.length - learnIndex} left in this round`}</span></div>
+                    <div className="learn-question-meta">
+                      <div className="learn-round-badge">
+                        <UiIcon symbol="◴" />
+                        <span>Adaptive round</span>
+                        <strong>{learnRound}</strong>
+                      </div>
+                      <div className={`learn-remaining-badge ${learnRetryIds.length ? "is-retry" : ""}`}>
+                        <span className="learn-status-dot" aria-hidden="true" />
+                        <strong>{learnRetryIds.length || learnRoundIds.length - learnIndex}</strong>
+                        <span>{learnRetryIds.length ? `weak card${learnRetryIds.length === 1 ? "" : "s"} queued` : "left in this round"}</span>
+                      </div>
+                    </div>
                     <div className="learn-current-question" aria-live="polite" aria-atomic="true">
                       <span>Question</span>
                       <strong>{learnSequence + 1}</strong>

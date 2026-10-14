@@ -8132,3 +8132,60 @@ kbd {
     grid-column: 1;
   }
 }
+
+
+/* Quiet status badges keep round information separate from the question title. */
+.learn-page.session-active .learn-question-meta {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.learn-round-badge,
+.learn-remaining-badge {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--muted);
+}
+.learn-round-badge > .flashbolt-ui-icon {
+  width: 17px;
+  height: 17px;
+  color: var(--primary-strong);
+}
+.learn-round-badge > strong {
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+.learn-remaining-badge > strong {
+  color: var(--ink);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.learn-status-dot {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--mint);
+}
+.learn-remaining-badge.is-retry .learn-status-dot {
+  background: #ff9d5c;
+}
