@@ -1,3 +1,4 @@
+import { scheduleTextareaResize } from "./textareaResize";
 import { withLibraryLoadTimeout } from "./libraryLoadTimeout";
 import { THEME_OPTIONS, applyThemeToDocument, type ThemeName } from "./themes";
 import { groupFolderSets } from "./folderSetOrder";
@@ -717,17 +718,17 @@ function AutoResizeTextarea({
   useEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
-    textarea.style.height = "auto";
-    textarea.style.height = `${textarea.scrollHeight}px`;
+    return scheduleTextareaResize(textarea);
   }, [value]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
     const container = textarea?.parentElement;
     if (!textarea || !container) return;
+    let cancelResize: (() => void) | undefined;
     const resize = () => {
-      textarea.style.height = "auto";
-      textarea.style.height = `${textarea.scrollHeight}px`;
+      cancelResize?.();
+      cancelResize = scheduleTextareaResize(textarea);
     };
     // Height changes are caused by resize itself. Only wrapping-width changes
     // should trigger another measurement, otherwise large editors keep relaying out.
@@ -741,6 +742,7 @@ function AutoResizeTextarea({
     observer?.observe(container);
     window.addEventListener("resize", resize);
     return () => {
+      cancelResize?.();
       observer?.disconnect();
       window.removeEventListener("resize", resize);
     };
@@ -755,8 +757,7 @@ function AutoResizeTextarea({
       value={value}
       onPaste={onPaste}
       onChange={(event) => {
-        event.currentTarget.style.height = "auto";
-        event.currentTarget.style.height = `${event.currentTarget.scrollHeight}px`;
+        scheduleTextareaResize(event.currentTarget);
         onChange(event);
       }}
       placeholder={placeholder}
