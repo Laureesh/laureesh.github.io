@@ -8289,3 +8289,23 @@ kbd {
   .card-question-type .learn-inclusion-copy { flex-basis: calc(100% - 30px); }
   .card-question-type .learn-inclusion-status { margin-left: 30px; }
 }
+
+.flashbolt-loading-status {
+  position: fixed;
+  z-index: 1200;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  padding: 14px 20px;
+  border: 1px solid #7773df;
+  border-radius: 12px;
+  background: #23233b;
+  color: #fff;
+  box-shadow: 0 8px 28px #0004;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}

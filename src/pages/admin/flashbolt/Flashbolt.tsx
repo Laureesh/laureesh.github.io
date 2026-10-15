@@ -1,3 +1,4 @@
+import { withLibraryLoadTimeout } from "./libraryLoadTimeout";
 import { THEME_OPTIONS, applyThemeToDocument, type ThemeName } from "./themes";
 import { groupFolderSets } from "./folderSetOrder";
 import { manualImportExamples } from "./manualImportExamples";
@@ -564,6 +565,7 @@ function describeSyncError(error: unknown) {
   if (code === "resource-exhausted" || candidate?.message?.includes("maximum size")) {
     return "Library is too large for one cloud document";
   }
+  if (code === "deadline-exceeded") return "Cloud loading timed out";
   if (code === "unavailable") return "Firestore is temporarily unavailable";
   return `Cloud error: ${code}`;
 }
@@ -727,7 +729,15 @@ function AutoResizeTextarea({
       textarea.style.height = "auto";
       textarea.style.height = `${textarea.scrollHeight}px`;
     };
-    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(resize);
+    // Height changes are caused by resize itself. Only wrapping-width changes
+    // should trigger another measurement, otherwise large editors keep relaying out.
+    let previousWidth = -1;
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(entries => {
+      const width = entries[0]?.contentRect.width;
+      if (width === undefined || width === previousWidth) return;
+      previousWidth = width;
+      resize();
+    });
     observer?.observe(container);
     window.addEventListener("resize", resize);
     return () => {
@@ -990,16 +1000,16 @@ export default function Flashbolt() {
       }
 
       try {
-        const cloudData = await loadFlashboltLibrary(syncUserId);
+        const cloudData = await withLibraryLoadTimeout(loadFlashboltLibrary(syncUserId));
         if (cancelled) return;
         if (isValidBackup(cloudData)) {
           loadedData = localData
-            ? await mergeAndSaveFlashboltLibrary(syncUserId, localData, (latestCloudData, currentLocalData) => isValidBackup(latestCloudData)
+            ? await withLibraryLoadTimeout(mergeAndSaveFlashboltLibrary(syncUserId, localData, (latestCloudData, currentLocalData) => isValidBackup(latestCloudData)
               ? mergeLibraries(withDataDefaults(latestCloudData), currentLocalData)
-              : currentLocalData)
+              : currentLocalData))
             : withDataDefaults(cloudData);
         } else {
-          await saveFlashboltLibrary(syncUserId, localData ?? loadedData);
+          await withLibraryLoadTimeout(saveFlashboltLibrary(syncUserId, localData ?? loadedData));
         }
       } catch (error) {
         cloudSyncFailed = true;
@@ -2993,6 +3003,8 @@ export default function Flashbolt() {
   }) ?? [];
 
   return (
+    <>
+    {!ready && <div className="flashbolt-loading-status" role="status">Loading your saved library… If the connection is slow, your local backup will open shortly.</div>}
     <div inert={!ready} data-view={view} className={`app-shell flashbolt-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       {confirmation && <Confirmation title={confirmation.title} message={confirmation.message} confirmLabel={confirmation.confirmLabel} onCancel={() => { confirmation.resolve(false); setConfirmation(null); }} onConfirm={() => { confirmation.resolve(true); setConfirmation(null); }} />}
       {clearTermsSetId && (() => {
@@ -3918,5 +3930,6 @@ export default function Flashbolt() {
 
       {toast && <div className="toast" role="status"><span><UiIcon symbol="✓" /></span>{toast}</div>}
     </div>
+    </>
   );
 }
