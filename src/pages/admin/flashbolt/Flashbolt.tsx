@@ -100,6 +100,7 @@ type Card = {
   id: string;
   term: string;
   definition: string;
+  learnEnabled?: boolean;
   explanation?: string;
   choiceExplanations?: Record<string, string>;
   answerChoices?: string[];
@@ -1495,6 +1496,7 @@ export default function Flashbolt() {
 
   const testCards = testCardIds ? (selectedSet?.cards.filter(card => testCardIds.includes(card.id)) ?? []) : (selectedSet?.cards.slice(0, 8) ?? []);
   const testMissedCards = testCards.filter(card => normalizeAnswer(testAnswers[card.id] ?? "") !== normalizeAnswer(testCorrectAnswer(card)));
+  const enabledLearnCards = selectedSet?.cards.filter(card => card.learnEnabled !== false) ?? [];
   const learnMissedCards = selectedSet?.cards.filter(card => learnMissedIds.includes(card.id)) ?? [];
   const testScore = testCards.filter((card) => normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card))).length;
   const guideTitleSuggestions = useMemo(() => suggestNoteTitles(guideNotes), [guideNotes]);
@@ -1539,7 +1541,7 @@ export default function Flashbolt() {
     learnQuestionsAnswered,
   );
   const learnQuestionSegmentCount = Math.max(1, Math.ceil(Math.max(1, learnQuestionsTotal) / 7));
-  const learnStatusCounts = (selectedSet?.cards ?? []).reduce((counts, card) => {
+  const learnStatusCounts = enabledLearnCards.reduce((counts, card) => {
     const confidence = selectedLearnProgress[card.id]?.confidence ?? 0;
     const key = learnConfidenceLabel(confidence).toLowerCase() as "new" | "learning" | "familiar" | "mastered";
     counts[key] += 1;
@@ -2441,7 +2443,7 @@ export default function Flashbolt() {
 
   function beginLearnSession(goal = learnGoal, options = learnOptions, cardIds?: string[]) {
     if (!selectedSet?.cards.length) return;
-    const ids = selectedSet.cards.filter(card => !cardIds || cardIds.includes(card.id)).map((card) => card.id);
+    const ids = enabledLearnCards.filter(card => !cardIds || cardIds.includes(card.id)).map((card) => card.id);
     if (!ids.length) return;
     setLearnMissedIds([]);
     const cardProgress = data.learnProgress?.[selectedSet.id]?.cards ?? {};
@@ -2491,14 +2493,15 @@ export default function Flashbolt() {
 
   function resumeLearnSession() {
     if (!selectedSet || !resumableLearn) return;
-    const validIds = new Set(selectedSet.cards.map((card) => card.id));
+    const validIds = new Set(enabledLearnCards.map((card) => card.id));
     setLearnMissedIds((resumableLearn.missedIds ?? []).filter(id => validIds.has(id)));
     const roundIds = resumableLearn.roundIds.filter((id) => validIds.has(id));
     if (!roundIds.length) {
       beginLearnSession(resumableLearn.goal, resumableLearn.options);
       return;
     }
-    const index = Math.min(resumableLearn.index, roundIds.length - 1);
+    const remainingIndex = resumableLearn.roundIds.slice(0, resumableLearn.index).filter(id => validIds.has(id)).length;
+    const index = Math.min(remainingIndex, roundIds.length - 1);
     const currentId = roundIds[index];
     const questionFirstOptions = { ...resumableLearn.options, answerTerms: false, answerDefinitions: true };
     setLearnGoal(resumableLearn.goal);
@@ -3496,6 +3499,11 @@ export default function Flashbolt() {
                             </div>
                           </header>
                           <div className="card-question-type">
+                            <label className={`learn-inclusion-control ${card.learnEnabled !== false ? "is-enabled" : ""}`}>
+                              <input type="checkbox" checked={card.learnEnabled !== false} onChange={event => updateDraftCardExtras(card.id, { learnEnabled: event.target.checked })} />
+                              <span className="learn-inclusion-copy"><strong>Include in Learn mode</strong><small>{card.learnEnabled !== false ? "This question will appear in your Learn sessions." : "This question is skipped in Learn sessions."}</small></span>
+                              <span className="learn-inclusion-status" aria-hidden="true">{card.learnEnabled !== false ? "Enabled" : "Disabled"}</span>
+                            </label>
                             <label className="auto-question-type"><input type="checkbox" checked={card.questionTypeMode !== "manual"} onChange={event => {
                               const questionTypeMode = event.target.checked ? "auto" : "manual";
                               setDraft(current => ({ ...current, cards: current.cards.map(item => item.id === card.id ? applyDetectedQuestionType({ ...item, questionTypeMode }) : item) }));
@@ -3707,7 +3715,8 @@ export default function Flashbolt() {
                     <button role="radio" aria-checked={learnGoal === "understand"} className={learnGoal === "understand" ? "selected" : ""} onClick={() => setLearnGoal("understand")}><span className="goal-copy"><strong>Understand the concepts</strong><small>Study saved explanations and why each choice fits or fails</small></span><span className="goal-icon memorize"><UiIcon symbol="✦" /></span></button>
                   </div>
                   <div className="learn-mastery-overview" aria-label="Saved knowledge levels"><span><i className="level-new" />New <b>{learnStatusCounts.new}</b></span><span><i className="level-learning" />Learning <b>{learnStatusCounts.learning}</b></span><span><i className="level-familiar" />Familiar <b>{learnStatusCounts.familiar}</b></span><span><i className="level-mastered" />Mastered <b>{learnStatusCounts.mastered}</b></span></div>
-                  <div className="learn-goal-footer"><span>{selectedSet.cards.length} terms · progress saves on this device</span><div className="learn-goal-actions">{resumableLearn && <button className="button quiet learn-start" onClick={resumeLearnSession}>Resume session</button>}<button className="button primary learn-start" onClick={() => beginLearnSession(learnGoal)}>{resumableLearn ? "Start new" : "Start Learn"} <b>→</b></button></div></div>
+                  {!enabledLearnCards.length && <div className="empty-state" role="status"><p>No questions are enabled for Learn mode. Enable questions on the edit set page to begin.</p><button className="button quiet" onClick={() => startEdit(selectedSet)}>Edit set</button></div>}
+                  <div className="learn-goal-footer"><span>{enabledLearnCards.length} enabled terms · progress saves on this device</span><div className="learn-goal-actions">{resumableLearn && <button className="button quiet learn-start" onClick={resumeLearnSession} disabled={!enabledLearnCards.length}>Resume session</button>}<button className="button primary learn-start" onClick={() => beginLearnSession(learnGoal)} disabled={!enabledLearnCards.length}>{resumableLearn ? "Start new" : "Start Learn"} <b>→</b></button></div></div>
                 </div>
               )}
 

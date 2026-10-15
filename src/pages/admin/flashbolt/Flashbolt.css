@@ -8236,3 +8236,56 @@ kbd {
 .choice-explanation-editor { margin-top: 16px; }
 .choice-explanation-editor summary { cursor: pointer; color: var(--primary-strong); }
 @media (max-width: 900px) { .goal-options:has(> button:nth-child(3)) { grid-template-columns: 1fr; } }
+
+.card-question-type .learn-inclusion-control {
+  display: flex;
+  flex: 1 1 100%;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  cursor: pointer;
+}
+.card-question-type .learn-inclusion-control.is-enabled {
+  border-color: color-mix(in srgb, var(--primary-strong) 40%, var(--line));
+  background: color-mix(in srgb, var(--primary-soft) 45%, var(--panel));
+}
+.card-question-type .learn-inclusion-control:hover { border-color: var(--primary-strong); }
+.card-question-type .learn-inclusion-control:focus-within {
+  outline: 2px solid var(--primary-strong);
+  outline-offset: 3px;
+}
+.card-question-type .learn-inclusion-control input {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--primary-strong);
+  cursor: pointer;
+}
+.card-question-type .learn-inclusion-control > span {
+  letter-spacing: 0;
+  text-transform: none;
+}
+.card-question-type .learn-inclusion-copy { flex: 1; min-width: 0; }
+.learn-inclusion-copy strong { display: block; color: var(--ink); font-size: 14px; font-weight: 650; }
+.learn-inclusion-copy small { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; font-weight: 400; line-height: 1.5; }
+.card-question-type .learn-inclusion-status {
+  flex-shrink: 0;
+  padding: 5px 9px;
+  border-radius: 20px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+.card-question-type .is-enabled .learn-inclusion-status { color: var(--primary-strong); background: var(--primary-soft); }
+@media (max-width: 480px) {
+  .card-question-type .learn-inclusion-control { gap: 10px; padding: 12px; flex-wrap: wrap; }
+  .card-question-type .learn-inclusion-copy { flex-basis: calc(100% - 30px); }
+  .card-question-type .learn-inclusion-status { margin-left: 30px; }
+}
