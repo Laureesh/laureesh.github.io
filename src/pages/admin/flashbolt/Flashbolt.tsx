@@ -1,3 +1,4 @@
+import DeferredEditorCard from "./DeferredEditorCard";
 import { scheduleTextareaResize } from "./textareaResize";
 import { withLibraryLoadTimeout } from "./libraryLoadTimeout";
 import { THEME_OPTIONS, applyThemeToDocument, type ThemeName } from "./themes";
@@ -2007,6 +2008,7 @@ export default function Flashbolt() {
       return;
     }
     const element = draftCardElements.current.get(nextCard.id);
+    element?.dispatchEvent(new Event("reveal-editor-card"));
     element?.querySelector<HTMLTextAreaElement>('.card-text-field textarea')?.focus({ preventScroll: true });
     element?.scrollIntoView({
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
@@ -2023,6 +2025,7 @@ export default function Flashbolt() {
       // A preference change must also cancel an advance already queued by a paste.
       if (autoAdvanceOnRef.current !== active) return;
       const element = draftCardElements.current.get(nextCard.id);
+      element?.dispatchEvent(new Event("reveal-editor-card"));
       if (focusTerm) element?.querySelector<HTMLTextAreaElement>('.card-text-field textarea')?.focus({ preventScroll: true });
       element?.scrollIntoView({
         behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
@@ -3479,9 +3482,9 @@ export default function Flashbolt() {
                   <div className="card-editor-list">
                     {!draft.cards.length && <div className="card-editor-empty"><strong>No cards in this set</strong><span>Add a card below or import questions from the tools beside the editor.</span></div>}
                     {draft.cards.map((card, index) => (
-                      <div className="card-editor-wrap" key={card.id}>
+                      <DeferredEditorCard key={card.id} index={index} register={(element) => { if (element) draftCardElements.current.set(card.id, element); else draftCardElements.current.delete(card.id); }}>
+                        {() => <>
                         <article
-                          ref={(element) => { if (element) draftCardElements.current.set(card.id, element); else draftCardElements.current.delete(card.id); }}
                           className={`card-editor ${draggingCardId === card.id ? "dragging" : ""}`}
                           onDragOver={(event) => event.preventDefault()}
                           onDrop={(event) => dropDraftCard(event, card.id)}
@@ -3569,7 +3572,8 @@ export default function Flashbolt() {
                           <footer className="card-editor-footer"><span aria-label={`Card ${index + 1}`}>{String(index + 1).padStart(2, "0")}</span></footer>
                         </article>
                         <button className="insert-card-button" onClick={() => addDraftCard(card.id)} aria-label={`Add a card after card ${index + 1}`}><span><UiIcon symbol="＋" /></span></button>
-                      </div>
+                        </>}
+                      </DeferredEditorCard>
                     ))}
                   </div>
                   <button className="add-card-button" onClick={() => addDraftCard()}>＋ Add another card</button>

@@ -13,7 +13,7 @@ async function mount(view, width = 300) {
   const hash = module.match(/react-router-dom\.js\?v=([^"']+)/)[1];
   const page = await browser.newPage({ viewport: { width, height: 700 } });
   await page.route('**/src/contexts/AuthContext.tsx', route => route.fulfill({ contentType: 'application/javascript', body: 'export const useAuth=()=>({user:{uid:"usability-test"}});' }));
-  await page.route('**/src/services/flashboltLibrary.ts', route => route.fulfill({ contentType: 'application/javascript', body: 'export const loadFlashboltLibrary=async()=>null; export const mergeAndSaveFlashboltLibrary=async(_,data)=>data; export const saveFlashboltLibrary=async()=>{};' }));
+  await page.route('**/src/services/flashboltLibrary.ts', route => route.fulfill({ contentType: 'application/javascript', body: 'window.cloudReads=0; export const loadFlashboltLibrary=async()=>{window.cloudReads++;return null;}; export const mergeAndSaveFlashboltLibrary=async(_,data)=>{window.savedLibrary=data;return data;}; export const saveFlashboltLibrary=async()=>{};' }));
   const path = ['flashcards', 'learn', 'test'].includes(view) ? `no-semester/itec-4450/midterm-mobile-application-development/${view}` : view;
   await page.route('**/usability-test', route => route.fulfill({ contentType: 'text/html', body: `<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><div id="root"></div><script type="module">
     import RefreshRuntime from '/@react-refresh'; RefreshRuntime.injectIntoGlobalHook(window); window.$RefreshReg$=()=>{}; window.$RefreshSig$=()=>type=>type; window.__vite_plugin_react_preamble_installed__=true;
@@ -41,10 +41,28 @@ test('right-click Edit set keeps editor controls responsive', async () => {
     await tile.scrollIntoViewIfNeeded();
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     await tile.click({ button: 'right' });
+    const reads = await page.evaluate(() => window.cloudReads);
+    const started = Date.now();
     await page.getByRole('menuitem', { name: 'Edit set', exact: true }).click();
     await page.locator('.card-editor').first().waitFor();
+    console.log('Edit transition ms:', Date.now() - started, 'mounted cards:', await page.locator('.card-editor').count(), 'textareas:', await page.locator('.card-editor textarea').count());
+    assert.equal(await page.evaluate(() => window.cloudReads), reads);
+    const totalCards = await page.locator('.card-editor-wrap').count();
+    assert((await page.locator('.card-editor').count()) < totalCards, 'offscreen editors should stay deferred');
     await page.getByRole('checkbox', { name: /Include in Learn mode/ }).first().uncheck();
     await page.getByRole('checkbox', { name: /Include in Learn mode/ }).first().check();
     assert.equal(await page.getByRole('menu').count(), 0);
+    const last = page.locator('.card-editor-wrap').last();
+    await last.scrollIntoViewIfNeeded();
+    await last.locator('.card-text-field textarea').first().fill('Edited last card');
+    await page.getByRole('button', { name: '＋ Add another card', exact: true }).click();
+    await page.getByRole('button', { name: 'Go to next available card ↓', exact: true }).evaluate(button => button.click());
+    const addedTerm = page.locator('.card-editor-wrap').last().locator('.card-text-field textarea').first();
+    await addedTerm.waitFor();
+    assert(await addedTerm.evaluate(element => element === document.activeElement));
+    await page.locator('.editor-save-actions').getByRole('button', { name: 'Save', exact: true }).click();
+    await page.waitForFunction(() => window.savedLibrary?.sets.some(set => set.cards.some(card => card.term === 'Edited last card')));
+    const savedCards = await page.evaluate(() => window.savedLibrary.sets.find(set => set.cards.some(card => card.term === 'Edited last card')).cards);
+    assert.equal(savedCards.length, totalCards + 1, 'saving retains unmounted cards and the newly added draft card');
   } finally { await page.close(); }
 });
