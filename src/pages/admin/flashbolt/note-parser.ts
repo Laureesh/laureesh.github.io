@@ -264,6 +264,17 @@ function parsePrintedQuizResults(text: string): ParsedCard[] {
     || /^\d{1,2}\/\d{1,2}\/\d{2,4},.*Individual Response$/i.test(line)
     || /^Copyright ©.*All rights reserved\.$/i.test(line);
   const content = (start: number, end: number) => lines.slice(start, end).filter(line => !furniture(line));
+  const choiceLabels = (rows: string[]) => {
+    const labels: Array<{ label: string; text: string; index: number }> = [];
+    rows.forEach((line, index) => {
+      const match = line.match(/^([A-Z])(?:\s+(.*)|$)/);
+      // A wrapped sentence beginning "A transport..." is not another option A.
+      if (match?.[1] === String.fromCharCode(65 + labels.length)) {
+        labels.push({ label: match[1], text: match[2] ?? "", index });
+      }
+    });
+    return labels;
+  };
   const blocks: Array<{ start: number; explanation: number; card: ParsedCard }> = [];
   let previousExplanation = -1;
   for (let explanation = 0; explanation < lines.length; explanation++) {
@@ -271,8 +282,11 @@ function parsePrintedQuizResults(text: string): ParsedCard[] {
     // Locate the last page boundary before this question's answer list. A page
     // containing only a continued explanation belongs to the preceding card.
     let choiceStart = -1;
-    for (let index = previousExplanation + 1; index < explanation; index++) {
-      if (/^A(?:\s+|$)/.test(lines[index])) choiceStart = index;
+    for (let index = explanation - 1; index > previousExplanation; index--) {
+      if (/^A(?:\s+|$)/.test(lines[index]) && choiceLabels(content(index, explanation).filter(Boolean)).length >= 2) {
+        choiceStart = index;
+        break;
+      }
     }
     if (choiceStart < 0) return [];
     let start = 0;
@@ -281,11 +295,8 @@ function parsePrintedQuizResults(text: string): ParsedCard[] {
     }
     const term = cleanStudyText(content(start, choiceStart).join(" "));
     const rows = content(choiceStart, explanation).filter(Boolean);
-    const labels = rows.flatMap((line, index) => {
-      const match = line.match(/^([A-Z])(?:\s+(.*)|$)/);
-      return match ? [{ label: match[1], text: match[2] ?? "", index }] : [];
-    });
-    if (!term || labels.length < 2 || labels.some((item, index) => item.label !== String.fromCharCode(65 + index))) return [];
+    const labels = choiceLabels(rows);
+    if (!term || labels.length < 2) return [];
     const choices: string[] = [];
     const answers: string[] = [];
     for (const [index, label] of labels.entries()) {
@@ -684,7 +695,14 @@ function isListFragment(value: string) {
   return !/\b(?:is|are|acts|manages|provides|allows|cannot|has|designed)\b/i.test(value);
 }
 
+export function isPrintedQuizReview(text: string): boolean {
+  return /^Question\s+\d+\s+(?:Incorrect|Correct|Partial|Unanswered)\s*$/im.test(text)
+    && /^Explanation:?\s*$/im.test(text)
+    && /https?:\/\/labsimapp\.testout\.com\//i.test(text);
+}
+
 export function parseNotes(text: string): ParsedCard[] {
+  if (isPrintedQuizReview(text)) return parseQuizResults(text);
   // Explicit one-card-per-line imports must be parsed before paragraph handling,
   // which intentionally preserves newlines inside a single question or answer.
   const rows = text.trim().split(/\r\n?|\n/).map(line => line.trim()).filter(Boolean);

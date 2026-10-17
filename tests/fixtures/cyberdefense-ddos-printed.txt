@@ -1,0 +1,246 @@
+6.9.13 Practice Questions
+Date: 10/17/2026, 5:52:23 PM
+Time Spent: 00:02
+Score: 0% Passing Score: 80%
+It is important to be prepared for a DoS attack, as these attacks are becoming more common.
+Which of the following BEST describes the response you should take for a service
+degradation?
+A Have more than one upstream connection to use as a failover.
+B Set services to throttle or shut down. Correct
+C Include a checklist of all threat assessment tools.
+D Add extra services, such as load balancing and excess bandwidth.
+Explanation
+To respond to a service degradation, services can be set to throttle or even shut down in the
+event of an attack.
+You should have more than one upstream connection to use as a failover in the event of a
+flooding attack.
+To absorb an attack, add extra services (such as load balancing and excess bandwidth) so that
+you have too much on your network for the attacker to execute a flood attack.
+Any response plan should include a checklist of all the threat assessment tools and hardware
+protections that you have in place.
+Question 1 Incorrect
+10/17/26, 5:52 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 1/10
+A security analyst discovers that an attacker is attempting to launch a distributed denial-ofservice (DDoS) attack on the company's network.
+What action should the security analyst take to prevent the DDoS attack from succeeding?
+A Implement a firewall to block traffic from the attacker's IP address
+B Add more bandwidth to the server to handle the increased traffic
+C Shut down the server until the attacker is identified
+D
+Configure the router to limit the amount of traffic
+coming from the attacker's IP address
+Correct
+Explanation
+The security analyst should configure the router to limit the amount of traffic coming from the
+attacker's IP address. This will prevent the attacker from overwhelming the company's server
+with traffic.
+The attacker could easily switch to a different IP address and continue the attack.
+Adding more bandwidth to the server would not prevent the DDoS attack and could actually
+make the situation worse by giving the attacker more resources.
+Shutting down the server would not prevent the attack from continuing, and it would also
+result in downtime for the company's services.
+Question 2 Incorrect
+10/17/26, 5:52 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 2/10
+An attack targets ICMP protocol vulnerabilities and is conducted by creating ICMP echo
+request packets using the spoofed IP address of the target machine.
+It then sends packets to the broadcast address network, which results in numerous devices
+responding with replies to the target's IP address, disabling it.
+Which type of attack is this?
+A MAC flooding attack
+B TCP fragmentation attack
+C Land DDoS attack
+D Smurf DDoS attack Correct
+Explanation
+A smurf DDoS attack is an attack that targets ICMP protocol vulnerabilities and is conducted
+by creating ICMP echo request packets using the spoofed IP address of the target machine. It
+then sends packets to the broadcast address network, which results in numerous devices
+responding with replies to the target's IP address, disabling it.
+MAC flooding is a method of attack intended to overflow the memory of a network switch,
+forcing the switch into open-fail mode. This causes it to function like a hub, broadcasting
+incoming data to all ports instead of to specific addresses. The network switch contains a
+Content Addressable Memory (CAM) table, and each incoming MAC address is associated with
+a physical port on the network when functioning normally. By forcing the switch to broadcast
+incoming data to all ports, an attacker can easily intercept the data.
+A land DDoS attack is an attack in which a SYN packet is modified to reflect the host IP address
+as both the destination and the source address. Once the packet is received, it crashes or
+freezes.
+A TCP fragmentation attack is a DDoS attack in which TCP/IP packets are prevented from
+reassembly. This works by setting flags on all frames to indicate them as fragments with
+instructions to connect to another frame that does not exist.
+Question 3 Incorrect
+10/17/26, 5:52 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 3/10
+Which of the following attacks sends fragmented packets that exceed 65, 535 bytes and cause
+a buffer overflow and system crash when reassembled?
+A Phlashing attack
+B Ping of death attack Correct
+C Smurf attack
+D Fraggle attack
+Explanation
+A ping of death attack sends fragmented packets that exceed 65, 535 bytes (the maximum
+size allowed for a ping packet). When these packets are reassembled, they cause a buffer
+overflow and system crash.
+Phlashing, also known as bricking, is a type DDoS attack that pushes incorrect updates to a
+system's firmware, causing irreversible damage.
+A smurf DDoS attack is an attack that targets ICMP protocol vulnerabilities and is conducted
+by creating ICMP echo request packets with the spoofed IP address of the target machine. It
+then sends the packets to the broadcast address network, which results in numerous devices
+responding with replies to the target's IP address, disabling it.
+A fraggle DDoS attack targets UDP weaknesses by broadcasting numerous UDP packets from
+a spoofed IP address in an attempt to flood the target.
+Question 4 Incorrect
+10/17/26, 5:52 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 4/10
+Which of the following BEST describes a DoS fragmentation attack?
+A
+An attack focused on exploiting vulnerabilities in protocols and
+broadcast networks in which intermediary computers amplify small
+requests into larger payloads to overwhelm a server.
+B
+An attack in which fake UDP or ICMP packets larger
+than the MTU are sent to exhaust the processing
+resources.
+Correct
+C
+A transport-level or network-level attack focused on the connection
+state tables of firewalls, load balancers, and application servers.
+D
+A network-level attack focused on consuming all the bandwidth
+between a target and the internet by using multiple sources to flood
+traffic.
+Explanation
+A DoS fragmentation attack involves sending fake UDP or ICMP packets larger than the MTU
+(Maximum Transmission Unit). The large packets are disassembled to be processed, but
+because they are fake, they cannot be reassembled. Processing resources are exhausted in
+trying to reassemble them, causing a server crash.
+A volumetric DoS attack is a network-level attack focused on consuming all the bandwidth
+between a target and the internet by using multiple sources to flood traffic.
+A protocol DoS attack is a transport-level or network-level attack focused on the connection
+state tables of firewalls, load balancers, and application servers.
+An amplification DoS attack is an attack focused on exploiting vulnerabilities in protocols and
+broadcast networks in which intermediary computers amplify small requests into larger
+payloads to overwhelm a server.
+Question 5 Incorrect
+10/17/26, 5:52 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 5/10
+The information below is from Wireshark.
+Which kind of attack is occurring?
+A A SYN flood attack
+B A DDoS attack Correct
+C An ICMP flood attack
+D A DoS attack
+Explanation
+The Wireshark example shows a DDoS attack. There are multiple hosts (192.168.122.172 and
+192.168.122.135) that are sending a high volume of TCP connections in a very short timeframe
+(4.404* seconds). This is also a distributed denial-of-service attack because there are multiple
+sources (not just one).
+Although SYN floods are part of DoS and DDoS attacks, this is more than just a simple SYN
+flood attack.
+There are no ICMP packets shown here.
+Question 6 Incorrect
+10/17/26, 5:52 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 6/10
+Your Intrusion Detection System (IDS) doesn't seem to be listing any new security attacks on
+your network.
+Which of the following DDoS attack methods is MOST likely being used?
+A TCP SYN flood attack
+B Amplification DDoS
+C Protocol DDoS
+D Application Layer DDoS Correct
+Explanation
+Your IDS is most likely being attacked using an application layer DDoS. An application layer
+DDoS attack exhausts the target's resources by overloading a specific program or service. For
+example, many IDSs today use a central logging server, an attacker can target that server
+directly causing it to shut down. Once it shuts down, attacks go unnoticed because the alert
+data is no longer logged.
+A protocol DDoS type of attack targets protocols such as TCP to overload network devices
+such as a firewall.
+An amplification DDoS consumes the bandwidth between the target and the internet
+effectively cutting the target off from the internet.
+A TCP SYN flood attack is an example of a protocol DDoS.
+Question 7 Incorrect
+10/17/26, 5:52 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 7/10
+You discover that your web server is receiving a large number of HTTP requests, causing it to
+repeatedly load a web page.
+Which of the following DDoS attack methods does this fall under?
+A Application layer DDoS Correct
+B DNS DDoS
+C Amplification DDoS
+D Protocol DDoS
+Explanation
+An application layer DDoS's goal is to exhaust the target's resources by overloading a specific
+program or service:
+An attacker sends a large number of HTTP requests to a web server causing it to
+repeatedly load a web page.
+This method takes little effort on the attacker's end, but will quickly overwhelm the web
+server as it repeatedly loads the media files including images, audio, and video.
+A protocol DDoS attack targets protocols such as TCP to overload network devices such as a
+firewall.
+An amplification DDoS consumes the bandwidth between the target and the internet,
+effectively cutting them off.
+A DNS DDoS is an example of an amplification attack.
+Question 8 Incorrect
+10/17/26, 5:52 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 8/10
+You are currently attempting to establish a baseline of regular network traffic to detect
+potential DDoS attacks.
+At the moment, you are choosing a representative period for data collection.
+Which step in establishing a baseline are you currently working on?
+A Step 3
+B Step 2
+C Step 1 Correct
+D Step 4
+Explanation
+The following are the steps (in order) for establishing a baseline of regular network traffic for
+detecting potential DDoS attacks:
+Step 1: Choose a representative period for data collection. This period should capture
+the network's standard activity during normal business hours, weekends, and other
+regular events that influence network load.
+Step 2: Track numerous parameters like the number of packets sent and received, the
+number of unique connections, bandwidth usage, and other metrics that reflect the
+network's regular operation. It's essential to consider peak and off-peak times to
+account for the network's full range of activity.
+Step 3: Analyze data to identify typical patterns and levels of network traffic. This
+establishes the "normal" baseline against which future traffic can be compared.
+There is no Step 4 in the process of establishing a baseline of regular network traffic for
+detecting potential DDoS attacks.
+Question 9 Incorrect
+10/17/26, 5:52 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 9/10
+DDoS attacks are successful when they use all available bandwidth.
+What is the method an attacker normally uses to consume all available bandwidth to a
+targeted server?
+A
+Sending fake UDP or ICMP packets larger than the MTU which cannot
+be reassembled, causing the server to crash.
+B
+Focusing on the connection state tables of firewalls, load balances,
+and application servers.
+C
+Spoofing a target IP address by opening connections
+with multiple servers, then directing all SYN/ACK
+responses to the target server.
+Correct
+D
+Using intermediary computers to amplify small requests into larger
+payloads to overwhelm the server.
+Explanation
+In a DDoS attack, an attacker normally attempts to consume all available bandwidth to a
+targeted server by spoofing a target IP address and opening connections with multiple
+servers to do that. With all SYN/ACK responses directed to the target server, it quickly runs out
+of bandwidth.
+In a fragmentation attack the attacker sends fake UDP or ICMP packets larger than the MTU.
+These large packets are disassembled to process them. The fake packets cannot be
+reassembled and exhaust the processing resources. The server crashes, making it
+unavailable.
+In an amplification attack, the attacker focuses on exploiting vulnerabilities in protocols and
+broadcast networks. The attacker then uses intermediary computers to amplify small requests
+into larger payloads to overwhelm the server.
+In a protocol attack, the attacker focuses on the connection state tables of firewalls, load
+balances, and application servers.
+Copyright © CompTIA, Inc. All rights reserved.
+Question 10 Incorrect
+10/17/26, 5:52 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 10/10

@@ -1,3 +1,4 @@
+import { isPrintedQuizReview } from "./note-parser";
 import { getSetColor } from "./setColors";
 import { jumpToEditorCard } from "./editorCardNavigation";
 import DeferredEditorCard from "./DeferredEditorCard";
@@ -2303,6 +2304,10 @@ export default function Flashbolt() {
     const quizResultCards = parseQuizResults(importText);
     if (/^Questions\s*\(\d+\)\s*$/im.test(importText) && !quizResultCards.length) {
       notify("Could not read every Kahoot question. Copy the full question list with answers shown, including the correct labels.");
+      return;
+    }
+    if (isPrintedQuizReview(importText) && !quizResultCards.length) {
+      notify("Could not read every printed quiz question. No cards were added. Copy the complete review with correct answers and try again.");
       return;
     }
     const htmlCards = quizResultCards.length ? [] : parseQuizletHtml(importText);
