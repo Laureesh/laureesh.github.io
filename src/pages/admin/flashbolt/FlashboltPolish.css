@@ -646,3 +646,10 @@
   .flashbolt-shell.topbar-navigation-layout .topbar .search-box { flex-basis: 80px; }
   .flashbolt-shell .topbar-editing .topbar-quick-navigation { max-width: 30%; }
 }
+
+.flashbolt-shell .editor-advance-label {
+  margin: 8px 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}

@@ -3420,22 +3420,23 @@ export default function Flashbolt() {
                       </nav>
                     </details>
                     <details className="editor-advance-settings" open><summary>Auto-advance settings</summary>
-                    <label className="editor-auto-scroll"><span>Next card after pasting a question</span><input type="checkbox" role="switch" checked={autoScrollQuestion} onChange={(event) => {
+                    <p className="editor-advance-label">Next card after</p>
+                    <label className="editor-auto-scroll"><span>Pasting a question</span><input type="checkbox" role="switch" checked={autoScrollQuestion} onChange={(event) => {
                       const enabled = event.target.checked;
                       setAutoScrollQuestion(enabled);
                       try { window.localStorage.setItem(AUTO_SCROLL_QUESTION_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
                     }} /></label>
-                    <label className="editor-auto-scroll"><span>Next card after pasting choices</span><input type="checkbox" role="switch" checked={autoScrollChoices} onChange={(event) => {
+                    <label className="editor-auto-scroll"><span>Pasting choices</span><input type="checkbox" role="switch" checked={autoScrollChoices} onChange={(event) => {
                       const enabled = event.target.checked;
                       setAutoScrollChoices(enabled);
                       try { window.localStorage.setItem(AUTO_SCROLL_CHOICES_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
                     }} /></label>
-                    <label className="editor-auto-scroll"><span>Next card after marking correct</span><input type="checkbox" role="switch" checked={autoScrollCorrect} onChange={(event) => {
+                    <label className="editor-auto-scroll"><span>Marking correct</span><input type="checkbox" role="switch" checked={autoScrollCorrect} onChange={(event) => {
                       const enabled = event.target.checked;
                       setAutoScrollCorrect(enabled);
                       try { window.localStorage.setItem(AUTO_SCROLL_CORRECT_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
                     }} /></label>
-                    <label className="editor-auto-scroll"><span>Next card after pasting explanation</span><input type="checkbox" role="switch" checked={autoScrollExplanation} onChange={(event) => {
+                    <label className="editor-auto-scroll"><span>Pasting explanation</span><input type="checkbox" role="switch" checked={autoScrollExplanation} onChange={(event) => {
                       const enabled = event.target.checked;
                       setAutoScrollExplanation(enabled);
                       try { window.localStorage.setItem(AUTO_SCROLL_EXPLANATION_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
