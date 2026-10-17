@@ -1,0 +1,387 @@
+Question 1
+Incorrect
+As a system administrator for a financial institution, you add a new desktop to the network, power on the desktop, and then create a new user and disable the local administrator and guest accounts.
+
+What vulnerability did you introduce when you powered on the desktop?
+
+answer
+
+A
+Weak passwords.
+
+
+B
+The system was not updated or patched.
+
+Correct Answer:
+Correct
+
+C
+The system was not initialized.
+
+
+D
+Default credentials.
+
+Explanation
+When a new workstation is added to the network (into production), it is often missing required patches and updates. Failing to properly apply patches and updates may introduce known vulnerabilities that have been fixed via the patch and update process.
+
+Since the default administrator and guest were disabled, there are no default credentials.
+
+It is possible the created user has a weak password, but in most cases, group policies would prevent that occurrence.
+
+The system initialization process had to take place in order for the system administrator to add a new user and disable default users.
+
+
+Question 2
+Incorrect
+What do each of the letters represent in the CIA triad? (Select three.)
+
+answer
+
+A
+Authorization
+
+
+B
+Identification
+
+
+C
+Availability
+
+Correct Answer:
+Correct
+
+D
+Integrity
+
+Correct Answer:
+Correct
+
+E
+Authentication
+
+
+F
+Confidentiality
+
+Correct Answer:
+Correct
+
+G
+Competancy
+
+Explanation
+The CIA triad ensures that information is kept private and protected. The three letters in the acronym represent the following:
+
+Confidentiality is the privacy of information.
+Integrity ensures the source of the data is verified.
+Availability guarantees the information can be reliably accessed.
+
+Question 3
+Incorrect
+Attackers often target data and intangible assets.
+
+What might hackers do with the information they collect. (Select two.)
+
+answer
+
+A
+Hijack DNS
+
+
+B
+Harm a company's reputation
+
+Correct Answer:
+Correct
+
+C
+Damage or disable a firewall
+
+
+D
+Sell the data to the competition
+
+Correct Answer:
+Correct
+
+E
+Stage an on-path attack
+
+Explanation
+Attackers look to profit from their efforts. Collecting and selling information is one way to accomplish that task. Hacktivists also seek to harm a company's reputation by defacing a website or divulging embarrassing information about the company and their practices.
+
+Hackers may introduce an obscure rule in a firewall to help them gain access to a network. They may hijack or poison DNS to redirect users and gain credentials, or they may stage an on-path attack. These are all actions they might take to gather the information they sell or use nefariously.
+
+
+Question 4
+Incorrect
+Which of the following security procedures often uses digital certificates on end devices, allowing encrypted traffic to be intercepted, decrypted, and inspected by security tools or software before being re-encrypted and forwarded to the intended destination?
+
+answer
+
+A
+Public key infrastructure
+
+
+B
+Data breach
+
+
+C
+Data exfiltration
+
+
+D
+SSL inspection
+
+Correct Answer:
+Correct
+Explanation
+Secure Sockets Layer (SSL) inspection often uses digital certificates on end devices, allowing encrypted traffic to be intercepted, decrypted, and inspected by security tools or software before being re-encrypted and forwarded to the intended destination.
+
+Data exfiltration occurs when information or files are transferred from a system without authorization. It can be done manually if the attacker has physical access to the system, or it can be automated over a network by an attacker using malware. A common tactic attackers use for data exfiltration is DNS tunneling.
+
+Data breaches occur when confidential or protected data is exposed. A data breach can be intentional or accidental. The loss of data can be catastrophic to an organization.
+
+Public key infrastructure (PKI) provides a suite of tools designed to support public/private key management, integrity checks via digital signatures, and authentication as well as non-repudiation of users and/or devices through the use of private key encryption.
+
+
+Question 5
+Incorrect
+A company is implementing PKI to enhance the security of its network after a recent series of intercepted emails.
+
+What is the purpose of PKI in this context?
+
+answer
+
+A
+To provide secure and private communication over the internet
+
+
+B
+To detect and prevent unauthorized access to the network
+
+
+C
+To verify the authenticity of digital documents and the identity of users or devices
+
+Correct Answer:
+Correct
+
+D
+To encrypt data transmissions between servers
+
+Explanation
+The main purpose of public key infrastructure (PKI) is to verify the authenticity of digital documents and the identity of users or devices. It provides a way to distribute and manage public keys securely.
+
+While a PKI can contribute to secure and private communication, it is not its main purpose. PKI focuses more on authentication and integrity than confidentiality.
+
+While encryption is a common use case for PKI, it is not the main purpose. PKI focuses more on authentication and integrity.
+
+PKI does not directly detect or prevent unauthorized access to the network.
+
+
+Question 6
+Incorrect
+A company implements a new security protocol that requires employees to use a two-factor authentication process to log in to the system. However, one employee frequently forgets their password and shares it with colleagues.
+
+Which type of threat does this employee pose to the company's cybersecurity?
+
+answer
+
+A
+Intentional insider threat
+
+
+B
+Insider pawn
+
+Correct Answer:
+Correct
+
+C
+Supply chain
+
+
+D
+Script kiddie
+
+Explanation
+Forgetting a password and giving it to colleagues is an unintentional act and falls under the category of insider pawn. However, unintentional insiders cause damage through neglect or exploitation by an outside attacker.
+
+Forgetting best practices is not a supply chain issue. Organizations use outside sources for parts, software, or maintenance services that form the supply chain.
+
+A script kiddie acts intentionally; forgetting is unintentional. A script kiddie is a person that uses hacker tools without necessarily understanding how they work or the ability to craft new attacks.
+
+Forgetting best practices is an unintentional act. An insider threat arises from an actor identified by the organization and granted access. An intentional insider is very much aware of their actions and has a clear intent and goal.
+
+
+Question 7
+Incorrect
+You have observed that an employee at your company has been coming in at odd hours, requesting sensitive data that is unrelated to their position, and bringing in their own flash drive.
+
+The employee's actions are common indicators of which of the following threats?
+
+answer
+
+A
+Data loss
+
+Correct Answer:
+Correct
+
+B
+In-band SQL injection
+
+
+C
+A Trojan horse
+
+
+D
+Phishing scam
+
+Explanation
+An employee that frequents the office at strange times, requests sensitive data that is unrelated to his or her job, and brings unauthorized storage devices indicates a data loss threat.
+
+A Trojan horse attack is a form of malware attack.
+
+A phishing scam is an email security threat in which a criminal contacts someone through email pretending to be from a legitimate organization.
+
+An in-band SQL injection attack is a code injection attack in which one communication channel is used for information gathering and attack execution.
+
+
+Question 8
+Incorrect
+A security analyst needs a data loss prevention (DLP) solution to prevent users from transferring data without authorization.
+
+What components typically makeup DLP solutions? (Select three.)
+
+answer
+
+A
+Tombstone
+
+
+B
+USB Devices
+
+
+C
+Block
+
+
+D
+Quarantine
+
+
+E
+Network agents
+
+Correct Answer:
+Correct
+
+F
+Endpoint agents
+
+Correct Answer:
+Correct
+
+G
+Policy Server
+
+Correct Answer:
+Correct
+Explanation
+Data loss prevention solutions (DLP) commonly utilize policy servers to configure classification, confidentiality, privacy rules, and policies. It also logs incidents and compiles reports.
+
+Endpoint Agents enforce policy on client computers, even when they do not connect to the network.
+
+DLP solutions typically use network agents as a component of their systems to scan communications at network borders and interface with web and messaging servers to enforce the policy.
+
+USB devices are not typical components of DLP solutions. Instead, USB devices often facilitate the unauthorized transference of data. Email, instant messaging, and social media are other methods users can use to transfer data improperly.
+
+The following are typical remediation actions taken by DLP software when it detects a policy violation (but are not DLP components):
+
+Alert only: The copying is allowed, but the management system records an incident and may alert an administrator.
+Block: The user is prevented from copying the original file but retains access to it. The user may or may not be alerted to the policy violation, but it will be logged as an incident by the management engine.
+Quarantine: Access to the original file is denied to the user (or possibly any user). This might be accomplished by encrypting the file in place or by moving it to a quarantine area in the file system.
+Tombstone: The original file is quarantined and replaced with one describing the policy violation and how the user can release it again.
+
+Question 9
+Incorrect
+A company's security operations center has implemented a data loss prevention (DLP) solution to monitor and prevent sensitive data from being transmitted outside the organization.
+
+The security team also maintains strict controls over cardholder data (CHD) and personally identifiable information (PII) to comply with industry regulations and protect customer privacy.
+
+Which of the following is a potential benefit of implementing a DLP solution in a security operations environment?
+
+answer
+
+A
+A DLP solution can provide physical security for servers and network devices, protecting against theft or damage.
+
+
+B
+A DLP solution can help prevent sensitive data from being transmitted outside the organization, reducing the risk of data breaches and compliance violations.
+
+Correct Answer:
+Correct
+
+C
+A DLP solution can automatically detect and remediate vulnerabilities in software and hardware components.
+
+
+D
+A DLP solution can provide real-time threat intelligence and analysis to identify and respond to security incidents.
+
+Explanation
+DLP can help identify and prevent unauthorized access, transmission, and storage of sensitive data such as cardholder data and personally identifiable information.
+
+While physical security is important in a security operations environment, a DLP solution focuses on preventing data loss rather than protecting physical devices.
+
+While vulnerability detection and remediation are important in a security operations environment, a DLP solution focuses on data loss prevention rather than identifying and patching vulnerabilities.
+
+While threat intelligence and analysis are important in a security operations environment, a DLP solution focuses on data loss prevention rather than real-time threat identification and response.
+
+
+Question 10
+Incorrect
+Which data monitoring method do the steps below BEST describe?
+
+Keep a user log to document everyone that handles each piece of sensitive data.
+Monitor the system in real time.
+answer
+
+A
+DNS monitoring
+
+
+B
+URL monitoring
+
+
+C
+File monitoring
+
+Correct Answer:
+Correct
+
+D
+DGA monitoring
+
+Explanation
+File monitoring includes the following steps:
+
+Use software that notifies you when changes are made to a sensitive file.
+Keep a user log to document everyone that handles each piece of sensitive data.
+Use software that compares the current file state to a known baseline.
+Monitor the system in real time.
+URL monitoring includes using software to monitor for embedded malicious URLs and remove them when detected.
+
+DNS monitoring includes analyzing DNS logs that contain each connection to a domain.
+
+DGA monitoring includes using software that uses machine learning to detect suspicious domains that are generated in large volume by a DGA tool that is trying to hide malware.

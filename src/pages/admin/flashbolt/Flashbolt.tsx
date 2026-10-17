@@ -473,7 +473,7 @@ function testCorrectAnswer(card: Card) {
 
 function learnAnswerSide(options: LearnOptions, sequence: number, card?: Card): "term" | "definition" {
   if (card) {
-    const embedded = parseEmbeddedQuestion(card.term, card.definition);
+    const embedded = parseEmbeddedQuestion(card.term, card.definition, card.answerChoices);
     if (embedded.prompt.endsWith("?") || embedded.choices.length >= 2) return "definition";
   }
   if (options.answerTerms && !options.answerDefinitions) return "term";
@@ -501,7 +501,7 @@ function learnChoices(set: StudySet, card: Card, answerSide: "term" | "definitio
   if (answerSide === "definition") {
     const embeddedChoices = card.answerChoices?.length
       ? card.answerChoices
-      : parseEmbeddedQuestion(card.term, card.definition).choices;
+      : parseEmbeddedQuestion(card.term, card.definition, card.answerChoices).choices;
     const suppliedChoices = [...new Set(embeddedChoices.map((choice) => choice.trim()).filter(Boolean))];
     if (suppliedChoices.length >= 2) {
       return suppliedChoices.some((choice) => normalizeAnswer(choice) === normalizeAnswer(cleanChoiceAnswer(correct)))
@@ -574,7 +574,8 @@ function describeSyncError(error: unknown) {
 }
 
 function withDetectedAnswerChoices(card: Card): Card {
-  const embedded = parseEmbeddedQuestion(card.term, card.definition);
+  if (card.answerChoices?.some(choice => choice.trim())) return card;
+  const embedded = parseEmbeddedQuestion(card.term, card.definition, card.answerChoices);
   return embedded.choices.length >= 2
     ? { ...card, term: embedded.prompt, answerChoices: embedded.choices }
     : card;
@@ -1328,7 +1329,7 @@ export default function Flashbolt() {
   const helperCards = (helperSet?.cards ?? []).filter((card) => {
     const query = helperSearch.trim().toLocaleLowerCase();
     if (!query) return true;
-    const embedded = parseEmbeddedQuestion(card.term, card.definition);
+    const embedded = parseEmbeddedQuestion(card.term, card.definition, card.answerChoices);
     return [embedded.prompt, card.term, card.definition, ...(card.answerChoices ?? embedded.choices), ...(card.correctAnswers ?? [])]
       .some((value) => value.toLocaleLowerCase().includes(query));
   });
@@ -1530,7 +1531,7 @@ export default function Flashbolt() {
   const currentLearnAnswerSide = learnGoal === "understand" ? "definition" : learnAnswerSide(learnOptions, learnSequence, currentLearnCard);
   const currentLearnPromptSide = currentLearnAnswerSide === "definition" ? "term" : "definition";
   const currentEmbeddedQuestion = useMemo(
-    () => currentLearnCard ? parseEmbeddedQuestion(currentLearnCard.term, currentLearnCard.definition) : { prompt: "", choices: [] },
+    () => currentLearnCard ? parseEmbeddedQuestion(currentLearnCard.term, currentLearnCard.definition, currentLearnCard.answerChoices) : { prompt: "", choices: [] },
     [currentLearnCard],
   );
   const currentLearnPrompt = currentLearnPromptSide === "term"
@@ -3828,7 +3829,7 @@ export default function Flashbolt() {
 
               {knowledgeLevel && learnPhase === "session" && <LearnKnowledgeDetails
                 level={knowledgeLevel}
-                questions={(selectedSet?.cards ?? []).map(card => ({ id: card.id, prompt: parseEmbeddedQuestion(card.term, card.definition).prompt, level: learnConfidenceLabel(selectedLearnProgress[card.id]?.confidence ?? 0).toLowerCase() as KnowledgeLevel }))}
+                questions={(selectedSet?.cards ?? []).map(card => ({ id: card.id, prompt: parseEmbeddedQuestion(card.term, card.definition, card.answerChoices).prompt, level: learnConfidenceLabel(selectedLearnProgress[card.id]?.confidence ?? 0).toLowerCase() as KnowledgeLevel }))}
                 currentId={currentLearnCard?.id}
                 nextId={(() => { const next = advanceLearnRound({ roundIds: learnRoundIds, pendingIds: learnPendingIds, retryIds: learnRetryIds, index: learnIndex, round: learnRound }); return next.complete ? undefined : next.roundIds[next.index]; })()}
                 answered={Boolean(learnAnswer)}
@@ -3884,7 +3885,7 @@ export default function Flashbolt() {
                 </div>
                 {helperCards.length ? <div className="kahoot-helper-list">
                   {helperCards.map((card, index) => {
-                    const embedded = parseEmbeddedQuestion(card.term, card.definition);
+                    const embedded = parseEmbeddedQuestion(card.term, card.definition, card.answerChoices);
                     const choices = card.answerChoices?.length ? card.answerChoices : embedded.choices;
                     const answers = correctAnswersForCard(card).map(normalizeAnswer);
                     const question = embedded.prompt || card.term;

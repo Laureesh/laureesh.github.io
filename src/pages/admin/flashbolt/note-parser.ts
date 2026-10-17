@@ -439,7 +439,10 @@ function choicesFromRemainder(remainder: string, expectedAnswer: string) {
   return splitConcatenatedChoices(remainder, expectedAnswer);
 }
 
-export function parseEmbeddedQuestion(term: string, expectedAnswer: string) {
+export function parseEmbeddedQuestion(term: string, expectedAnswer: string, suppliedChoices?: string[]) {
+  // Structured imports already separate the prompt and choices. Prompt lists
+  // after a question mark must never replace those authoritative choices.
+  if (suppliedChoices?.some(choice => choice.trim())) return { prompt: term.trim(), choices: suppliedChoices };
   const cleanTerm = term.replace(/\*\*/g, "").trim();
   const answerChoicesMarker = cleanTerm.match(/\s+answer choices?\s*:\s*/i);
   if (answerChoicesMarker?.index !== undefined) {
@@ -453,7 +456,10 @@ export function parseEmbeddedQuestion(term: string, expectedAnswer: string) {
   if (questionEnd >= 0) {
     const prompt = cleanStudyText(cleanTerm.slice(0, questionEnd + 1));
     const remainder = cleanTerm.slice(questionEnd + 1).trim();
-    return { prompt, choices: remainder ? choicesFromRemainder(remainder, expectedAnswer) : [] as string[] };
+    const choices = remainder ? choicesFromRemainder(remainder, expectedAnswer) : [];
+    const answers = expectedAnswer.split(/;\s*/).filter(answer => answer.trim());
+    if (choices.length >= 2 && answers.length && answers.every(answer => choices.some(choice => normalizedChoice(choice) === normalizedChoice(answer)))) return { prompt, choices };
+    return { prompt: cleanTerm, choices: [] as string[] };
   }
 
   const colonEnd = cleanTerm.lastIndexOf(":");
