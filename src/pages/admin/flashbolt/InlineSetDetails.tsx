@@ -1,5 +1,5 @@
 import { useState, type MouseEvent } from "react";
-import { Ellipsis } from "lucide-react";
+import { Ellipsis, ExternalLink, Pencil, Play, SlidersHorizontal, Zap } from "lucide-react";
 import SetColorPicker from "./SetColorPicker";
 
 export type SetDetails = { title: string; subject: string; description: string; color: string };
@@ -8,12 +8,14 @@ type Props = {
   set: SetDetails & { id: string };
   onSave: (details: SetDetails) => void;
   onQuickLearn: () => void;
+  editHref: string;
+  onEdit: (event: MouseEvent<HTMLAnchorElement>) => void;
   onOpenKahootHelper?: () => void;
   kahootUrl?: string;
   onOpenActions?: (event: MouseEvent<HTMLButtonElement>) => void;
 };
 
-export default function InlineSetDetails({ set, onSave, onQuickLearn, onOpenKahootHelper, kahootUrl, onOpenActions }: Props) {
+export default function InlineSetDetails({ set, onSave, onQuickLearn, editHref, onEdit, onOpenKahootHelper, kahootUrl, onOpenActions }: Props) {
   const [draft, setDraft] = useState<SetDetails | null>(null);
   const [error, setError] = useState("");
   const cancel = () => { setDraft(null); setError(""); };
@@ -22,14 +24,15 @@ export default function InlineSetDetails({ set, onSave, onQuickLearn, onOpenKaho
     <div className="set-tile-title-row">
       <strong className="set-tile-title">{set.title}</strong>
       <div className={`set-tile-actions${onOpenKahootHelper ? " has-kahoot-helper" : ""}`}>
-        <button type="button" className="set-tile-quick-edit" aria-label={`Quick learn ${set.title}`} onClick={onQuickLearn}>Quick learn</button>
-        <button type="button" className="set-tile-quick-edit" aria-label={`Quick edit ${set.title}`} onClick={() => {
+        <button type="button" className="set-tile-quick-edit set-action-learn" aria-label={`Quick learn ${set.title}`} title="Start a quick learning session" onClick={onQuickLearn}><Play aria-hidden="true" />Quick learn</button>
+        <a className="set-tile-quick-edit set-action-edit" href={editHref} aria-label={`Edit set ${set.title}`} title="Edit cards and set details" onClick={onEdit}><Pencil aria-hidden="true" />Edit set</a>
+        <button type="button" className="set-tile-quick-edit" aria-label={`Quick edit ${set.title}`} title="Quickly edit title, subject, description, and color" onClick={() => {
           setDraft({ title: set.title, subject: set.subject, description: set.description, color: set.color });
           setError("");
-        }}>Quick edit</button>
-        {onOpenActions && <button type="button" className="set-tile-quick-edit set-actions-trigger" aria-label={`Actions for ${set.title}`} aria-haspopup="menu" onClick={onOpenActions}><Ellipsis aria-hidden="true" /></button>}
-        {onOpenKahootHelper && <button type="button" className="set-tile-quick-edit" aria-label={`Open Kahoot Helper for ${set.title}`} onClick={onOpenKahootHelper}>Kahoot Helper</button>}
-        {kahootUrl && <a className="tile-kahoot-link" href={kahootUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()} aria-label={`Linked Kahoot for ${set.title}`}>Linked Kahoot <span aria-hidden="true">↗</span></a>}
+        }}><SlidersHorizontal aria-hidden="true" />Quick edit</button>
+        {onOpenKahootHelper && <button type="button" className="set-tile-quick-edit" aria-label={`Open Kahoot Helper for ${set.title}`} onClick={onOpenKahootHelper}><Zap aria-hidden="true" />Kahoot Helper</button>}
+        {kahootUrl && <a className="tile-kahoot-link" href={kahootUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()} aria-label={`Linked Kahoot for ${set.title}`}><ExternalLink aria-hidden="true" />Linked Kahoot</a>}
+        {onOpenActions && <button type="button" className="set-tile-quick-edit set-actions-trigger" title="More actions" aria-label={`Actions for ${set.title}`} aria-haspopup="menu" onClick={onOpenActions}><Ellipsis aria-hidden="true" /></button>}
       </div>
     </div>
     <span className="tile-description">{set.description || "Your private flashcard set."}</span>

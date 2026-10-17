@@ -159,8 +159,30 @@
 .flashbolt-shell .avatar { display: grid; place-items: center; cursor: default; }
 .flashbolt-shell:not([data-view="helper"]) .set-tile-title-row { flex-wrap: wrap; gap: 10px; }
 .flashbolt-shell:not([data-view="helper"]) .set-tile-title-row .set-tile-title { flex: 1 1 100%; overflow-wrap: break-word; word-break: normal; }
-.flashbolt-shell .set-tile-actions { flex-direction: row; flex-wrap: wrap; max-width: 100%; }
-.flashbolt-shell .set-tile-actions .set-tile-quick-edit { min-height: 36px; font-size: 12px; }
+.flashbolt-shell .set-tile-actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; max-width: 100%; }
+.flashbolt-shell .set-tile-actions :is(.set-tile-quick-edit, .tile-kahoot-link) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+.flashbolt-shell .set-tile-actions svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--primary-strong); stroke-width: 1.8; }
+.flashbolt-shell .set-tile-actions .set-action-learn { background: var(--primary-soft); border-color: color-mix(in srgb, var(--primary-strong) 45%, var(--line)); color: var(--ink); }
+.flashbolt-shell .set-tile-actions .set-action-edit { color: var(--ink); }
+.flashbolt-shell .set-tile-actions :is(button, a):hover { background: var(--primary-soft); border-color: var(--primary-strong); color: var(--ink); }
+.flashbolt-shell .set-tile-actions :is(button, a):focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 2px; }
+.flashbolt-shell .set-tile-actions .set-actions-trigger { width: 36px; padding: 7px; }
 .flashbolt-shell .set-actions-trigger { display: inline-grid; place-items: center; min-width: 36px; }
 .flashbolt-shell .set-actions-trigger svg { width: 19px; height: 19px; }
 .flashbolt-shell .review-set-list article > div { flex: 1 1 auto; }

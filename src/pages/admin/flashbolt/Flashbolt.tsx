@@ -2906,7 +2906,7 @@ export default function Flashbolt() {
               <Link className="set-tile-open" to={routePathForView("set", set.id)} aria-label={`Open ${set.title}`}><span className="visually-hidden">Open {set.title}</span></Link>
               <span className={`set-accent ${set.color}`} style={{ backgroundColor: getSetColor(set.color).hex }} />
               <span className="tile-kicker"><span>{set.subject || "General"}</span><span>{formatDate(set.updatedAt)}</span></span>
-              <InlineSetDetails set={set} onQuickLearn={() => startLearn(set.id)} onOpenActions={event => {
+              <InlineSetDetails set={set} editHref={routePathForView("create", set.id)} onEdit={event => followFlashboltLink(event, () => startEdit(set))} onQuickLearn={() => startLearn(set.id)} onOpenActions={event => {
                 const rect = event.currentTarget.getBoundingClientRect();
                 setSetContextMenu({ setId: set.id, x: rect.left, y: rect.bottom + 6 });
               }} kahootUrl={set.kahootUrl && isSafeKahootUrl(set.kahootUrl) ? set.kahootUrl : undefined} onOpenKahootHelper={() => openKahootHelper(set)} onSave={(details) => {

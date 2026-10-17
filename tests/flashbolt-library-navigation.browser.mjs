@@ -13,12 +13,12 @@ let browser;
 before(async () => { browser = await chromium.launch({ headless: true }); });
 after(async () => { await browser?.close(); });
 
-async function mount(view, width = 300) {
+async function mount(view, width = 300, libraryFixture = fixture) {
   const module = await (await fetch(`${origin}/src/pages/admin/flashbolt/Flashbolt.tsx`)).text();
   const hash = module.match(/react-router-dom\.js\?v=([^"']+)/)[1];
   const page = await browser.newPage({ viewport: { width, height: 700 } });
   await page.route('**/src/contexts/AuthContext.tsx', route => route.fulfill({ contentType: 'application/javascript', body: 'export const useAuth=()=>({user:{uid:"usability-test"}});' }));
-  await page.route('**/src/services/flashboltLibrary.ts', route => route.fulfill({ contentType: 'application/javascript', body: `export const loadFlashboltLibrary=async()=>(${JSON.stringify(fixture)}); export const mergeAndSaveFlashboltLibrary=async(_,data)=>data; export const saveFlashboltLibrary=async()=>{};` }));
+  await page.route('**/src/services/flashboltLibrary.ts', route => route.fulfill({ contentType: 'application/javascript', body: `export const loadFlashboltLibrary=async()=>(${JSON.stringify(libraryFixture)}); export const mergeAndSaveFlashboltLibrary=async(_,data)=>data; export const saveFlashboltLibrary=async()=>{};` }));
   const path = ['flashcards', 'learn', 'test'].includes(view) ? `no-semester/itec-4450/midterm-mobile-application-development/${view}` : view;
   await page.route('**/usability-test', route => route.fulfill({ contentType: 'text/html', body: `<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><div id="root"></div><script type="module">
     import RefreshRuntime from '/@react-refresh'; RefreshRuntime.injectIntoGlobalHook(window); window.$RefreshReg$=()=>{}; window.$RefreshSig$=()=>type=>type; window.__vite_plugin_react_preamble_installed__=true;
@@ -161,6 +161,36 @@ for (const width of [1800, 390]) {
       await page.locator('.page-heading').getByRole('button', { name: 'Batch quick edit', exact: true }).click();
       assert.equal(await rows.count(), 2, 'library batch action respects filters');
       await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+    } finally { await page.close(); }
+  });
+}
+
+for (const width of [1800, 390]) {
+  test(`set action row opens full and quick editors at ${width}px`, async () => {
+    const title = '3.2.9 - Practice Questions (Section 3)';
+    const page = await mount('library', width, { ...fixture, sets: fixture.sets.map((set, index) => index === 0 ? { ...set, title } : set) });
+    try {
+      const tile = page.locator('#library-set-nav-set-0');
+      await page.getByRole('navigation', { name: 'Open folder' }).getByRole('link', { name: /Internet Security/ }).click();
+      for (const view of ['default', 'list', 'compact']) {
+        await page.getByRole('combobox', { name: 'Folder set card view' }).selectOption(view);
+        const actions = tile.locator('.set-tile-actions');
+        assert.deepEqual(await actions.locator(':scope > *').allTextContents(), ['Quick learn', 'Edit set', 'Quick edit', 'Kahoot Helper', '']);
+        assert.equal(await actions.getByRole('link', { name: `Edit set ${title}` }).getAttribute('href'), '/admin-dashboard/private-pages/flashbolt/fall-2026/itec-4320-internet-security/3-2-9-practice-questions-section-3/edit');
+        assert(!(await tile.evaluate(element => element.scrollWidth > element.clientWidth)), `${view} actions fit the card`);
+        await tile.getByRole('button', { name: `Quick edit ${title}`, exact: true }).click();
+        await tile.getByRole('form', { name: `Edit details for ${title}` }).waitFor();
+        await tile.getByRole('button', { name: 'Cancel', exact: true }).click();
+      }
+      await tile.scrollIntoViewIfNeeded();
+      await tile.screenshot({ path: `/tmp/flashbolt-set-actions-${width}.png` });
+      await tile.getByRole('button', { name: `Actions for ${title}`, exact: true }).click();
+      await page.getByRole('menu', { name: `Actions for ${title}` }).waitFor();
+      await page.keyboard.press('Escape');
+      await tile.getByRole('link', { name: `Edit set ${title}` }).click();
+      await page.locator('.flashbolt-shell[data-view="create"]').waitFor();
+      assert.equal(await page.locator('#set-title').inputValue(), title, 'full editor receives the selected set');
+      assert.equal(await page.locator('.card-editor-list .card-editor').count(), 1, 'full editor loads its cards');
     } finally { await page.close(); }
   });
 }
