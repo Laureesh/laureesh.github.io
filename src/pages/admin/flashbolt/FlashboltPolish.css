@@ -811,3 +811,54 @@
 @media (max-width: 780px) {
   .flashbolt-shell .mobile-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
+
+.flashbolt-shell[data-view="library"] .workspace { width: calc(100% - 40px); padding-top: 12px; }
+.flashbolt-shell .library-navigation-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); align-items: start; gap: 18px; }
+.flashbolt-shell .library-page-content { min-width: 0; }
+.flashbolt-shell .library-navigation-panel {
+  position: sticky;
+  top: 88px;
+  align-self: start;
+  max-height: calc(100dvh - 104px);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+}
+.flashbolt-shell .library-navigation-count { margin: 8px 0; color: var(--muted); font-size: 12px; }
+.flashbolt-shell .library-navigation-links,
+.flashbolt-shell .library-navigation-links > section { display: grid; gap: 6px; }
+.flashbolt-shell .library-navigation-links > section + section { margin-top: 8px; }
+.flashbolt-shell .library-navigation-links h3 { margin: 4px 0; color: var(--muted); font-size: 11px; line-height: 1.4; font-weight: 650; }
+.flashbolt-shell .library-navigation-links :is(button, a) {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.flashbolt-shell .library-navigation-links :is(button, a):hover { border-color: var(--primary-strong); background: var(--primary-soft); }
+.flashbolt-shell .library-navigation-links a > span:not(.library-navigation-folder-color) { flex: 1; min-width: 0; }
+.flashbolt-shell .library-navigation-links small { flex-shrink: 0; color: var(--muted); font-size: 11px; }
+.flashbolt-shell .library-navigation-folder-color { width: 9px; height: 9px; flex: 0 0 9px; border-radius: 3px; }
+.flashbolt-shell .library-navigation-links p { margin: 4px 0; color: var(--muted); font-size: 12px; }
+.flashbolt-shell .library-page-content .set-tile { scroll-margin-top: 88px; }
+.flashbolt-shell .library-page-content .set-tile:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 3px; }
+@media (max-width: 900px) {
+  .flashbolt-shell .library-navigation-layout { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .flashbolt-shell .library-navigation-panel { position: static; max-height: 280px; }
+}
+@media (max-width: 780px) {
+  .flashbolt-shell .library-page-content .set-tile { scroll-margin-top: 80px; }
+}

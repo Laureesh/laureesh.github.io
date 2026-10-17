@@ -2900,7 +2900,7 @@ export default function Flashbolt() {
             ? data.folders.filter((folderItem) => folderItem.name.toLocaleLowerCase().includes(normalizedFolderSearch))
             : data.folders;
           return (
-            <article className={`set-tile ${progress === 100 ? "completed" : ""}`} data-set-color={set.color} style={{ "--set-color": getSetColor(set.color).hex } as CSSProperties} key={set.id} onContextMenu={(event) => openSetContextMenu(event, set.id)}>
+            <article id={view === "library" ? `library-set-${set.id}` : undefined} tabIndex={view === "library" ? -1 : undefined} className={`set-tile ${progress === 100 ? "completed" : ""}`} data-set-color={set.color} style={{ "--set-color": getSetColor(set.color).hex } as CSSProperties} key={set.id} onContextMenu={(event) => openSetContextMenu(event, set.id)}>
               <Link className="set-tile-open" to={routePathForView("set", set.id)} aria-label={`Open ${set.title}`}><span className="visually-hidden">Open {set.title}</span></Link>
               <span className={`set-accent ${set.color}`} style={{ backgroundColor: getSetColor(set.color).hex }} />
               <span className="tile-kicker"><span>{set.subject || "General"}</span><span>{formatDate(set.updatedAt)}</span></span>
@@ -3205,7 +3205,34 @@ export default function Flashbolt() {
           )}
 
           {view === "library" && (
-            <section>
+            <div className="library-navigation-layout">
+              <aside className="editor-navigation-panel library-navigation-panel" aria-label={folder ? "Set navigation" : "Folder navigation"}>
+                <details className="editor-card-navigation" open key={folder?.id ?? "library"}>
+                  <summary>{folder ? "Set navigation" : "Folder navigation"}</summary>
+                  <p className="library-navigation-count">{folder ? `${folderSets.length} sets` : `${visibleSemesterGroups.reduce((total, group) => total + group.folders.length, 0)} folders`}</p>
+                  {folder ? <nav className="library-navigation-links" aria-label="Jump to set">
+                    {folderSubjectGroups.map(group => <section key={group.subject}>
+                      <h3>{group.subject}</h3>
+                      {group.sets.map(set => <button type="button" key={set.id} title={set.title} onClick={() => {
+                        const target = document.getElementById(`library-set-${set.id}`);
+                        target?.focus({ preventScroll: true });
+                        target?.scrollIntoView({ block: "start", behavior: "instant" });
+                      }}>{set.title}</button>)}
+                    </section>)}
+                    {!folderSets.length && <p>No sets to navigate.</p>}
+                  </nav> : <nav className="library-navigation-links" aria-label="Open folder">
+                    {visibleSemesterGroups.map(group => <section key={group.semester}>
+                      <h3>{group.semester}</h3>
+                      {group.folders.map(item => <Link key={item.id} to={folderPath(item)} title={item.name}>
+                        <span className="library-navigation-folder-color" aria-hidden="true" style={{ backgroundColor: item.color ?? FOLDER_COLORS[0] }} />
+                        <span>{item.name}</span><small>{item.setIds.length}</small>
+                      </Link>)}
+                    </section>)}
+                    {!visibleSemesterGroups.length && <p>No visible folders. Create a folder or show a semester.</p>}
+                  </nav>}
+                </details>
+              </aside>
+            <section className="library-page-content">
               <div className="page-heading split">
                 <div>{folder && <Link className="back-link" to={`${FLASHBOLT_BASE}/library`} onClick={event => followFlashboltLink(event, () => navigate("library"))}>← Library</Link>}<span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
                 <div className="heading-actions">
@@ -3364,6 +3391,7 @@ export default function Flashbolt() {
                 </div>
               ) : renderSetGrid(visibleSets)}
             </section>
+            </div>
           )}
 
           {!search && view === "create" && (
