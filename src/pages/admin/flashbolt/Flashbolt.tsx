@@ -1330,7 +1330,9 @@ export default function Flashbolt() {
     return [embedded.prompt, card.term, card.definition, ...(card.answerChoices ?? embedded.choices), ...(card.correctAnswers ?? [])]
       .some((value) => value.toLocaleLowerCase().includes(query));
   });
-  const folder = data.folders.find((item) => item.id === selectedFolderId);
+  // The all-sets URL must never inherit a previous folder selection.
+  const isLibraryRoot = [`${FLASHBOLT_BASE}/library`, "/flashbolt/library"].includes(location.pathname.replace(/\/+$/, ""));
+  const folder = isLibraryRoot ? undefined : data.folders.find((item) => item.id === selectedFolderId);
   const editorFolder = editingSetId
     ? data.folders.find((folderItem) => folderItem.id === selectedFolderId && folderItem.setIds.includes(editingSetId))
       ?? data.folders.find((folderItem) => folderItem.setIds.includes(editingSetId))
@@ -3062,7 +3064,7 @@ export default function Flashbolt() {
           <nav className="topbar-quick-navigation" aria-label="Main navigation">
           <Link title="Home" aria-label="Home" className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span className="nav-icon"><House aria-hidden="true" /></span><span className="nav-label">Home</span></Link>
           <Link title="Review today" aria-label="Review today" className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><span className="nav-icon"><History aria-hidden="true" /></span><span className="nav-label">Review today</span></Link>
-          <Link title="Your library" aria-label="Your library" className={view === "library" ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span className="nav-icon"><BookOpen aria-hidden="true" /></span><span className="nav-label">Your library</span></Link>
+          <Link title="Your library" aria-label="Your library" className={view === "library" ? "active" : ""} to={`${FLASHBOLT_BASE}/library`} onClick={event => followFlashboltLink(event, () => navigate("library"))}><span className="nav-icon"><BookOpen aria-hidden="true" /></span><span className="nav-label">Your library</span></Link>
           {quickLinkSemester && <div className="topbar-folder-shortcuts" role="group" aria-label={`${quickLinkSemester.semester} folders`}>
             <span className="topbar-semester">{quickLinkSemester.semester}<small>{quickLinkSemester.folders.length} folders</small></span>
             {quickLinkSemester.folders.map(item => <Link key={item.id} to={folderPath(item)} className={`topbar-folder-shortcut${selectedFolderId === item.id ? " active" : ""}`} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} sets`} title={item.name}>
@@ -3205,7 +3207,7 @@ export default function Flashbolt() {
           {view === "library" && (
             <section>
               <div className="page-heading split">
-                <div>{folder && <Link className="back-link" to={`${FLASHBOLT_BASE}/library`}>← Library</Link>}<span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
+                <div>{folder && <Link className="back-link" to={`${FLASHBOLT_BASE}/library`} onClick={event => followFlashboltLink(event, () => navigate("library"))}>← Library</Link>}<span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
                 <div className="heading-actions">
                   {folder && <button className="button quiet" onClick={() => editFolder(folder)}>Edit folder</button>}
                   {!folder && <button className="button quiet" onClick={() => importInputRef.current?.click()}>Restore backup</button>}
@@ -3627,12 +3629,12 @@ export default function Flashbolt() {
             </section>
           )}
 
-          {!search && view === "set" && !selectedSet && <section className="empty-state"><h1>Set unavailable</h1><p>This set is no longer in your library.</p><Link className="button primary" to={`${FLASHBOLT_BASE}/library`}>Back to library</Link></section>}
+          {!search && view === "set" && !selectedSet && <section className="empty-state"><h1>Set unavailable</h1><p>This set is no longer in your library.</p><Link className="button primary" to={`${FLASHBOLT_BASE}/library`} onClick={event => followFlashboltLink(event, () => navigate("library"))}>Back to library</Link></section>}
 
           {!search && view === "set" && selectedSet && (
             <section className="study-page">
               <div className="page-heading split compact">
-                <div><Link className="back-link" to={`${FLASHBOLT_BASE}/library`}>← Library</Link><span className="eyebrow">{selectedSet.subject}</span><h1>{selectedSet.title}</h1><p>{selectedSet.description}</p></div>
+                <div><Link className="back-link" to={`${FLASHBOLT_BASE}/library`} onClick={event => followFlashboltLink(event, () => navigate("library"))}>← Library</Link><span className="eyebrow">{selectedSet.subject}</span><h1>{selectedSet.title}</h1><p>{selectedSet.description}</p></div>
                 <div className="heading-actions">{selectedSet.kahootUrl && isSafeKahootUrl(selectedSet.kahootUrl) && <a className="button quiet" href={selectedSet.kahootUrl} target="_blank" rel="noreferrer">◆ Open Kahoot ↗</a>}<a className="button quiet" href={routePathForView("create", selectedSet.id)} onClick={(event) => followFlashboltLink(event, () => startEdit(selectedSet))}>Edit set</a><button className="icon-button danger" onClick={deleteSelectedSet} aria-label="Delete set"><UiIcon symbol="×" /></button></div>
               </div>
               {folder && folderSetIndex >= 0 && folderSets.length > 1 && (
@@ -3892,7 +3894,7 @@ export default function Flashbolt() {
 
         <nav className="mobile-nav" aria-label="Mobile navigation">
           <Link className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><House aria-hidden="true" /><span>Home</span></Link>
-          <Link className={view === "library" ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><BookOpen aria-hidden="true" /><span>Library</span></Link>
+          <Link className={view === "library" ? "active" : ""} to={`${FLASHBOLT_BASE}/library`} onClick={event => followFlashboltLink(event, () => navigate("library"))}><BookOpen aria-hidden="true" /><span>Library</span></Link>
           <a className="mobile-create" aria-label="Create a set" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><Plus aria-hidden="true" /></a>
           <Link className={view === "helper" ? "active" : ""} to={`${FLASHBOLT_BASE}/helper`}><Zap aria-hidden="true" /><span>Helper</span></Link>
           <Link className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><History aria-hidden="true" /><span>Review</span></Link>

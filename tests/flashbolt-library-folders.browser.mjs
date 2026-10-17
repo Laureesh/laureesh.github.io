@@ -60,6 +60,13 @@ for (const width of [1800, 390]) {
       const chip = page.locator('.library-folder-chip').filter({ hasText: 'Renamed library folder' });
       await chip.getByRole('link').click();
       await page.getByRole('heading', { name: 'Renamed library folder', exact: true }).waitFor();
+      await page.getByRole('link', { name: 'Your library', exact: true }).click();
+      await page.getByRole('heading', { name: 'Every set, in one place.' }).waitFor();
+      assert.equal(await page.locator('.folder-dedicated-toolbar').count(), 0, 'topbar Library clears the folder view');
+      assert.equal(await page.locator('.set-tile').count(), original.sets.length, 'Library shows all sets, including those outside the previous folder');
+      if (await filters.isVisible() && await filters.getAttribute('aria-expanded') === 'false') await filters.click();
+      await chip.getByRole('link').click();
+      await page.getByRole('heading', { name: 'Renamed library folder', exact: true }).waitFor();
       await page.getByRole('link', { name: '← Library', exact: true }).click();
       await page.getByRole('heading', { name: 'Every set, in one place.' }).waitFor();
       if (await filters.isVisible() && await filters.getAttribute('aria-expanded') === 'false') await filters.click();
