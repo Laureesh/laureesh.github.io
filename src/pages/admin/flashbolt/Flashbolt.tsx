@@ -3215,11 +3215,11 @@ export default function Flashbolt() {
                     {folderSubjectGroups.map(group => <div className="library-navigation-subject-row" key={group.subject}>
                       <details className="library-navigation-subject">
                         <summary>{group.subject}</summary>
-                        <div>{group.sets.map(set => <button type="button" key={set.id} title={set.title} onClick={() => {
+                        <div>{group.sets.map(set => <button type="button" className="library-navigation-set" style={{ "--set-color": getSetColor(set.color).hex } as CSSProperties} key={set.id} title={set.title} onClick={() => {
                           const target = document.getElementById(`library-set-${set.id}`);
                           target?.focus({ preventScroll: true });
                           target?.scrollIntoView({ block: "start", behavior: "instant" });
-                        }}>{set.title}</button>)}</div>
+                        }}><span>{set.title}</span><small>{set.cards.length} {set.cards.length === 1 ? "term" : "terms"}</small></button>)}</div>
                       </details>
                       <button className="library-navigation-subject-jump" type="button" aria-label={`Go to subject: ${group.subject}`} title={`Go to subject: ${group.subject}`} onClick={() => {
                         const heading = document.getElementById(`folder-subject-${encodeURIComponent(group.subject.toLocaleLowerCase())}`);

@@ -70,7 +70,7 @@ for (const width of [1800, 390]) {
         assert.equal(await setButtons.count(), 0, 'keyboard can collapse a subject');
         for (const subject of await subjects.all()) await subject.locator('summary').click();
         assert.equal(await setButtons.count(), 12);
-        const compareOrder = async () => assert.deepEqual(await setButtons.allTextContents(), await page.locator('.library-page-content .set-tile-title').allTextContents());
+        const compareOrder = async () => assert.deepEqual(await setButtons.locator('span').allTextContents(), await page.locator('.library-page-content .set-tile-title').allTextContents());
         await compareOrder();
         await page.getByRole('combobox', { name: /^Sort sets in/ }).selectOption('title-desc');
         await compareOrder();
@@ -88,7 +88,7 @@ for (const width of [1800, 390]) {
         assert(!(await nav.isVisible()), 'navigation collapses');
         await summary.click();
         assert(await nav.isVisible(), 'navigation reopens');
-        const title = await setButtons.first().textContent();
+        const title = await setButtons.first().locator('span').textContent();
         await page.getByRole('textbox', { name: 'Search your library' }).fill(title);
         assert.equal(await setButtons.count(), 1, 'navigation respects search');
         await page.getByRole('textbox', { name: 'Search your library' }).fill('');
