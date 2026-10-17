@@ -1350,7 +1350,7 @@ export default function Flashbolt() {
   const completeDraftCards = draft.cards.filter((card) => card.term.trim() && (cardQuestionType(card) === "matching"
     ? Boolean(card.matchingPairs?.length && card.matchingPairs.every((pair) => pair.left.trim() && pair.right.trim()))
     : Boolean(card.definition.trim())));
-  const answerChoicesReady = draft.cards.every((card) => {
+  const draftCardsWithReadyAnswers = new Set(draft.cards.filter((card) => {
     const type = cardQuestionType(card);
     if (type === "matching") return Boolean(card.matchingPairs?.length && card.matchingPairs.every((pair) => pair.left.trim() && pair.right.trim()));
     if (type !== "multiple-choice" && type !== "select-all" && type !== "true-false") return true;
@@ -1360,7 +1360,9 @@ export default function Flashbolt() {
       && card.answerChoices.every((choice) => choice.trim())
       && correctAnswers.length > 0
       && correctAnswers.every((answer) => card.answerChoices?.some((choice) => normalizeAnswer(cleanChoiceAnswer(choice)) === answer));
-  });
+  }).map(card => card.id));
+  const answerChoicesReady = draft.cards.every(card => draftCardsWithReadyAnswers.has(card.id));
+  const completeDraftCardIds = new Set(completeDraftCards.map(card => card.id));
   const draftChecklist = [
     { label: "Add a set title", detail: "Required", complete: Boolean(draft.title.trim()) },
     { label: "Choose a subject", detail: "Recommended", complete: Boolean(draft.subject.trim()) },
@@ -3586,7 +3588,27 @@ export default function Flashbolt() {
                     <div className="creation-checklist-summary" aria-live="polite"><strong>{draftCompletion}%</strong><span>{draft.cards.length} card{draft.cards.length === 1 ? "" : "s"}</span></div>
                     <div className="creation-progress" role="progressbar" aria-label="Set completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={draftCompletion}><i style={{ width: `${draftCompletion}%` }} /></div>
                     <div className="editor-save-actions"><button className="button quiet" onClick={() => saveDraft(false)}>Save</button><button className="button primary" onClick={() => saveDraft(true)}>Save &amp; study</button></div>
+                    <button type="button" className="button quiet full" onClick={() => addDraftCard()}>＋ Add a card</button>
                     <button type="button" className="button quiet full" onClick={goToNextAvailableCard} disabled={!draft.cards.length} title="Jump to the first card with an empty term">Go to next available card ↓</button>
+                    <details className="editor-card-navigation" open>
+                      <summary>Card navigation</summary>
+                      <p className="editor-card-navigation-key"><span aria-hidden="true">□</span> Incomplete</p>
+                      <nav aria-label="Jump to card" className="editor-card-navigation-grid">
+                        {draft.cards.map((card, index) => {
+                          const incomplete = !completeDraftCardIds.has(card.id) || !draftCardsWithReadyAnswers.has(card.id);
+                          return <button key={card.id} type="button" className={incomplete ? "incomplete" : ""}
+                            aria-label={`Go to card ${index + 1}${incomplete ? ", incomplete" : ", complete"}`}
+                            title={card.term.trim() || `Card ${index + 1}`}
+                            onClick={() => {
+                              const element = draftCardElements.current.get(card.id);
+                              element?.dispatchEvent(new Event("reveal-editor-card"));
+                              element?.querySelector<HTMLTextAreaElement>('.card-text-field textarea')?.focus({ preventScroll: true });
+                              element?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+                            }}>{index + 1}</button>;
+                        })}
+                      </nav>
+                    </details>
+                    <details className="editor-advance-settings"><summary>Auto-advance settings</summary>
                     <label className="editor-auto-scroll"><span>Next card after pasting a question</span><input type="checkbox" role="switch" checked={autoScrollQuestion} onChange={(event) => {
                       const enabled = event.target.checked;
                       setAutoScrollQuestion(enabled);
@@ -3608,14 +3630,16 @@ export default function Flashbolt() {
                       try { window.localStorage.setItem(AUTO_SCROLL_EXPLANATION_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
                     }} /></label>
                     <p className="editor-auto-scroll-hint">{autoAdvanceOn === "explanation" ? "Advances after pasting explanation." : autoAdvanceOn === "correct" ? "Advances after marking correct." : autoAdvanceOn === "choices" ? "Advances after pasting choices." : autoAdvanceOn === "question" ? "Advances after pasting a question." : "Automatic advance is off."} The lowest enabled option takes priority.</p>
+                    </details>
                     <div className="collapsible-panel-body">
                       <ul>{draftChecklist.map((item) => <li className={item.complete ? "complete" : ""} key={item.label}><span>{item.complete ? "✓" : "○"}</span><div><strong>{item.label}</strong>{!item.complete && <small>{item.detail}</small>}</div></li>)}</ul>
                     </div>
                   </section>
+                  <section className="editor-import-tools" aria-label="Import tools">
                   <div className="import-divider"><span>Import tools</span></div>
                   <div className={`quizlet-import-block collapsible-panel-section ${collapsedEditorSections.includes("quizlet") ? "collapsed" : ""}`}>
                     <button className="side-panel-collapse-button" type="button" onClick={() => toggleEditorSection("quizlet")} aria-expanded={!collapsedEditorSections.includes("quizlet")}><span><small>From Quizlet or Kahoot</small><strong>Import by link or ID</strong></span><i aria-hidden="true">⌃</i></button>
-                    <div className="collapsible-panel-body"><p>Paste a public Quizlet or Kahoot link, or a set or quiz ID. Imported cards will fill this editor.</p>
+                    <div className="collapsible-panel-body"><p>Paste a public Quizlet or Kahoot link or ID.</p>
                       <label className="quizlet-link-field"><span className="visually-hidden">Quizlet or Kahoot link or ID</span><input type="text" value={quizletUrl} onChange={(event) => { setQuizletUrl(event.target.value); setKahootReference(event.target.value); setQuizletImportMessage(""); setKahootImportMessage(""); setQuizletImportFailed(false); setKahootImportFailed(false); }} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); applyLinkImport(); } }} placeholder="Quizlet or Kahoot link or ID" autoComplete="url" disabled={quizletImporting || kahootImporting} /></label>
                       <button className="button primary full" onClick={applyLinkImport} disabled={quizletImporting || kahootImporting}>{quizletImporting || kahootImporting ? "Importing…" : "Import cards"}</button>
                       {quizletImportMessage && <p className={`import-status ${quizletImportFailed ? "error" : ""}`} role={quizletImportFailed ? "alert" : "status"}>{quizletImportMessage}</p>}
@@ -3624,8 +3648,8 @@ export default function Flashbolt() {
                   </div>
                   <div className={`paste-import-block collapsible-panel-section ${collapsedEditorSections.includes("paste") ? "collapsed" : ""}`}>
                     <button className="side-panel-collapse-button" type="button" onClick={() => toggleEditorSection("paste")} aria-expanded={!collapsedEditorSections.includes("paste")}><span><small>Manual import</small><strong>Paste a list</strong></span><i aria-hidden="true">⌃</i></button>
-                    <div className="collapsible-panel-body"><p>Paste a Kahoot question list with answers shown and “correct” labels, CyberDefense Pro module quizzes (including explanations), LMS quiz results, Quizlet HTML, or one <code>term :: definition</code> per line.</p>
-                      <textarea value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} placeholder={'Paste copied quiz results here, or use:\n\nLifecycle :: The stages an activity moves through\nIntent :: A request to perform an action'} rows={7} />
+                    <div className="collapsible-panel-body"><p>Paste quiz results or <code>term :: definition</code> pairs.</p>
+                      <textarea value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} aria-label="Cards to import" placeholder={'Paste here…\n\nFirewall :: Filters network traffic.'} rows={5} />
                       <button className="button quiet full" onClick={applyPasteImport}>Import pasted cards</button>
                       <details className="manual-import-examples">
                         <summary className="manual-import-examples-heading">Supported formats &amp; examples</summary>
@@ -3642,7 +3666,7 @@ export default function Flashbolt() {
                       </details>
                     </div>
                   </div>
-                  <div className="privacy-note"><span>⌁</span><p><strong>Saved privately.</strong> Imported cards sync to your account and remain available as a local backup.</p></div>
+                  </section>
                 </aside>
               </div>
             </section>
