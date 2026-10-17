@@ -34,7 +34,7 @@ import LearnKnowledgeDetails, { type KnowledgeLevel } from "./LearnKnowledgeDeta
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { House, BookOpen, Folder as FolderIcon, Plus, Compass, History, ClipboardCheck, Zap, NotebookPen, Download, ArrowLeft, Search } from "lucide-react";
+import { House, BookOpen, Plus, Compass, History, ClipboardCheck, Zap, NotebookPen, Download, ArrowLeft, Search } from "lucide-react";
 import type { CSSProperties, ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { loadFlashboltLibrary, mergeAndSaveFlashboltLibrary, saveFlashboltLibrary } from "../../../services/flashboltLibrary";
@@ -181,7 +181,7 @@ type AppData = {
   activeLearn?: LearnSessionSnapshot;
 };
 
-type View = "review" | "home" | "library" | "folders" | "create" | "set" | "learn" | "test" | "guide" | "helper";
+type View = "review" | "home" | "library" | "create" | "set" | "learn" | "test" | "guide" | "helper";
 type StorageStatus = "loading" | "saved" | "error";
 type LibrarySort =
   | "updated-desc" | "updated-asc"
@@ -1093,7 +1093,14 @@ export default function Flashbolt() {
       setView("home");
       return;
     }
-    if (routeParts.length === 1 && ["home", "review", "library", "folders", "create", "guide", "helper"].includes(routeParts[0])) {
+    if (routeParts.length === 1 && routeParts[0] === "folders") {
+      setSelectedFolderId(null);
+      setView("library");
+      routerNavigate(`${FLASHBOLT_BASE}/library`, { replace: true });
+      return;
+    }
+    if (routeParts.length === 1 && ["home", "review", "library", "create", "guide", "helper"].includes(routeParts[0])) {
+      if (routeParts[0] === "library") setSelectedFolderId(null);
       if (routeParts[0] === "helper") {
         if (!ready) return;
         const defaultFolder = [...data.folders]
@@ -1145,7 +1152,7 @@ export default function Flashbolt() {
         if (!ready) return;
         handledRouteRef.current = location.pathname;
         setSelectedFolderId(null);
-        setView("folders");
+        setView("library");
         return;
       }
       handledRouteRef.current = location.pathname;
@@ -1159,7 +1166,8 @@ export default function Flashbolt() {
       if (!routeFolder) {
         if (!ready) return;
         handledRouteRef.current = location.pathname;
-        setView("folders");
+        setSelectedFolderId(null);
+        setView("library");
         return;
       }
       handledRouteRef.current = location.pathname;
@@ -1186,7 +1194,8 @@ export default function Flashbolt() {
     if (!routeSet || !["flashcards", "learn", "test", "edit", "helper"].includes(mode)) {
       if (!ready) return;
       handledRouteRef.current = location.pathname;
-      setView(routeFolder ? "library" : "folders");
+      setSelectedFolderId(routeFolder?.id ?? null);
+      setView("library");
       return;
     }
     handledRouteRef.current = location.pathname;
@@ -1623,6 +1632,7 @@ export default function Flashbolt() {
   }
 
   function navigate(nextView: View, setId = selectedSetId) {
+    if (nextView === "library") setSelectedFolderId(null);
     setView(nextView);
     setNewMenuOpen(false);
     setRoutePath(nextView, setId);
@@ -1633,16 +1643,6 @@ export default function Flashbolt() {
     if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
     action();
-  }
-
-  function openFolder(folderItem: Folder) {
-    const path = folderPath(folderItem);
-    setSelectedFolderId(folderItem.id);
-    setView("library");
-    setNewMenuOpen(false);
-    handledRouteRef.current = path;
-    routerNavigate(path);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function folderRouteSegment(folderItem: Folder) {
@@ -2377,7 +2377,10 @@ export default function Flashbolt() {
       ...current,
       folders: current.folders.filter((item) => item.id !== folderToDelete.id),
     }));
-    if (selectedFolderId === folderToDelete.id) setSelectedFolderId(null);
+    if (selectedFolderId === folderToDelete.id) {
+      setSelectedFolderId(null);
+      if (view === "library") navigate("library");
+    }
     setDraftFolderIds((ids) => ids.filter((id) => id !== folderToDelete.id));
     if (editingFolderId === folderToDelete.id) closeFolderModal();
     notify("Folder deleted. Its sets are still in your library.");
@@ -3059,8 +3062,7 @@ export default function Flashbolt() {
           <nav className="topbar-quick-navigation" aria-label="Main navigation">
           <Link title="Home" aria-label="Home" className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span className="nav-icon"><House aria-hidden="true" /></span><span className="nav-label">Home</span></Link>
           <Link title="Review today" aria-label="Review today" className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><span className="nav-icon"><History aria-hidden="true" /></span><span className="nav-label">Review today</span></Link>
-          <Link title="Your library" aria-label="Your library" className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span className="nav-icon"><BookOpen aria-hidden="true" /></span><span className="nav-label">Your library</span></Link>
-          <Link title="Folders" aria-label="Folders" className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span className="nav-icon"><FolderIcon aria-hidden="true" /></span><span className="nav-label">Folders</span></Link>
+          <Link title="Your library" aria-label="Your library" className={view === "library" ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span className="nav-icon"><BookOpen aria-hidden="true" /></span><span className="nav-label">Your library</span></Link>
           {quickLinkSemester && <div className="topbar-folder-shortcuts" role="group" aria-label={`${quickLinkSemester.semester} folders`}>
             <span className="topbar-semester">{quickLinkSemester.semester}<small>{quickLinkSemester.folders.length} folders</small></span>
             {quickLinkSemester.folders.map(item => <Link key={item.id} to={folderPath(item)} className={`topbar-folder-shortcut${selectedFolderId === item.id ? " active" : ""}`} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} sets`} title={item.name}>
@@ -3203,10 +3205,11 @@ export default function Flashbolt() {
           {view === "library" && (
             <section>
               <div className="page-heading split">
-                <div>{folder && <Link className="back-link" to={`${FLASHBOLT_BASE}/folders`}>← All folders</Link>}<span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
+                <div>{folder && <Link className="back-link" to={`${FLASHBOLT_BASE}/library`}>← Library</Link>}<span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
                 <div className="heading-actions">
                   {folder && <button className="button quiet" onClick={() => editFolder(folder)}>Edit folder</button>}
                   {!folder && <button className="button quiet" onClick={() => importInputRef.current?.click()}>Restore backup</button>}
+                  <button className="button quiet" onClick={openNewFolderModal}>＋ New folder</button>
                   <a className="button primary" href={folder ? `${folderPath(folder)}/create` : `${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, folder ? () => startCreate(folder.id) : startCreate)}>＋ Create set</a>
                 </div>
               </div>
@@ -3238,11 +3241,14 @@ export default function Flashbolt() {
                     {visibleSemesterGroups.map((group) => <section className="folder-semester-group" key={group.semester}>
                       <h3>{group.semester}<small>{group.folders.length} folder{group.folders.length === 1 ? "" : "s"}</small></h3>
                       <div className="folder-semester-chips">{group.folders.map((item) => (
-                        <Link className={selectedFolderId === item.id ? "active" : ""} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name} key={item.id} to={folderPath(item)}>
+                        <div className="library-folder-chip" key={item.id}>
+                        <Link className={selectedFolderId === item.id ? "active" : ""} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name} to={folderPath(item)}>
                           <span className="folder-filter-icon folder" aria-hidden="true" style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} />
                           <span className="folder-filter-name">{item.name}</span>
                           <span className="folder-filter-count">{item.setIds.length}</span>
                         </Link>
+                          <button type="button" className="library-folder-edit" onClick={() => editFolder(item)} aria-label={`Edit ${item.name}`} title="Edit folder"><UiIcon symbol="✎" /></button>
+                        </div>
                       ))}</div>
                     </section>)}
                   </div>
@@ -3355,39 +3361,6 @@ export default function Flashbolt() {
                   ))}
                 </div>
               ) : renderSetGrid(visibleSets)}
-            </section>
-          )}
-
-          {!search && view === "folders" && (
-            <section>
-              <div className="page-heading split">
-                <div><span className="eyebrow">Folders</span><h1>Organize your way.</h1><p>Group related sets without sharing anything publicly.</p></div>
-                <button className="button primary" onClick={openNewFolderModal}>＋ New folder</button>
-              </div>
-              {semesterVisibilityControls}
-              {data.folders.length ? (
-                <div className="folder-semester-sections">
-                  {visibleSemesterGroups.map((group) => <section className="folder-page-semester" key={group.semester}>
-                    <div className="folder-semester-title"><div><span className="eyebrow">Semester</span><h2>{group.semester}</h2></div><small>{group.folders.length} folder{group.folders.length === 1 ? "" : "s"}</small></div>
-                    <div className="folder-grid">{group.folders.map((item) => (
-                    <article key={item.id} className="folder-tile" onClick={() => openFolder(item)}>
-                      <span className="folder-tab" />
-                      <div className="folder-tile-actions">
-                        <button onClick={(event) => { event.stopPropagation(); editFolder(item); }} aria-label={`Edit ${item.name}`} title="Edit folder">✎</button>
-                        <button className="delete" onClick={(event) => { event.stopPropagation(); deleteFolder(item); }} aria-label={`Delete ${item.name}`} title="Delete folder"><UiIcon symbol="×" /></button>
-                      </div>
-                      <Link className="folder-open-button" to={folderPath(item)} onClick={(event) => event.stopPropagation()}>
-                        <span className="folder-icon"><UiIcon symbol="□" /></span>
-                        <strong>{item.name}</strong><small>{item.semester ? `${item.semester} · ` : ""}{item.setIds.length} set{item.setIds.length === 1 ? "" : "s"}</small><span>Open <b>→</b></span>
-                      </Link>
-                    </article>
-                    ))}</div>
-                  </section>)}
-                  <div className="folder-grid"><button className="folder-tile new-folder" onClick={openNewFolderModal}><span className="folder-icon"><UiIcon symbol="＋" /></span><strong>Create a folder</strong><small>Keep a course or topic together</small></button></div>
-                </div>
-              ) : (
-                <div className="empty-state"><div className="empty-mark">□</div><h3>No folders yet</h3><p>Create one to organize related study sets.</p><button className="button primary" onClick={openNewFolderModal}>Create a folder</button></div>
-              )}
             </section>
           )}
 
@@ -3607,14 +3580,12 @@ export default function Flashbolt() {
                 <aside ref={editorPanelRef} className="import-panel">
                   <section className={`creation-checklist collapsible-panel-section ${collapsedEditorSections.includes("checklist") ? "collapsed" : ""} ${draftCompletion === 100 ? "complete" : ""}`} aria-label={`Set creation ${draftCompletion}% complete`}>
                     {editingSetId && editorFolder && editorFolderSets.length > 1 && <nav className="editor-set-navigation" aria-label={`Move between sets in ${editorFolder.name}`}><span>{editorSetIndex + 1} of {editorFolderSets.length} in {editorFolder.name}</span><div>{previousEditorSet ? <a className="button quiet" href={routePathForView("create", previousEditorSet.id)} onClick={(event) => followFlashboltLink(event, () => openAdjacentEditor(previousEditorSet))} title={previousEditorSet.title}>← Previous</a> : <button className="button quiet" disabled title="First set in folder">← Previous</button>}{nextEditorSet ? <a className="button quiet" href={routePathForView("create", nextEditorSet.id)} onClick={(event) => followFlashboltLink(event, () => openAdjacentEditor(nextEditorSet))} title={nextEditorSet.title}>Next →</a> : <button className="button quiet" disabled title="Last set in folder">Next →</button>}</div></nav>}
-                    <button className="side-panel-collapse-button creation-checklist-heading" type="button" onClick={() => toggleEditorSection("checklist")} aria-expanded={!collapsedEditorSections.includes("checklist")}><div><span className="eyebrow">Set checklist</span><h3>{draftCompletion === 100 ? "Ready to study" : "Finish your set"}</h3></div><i aria-hidden="true">⌃</i></button>
                     <div className="creation-checklist-summary" aria-live="polite"><strong>{draftCompletion}%</strong><span>{draft.cards.length} card{draft.cards.length === 1 ? "" : "s"}</span></div>
                     <div className="creation-progress" role="progressbar" aria-label="Set completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={draftCompletion}><i style={{ width: `${draftCompletion}%` }} /></div>
                     <div className="editor-save-actions"><button className="button quiet" onClick={() => saveDraft(false)}>Save</button><button className="button primary" onClick={() => saveDraft(true)}>Save &amp; study</button></div>
                     <button type="button" className="button quiet full" onClick={() => addDraftCard()}>＋ Add a card</button>
                     <button type="button" className="button quiet full" onClick={goToNextAvailableCard} disabled={!draft.cards.length} title="Jump to the first card with an empty term">Go to next available card ↓</button>
-
-
+                    <button className="side-panel-collapse-button creation-checklist-heading" type="button" onClick={() => toggleEditorSection("checklist")} aria-expanded={!collapsedEditorSections.includes("checklist")}><div><span className="eyebrow">Set checklist</span><h3>{draftCompletion === 100 ? "Ready to study" : "Finish your set"}</h3></div><i aria-hidden="true">⌃</i></button>
                     <div className="collapsible-panel-body">
                       <ul>{draftChecklist.map((item) => <li className={item.complete ? "complete" : ""} key={item.label}><span>{item.complete ? "✓" : "○"}</span><div><strong>{item.label}</strong>{!item.complete && <small>{item.detail}</small>}</div></li>)}</ul>
                     </div>
@@ -3921,9 +3892,8 @@ export default function Flashbolt() {
 
         <nav className="mobile-nav" aria-label="Mobile navigation">
           <Link className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><House aria-hidden="true" /><span>Home</span></Link>
-          <Link className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><BookOpen aria-hidden="true" /><span>Library</span></Link>
+          <Link className={view === "library" ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><BookOpen aria-hidden="true" /><span>Library</span></Link>
           <a className="mobile-create" aria-label="Create a set" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><Plus aria-hidden="true" /></a>
-          <Link className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><FolderIcon aria-hidden="true" /><span>Folders</span></Link>
           <Link className={view === "helper" ? "active" : ""} to={`${FLASHBOLT_BASE}/helper`}><Zap aria-hidden="true" /><span>Helper</span></Link>
           <Link className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><History aria-hidden="true" /><span>Review</span></Link>
         </nav>

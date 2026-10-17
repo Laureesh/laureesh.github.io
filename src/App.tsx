@@ -117,7 +117,7 @@ function pageTitleForPath(pathname: string) {
     const flashboltParts = parts.slice(flashboltIndex + 1);
     if (!flashboltParts.length || flashboltParts[0] === "home") return "Flashbolt | Private Study Library";
     if (flashboltParts.length === 1) {
-      const titles: Record<string, string> = { review: "Review Today | Flashbolt", library: "Flashbolt Library", folders: "Flashbolt Folders", create: "Create Set | Flashbolt", guide: "Study Guide | Flashbolt", helper: "Kahoot Helper | Flashbolt" };
+      const titles: Record<string, string> = { review: "Review Today | Flashbolt", library: "Flashbolt Library", folders: "Flashbolt Library", create: "Create Set | Flashbolt", guide: "Study Guide | Flashbolt", helper: "Kahoot Helper | Flashbolt" };
       return titles[flashboltParts[0]] ?? "Flashbolt | Private Study Library";
     }
     const mode = flashboltParts.at(-1) ?? "";

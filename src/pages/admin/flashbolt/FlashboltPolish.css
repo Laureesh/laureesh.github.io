@@ -795,3 +795,19 @@
 .flashbolt-shell .set-color-swatches > p { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
 
 .flashbolt-shell .editor-import-tools .quizlet-import-block + .paste-import-block { margin-top: 8px; }
+
+.flashbolt-shell .library-folder-chip { display: inline-flex; align-items: stretch; min-width: 0; max-width: 100%; }
+.flashbolt-shell .library-folder-chip > a { flex: 1 1 auto; border-radius: 10px 0 0 10px; }
+.flashbolt-shell .library-folder-chip .library-folder-edit {
+  flex: 0 0 32px;
+  width: 32px;
+  padding: 5px;
+  justify-content: center;
+  border-left: 0;
+  border-radius: 0 10px 10px 0;
+  color: var(--muted);
+}
+.flashbolt-shell .library-folder-chip .library-folder-edit:hover { color: var(--ink); background: var(--primary-soft); }
+@media (max-width: 780px) {
+  .flashbolt-shell .mobile-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}

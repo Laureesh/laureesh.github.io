@@ -6,6 +6,6 @@ export function initialFlashboltView(pathname: string) {
   if (last === "edit" || last === "create") return "create";
   if (last === "flashcards") return "set";
   if (last === "learn" || last === "test" || last === "helper") return last;
-  if (route.length === 1 && (last === "home" || last === "review" || last === "folders" || last === "guide")) return last;
+  if (route.length === 1 && (last === "home" || last === "review" || last === "guide")) return last;
   return "library";
 }

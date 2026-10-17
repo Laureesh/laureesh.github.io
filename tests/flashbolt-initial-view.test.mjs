@@ -9,7 +9,7 @@ test('direct edit reload starts in the editor rather than Home', () => {
 test('initial view follows other workspace URLs', () => {
   const base = '/admin-dashboard/private-pages/flashbolt';
   assert.equal(initialFlashboltView(base), 'home');
-  assert.equal(initialFlashboltView(base + '/folders'), 'folders');
+  assert.equal(initialFlashboltView(base + '/folders'), 'library');
   assert.equal(initialFlashboltView(base + '/fall-2026/course'), 'library');
   assert.equal(initialFlashboltView(base + '/fall-2026/course/set/helper'), 'helper');
 });
@@ -17,7 +17,7 @@ test('initial view follows other workspace URLs', () => {
 test('every supported deep link starts directly in its requested view', () => {
   for (const base of ['/admin-dashboard/private-pages/flashbolt', '/flashbolt']) {
     for (const view of ['home', 'review', 'library', 'folders', 'create', 'guide', 'helper']) {
-      assert.equal(initialFlashboltView(`${base}/${view}`), view);
+      assert.equal(initialFlashboltView(`${base}/${view}`), view === 'folders' ? 'library' : view);
     }
     assert.equal(initialFlashboltView(`${base}/fall-2026/course/create`), 'create');
     for (const folder of ['fall-2026/course', 'no-semester/unfiled']) {
