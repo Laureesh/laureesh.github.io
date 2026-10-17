@@ -441,3 +441,59 @@
   outline: 2px solid var(--primary-strong);
   outline-offset: 1px;
 }
+
+/* Navigation occupies its own rail between the app sidebar and card editor. */
+.flashbolt-shell .editor-navigation-panel {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+.flashbolt-shell .editor-navigation-panel .editor-card-navigation {
+  border: 0;
+  padding: 0;
+}
+@media (min-width: 1051px) {
+  .flashbolt-shell .creator-layout {
+    grid-template-columns: 160px minmax(0, 1fr) 280px;
+    gap: 16px;
+  }
+  .flashbolt-shell .editor-navigation-panel {
+    position: sticky;
+    top: 88px;
+    align-self: start;
+    max-height: calc(100dvh - 104px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .flashbolt-shell .editor-navigation-panel .editor-card-navigation-grid {
+    max-height: calc(100dvh - 215px);
+  }
+  .flashbolt-shell .import-panel,
+  .flashbolt-shell.sidebar-collapsed .import-panel {
+    position: sticky;
+    top: 88px;
+    right: auto;
+    width: 100%;
+  }
+}
+@media (min-width: 1250px) and (max-width: 1599px) {
+  .flashbolt-shell .import-panel,
+  .flashbolt-shell.sidebar-collapsed .import-panel {
+    grid-template-columns: minmax(0, 1fr);
+    max-height: calc(100dvh - 104px);
+    overflow-y: auto;
+  }
+  .flashbolt-shell .import-panel > section { max-height: none; overflow: visible; }
+}
+@media (min-width: 1600px) {
+  .flashbolt-shell .creator-layout {
+    grid-template-columns: 180px minmax(0, 1fr) 540px;
+  }
+}
+@media (max-width: 1050px) {
+  .flashbolt-shell .editor-navigation-panel { grid-column: 1 / -1; grid-row: 1; }
+  .flashbolt-shell .import-panel,
+  .flashbolt-shell.sidebar-collapsed .import-panel { grid-row: auto; }
+}

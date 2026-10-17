@@ -3429,6 +3429,26 @@ export default function Flashbolt() {
                 <div className="editor-save-actions"><Link className="button quiet" to={notebookSource.returnTo}>Back to note (keep draft)</Link><button className="button quiet" onClick={discardNotebookDraft}>Discard draft</button></div>
               </aside>}
               <div className="creator-layout">
+                <aside className="editor-navigation-panel" aria-label="Card navigation">
+                    <details className="editor-card-navigation" open>
+                      <summary>Card navigation</summary>
+                      <p className="editor-card-navigation-key"><span aria-hidden="true">□</span> Incomplete</p>
+                      <nav aria-label="Jump to card" className="editor-card-navigation-grid">
+                        {draft.cards.map((card, index) => {
+                          const incomplete = !completeDraftCardIds.has(card.id) || !draftCardsWithReadyAnswers.has(card.id);
+                          return <button key={card.id} type="button" className={incomplete ? "incomplete" : ""}
+                            aria-label={`Go to card ${index + 1}${incomplete ? ", incomplete" : ", complete"}`}
+                            title={card.term.trim() || `Card ${index + 1}`}
+                            onClick={() => {
+                              const element = draftCardElements.current.get(card.id);
+                              element?.dispatchEvent(new Event("reveal-editor-card"));
+                              element?.querySelector<HTMLTextAreaElement>('.card-text-field textarea')?.focus({ preventScroll: true });
+                              element?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+                            }}>{index + 1}</button>;
+                        })}
+                      </nav>
+                    </details>
+                </aside>
                 <div className="creator-main">
                   <article className="form-card set-details">
                     <div className="set-metadata-field"><span className="set-field-label"><label htmlFor="set-title">Title</label><span className="set-field-history">{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, title: recentSetValues.title }))} title={recentSetValues.title}>Use recent: {recentSetValues.title || "Empty"}</button>}<PreviousValueSelect label="title" values={previousTitles} onSelect={(title) => setDraft((current) => ({ ...current, title }))} /></span></span><input id="set-title" value={draft.title} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} onKeyDown={(event) => acceptPreviousValueOnTab(event, previousTitles, (title) => setDraft((current) => ({ ...current, title })))} placeholder="e.g. [ITEC 3600] Chapter 1 - Part 1" maxLength={100} /></div>
@@ -3593,24 +3613,7 @@ export default function Flashbolt() {
                     <div className="editor-save-actions"><button className="button quiet" onClick={() => saveDraft(false)}>Save</button><button className="button primary" onClick={() => saveDraft(true)}>Save &amp; study</button></div>
                     <button type="button" className="button quiet full" onClick={() => addDraftCard()}>＋ Add a card</button>
                     <button type="button" className="button quiet full" onClick={goToNextAvailableCard} disabled={!draft.cards.length} title="Jump to the first card with an empty term">Go to next available card ↓</button>
-                    <details className="editor-card-navigation" open>
-                      <summary>Card navigation</summary>
-                      <p className="editor-card-navigation-key"><span aria-hidden="true">□</span> Incomplete</p>
-                      <nav aria-label="Jump to card" className="editor-card-navigation-grid">
-                        {draft.cards.map((card, index) => {
-                          const incomplete = !completeDraftCardIds.has(card.id) || !draftCardsWithReadyAnswers.has(card.id);
-                          return <button key={card.id} type="button" className={incomplete ? "incomplete" : ""}
-                            aria-label={`Go to card ${index + 1}${incomplete ? ", incomplete" : ", complete"}`}
-                            title={card.term.trim() || `Card ${index + 1}`}
-                            onClick={() => {
-                              const element = draftCardElements.current.get(card.id);
-                              element?.dispatchEvent(new Event("reveal-editor-card"));
-                              element?.querySelector<HTMLTextAreaElement>('.card-text-field textarea')?.focus({ preventScroll: true });
-                              element?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
-                            }}>{index + 1}</button>;
-                        })}
-                      </nav>
-                    </details>
+
                     <details className="editor-advance-settings"><summary>Auto-advance settings</summary>
                     <label className="editor-auto-scroll"><span>Next card after pasting a question</span><input type="checkbox" role="switch" checked={autoScrollQuestion} onChange={(event) => {
                       const enabled = event.target.checked;
