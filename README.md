@@ -522,3 +522,16 @@ When adding test fixtures from copied pages, remove unrelated advertising markup
 ## License
 
 No license file is currently included in this repository. Do not assume an open-source license applies; contact the repository owner about reuse or redistribution.
+
+### Flashbolt cloud storage migration
+
+Deploy `src/firebase/firestore.rules` before publishing the chunked Flashbolt client.
+The rules permit owner-only access to `users/{uid}/flashbolt/{documentId}` and
+accept the new manifest in `users/{uid}.flashboltLibrary`. The client migrates
+legacy data atomically on the next successful save, preserving other profile fields.
+Close older Flashbolt tabs before using the updated client.
+
+Flashbolt's device backup is browser local storage under `flashbolt.local.v1`
+(legacy key: `studydeck.local.v1`). Use **Back up library** to download a JSON
+file; a **Download backup** button also appears beside cloud errors. Browser
+storage belongs to that site/browser profile and is removed when site data is cleared.

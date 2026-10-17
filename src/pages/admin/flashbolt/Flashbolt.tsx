@@ -570,7 +570,7 @@ function describeSyncError(error: unknown) {
   }
   if (code === "deadline-exceeded") return "Cloud loading timed out";
   if (code === "unavailable") return "Firestore is temporarily unavailable";
-  return `Cloud error: ${code}`;
+  return candidate?.message ? `Cloud error (${code}): ${candidate.message}` : `Cloud error: ${code}`;
 }
 
 function withDetectedAnswerChoices(card: Card): Card {
@@ -1044,8 +1044,10 @@ export default function Flashbolt() {
       await new Promise((resolve) => window.setTimeout(resolve, 650));
       if (cancelled) return;
 
+      let localBackupSaved = false;
       try {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        localBackupSaved = true;
       } catch {
         // Cloud storage remains the source of truth when local storage is unavailable.
       }
@@ -1068,7 +1070,9 @@ export default function Flashbolt() {
         const message = describeSyncError(error);
         setSyncError(message);
         setStorageStatus("error");
-        setToast(`${message}. A local backup was kept.`);
+        setToast(localBackupSaved
+          ? `${message}. Backup saved in this browser. Use Download backup to save a file.`
+          : `${message}. Browser backup failed too. Download a backup now before closing this page.`);
       }
     }
 
@@ -3125,6 +3129,7 @@ export default function Flashbolt() {
           <span className={`local-pill ${storageStatus === "error" ? "error" : ""}`} role="status" aria-live="polite" title={storageStatus === "error" ? syncError : "Your private library is saved to your signed-in account."}>
             <i />{storageStatus === "loading" ? "Loading library" : storageStatus === "saved" ? "Synced to your account" : syncError || "Sync unavailable"}
           </span>
+          {storageStatus === "error" && <button className="button quiet" onClick={exportLibrary}>Download backup</button>}
           <ThemePicker compact theme={theme} onThemeChange={setTheme} />
           <div className="new-menu-wrap">
             <button className="new-button" onClick={() => setNewMenuOpen((open) => !open)} aria-expanded={newMenuOpen} aria-label="Create new">＋<span>New</span></button>

@@ -7,7 +7,7 @@ import { mergeSemesterVisibility, normalizeSemesterVisibility } from '../src/pag
 
 // Exercise the actual library transformations without mounting the React page.
 const source = readFileSync(new URL('../src/pages/admin/flashbolt/Flashbolt.tsx', import.meta.url), 'utf8');
-const functions = source.slice(source.indexOf('function withDataDefaults('), source.indexOf('function applyThemeToDocument('));
+const functions = source.slice(source.indexOf('function withDataDefaults('), source.indexOf('function AutoResizeTextarea('));
 const compiled = ts.transpileModule(functions, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
 const { mergeLibraries, removeSetFromLibraryData, withDataDefaults } = new Function(
   'mergeReviewProgress', 'mergeSemesterVisibility', 'normalizeSemesterVisibility',

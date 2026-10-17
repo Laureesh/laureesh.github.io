@@ -75,12 +75,14 @@ service cloud.firestore {
     
     function isValidFlashboltLibrary(library) {
       return library is map
-        && library.keys().hasOnly([
-          'data',
-          'updatedAt',
-        ])
-        && library.data is map
-        && library.updatedAt is timestamp;
+        && library.updatedAt is timestamp
+        && (
+          (library.keys().hasOnly(['data', 'updatedAt']) && library.data is map)
+          || (library.keys().hasOnly(['format', 'chunkCount', 'byteLength', 'updatedAt'])
+            && library.format == 'chunked-v1'
+            && library.chunkCount is int && library.chunkCount > 0
+            && library.byteLength is int && library.byteLength > 0)
+        );
     }
 
     function canAssignManagedRole(uid) {
@@ -301,6 +303,10 @@ service cloud.firestore {
         );
     }
     
+    match /users/{uid}/flashbolt/{documentId} {
+      allow read, write: if isOwner(uid);
+    }
+
     match /users/{uid}/notebook/{documentId} {
       allow read, write: if isOwner(uid);
     }
