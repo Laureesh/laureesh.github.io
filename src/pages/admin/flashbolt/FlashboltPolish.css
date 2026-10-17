@@ -543,3 +543,17 @@
   .flashbolt-shell .topbar-navigation-menu { top: 70px; }
   .flashbolt-shell.topbar-navigation-layout .topbar .search-box { flex: 1; min-width: 0; }
 }
+
+.flashbolt-shell .editor-navigation-panel .editor-advance-settings {
+  margin-top: 14px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.flashbolt-shell .editor-navigation-panel .editor-card-navigation-grid {
+  max-height: min(35dvh, 320px);
+}
+.flashbolt-shell .editor-navigation-panel .editor-auto-scroll {
+  gap: 8px;
+  margin-block: 8px;
+}
+.flashbolt-shell .editor-navigation-panel .editor-auto-scroll > span { min-width: 0; }

@@ -3413,7 +3413,7 @@ export default function Flashbolt() {
                 <div className="editor-save-actions"><Link className="button quiet" to={notebookSource.returnTo}>Back to note (keep draft)</Link><button className="button quiet" onClick={discardNotebookDraft}>Discard draft</button></div>
               </aside>}
               <div className="creator-layout">
-                <aside className="editor-navigation-panel" aria-label="Card navigation">
+                <aside className="editor-navigation-panel" aria-label="Card navigation and auto-advance settings">
                     <details className="editor-card-navigation" open>
                       <summary>Card navigation</summary>
                       <p className="editor-card-navigation-key"><span aria-hidden="true">□</span> Incomplete</p>
@@ -3431,6 +3431,29 @@ export default function Flashbolt() {
                             }}>{index + 1}</button>;
                         })}
                       </nav>
+                    </details>
+                    <details className="editor-advance-settings" open><summary>Auto-advance settings</summary>
+                    <label className="editor-auto-scroll"><span>Next card after pasting a question</span><input type="checkbox" role="switch" checked={autoScrollQuestion} onChange={(event) => {
+                      const enabled = event.target.checked;
+                      setAutoScrollQuestion(enabled);
+                      try { window.localStorage.setItem(AUTO_SCROLL_QUESTION_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
+                    }} /></label>
+                    <label className="editor-auto-scroll"><span>Next card after pasting choices</span><input type="checkbox" role="switch" checked={autoScrollChoices} onChange={(event) => {
+                      const enabled = event.target.checked;
+                      setAutoScrollChoices(enabled);
+                      try { window.localStorage.setItem(AUTO_SCROLL_CHOICES_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
+                    }} /></label>
+                    <label className="editor-auto-scroll"><span>Next card after marking correct</span><input type="checkbox" role="switch" checked={autoScrollCorrect} onChange={(event) => {
+                      const enabled = event.target.checked;
+                      setAutoScrollCorrect(enabled);
+                      try { window.localStorage.setItem(AUTO_SCROLL_CORRECT_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
+                    }} /></label>
+                    <label className="editor-auto-scroll"><span>Next card after pasting explanation</span><input type="checkbox" role="switch" checked={autoScrollExplanation} onChange={(event) => {
+                      const enabled = event.target.checked;
+                      setAutoScrollExplanation(enabled);
+                      try { window.localStorage.setItem(AUTO_SCROLL_EXPLANATION_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
+                    }} /></label>
+                    <p className="editor-auto-scroll-hint">{autoAdvanceOn === "explanation" ? "Advances after pasting explanation." : autoAdvanceOn === "correct" ? "Advances after marking correct." : autoAdvanceOn === "choices" ? "Advances after pasting choices." : autoAdvanceOn === "question" ? "Advances after pasting a question." : "Automatic advance is off."} The lowest enabled option takes priority.</p>
                     </details>
                 </aside>
                 <div className="creator-main">
@@ -3598,29 +3621,7 @@ export default function Flashbolt() {
                     <button type="button" className="button quiet full" onClick={() => addDraftCard()}>＋ Add a card</button>
                     <button type="button" className="button quiet full" onClick={goToNextAvailableCard} disabled={!draft.cards.length} title="Jump to the first card with an empty term">Go to next available card ↓</button>
 
-                    <details className="editor-advance-settings"><summary>Auto-advance settings</summary>
-                    <label className="editor-auto-scroll"><span>Next card after pasting a question</span><input type="checkbox" role="switch" checked={autoScrollQuestion} onChange={(event) => {
-                      const enabled = event.target.checked;
-                      setAutoScrollQuestion(enabled);
-                      try { window.localStorage.setItem(AUTO_SCROLL_QUESTION_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
-                    }} /></label>
-                    <label className="editor-auto-scroll"><span>Next card after pasting choices</span><input type="checkbox" role="switch" checked={autoScrollChoices} onChange={(event) => {
-                      const enabled = event.target.checked;
-                      setAutoScrollChoices(enabled);
-                      try { window.localStorage.setItem(AUTO_SCROLL_CHOICES_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
-                    }} /></label>
-                    <label className="editor-auto-scroll"><span>Next card after marking correct</span><input type="checkbox" role="switch" checked={autoScrollCorrect} onChange={(event) => {
-                      const enabled = event.target.checked;
-                      setAutoScrollCorrect(enabled);
-                      try { window.localStorage.setItem(AUTO_SCROLL_CORRECT_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
-                    }} /></label>
-                    <label className="editor-auto-scroll"><span>Next card after pasting explanation</span><input type="checkbox" role="switch" checked={autoScrollExplanation} onChange={(event) => {
-                      const enabled = event.target.checked;
-                      setAutoScrollExplanation(enabled);
-                      try { window.localStorage.setItem(AUTO_SCROLL_EXPLANATION_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
-                    }} /></label>
-                    <p className="editor-auto-scroll-hint">{autoAdvanceOn === "explanation" ? "Advances after pasting explanation." : autoAdvanceOn === "correct" ? "Advances after marking correct." : autoAdvanceOn === "choices" ? "Advances after pasting choices." : autoAdvanceOn === "question" ? "Advances after pasting a question." : "Automatic advance is off."} The lowest enabled option takes priority.</p>
-                    </details>
+
                     <div className="collapsible-panel-body">
                       <ul>{draftChecklist.map((item) => <li className={item.complete ? "complete" : ""} key={item.label}><span>{item.complete ? "✓" : "○"}</span><div><strong>{item.label}</strong>{!item.complete && <small>{item.detail}</small>}</div></li>)}</ul>
                     </div>
