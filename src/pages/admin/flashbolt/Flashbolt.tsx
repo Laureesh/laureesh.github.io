@@ -21,6 +21,7 @@ import { mergeSemesterVisibility, normalizeSemesterVisibility, type SemesterVisi
 import MasteryFilterControls from "./MasteryFilterControls";
 import { DEFAULT_MASTERY_FILTER, MASTERY_FILTER_KEY, masteryPercentage, matchesMasteryFilter, normalizeMasteryFilter } from "./masteryFilter";
 import InlineSetDetails from "./InlineSetDetails";
+import BatchSetDetails from "./BatchSetDetails";
 import SetColorPicker from "./SetColorPicker";
 import SearchPicker from "./SearchPicker";
 import TileFolderPanel from "./TileFolderPanel";
@@ -903,6 +904,7 @@ export default function Flashbolt() {
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [tileFolderPickerId, setTileFolderPickerId] = useState<string | null>(null);
   const [tileFolderSearch, setTileFolderSearch] = useState("");
+  const [batchEditSets, setBatchEditSets] = useState<StudySet[] | null>(null);
   const [confirmation, setConfirmation] = useState<{ title: string; message: string; confirmLabel: string; resolve: (accepted: boolean) => void } | null>(null);
   function askConfirmation(message: string, title = "Confirm change", confirmLabel = "Continue"): Promise<boolean> {
     return new Promise(resolve => setConfirmation({ title, message, confirmLabel, resolve }));
@@ -3244,6 +3246,7 @@ export default function Flashbolt() {
               <div className="page-heading split">
                 <div><span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
                 <div className="heading-actions">
+                  <button className="button quiet" disabled={!visibleSets.length} onClick={() => setBatchEditSets(visibleSets)}>Batch quick edit</button>
                   {folder && <button className="button quiet" onClick={() => editFolder(folder)}>Edit folder</button>}
                   {!folder && <button className="button quiet" onClick={() => importInputRef.current?.click()}>Restore backup</button>}
                   <button className="button quiet" onClick={openNewFolderModal}>＋ New folder</button>
@@ -3391,7 +3394,7 @@ export default function Flashbolt() {
                     <section className="folder-subject-section" key={group.subject.toLocaleLowerCase()}>
                       <div className="folder-subject-heading">
                         <div><span className="eyebrow">Subject</span><h2 id={`folder-subject-${encodeURIComponent(group.subject.toLocaleLowerCase())}`} tabIndex={-1}>{group.subject}</h2></div>
-                        <small>{group.sets.length} set{group.sets.length === 1 ? "" : "s"}</small>
+                        <div className="subject-batch-actions"><small>{group.sets.length} set{group.sets.length === 1 ? "" : "s"}</small><button className="button quiet" aria-label={`Batch quick edit ${group.subject}`} onClick={() => setBatchEditSets(group.sets)}>Batch quick edit</button></div>
                       </div>
                       {renderSetGrid(group.sets)}
                     </section>
@@ -3936,6 +3939,16 @@ export default function Flashbolt() {
           <Link className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><History aria-hidden="true" /><span>Review</span></Link>
         </nav>
       </div>
+
+      {batchEditSets && <BatchSetDetails sets={batchEditSets} onClose={() => setBatchEditSets(null)} onSave={changes => {
+        if (changes.length) {
+          const patches = new Map(changes.map(change => [change.id, change.details]));
+          const updatedAt = new Date().toISOString();
+          setData(current => ({ ...current, sets: current.sets.map(set => patches.has(set.id) ? { ...set, ...patches.get(set.id), updatedAt } : set) }));
+          notify(`${changes.length} set${changes.length === 1 ? "" : "s"} updated.`);
+        }
+        setBatchEditSets(null);
+      }} />}
 
       {folderModalOpen && (
         <Modal className="modal" labelledBy="folder-title" onClose={closeFolderModal}>

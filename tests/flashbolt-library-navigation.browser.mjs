@@ -99,3 +99,68 @@ for (const width of [1800, 390]) {
     } finally { await page.close(); }
   });
 }
+
+for (const width of [1800, 390]) {
+  test(`batch quick edit saves only selected metadata at ${width}px`, async () => {
+    const page = await mount('library', width);
+    try {
+      await page.getByRole('navigation', { name: 'Open folder' }).getByRole('link', { name: /Internet Security/ }).click();
+      await page.getByRole('button', { name: 'Batch quick edit Module Quizzes', exact: true }).click();
+      const dialog = page.getByRole('dialog', { name: 'Batch quick edit', exact: true });
+      const rows = dialog.locator('.batch-set-row');
+      assert.equal(await rows.count(), 6, 'subject action includes only its sets');
+      await dialog.getByRole('button', { name: 'Clear selection', exact: true }).click();
+      assert(await dialog.getByRole('button', { name: 'Save selected sets' }).isDisabled());
+      await rows.nth(0).getByRole('checkbox').check();
+      await rows.nth(1).getByRole('checkbox').check();
+      await dialog.getByLabel('Shared subject', { exact: true }).fill('Updated subject');
+      await dialog.getByRole('button', { name: 'Apply subject to selected' }).click();
+      const shared = dialog.locator('.batch-shared-fields');
+      await shared.getByRole('button', { name: /^Color:/ }).click();
+      await page.getByRole('button', { name: /^Amber, #/ }).click();
+      await dialog.getByRole('button', { name: 'Apply color to selected' }).click();
+      assert.equal(await rows.nth(0).getByLabel('Subject', { exact: true }).inputValue(), 'Updated subject');
+      assert.equal(await rows.nth(2).getByLabel('Subject', { exact: true }).inputValue(), 'Module Quizzes');
+      await rows.nth(2).getByRole('checkbox').check();
+      await rows.nth(2).getByLabel('Title', { exact: true }).fill('Do not save this unselected edit');
+      await rows.nth(2).getByRole('checkbox').uncheck();
+      await rows.nth(0).getByLabel('Title', { exact: true }).fill('');
+      await dialog.getByRole('button', { name: 'Save selected sets' }).click();
+      assert(await dialog.getByRole('alert').isVisible(), 'empty titles prevent the entire save');
+      await rows.nth(0).getByLabel('Title', { exact: true }).fill('Updated first set');
+      await rows.nth(0).getByLabel('Description', { exact: true }).fill('Updated description');
+      await rows.nth(1).getByLabel('Title', { exact: true }).fill('Updated second set');
+      await rows.nth(1).getByLabel('Description', { exact: true }).fill('');
+      assert(!(await dialog.evaluate(element => element.scrollWidth > element.clientWidth)), 'batch editor fits viewport');
+      await page.screenshot({ path: `/tmp/flashbolt-batch-${width}.png` });
+      await dialog.getByRole('button', { name: 'Save selected sets' }).click();
+      await dialog.waitFor({ state: 'hidden' });
+      await page.waitForFunction(() => JSON.parse(localStorage.getItem('flashbolt.local.v1') || '{}').sets?.some(set => set.title === 'Updated second set'));
+      const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('flashbolt.local.v1')));
+      for (const original of fixture.sets) {
+        const actual = saved.sets.find(set => set.id === original.id);
+        assert.deepEqual(actual.cards, original.cards, 'cards are preserved');
+        if (['nav-set-0', 'nav-set-2'].includes(original.id)) {
+          assert.equal(actual.subject, 'Updated subject');
+          assert.equal(actual.color, 'amber');
+          assert.notEqual(actual.title, original.title);
+        } else {
+          for (const field of ['title', 'subject', 'description', 'color', 'updatedAt']) assert.equal(actual[field], original[field], `unselected ${original.id} ${field} preserved`);
+        }
+      }
+      assert.equal(saved.sets.find(set => set.id === 'nav-set-0').description, 'Updated description');
+      assert.equal(saved.sets.find(set => set.id === 'nav-set-2').description, '', 'optional description can be cleared');
+      assert.deepEqual(saved.folders, fixture.folders, 'folder assignments preserved');
+      await page.locator('.page-heading').getByRole('button', { name: 'Batch quick edit', exact: true }).click();
+      assert.equal(await rows.count(), 12, 'page action includes the whole visible folder');
+      await rows.first().getByLabel('Title', { exact: true }).fill('Discard this');
+      await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+      assert.equal(await page.locator('.set-tile-title').filter({ hasText: 'Discard this' }).count(), 0);
+      await page.getByRole('link', { name: 'Your library', exact: true }).click();
+      await page.getByRole('textbox', { name: 'Search your library' }).fill('Updated');
+      await page.locator('.page-heading').getByRole('button', { name: 'Batch quick edit', exact: true }).click();
+      assert.equal(await rows.count(), 2, 'library batch action respects filters');
+      await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+    } finally { await page.close(); }
+  });
+}

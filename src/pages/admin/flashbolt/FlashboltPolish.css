@@ -763,9 +763,9 @@
 .flashbolt-shell .set-details-heading .eyebrow { margin: 0; font-size: 10px; letter-spacing: .06em; }
 .flashbolt-shell .set-details-heading h1 { margin: 0; font-size: 19px; line-height: 1.3; letter-spacing: -.02em; }
 
-.flashbolt-shell .set-color-trigger > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.flashbolt-shell .set-color-trigger > span:last-child { flex-shrink: 0; }
-.flashbolt-shell .set-color-palette {
+:is(.flashbolt-shell, .batch-set-editor) .set-color-trigger > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-trigger > span:last-child { flex-shrink: 0; }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-palette {
   position: fixed;
   inset: auto;
   margin: 0;
@@ -777,22 +777,22 @@
   box-shadow: var(--shadow);
   overflow: auto;
 }
-.flashbolt-shell .set-color-palette:popover-open { display: flex; flex-direction: column; gap: 9px; }
-.flashbolt-shell .set-color-palette header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.flashbolt-shell .set-color-palette header > div { display: grid; gap: 2px; }
-.flashbolt-shell .set-color-palette header strong { font-size: 14px; }
-.flashbolt-shell .set-color-palette header small { font-size: 11px; color: var(--muted); }
-.flashbolt-shell .set-color-palette header button { width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel-2); color: var(--ink); cursor: pointer; }
-.flashbolt-shell .set-color-palette > input { width: 100%; height: 36px; min-height: 36px; font-size: 13px; flex-shrink: 0; }
-.flashbolt-shell .set-color-families { display: flex; flex-wrap: wrap; gap: 5px; }
-.flashbolt-shell .set-color-families button { padding: 5px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel-2); color: var(--muted); font-size: 11px; cursor: pointer; }
-.flashbolt-shell .set-color-families button[aria-pressed="true"] { color: var(--ink); border-color: var(--primary-strong); background: var(--primary-soft); }
-.flashbolt-shell .set-color-results-count { color: var(--muted); font-size: 11px; }
-.flashbolt-shell .set-color-swatches { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; min-height: 0; overflow-y: auto; padding: 3px; }
-.flashbolt-shell .set-color-swatches button { display: grid; align-content: start; gap: 4px; padding: 5px; border: 1px solid transparent; border-radius: 8px; background: var(--panel-2); color: var(--ink); font-size: 11px; text-align: left; cursor: pointer; }
-.flashbolt-shell .set-color-swatch { display: flex; align-items: center; justify-content: center; height: 32px; border: 1px solid #8885; border-radius: 5px; background: var(--swatch); color: var(--swatch-ink); font-size: 20px; }
-.flashbolt-shell .set-color-swatches button:is(:hover, [aria-pressed="true"]) { border-color: var(--primary-strong); }
-.flashbolt-shell .set-color-swatches > p { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-palette:popover-open { display: flex; flex-direction: column; gap: 9px; }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-palette header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-palette header > div { display: grid; gap: 2px; }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-palette header strong { font-size: 14px; }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-palette header small { font-size: 11px; color: var(--muted); }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-palette header button { width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel-2); color: var(--ink); cursor: pointer; }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-palette > input { width: 100%; height: 36px; min-height: 36px; font-size: 13px; flex-shrink: 0; }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-families { display: flex; flex-wrap: wrap; gap: 5px; }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-families button { padding: 5px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel-2); color: var(--muted); font-size: 11px; cursor: pointer; }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-families button[aria-pressed="true"] { color: var(--ink); border-color: var(--primary-strong); background: var(--primary-soft); }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-results-count { color: var(--muted); font-size: 11px; }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-swatches { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; min-height: 0; overflow-y: auto; padding: 3px; }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-swatches button { display: grid; align-content: start; gap: 4px; padding: 5px; border: 1px solid transparent; border-radius: 8px; background: var(--panel-2); color: var(--ink); font-size: 11px; text-align: left; cursor: pointer; }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-swatch { display: flex; align-items: center; justify-content: center; height: 32px; border: 1px solid #8885; border-radius: 5px; background: var(--swatch); color: var(--swatch-ink); font-size: 20px; }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-swatches button:is(:hover, [aria-pressed="true"]) { border-color: var(--primary-strong); }
+:is(.flashbolt-shell, .batch-set-editor) .set-color-swatches > p { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
 
 .flashbolt-shell .editor-import-tools .quizlet-import-block + .paste-import-block { margin-top: 8px; }
 

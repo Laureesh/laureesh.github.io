@@ -1,0 +1,28 @@
+.batch-set-editor { width: min(1040px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 20px; color: var(--ink); }
+.batch-set-editor > header { margin-bottom: 12px; gap: 12px; }
+.batch-set-editor > header p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+.batch-set-editor form { display: grid; gap: 14px; }
+.batch-selection-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.batch-selection-actions strong { margin-right: auto; font-size: 13px; }
+.batch-shared-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
+.batch-shared-fields > div, .batch-set-editor label:not(.batch-set-selection), .batch-set-row fieldset > div { display: grid; gap: 5px; min-width: 0; font-size: 12px; }
+.batch-set-editor input:not([type="checkbox"]), .batch-set-editor textarea { width: 100%; min-width: 0; min-height: 36px; padding: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; color: var(--ink); font: inherit; }
+.batch-set-editor input[type="checkbox"] { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--primary-strong); }
+.batch-set-editor textarea { resize: vertical; }
+.batch-set-editor input:focus-visible, .batch-set-editor textarea:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 2px; }
+.batch-set-rows { display: grid; gap: 10px; }
+.batch-set-row { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
+.batch-set-selection { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
+.batch-set-editor .batch-set-row fieldset { grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr); max-height: none; overflow: visible; gap: 8px; margin: 10px 0 0; }
+.batch-set-row fieldset:disabled { opacity: .55; }
+.batch-description { grid-column: 1 / -1; }
+.batch-set-editor form > footer { position: sticky; bottom: -20px; margin: 0 -4px -4px; padding: 12px 4px 4px; background: var(--panel); border-top: 1px solid var(--line); }
+.flashbolt-shell .subject-batch-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.flashbolt-shell .subject-batch-actions small { color: var(--muted); white-space: nowrap; }
+.flashbolt-shell .subject-batch-actions .button { min-height: 32px; padding: 6px 10px; font-size: 12px; }
+@media (max-width: 640px) {
+  .batch-set-editor { padding: 12px; }
+  .batch-shared-fields, .batch-set-editor .batch-set-row fieldset { grid-template-columns: minmax(0, 1fr); }
+  .batch-set-editor form > footer { bottom: -12px; }
+  .flashbolt-shell .folder-subject-heading { flex-wrap: wrap; gap: 10px; }
+}
