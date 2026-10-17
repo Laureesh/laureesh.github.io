@@ -1,3 +1,4 @@
+import { getSetColor } from "./setColors";
 import { jumpToEditorCard } from "./editorCardNavigation";
 import DeferredEditorCard from "./DeferredEditorCard";
 import { scheduleTextareaResize } from "./textareaResize";
@@ -2894,9 +2895,9 @@ export default function Flashbolt() {
             ? data.folders.filter((folderItem) => folderItem.name.toLocaleLowerCase().includes(normalizedFolderSearch))
             : data.folders;
           return (
-            <article className={`set-tile ${progress === 100 ? "completed" : ""}`} data-set-color={set.color} key={set.id} onContextMenu={(event) => openSetContextMenu(event, set.id)}>
+            <article className={`set-tile ${progress === 100 ? "completed" : ""}`} data-set-color={set.color} style={{ "--set-color": getSetColor(set.color).hex } as CSSProperties} key={set.id} onContextMenu={(event) => openSetContextMenu(event, set.id)}>
               <Link className="set-tile-open" to={routePathForView("set", set.id)} aria-label={`Open ${set.title}`}><span className="visually-hidden">Open {set.title}</span></Link>
-              <span className={`set-accent ${set.color}`} />
+              <span className={`set-accent ${set.color}`} style={{ backgroundColor: getSetColor(set.color).hex }} />
               <span className="tile-kicker"><span>{set.subject || "General"}</span><span>{formatDate(set.updatedAt)}</span></span>
               <InlineSetDetails set={set} onQuickLearn={() => startLearn(set.id)} onOpenActions={event => {
                 const rect = event.currentTarget.getBoundingClientRect();
@@ -3161,7 +3162,7 @@ export default function Flashbolt() {
 
               {selectedSet && (
                 <section className="continue-card">
-                  <div className={`continue-art ${selectedSet.color}`}>
+                  <div className={`continue-art ${selectedSet.color}`} style={{ background: `color-mix(in srgb, ${getSetColor(selectedSet.color).hex} 32%, #171832)` }}>
                     <span className="stack-card card-back" />
                     <span className="stack-card card-middle" />
                     <span className="stack-card card-front"><small>QUESTION</small><b>{selectedSet.cards[0]?.term}</b><i>Tap to reveal</i></span>

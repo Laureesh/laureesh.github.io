@@ -1,61 +1,86 @@
-import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { useId, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { colorText, getSetColor, SET_COLORS } from "./setColors";
 
-const COLORS = [
-  { value: "violet", label: "Violet", background: "#7055df", foreground: "#ffffff" },
-  { value: "mint", label: "Mint", background: "#71d9bf", foreground: "#111827" },
-  { value: "amber", label: "Amber", background: "#ffca66", foreground: "#111827" },
-  { value: "coral", label: "Coral", background: "#ff8f7c", foreground: "#111827" },
-  { value: "blue", label: "Blue", background: "#209cee", foreground: "#081827" },
-  { value: "cyan", label: "Cyan", background: "#22d3ee", foreground: "#111827" },
-  { value: "green", label: "Green", background: "#39ed32", foreground: "#111827" },
-  { value: "orange", label: "Orange", background: "#ff9800", foreground: "#111827" },
-  { value: "pink", label: "Pink", background: "#d90078", foreground: "#ffffff" },
-  { value: "red", label: "Red", background: "#d83242", foreground: "#ffffff" },
-];
+const FAMILIES = ["Popular", "All", "Reds & pinks", "Oranges & browns", "Yellows", "Greens", "Blues & teals", "Purples", "Neutrals"];
+const POPULAR = new Set(["violet", "mint", "amber", "coral", "blue", "cyan", "green", "orange", "pink", "red", "cherry-rose", "burgundy", "pastel-pink", "gold", "sage-green", "emerald", "royal-blue", "teal", "lavender", "slate", "peach-fuzz", "coffee-bean", "lilac", "charcoal"]);
 
 export default function SetColorPicker({ id, value, onChange }: {
   id?: string; value: string; onChange: (value: string) => void;
 }) {
   const menuId = useId();
-  const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  const search = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
-  const selected = COLORS.find(color => color.value === value) ?? COLORS[0];
-  useEffect(() => {
-    if (!open) return;
-    root.current?.querySelector<HTMLButtonElement>('[aria-checked="true"]')?.focus();
-    const outside = (event: PointerEvent) => {
-      if (!root.current?.contains(event.target as Node)) setOpen(false);
+  const [query, setQuery] = useState("");
+  const [family, setFamily] = useState("Popular");
+  const selected = getSetColor(value);
+  const term = query.trim().toLowerCase();
+  const colors = SET_COLORS.filter(color => term
+    ? color.label.toLowerCase().includes(term) || color.hex.includes(term.replace(/^#/, ""))
+    : family === "All" || (family === "Popular" ? POPULAR.has(color.value) : color.family === family));
+
+  useLayoutEffect(() => {
+    if (!open || !panel.current || !trigger.current) return;
+    const menu = panel.current;
+    menu.showPopover();
+    const position = () => {
+      const rect = trigger.current!.getBoundingClientRect();
+      const width = Math.min(380, window.innerWidth - 24);
+      const height = Math.min(490, window.innerHeight - 24);
+      menu.style.width = `${width}px`;
+      menu.style.maxHeight = `${height}px`;
+      menu.style.left = `${Math.max(12, Math.min(rect.right - width, window.innerWidth - width - 12))}px`;
+      menu.style.top = `${Math.max(12, Math.min(rect.bottom + 6, window.innerHeight - height - 12))}px`;
     };
-    document.addEventListener("pointerdown", outside);
-    return () => document.removeEventListener("pointerdown", outside);
+    position();
+    search.current?.focus();
+    window.addEventListener("resize", position);
+    window.addEventListener("scroll", position, true);
+    return () => {
+      window.removeEventListener("resize", position);
+      window.removeEventListener("scroll", position, true);
+    };
   }, [open]);
+
   const close = () => { setOpen(false); trigger.current?.focus(); };
-  return <div ref={root} className="set-color-picker" onBlur={event => {
-    if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
-  }} onKeyDown={event => {
-    if (event.key === "Escape" && open) { event.preventDefault(); event.stopPropagation(); close(); }
-  }}>
+  const toggle = () => { if (open) close(); else { setQuery(""); setFamily("Popular"); setOpen(true); } };
+  return <div className="set-color-picker">
     <button ref={trigger} id={id} type="button" className="set-color-trigger"
-      style={{ backgroundColor: selected.background, color: selected.foreground }}
-      aria-label={`Color: ${selected.label}`} aria-haspopup="menu" aria-expanded={open} aria-controls={open ? menuId : undefined}
-      onClick={() => setOpen(!open)} onKeyDown={event => {
-        if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); setOpen(true); }
+      style={{ backgroundColor: selected.hex, color: colorText(selected.hex) }}
+      title={`${selected.label} · ${selected.hex.toUpperCase()}`}
+      aria-label={`Color: ${selected.label}`} aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? menuId : undefined}
+      onClick={toggle} onKeyDown={event => {
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); if (!open) toggle(); }
       }}><span>{selected.label}</span><span aria-hidden="true">▾</span></button>
-    {open && <div id={menuId} role="menu" aria-label="Set color" className="set-color-menu" onKeyDown={event => {
-      const buttons = [...event.currentTarget.querySelectorAll<HTMLButtonElement>('button')];
-      const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
-      let next: number;
-      if (event.key === "ArrowDown") next = (index + 1) % buttons.length;
-      else if (event.key === "ArrowUp") next = (index - 1 + buttons.length) % buttons.length;
-      else if (event.key === "Home") next = 0;
-      else if (event.key === "End") next = buttons.length - 1;
-      else return;
-      event.preventDefault(); buttons[next].focus();
-    }}>
-      {COLORS.map(color => <button key={color.value} type="button" role="menuitemradio" aria-checked={selected.value === color.value}
-        tabIndex={-1} style={{ "--option-background": color.background, "--option-foreground": color.foreground } as CSSProperties}
-        onClick={() => { onChange(color.value); close(); }}><span>{color.label}</span>{selected.value === color.value && <span aria-hidden="true">✓</span>}</button>)}
+    {open && <div ref={panel} id={menuId} role="dialog" aria-label="Choose set color" className="set-color-palette" popover="auto"
+      onToggle={event => { if (event.newState === "closed") setOpen(false); }}
+      onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); close(); } }}>
+      <header><div><strong>Set color</strong><small>{selected.label} · {selected.hex.toUpperCase()}</small></div><button type="button" onClick={close} aria-label="Close color picker">×</button></header>
+      <input ref={search} type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search names or #hex…" aria-label="Search set colors" />
+      <div className="set-color-families" role="group" aria-label="Color families">
+        {FAMILIES.map(item => <button type="button" key={item} aria-pressed={!term && family === item} onClick={() => { setFamily(item); setQuery(""); }}>{item}</button>)}
+      </div>
+      <div className="set-color-results-count" role="status">{colors.length} colors</div>
+      <div className="set-color-swatches" role="group" aria-label="Color choices" onKeyDown={event => {
+        const buttons = [...event.currentTarget.querySelectorAll<HTMLButtonElement>("button")];
+        const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
+        if (index < 0 || !buttons.length) return;
+        let next: number;
+        if (event.key === "ArrowRight") next = (index + 1) % buttons.length;
+        else if (event.key === "ArrowLeft") next = (index - 1 + buttons.length) % buttons.length;
+        else if (event.key === "ArrowDown") next = Math.min(index + 3, buttons.length - 1);
+        else if (event.key === "ArrowUp") next = Math.max(index - 3, 0);
+        else if (event.key === "Home") next = 0;
+        else if (event.key === "End") next = buttons.length - 1;
+        else return;
+        event.preventDefault(); buttons[next].focus();
+      }}>
+        {colors.map(color => <button key={color.value} type="button" aria-label={`${color.label}, ${color.hex.toUpperCase()}`} aria-pressed={selected.value === color.value}
+          title={`${color.label} · ${color.hex.toUpperCase()}`} style={{ "--swatch": color.hex, "--swatch-ink": colorText(color.hex) } as CSSProperties}
+          onClick={() => { onChange(color.value); close(); }}><span className="set-color-swatch" aria-hidden="true">{selected.value === color.value ? "✓" : ""}</span><span>{color.label}</span></button>)}
+        {!colors.length && <p>No matching colors. Try a name like “sage” or a hex code.</p>}
+      </div>
     </div>}
   </div>;
 }
