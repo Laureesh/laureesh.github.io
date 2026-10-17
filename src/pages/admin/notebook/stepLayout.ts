@@ -84,6 +84,30 @@ export function formatStepLayout(html: string): string | null {
   }
   const children = [...doc.body.childNodes];
   const headings = [...doc.body.children].filter(node => /^H[1-6]$/.test(node.tagName));
+  // Question activities keep their scenario/evidence before the timeline and
+  // their answer key after it, regardless of the surrounding heading levels.
+  const questionHeadings = headings.filter(node => /^question\s+\d+\b/i.test((node.textContent ?? "").trim()));
+  if (questionHeadings.length >= 2) {
+    const questions = new Set(questionHeadings);
+    let steps: HTMLOListElement | null = null;
+    let current: HTMLLIElement | null = null;
+    for (const node of children) {
+      if (node instanceof Element && questions.has(node)) {
+        if (!steps) {
+          steps = doc.createElement("ol"); steps.className = "notebook-steps";
+          doc.body.insertBefore(steps, node);
+        }
+        current = doc.createElement("li"); steps.append(current);
+        current.append(node);
+      } else if (current) {
+        const title = current.firstElementChild!;
+        if (node instanceof Element && /^H[1-6]$/.test(node.tagName) && node.tagName <= title.tagName) {
+          current = null; steps = null;
+        } else current.append(node);
+      }
+    }
+    return normalizeStepTitles(doc.body.innerHTML);
+  }
   // A title may precede smaller section headings, as in “Lab Steps” followed by H3s.
   const sectionHeading = headings.length === 1 && doc.body.querySelector("ol") ? undefined
     : headings.find(node => node !== headings[0] && node.tagName > headings[0].tagName) ?? headings[0];
@@ -186,7 +210,9 @@ export function detectStepLayout(html: string): string | null {
   const listItems = outsideCode.querySelectorAll("ol > li").length;
   const instructionalItems = [...outsideCode.querySelectorAll("ol > li")].filter(node => /^(?:open|click|select|type|enter|press|run|check|verify|create|install|configure|save|connect|add|remove|restart|enable|disable)\b/i.test((node.textContent ?? "").trim())).length;
   const numberedLines = lines.filter(line => /^\d+[.)]\s+\S/.test(line)).length;
-  if (new Set(explicitSteps).size < 2 && instructionalItems < 2 && !(hasGuideTitle && (listItems >= 2 || numberedLines >= 2))) return null;
+  const questionTitles = [...headings, ...lines].filter(line => /^question\s+\d+\b/i.test(line));
+  const hasQuestions = new Set(questionTitles.map(line => line.match(/^question\s+(\d+)/i)![1])).size >= 2;
+  if (!hasQuestions && new Set(explicitSteps).size < 2 && instructionalItems < 2 && !(hasGuideTitle && (listItems >= 2 || numberedLines >= 2))) return null;
   // formatStepLayout supports rich headings, numbered lists, and pasted Markdown.
   const result = formatStepLayout(html);
   if (result) return result;
