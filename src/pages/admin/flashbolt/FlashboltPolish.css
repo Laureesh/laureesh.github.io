@@ -653,3 +653,51 @@
   font-size: 12px;
   font-weight: 600;
 }
+
+/* Compact set metadata without reducing the card editor's writing space. */
+.flashbolt-shell .form-card.set-details {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+}
+.flashbolt-shell .set-details .set-metadata-field,
+.flashbolt-shell .set-details .kahoot-link-field { gap: 4px; min-width: 0; }
+.flashbolt-shell .set-details .field-row {
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: 10px;
+  margin: 0;
+}
+.flashbolt-shell .set-details .kahoot-link-field { margin: 0; }
+.flashbolt-shell .set-details input:not([type="checkbox"]),
+.flashbolt-shell .set-details .set-color-trigger {
+  height: 36px;
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.flashbolt-shell .set-details #set-description {
+  min-height: 36px;
+  padding: 7px 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.flashbolt-shell .set-details .folder-assignment { margin: 0; padding-top: 10px; }
+.flashbolt-shell .set-details .folder-assignment-heading { gap: 8px; margin-bottom: 6px; }
+.flashbolt-shell .set-details .folder-assignment-heading > div > span { font-size: 12px; }
+.flashbolt-shell .set-details .folder-assignment-actions { gap: 8px; }
+.flashbolt-shell .set-details .folder-assignment-actions .text-button { font-size: 12px; }
+.flashbolt-shell .set-details .selected-folder-summary { margin-bottom: 6px; padding: 0; border: 0; background: none; }
+.flashbolt-shell .set-details .selected-folder-chip { padding: 4px 6px; gap: 6px; flex-wrap: wrap; }
+.flashbolt-shell .set-details .selected-folder-chip b { font-size: 12px; }
+.flashbolt-shell .set-details .selected-folder-chip small,
+.flashbolt-shell .set-details .no-folder-selected { font-size: 11px; }
+.flashbolt-shell .set-folder-picker > summary { padding: 6px 0; color: var(--primary-strong); font-size: 12px; font-weight: 650; cursor: pointer; }
+.flashbolt-shell .set-details .folder-assignment-search { height: 34px; margin: 6px 0; }
+.flashbolt-shell .set-details .folder-option-grid { gap: 6px; max-height: 150px; }
+.flashbolt-shell .set-details label.folder-option { gap: 6px; padding: 6px 8px; }
+.flashbolt-shell .set-details .folder-option strong { font-size: 12px; }
+.flashbolt-shell .set-details .folder-option small { font-size: 11px; }
+@media (max-width: 480px) {
+  .flashbolt-shell .set-details .field-row { grid-template-columns: minmax(0, 1fr); }
+  .flashbolt-shell .set-details .folder-option-grid { grid-template-columns: minmax(0, 1fr); }
+}
