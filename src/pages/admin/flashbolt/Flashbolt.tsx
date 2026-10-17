@@ -3052,16 +3052,24 @@ export default function Flashbolt() {
       <div className="main-column">
         <header ref={topbarRef} className={`topbar${showEditorTopbar ? " topbar-editing" : ""}`}>
           <button className="topbar-navigation-trigger" popoverTarget="flashbolt-navigation" aria-label="Open Flashbolt navigation" title="Navigation"><span aria-hidden="true">☰</span></button>
+          <nav className="topbar-quick-navigation" aria-label="Main navigation">
+          <Link title="Home" aria-label="Home" className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span className="nav-icon"><House aria-hidden="true" /></span><span className="nav-label">Home</span></Link>
+          <Link title="Review today" aria-label="Review today" className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><span className="nav-icon"><History aria-hidden="true" /></span><span className="nav-label">Review today</span></Link>
+          <Link title="Your library" aria-label="Your library" className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span className="nav-icon"><BookOpen aria-hidden="true" /></span><span className="nav-label">Your library</span></Link>
+          <Link title="Folders" aria-label="Folders" className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span className="nav-icon"><FolderIcon aria-hidden="true" /></span><span className="nav-label">Folders</span></Link>
+          </nav>
           <div id="flashbolt-navigation" className="topbar-navigation-menu" popover="auto" onClick={event => {
             const control = (event.target as Element).closest("a, button");
             if (control && !control.closest(".theme-picker")) event.currentTarget.hidePopover();
           }}>
             <Link className="topbar-navigation-brand" to={FLASHBOLT_BASE}>Flashbolt</Link>
-        <nav className="main-nav" aria-label="Main navigation">
+        <nav className="main-nav" aria-label="Folder shortcuts and navigation">
+          <div className="topbar-menu-primary">
           <Link title="Home" aria-label="Home" className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span className="nav-icon"><House aria-hidden="true" /></span><span className="nav-label">Home</span></Link>
           <Link title="Review today" aria-label="Review today" className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><span className="nav-icon"><History aria-hidden="true" /></span><span className="nav-label">Review today</span></Link>
           <Link title="Your library" aria-label="Your library" className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span className="nav-icon"><BookOpen aria-hidden="true" /></span><span className="nav-label">Your library</span></Link>
           <Link title="Folders" aria-label="Folders" className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span className="nav-icon"><FolderIcon aria-hidden="true" /></span><span className="nav-label">Folders</span></Link>
+          </div>
           {quickLinkSemester && <details open className="sidebar-folder-dropdown" onKeyDown={(event) => {
             if (event.key === "Escape") {
               event.currentTarget.open = false;

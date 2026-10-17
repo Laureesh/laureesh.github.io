@@ -557,3 +557,39 @@
   margin-block: 8px;
 }
 .flashbolt-shell .editor-navigation-panel .editor-auto-scroll > span { min-width: 0; }
+
+.flashbolt-shell .topbar-quick-navigation {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+}
+.flashbolt-shell .topbar-quick-navigation > a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--muted);
+  text-decoration: none;
+}
+.flashbolt-shell .topbar-quick-navigation .nav-label { display: none; }
+.flashbolt-shell .topbar-quick-navigation .nav-icon { display: flex; width: 20px; height: 20px; }
+.flashbolt-shell .topbar-quick-navigation svg { width: 20px; height: 20px; }
+.flashbolt-shell .topbar-quick-navigation > a:hover,
+.flashbolt-shell .topbar-quick-navigation > a.active {
+  background: var(--primary-soft);
+  border-color: var(--line);
+  color: var(--primary-strong);
+}
+.flashbolt-shell .topbar-quick-navigation > a:focus-visible {
+  outline: 2px solid var(--primary-strong);
+  outline-offset: 2px;
+}
+.flashbolt-shell .topbar-menu-primary { display: none; }
+@media (max-width: 780px) {
+  .flashbolt-shell .topbar-quick-navigation { display: none; }
+  .flashbolt-shell .topbar-menu-primary { display: grid; gap: 6px; }
+}
