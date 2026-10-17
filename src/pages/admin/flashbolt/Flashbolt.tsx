@@ -1789,13 +1789,13 @@ export default function Flashbolt() {
     startEdit(set);
   }
 
-  function saveDraft(studyAfter = false) {
-    const startedCards = draft.cards.filter((card) => card.term.trim()
+  function saveDraft(studyAfter = false, draftToSave = draft, savedMessage?: string) {
+    const startedCards = draftToSave.cards.filter((card) => card.term.trim()
       || card.definition.trim()
       || card.answerChoices?.some((choice) => choice.trim())
       || card.matchingPairs?.some((pair) => pair.left.trim() || pair.right.trim()));
     const cleanCards = startedCards.map(prepareDraftCard).filter((card): card is Card => Boolean(card));
-    if (!draft.title.trim()) {
+    if (!draftToSave.title.trim()) {
       notify("Add a title before saving this set.");
       return;
     }
@@ -1807,23 +1807,23 @@ export default function Flashbolt() {
       notify("Finish every started card and mark the correct answer before saving.");
       return;
     }
-    const kahootUrl = draft.kahootUrl?.trim() ?? "";
+    const kahootUrl = draftToSave.kahootUrl?.trim() ?? "";
     if (kahootUrl && !isSafeKahootUrl(kahootUrl)) {
       notify("Enter a valid secure Kahoot link, such as https://create.kahoot.it/details/…");
       return;
     }
 
     const savedSet: StudySet = {
-      ...draft,
+      ...draftToSave,
       id: editingSetId ?? makeId("set"),
-      title: draft.title.trim(),
-      description: draft.description.trim(),
-      subject: draft.subject.trim() || "General",
+      title: draftToSave.title.trim(),
+      description: draftToSave.description.trim(),
+      subject: draftToSave.subject.trim() || "General",
       kahootUrl: kahootUrl || undefined,
       updatedAt: new Date().toISOString(),
       cards: studyAfter
         ? cleanCards.map(withDetectedAnswerChoices)
-        : draft.cards.map((card) => ({
+        : draftToSave.cards.map((card) => ({
             ...card,
             term: card.term.trim(),
             definition: card.definition.trim(),
@@ -1877,7 +1877,7 @@ export default function Flashbolt() {
     notify(immediateBackupFailed
       ? "Set saved in this session, but the local backup was blocked. Keep this page open until account sync finishes."
       : !studyAfter
-        ? "Set saved. You can keep editing and finish the checklist later."
+        ? savedMessage ?? "Set saved. You can keep editing and finish the checklist later."
       : editingSetId
       ? "Set and folder assignments updated."
       : draftFolderIds.length
@@ -2292,12 +2292,15 @@ export default function Flashbolt() {
       notify("Paste quiz results, Quizlet term-list HTML, or use term :: definition.");
       return;
     }
-    setDraft((current) => ({
-      ...current,
-      cards: [...current.cards.filter((card) => card.term || card.definition), ...cards.map(card => applyDetectedQuestionType(card))],
-    }));
+    const importedDraft: StudySet = {
+      ...draft,
+      title: draft.title.trim() || "Imported study set",
+      cards: [...draft.cards.filter((card) => card.term || card.definition), ...cards.map(card => applyDetectedQuestionType(card))],
+    };
+    // Save the imported snapshot directly; React has not committed setDraft yet.
+    setDraft(importedDraft);
     setPasteImport("");
-    notify(`${cards.length} card${cards.length === 1 ? "" : "s"} imported${quizResultCards.length ? " from quiz results" : htmlCards.length ? " from Quizlet HTML" : ""}.`);
+    saveDraft(false, importedDraft, `${cards.length} card${cards.length === 1 ? "" : "s"} imported and set saved.`);
   }
 
   function openNewFolderModal() {
