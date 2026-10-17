@@ -66,3 +66,42 @@ test('right-click Edit set keeps editor controls responsive', async () => {
     assert.equal(savedCards.length, totalCards + 1, 'saving retains unmounted cards and the newly added draft card');
   } finally { await page.close(); }
 });
+
+for (const reducedMotion of ['no-preference', 'reduce']) {
+  test(`first jump to card 10 stays aligned after deferred cards resize (${reducedMotion})`, async () => {
+    const page = await mount('create', 1800);
+    try {
+      await page.emulateMedia({ reducedMotion });
+      const cards = Array.from({ length: 30 }, (_, index) =>
+        `Question ${index + 1}: ${'Explain this security scenario. '.repeat(12 + index % 5)} :: ${'A detailed answer that makes the editor taller. '.repeat(20 + index % 4)}`,
+      ).join('\n');
+      await page.getByRole('textbox', { name: 'Cards to import' }).fill(cards);
+      await page.getByRole('button', { name: 'Import pasted cards', exact: true }).click();
+      await page.waitForFunction(() => document.querySelectorAll('.card-editor-wrap').length === 30);
+      const target = page.locator('.card-editor-wrap').nth(9);
+      await target.waitFor({ state: 'attached' });
+      assert.equal(await target.locator('.card-editor-placeholder').count(), 1, 'target starts deferred');
+      await page.getByRole('button', { name: /^Go to card 10,/ }).click();
+      await page.waitForFunction(() => {
+        const card = document.querySelectorAll('.card-editor-wrap')[9];
+        const header = document.querySelector('.topbar');
+        return Math.abs(card.getBoundingClientRect().top - header.getBoundingClientRect().bottom - 12) < 2;
+      });
+      // Let all nearby IntersectionObserver reveals and textarea resize frames run.
+      await page.waitForTimeout(800);
+      const position = await target.evaluate(element => ({
+        top: element.getBoundingClientRect().top,
+        expected: document.querySelector('.topbar').getBoundingClientRect().bottom + 12,
+        focused: element.contains(document.activeElement),
+      }));
+      assert(Math.abs(position.top - position.expected) < 2, JSON.stringify(position));
+      assert(position.focused, 'the selected card receives keyboard focus');
+      assert(await page.locator('.card-editor-placeholder').count() > 0, 'other distant cards remain deferred');
+      const bounds = await target.boundingBox();
+      await page.mouse.move(bounds.x + bounds.width / 2, position.top + 120);
+      await page.mouse.wheel(0, -500);
+      await page.waitForTimeout(350);
+      assert((await target.boundingBox()).y > position.top + 100, 'manual scrolling is not pulled back');
+    } finally { await page.close(); }
+  });
+}

@@ -1,3 +1,4 @@
+import { jumpToEditorCard } from "./editorCardNavigation";
 import DeferredEditorCard from "./DeferredEditorCard";
 import { scheduleTextareaResize } from "./textareaResize";
 import { withLibraryLoadTimeout } from "./libraryLoadTimeout";
@@ -888,6 +889,8 @@ export default function Flashbolt() {
   const autoAdvanceOnRef = useRef(autoAdvanceOn);
   autoAdvanceOnRef.current = autoAdvanceOn;
   const draftCardElements = useRef(new Map<string, HTMLElement>());
+  const cancelCardJump = useRef<(() => void) | null>(null);
+  useEffect(() => () => cancelCardJump.current?.(), [view]);
   const editorPanelRef = useRef<HTMLElement>(null);
   const topbarRef = useRef<HTMLElement>(null);
   const [editorPanelPassed, setEditorPanelPassed] = useState(false);
@@ -3411,10 +3414,9 @@ export default function Flashbolt() {
                             aria-label={`Go to card ${index + 1}${incomplete ? ", incomplete" : ", complete"}`}
                             title={card.term.trim() || `Card ${index + 1}`}
                             onClick={() => {
+                              cancelCardJump.current?.();
                               const element = draftCardElements.current.get(card.id);
-                              element?.dispatchEvent(new Event("reveal-editor-card"));
-                              element?.querySelector<HTMLTextAreaElement>('.card-text-field textarea')?.focus({ preventScroll: true });
-                              element?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+                              if (element) cancelCardJump.current = jumpToEditorCard(element, topbarRef.current);
                             }}>{index + 1}</button>;
                         })}
                       </nav>

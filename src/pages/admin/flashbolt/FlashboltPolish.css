@@ -11,6 +11,8 @@
 .flashbolt-shell .topbar { gap: 12px; }
 .flashbolt-shell .search-box { flex: 1 1 260px; max-width: 520px; }
 .flashbolt-shell .search-box input { font-size: 14px; }
+/* The search wrapper supplies the shared focus ring. */
+.flashbolt-shell .search-box input:focus-visible { outline: none; box-shadow: none; }
 .flashbolt-shell .search-box svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--muted); }
 .flashbolt-shell .local-pill { font-size: 12px; white-space: nowrap; }
 .flashbolt-shell .workspace { padding-top: 26px; }
@@ -337,13 +339,6 @@
 
 /* Keep editing actions and imports within easy reach on wide screens. */
 .flashbolt-shell .editor-import-tools { min-width: 0; }
-.flashbolt-shell .editor-advance-settings > summary {
-  cursor: pointer;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 650;
-  padding-block: 8px;
-}
 .flashbolt-shell .editor-advance-settings[open] > summary { margin-bottom: 6px; }
 /* The editor uses the available width rather than the library's page cap. */
 .flashbolt-shell[data-view="create"] .workspace {
@@ -399,8 +394,10 @@
   border-block: 1px solid var(--line);
   padding-block: 12px;
 }
-.flashbolt-shell .editor-card-navigation > summary {
+.flashbolt-shell .editor-card-navigation > summary,
+.flashbolt-shell .editor-advance-settings > summary {
   cursor: pointer;
+  color: var(--ink);
   font-size: 15px;
   font-weight: 750;
 }
@@ -546,7 +543,7 @@
 
 .flashbolt-shell .editor-navigation-panel .editor-advance-settings {
   margin-top: 14px;
-  padding-top: 8px;
+  padding-top: 14px;
   border-top: 1px solid var(--line);
 }
 .flashbolt-shell .editor-navigation-panel .editor-card-navigation-grid {
@@ -635,7 +632,10 @@
 .flashbolt-shell .topbar-folder-shortcut > b { font-size: 10px; color: var(--muted); }
 .flashbolt-shell .topbar-folder-shortcut:is(:hover, .active) { border-color: var(--primary-strong); background: var(--primary-soft); }
 .flashbolt-shell .topbar-folder-shortcut:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 1px; }
-.flashbolt-shell.topbar-navigation-layout .topbar .search-box { flex: 1 1 180px; width: auto; min-width: 80px; max-width: 360px; }
+.flashbolt-shell.topbar-navigation-layout .topbar .search-box { flex: 1 1 180px; width: auto; min-width: 80px; max-width: 440px; }
+@media (min-width: 781px) {
+  .flashbolt-shell .topbar:not(.topbar-editing) .topbar-quick-navigation { flex-grow: 0; }
+}
 @media (min-width: 1800px) {
   .flashbolt-shell .topbar-quick-navigation > a { flex-basis: auto; width: auto; gap: 5px; padding-inline: 6px; }
   .flashbolt-shell .topbar-quick-navigation .nav-label { display: inline; white-space: nowrap; font-size: 12px; }
