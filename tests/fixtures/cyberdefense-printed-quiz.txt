@@ -1,0 +1,220 @@
+6.7.8 Practice Questions
+Date: 10/17/2026, 5:16:02 PM
+Time Spent: 00:15
+Score: 0% Passing Score: 80%
+A security analyst at a financial institution has discovered that sensitive customer data was
+transferred outside of the organization's network.
+Which of the following is the MOST likely explanation for the data transfer?
+A Data exfiltration Correct
+B Data backup
+C Data replication
+D Data archiving
+Explanation
+Data exfiltration refers to the unauthorized transfer of sensitive data from a secure network to
+an external location.
+Data backups refer to making a copy for safekeeping if the original data is lost or damaged.
+Data backups are within the organization's network, not outside.
+Data archiving refers to moving data not actively used to a separate storage location, typically
+for long-term retention. Data archiving is within the organization's network, not outside of it.
+Data replication refers to creating multiple copies of data for redundancy purposes, allowing
+for continued access to the data even if one copy is lost or damaged. Replication is within the
+organization's network, not outside.
+Question 1 Incorrect
+10/17/26, 5:18 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 1/11
+Which of the following tools can you use to prevent data exfiltration by identifying and
+blocking the transfer of sensitive information?
+A FTP
+B OneDrive
+C WAF
+D DLP Correct
+Explanation
+Organizations can employ advanced security solutions like data loss prevention (DLP)
+software to identify and block the transfer of sensitive information by monitoring data in
+motion, at rest, and in use.
+File transfer protocols, such as FTP and SFTP, can be exploited for data exfiltration by
+unauthorized individuals who gain access to sensitive files on a network and transfer them to
+an external server.
+OneDrive, Dropbox, or Google Drive can be used to receive exfiltrated data. Blocking
+employees' access to the sites makes detecting malicious use easier.
+An adversary may use SQL injection or similar techniques to copy records from a database
+they should not have access to. Web Application Firewalls (WAF) can detect these injection
+attacks. However, it is not designed to prevent data infiltration attacks.
+Question 2 Incorrect
+10/17/26, 5:18 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 2/11
+A security consultant uses a software tool to perform security tests for an organization's cloud
+presence.
+Which tool will the consultant use in an attempt to gain a list of all virtual machine and
+storage container instances?
+A Nessus
+B Arachni
+C Scout Suite Correct
+D OpenVAS
+Explanation
+Scout Suite is an audit tool that collects data such as security misconfigurations. The tool also
+provides a report of discovered objects, such as virtual machines and containers, which is the
+consultant's goal.
+Arachni is an open-source web scanner that tests many vulnerabilities in HTML forms,
+including code injection, structured query language (SQL) injection, and cross-site scripting
+(XSS). However, Arachni is not useful to the consultant in this case.
+OpenVAS is an open-source scanner used to identify vulnerabilities in systems. The consultant
+could use OpenVas to obtain Common Vulnerability Scoring System (CVSS) scores but not for
+object identification.
+Nessus is a popular vulnerability assessment tool to gauge the risks associated with any
+vulnerabilities based on several factors, including a CVSS score.
+Question 3 Incorrect
+10/17/26, 5:18 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 3/11
+A coworker has run Scout Suite against your Microsoft Azure environment.
+What were they looking for?
+A Scout Suite is used to help increase efficiency of cloud resources.
+B
+Scout Suite is used to show potential security risks on
+cloud deployments.
+Correct
+C
+Scout Suite is used to determine software version risks on cloud
+deployments.
+D Scout Suite scans cloud deployments for viruses.
+Explanation
+Question 4 Incorrect
+10/17/26, 5:18 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 4/11
+Scout Suite is used to show potential security risks on cloud deployments. It can work with
+multi-cloud environments (those that have services in more than one cloud environment). It is
+designed to look for flaws in deployment, weak security policies, and other risky
+configurations on cloud setups.
+Scout Suite can determine some information about software versions or protocols, but its
+primary function is to observe many different facets of a cloud environment, not just software
+versions.
+A secure environment will potentially provide some efficiency improvements, but this is only
+from a security perspective. Generally speaking, the more locked-down an environment is, the
+less efficient it will be, as additional safeguards consume additional time or resources.
+Scout Suite does not scan for viruses.
+10/17/26, 5:18 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 5/11
+An organization moves computing resources to the cloud. A team of security consultants
+reviews the new configurations and reports on the details from an external perspective.
+As part of the investigation, the team takes advantage of regulatory compliance features of
+what tool?
+A ScoutSuite
+B Prowler Correct
+C GNU debugger (GDB)
+D Pacu
+Explanation
+Prowler is an audit tool for use with Amazon Web Services (AWS) only. The consultants can use
+this tool to evaluate the cloud infrastructure against the Center for Internet Security (CIS)
+Benchmarks and perform regulatory compliance checks.
+ScoutSuite is an audit tool that collects data such as security misconfigurations from a cloud
+platform using application programming interface (API) calls. The consultants would not use
+the tool for compliance checks.
+Pacu is an exploitation framework and would be useful for the consultants to evaluate the
+security of an AWS environment.
+The consultants would use GNU Debugger to debug programs written in various
+programming languages such as C, C++, and Fortran.
+Question 5 Incorrect
+10/17/26, 5:18 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 6/11
+An organization moves computing resources to the cloud. A team of security consultants
+performs penetration tests on a newly established install of AWS virtual machine instances.
+Which resource does the team deploy to gain unauthorized access to these cloud resources?
+A Immunity debugger
+B Pacu Correct
+C OpenVAS
+D ScoutSuite
+Explanation
+Pacu is an exploitation framework and would be useful for the consultants to evaluate the
+security of an Amazon Web Services (AWS) environment, including attempts to gain access.
+The consultants use the Immunity Debugger tool to inspect malware. It is an advanced
+debugger and analysis tool used in reverse engineering and debugging software.
+ScoutSuite is an audit tool that collects data such as security misconfigurations from a cloud
+platform using application programming interface (API) calls. However, the consultants would
+not use the tool to gain access to cloud resources.
+OpenVAS is an open-source scanner to identify vulnerabilities in systems. The security
+consultants could use this tool to obtain Common Vulnerability Scoring System (CVSS) scores
+but not to gain access.
+Question 6 Incorrect
+10/17/26, 5:18 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 7/11
+A company's security team needs to assess the security posture of its Amazon Web Services
+(AWS) environment, focusing on both the reconnaissance and exploitation phases of a
+penetration testing engagement.
+The team requires a tool that can automate various attack scenarios and validate the
+effectiveness of its cloud security controls.
+Which of the following tools is best suited for this task?
+A Zed Attack Proxy (ZAP)
+B Tenable.io
+C Suricata
+D Pacu Correct
+Explanation
+Pacu is an open-source Amazon Web Services (AWS) exploitation framework for penetration
+testing engagements in AWS environments. It automates various attack scenarios and helps
+validate the effectiveness of cloud security controls.
+Zed Attack Proxy (ZAP) is an open-source web application security scanner that helps identify
+vulnerabilities in web applications. It is not specifically for Amazon Web Services (AWS)
+environment reconnaissance and exploitation.
+Tenable.io is a cloud-based vulnerability management platform that helps organizations
+identify and manage vulnerabilities in their infrastructure. It is not for Amazon Web Services
+(AWS) environment reconnaissance and exploitation.
+Suricata is an open-source network threat detection engine that provides intrusion detection
+(IDS), intrusion prevention (IPS), and network security monitoring (NSM) functionalities.
+Question 7 Incorrect
+10/17/26, 5:18 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 8/11
+Which security control layer involves putting in place policies that comply with industry
+standards, such as OWASP?
+A Network
+B Application Correct
+C Management
+D Physical
+Explanation
+Security at the Application layer involves putting in place policies that comply with industry
+standards, such as OWASP (Open Web Application Security Project).
+The Management layer involves all administrative tasks to promote uninterrupted and
+effective services.
+The Network layer implements policies to prevent attackers from activities such as stealing,
+modifying, viewing, and redirecting data.
+Physical layer security measures focus on data centers, physical resources, and cloud
+infrastructure.
+Question 8 Incorrect
+10/17/26, 5:18 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 9/11
+A government agency had a breach at one of its locations that resulted in stolen hard drives.
+The virtual servers on the stolen hard drives had data for only one virtual appliance
+replicating to the secondary virtual appliance remotely.
+A security investigation report showed that the agency did not set up virtual appliances with
+data-at-rest security features.
+What must the system administrators do to ensure another breach does not jeopardize the
+government?
+A Encrypt the virtual server Correct
+B Setup backup targets
+C Setup for disaster recovery
+D Configure high availability
+Explanation
+Encryption provides data-at-rest security for virtual and physical servers at the drive level. For
+example, if a hard drive gets stolen, the data is not recoverable without the decryption keys.
+Backup targets provide the availability of data in the event it is lost or corrupted. In this case,
+the agency set up the virtual servers for replication to another site.
+High availability supports services if one of the cluster servers goes down. In this case, one of
+the servers did go, but it did not protect the data from the breach.
+Disaster recovery supports the availability of services after a catastrophic event. Here, stolen
+data did not get protected, but services were still available on the second virtual server.
+Question 9 Incorrect
+10/17/26, 5:18 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 10/11
+Which security control makes a system more difficult to attack?
+A Deterrent Correct
+B Preventive
+C Corrective
+D Detective
+Explanation
+The table below describes the four types of security controls:
+Type Description Deterrent Deterrent controls make a system more difficult to attack.
+Preventive Preventive controls harden a system against attacks as well as recognize and stop
+them. Detective Detective controls identify and take action as needed when incidents happen.
+Corrective Corrective controls lessen the aftermath of an incident by limiting the damage.
+Copyright © CompTIA, Inc. All rights reserved.
+Question 10 Incorrect
+10/17/26, 5:18 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 11/11

@@ -252,12 +252,75 @@ function parseAnswerShownQuestion(block: string): ParsedCard | null {
   };
 }
 
+/** Browser print copies place question numbers after the content, with page furniture in between. */
+function parsePrintedQuizResults(text: string): ParsedCard[] {
+  const lines = text.split("\n").map(line => line.trim());
+  const pageFooter = (line: string) => /^https?:\/\/labsimapp\.testout\.com\/.*\s+\d+\/\d+$/i.test(line);
+  const questionFooter = (line: string) => /^Question\s+\d+\s+(?:Incorrect|Correct|Partial|Unanswered)$/i.test(line);
+  const firstExplanation = lines.findIndex(line => /^Explanation:?$/i.test(line));
+  const firstQuestionFooter = lines.findIndex(questionFooter);
+  if (!lines.some(pageFooter) || firstExplanation < 0 || firstQuestionFooter < firstExplanation) return [];
+  const furniture = (line: string) => pageFooter(line) || questionFooter(line)
+    || /^\d{1,2}\/\d{1,2}\/\d{2,4},.*Individual Response$/i.test(line)
+    || /^Copyright ©.*All rights reserved\.$/i.test(line);
+  const content = (start: number, end: number) => lines.slice(start, end).filter(line => !furniture(line));
+  const blocks: Array<{ start: number; explanation: number; card: ParsedCard }> = [];
+  let previousExplanation = -1;
+  for (let explanation = 0; explanation < lines.length; explanation++) {
+    if (!/^Explanation:?$/i.test(lines[explanation])) continue;
+    // Locate the last page boundary before this question's answer list. A page
+    // containing only a continued explanation belongs to the preceding card.
+    let choiceStart = -1;
+    for (let index = previousExplanation + 1; index < explanation; index++) {
+      if (/^A(?:\s+|$)/.test(lines[index])) choiceStart = index;
+    }
+    if (choiceStart < 0) return [];
+    let start = 0;
+    for (let index = 0; index < choiceStart; index++) {
+      if (pageFooter(lines[index]) || /^Score:.*Passing Score:/i.test(lines[index])) start = index + 1;
+    }
+    const term = cleanStudyText(content(start, choiceStart).join(" "));
+    const rows = content(choiceStart, explanation).filter(Boolean);
+    const labels = rows.flatMap((line, index) => {
+      const match = line.match(/^([A-Z])(?:\s+(.*)|$)/);
+      return match ? [{ label: match[1], text: match[2] ?? "", index }] : [];
+    });
+    if (!term || labels.length < 2 || labels.some((item, index) => item.label !== String.fromCharCode(65 + index))) return [];
+    const choices: string[] = [];
+    const answers: string[] = [];
+    for (const [index, label] of labels.entries()) {
+      const value = cleanStudyText([label.text, ...rows.slice(label.index + 1, labels[index + 1]?.index)].join(" "));
+      const correct = /\s+Correct$/.test(value);
+      const choice = value.replace(/\s+(?:Correct|Incorrect)$/, "").trim();
+      if (!choice) return [];
+      choices.push(choice);
+      if (correct) answers.push(choice);
+    }
+    if (!answers.length) return [];
+    blocks.push({ start, explanation, card: {
+      ...makeCard(term, answers.join("; "), choices),
+      correctAnswers: answers,
+      questionType: answers.length > 1 ? "select-all"
+        : choices.length === 2 && choices.every(choice => /^(true|false)$/i.test(choice)) ? "true-false" : "multiple-choice",
+    } });
+    previousExplanation = explanation;
+  }
+  // Do not silently import only part of a printed review.
+  if (blocks.length !== lines.filter(questionFooter).length) return [];
+  return blocks.map((block, index) => ({
+    ...block.card,
+    explanation: cleanStudyText(content(block.explanation + 1, blocks[index + 1]?.start ?? lines.length).join(" ")),
+  }));
+}
+
 /** Parse question-review text copied from LMS or Kahoot question lists. */
 export function parseQuizResults(text: string): ParsedCard[] {
   const htmlCards = parseQuestionCardsHtml(text);
   if (htmlCards.length) return htmlCards;
   const normalized = decodeCopiedQuizText(text).replace(/\r\n?/g, "\n")
     .replace(/^#{1,6}\s+(?=Question\s+\d|Explanation\b)/gim, "");
+  const printedCards = parsePrintedQuizResults(normalized);
+  if (printedCards.length) return printedCards;
   const headers = [...normalized.matchAll(/^Question\s+\d+(?=\s|Correct|Incorrect|Partial|Unanswered|$)[^\n]*$/gim)];
   if (!headers.length) return parseKahootQuestionList(text);
 
