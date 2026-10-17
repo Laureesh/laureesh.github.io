@@ -3392,9 +3392,6 @@ export default function Flashbolt() {
 
           {!search && view === "create" && (
             <section className="creator-page">
-              <div className="page-heading split">
-                <div><Link className="back-link" to={editorFolder ? folderPath(editorFolder) : `${FLASHBOLT_BASE}/library`}>← {editorFolder ? editorFolder.name : "Library"}</Link><span className="eyebrow">{editingSetId ? "Edit set" : "New flashcard set"}</span><h1>{editingSetId ? "Make it better." : "Build a set that sticks."}</h1></div>
-              </div>
               {notebookSource && <aside className="form-card notebook-draft-notice">
                 <h2>Review cards from “{notebookSource.title}”</h2>
                 <p>This is an unsaved draft. Check every question and answer, then choose Save or Save &amp; study to create your set.</p>
@@ -3447,6 +3444,10 @@ export default function Flashbolt() {
                 </aside>
                 <div className="creator-main">
                   <article className="form-card set-details">
+                    <header className="set-details-heading">
+                      <Link className="back-link" to={editorFolder ? folderPath(editorFolder) : `${FLASHBOLT_BASE}/library`}>← {editorFolder ? editorFolder.name : "Library"}</Link>
+                      <div><span className="eyebrow">{editingSetId ? "Edit set" : "New flashcard set"}</span><h1>{editingSetId ? "Make it better." : "Build a set that sticks."}</h1></div>
+                    </header>
                     <div className="set-metadata-field"><span className="set-field-label"><label htmlFor="set-title">Title</label><span className="set-field-history">{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, title: recentSetValues.title }))} title={recentSetValues.title}>Use recent: {recentSetValues.title || "Empty"}</button>}<PreviousValueSelect label="title" values={previousTitles} onSelect={(title) => setDraft((current) => ({ ...current, title }))} /></span></span><input id="set-title" value={draft.title} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} onKeyDown={(event) => acceptPreviousValueOnTab(event, previousTitles, (title) => setDraft((current) => ({ ...current, title })))} placeholder="e.g. [ITEC 3600] Chapter 1 - Part 1" maxLength={100} /></div>
                     <div className="field-row">
                       <div className="set-metadata-field"><span className="set-field-label"><label htmlFor="set-subject">Subject</label><span className="set-field-history">{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, subject: recentSetValues.subject }))} title={recentSetValues.subject}>Use recent: {recentSetValues.subject || "Empty"}</button>}<PreviousValueSelect label="subject" values={previousSubjects} onSelect={(subject) => setDraft((current) => ({ ...current, subject }))} /></span></span><input id="set-subject" value={draft.subject} onChange={(event) => setDraft({ ...draft, subject: event.target.value })} onKeyDown={(event) => acceptPreviousValueOnTab(event, previousSubjects, (subject) => setDraft((current) => ({ ...current, subject })))} placeholder="Course or topic" /></div>

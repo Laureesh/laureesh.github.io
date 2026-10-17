@@ -727,7 +727,7 @@
     column-gap: 8px;
     align-items: start;
   }
-  .flashbolt-shell .set-details > .set-metadata-field:first-child { grid-column: span 6; }
+  .flashbolt-shell .set-details > .set-metadata-field:has(#set-title) { grid-column: span 6; }
   .flashbolt-shell .set-details .field-row { display: contents; }
   .flashbolt-shell .set-details .field-row > .set-metadata-field:first-child { grid-column: span 4; }
   .flashbolt-shell .set-details .field-row > .set-metadata-field:last-child { grid-column: span 2; }
@@ -745,3 +745,20 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+/* Keep the editor heading inside the form, aligned with the side panels. */
+.flashbolt-shell[data-view="create"] .workspace { padding-top: 12px; }
+.flashbolt-shell .set-details-heading {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.flashbolt-shell .set-details-heading .back-link { margin: 0; font-size: 12px; }
+.flashbolt-shell .set-details-heading > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.flashbolt-shell .set-details-heading .eyebrow { margin: 0; font-size: 10px; letter-spacing: .06em; }
+.flashbolt-shell .set-details-heading h1 { margin: 0; font-size: 19px; line-height: 1.3; letter-spacing: -.02em; }
