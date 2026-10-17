@@ -921,6 +921,7 @@ export default function Flashbolt() {
   const [createOriginFolderId, setCreateOriginFolderId] = useState<string | null>(null);
   const [draftFolderSearch, setDraftFolderSearch] = useState("");
   const [pasteImport, setPasteImport] = useState("");
+  const [readingClipboard, setReadingClipboard] = useState(false);
   const [quizletUrl, setQuizletUrl] = useState("");
   const [quizletImporting, setQuizletImporting] = useState(false);
   const [quizletImportMessage, setQuizletImportMessage] = useState("");
@@ -2280,14 +2281,32 @@ export default function Flashbolt() {
     }
   }
 
-  function applyPasteImport() {
-    const quizResultCards = parseQuizResults(pasteImport);
-    if (/^Questions\s*\(\d+\)\s*$/im.test(pasteImport) && !quizResultCards.length) {
+  async function applyPasteImport() {
+    if (readingClipboard) return;
+    let importText = pasteImport;
+    if (!importText.trim()) {
+      setReadingClipboard(true);
+      try {
+        importText = await navigator.clipboard.readText();
+      } catch {
+        notify("Clipboard access is unavailable or blocked. Paste your cards into the field, then import again.");
+        return;
+      } finally {
+        setReadingClipboard(false);
+      }
+      if (!importText.trim()) {
+        notify("Your clipboard has no text. Copy some cards or paste them into the field first.");
+        return;
+      }
+      setPasteImport(importText);
+    }
+    const quizResultCards = parseQuizResults(importText);
+    if (/^Questions\s*\(\d+\)\s*$/im.test(importText) && !quizResultCards.length) {
       notify("Could not read every Kahoot question. Copy the full question list with answers shown, including the correct labels.");
       return;
     }
-    const htmlCards = quizResultCards.length ? [] : parseQuizletHtml(pasteImport);
-    const cards = quizResultCards.length ? quizResultCards : htmlCards.length ? htmlCards : parseNotes(pasteImport);
+    const htmlCards = quizResultCards.length ? [] : parseQuizletHtml(importText);
+    const cards = quizResultCards.length ? quizResultCards : htmlCards.length ? htmlCards : parseNotes(importText);
     if (!cards.length) {
       notify("Paste quiz results, Quizlet term-list HTML, or use term :: definition.");
       return;
@@ -3650,9 +3669,9 @@ export default function Flashbolt() {
                   </div>
                   <div className={`paste-import-block collapsible-panel-section ${collapsedEditorSections.includes("paste") ? "collapsed" : ""}`}>
                     <button className="side-panel-collapse-button" type="button" onClick={() => toggleEditorSection("paste")} aria-expanded={!collapsedEditorSections.includes("paste")}><span><small>Manual import</small><strong>Paste a list</strong></span><i aria-hidden="true">⌃</i></button>
-                    <div className="collapsible-panel-body"><p>Paste quiz results or <code>term :: definition</code> pairs.</p>
-                      <textarea value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} aria-label="Cards to import" placeholder={'Paste here…\n\nFirewall :: Filters network traffic.'} rows={5} />
-                      <button className="button quiet full" onClick={applyPasteImport}>Import pasted cards</button>
+                    <div className="collapsible-panel-body"><p>Paste quiz results or <code>term :: definition</code> pairs. Leave this field empty to import from your clipboard.</p>
+                      <textarea disabled={readingClipboard} value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} aria-label="Cards to import" placeholder={'Paste here…\n\nFirewall :: Filters network traffic.'} rows={5} />
+                      <button className="button quiet full" onClick={applyPasteImport} disabled={readingClipboard}>{readingClipboard ? "Reading clipboard…" : "Import pasted cards"}</button>
                       <details className="manual-import-examples">
                         <summary className="manual-import-examples-heading">Supported formats &amp; examples</summary>
                         <div className="manual-import-examples-body">
