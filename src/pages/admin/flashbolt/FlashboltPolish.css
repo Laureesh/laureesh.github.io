@@ -825,12 +825,15 @@
   scrollbar-width: thin;
 }
 .flashbolt-shell .library-navigation-count { margin: 8px 0; color: var(--muted); font-size: 12px; }
+.flashbolt-shell .library-navigation-panel > .back-link { display: block; margin: 0 0 10px; }
 .flashbolt-shell .library-navigation-links,
 .flashbolt-shell .library-navigation-links > section { display: grid; gap: 6px; }
 .flashbolt-shell .library-navigation-links > section + section { margin-top: 8px; }
 .flashbolt-shell .library-navigation-links h3 { margin: 4px 0; color: var(--muted); font-size: 11px; line-height: 1.4; font-weight: 650; }
+.flashbolt-shell .library-navigation-subject-row { position: relative; }
 .flashbolt-shell .library-navigation-subject > summary {
-  padding: 7px 0;
+  padding: 7px 36px 7px 0;
+  min-height: 36px;
   color: var(--ink);
   font-size: 12px;
   line-height: 1.4;
@@ -859,6 +862,8 @@
   cursor: pointer;
 }
 .flashbolt-shell .library-navigation-links :is(button, a):hover { border-color: var(--primary-strong); background: var(--primary-soft); }
+.flashbolt-shell .library-navigation-links .library-navigation-subject-jump { position: absolute; top: 0; right: 0; width: 30px; justify-content: center; padding: 4px; font-size: 17px; }
+.flashbolt-shell .library-navigation-subject-jump:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 2px; }
 .flashbolt-shell .library-navigation-links a > span:not(.library-navigation-folder-color) { flex: 1; min-width: 0; }
 .flashbolt-shell .library-navigation-links small { flex-shrink: 0; color: var(--muted); font-size: 11px; }
 .flashbolt-shell .library-navigation-folder-color { width: 9px; height: 9px; flex: 0 0 9px; border-radius: 3px; }

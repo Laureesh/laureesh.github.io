@@ -3207,18 +3207,26 @@ export default function Flashbolt() {
           {view === "library" && (
             <div className="library-navigation-layout">
               <aside className="editor-navigation-panel library-navigation-panel" aria-label={folder ? "Set navigation" : "Folder navigation"}>
+                {folder && <Link className="back-link" to={`${FLASHBOLT_BASE}/library`} onClick={event => followFlashboltLink(event, () => navigate("library"))}>← Library</Link>}
                 <details className="editor-card-navigation" open key={folder?.id ?? "library"}>
                   <summary>{folder ? "Set navigation" : "Folder navigation"}</summary>
                   <p className="library-navigation-count">{folder ? `${folderSets.length} sets` : `${visibleSemesterGroups.reduce((total, group) => total + group.folders.length, 0)} folders`}</p>
                   {folder ? <nav className="library-navigation-links" aria-label="Jump to set">
-                    {folderSubjectGroups.map(group => <details className="library-navigation-subject" key={group.subject}>
-                      <summary>{group.subject}</summary>
-                      <div>{group.sets.map(set => <button type="button" key={set.id} title={set.title} onClick={() => {
-                        const target = document.getElementById(`library-set-${set.id}`);
-                        target?.focus({ preventScroll: true });
-                        target?.scrollIntoView({ block: "start", behavior: "instant" });
-                      }}>{set.title}</button>)}</div>
-                    </details>)}
+                    {folderSubjectGroups.map(group => <div className="library-navigation-subject-row" key={group.subject}>
+                      <details className="library-navigation-subject">
+                        <summary>{group.subject}</summary>
+                        <div>{group.sets.map(set => <button type="button" key={set.id} title={set.title} onClick={() => {
+                          const target = document.getElementById(`library-set-${set.id}`);
+                          target?.focus({ preventScroll: true });
+                          target?.scrollIntoView({ block: "start", behavior: "instant" });
+                        }}>{set.title}</button>)}</div>
+                      </details>
+                      <button className="library-navigation-subject-jump" type="button" aria-label={`Go to subject: ${group.subject}`} title={`Go to subject: ${group.subject}`} onClick={() => {
+                        const heading = document.getElementById(`folder-subject-${encodeURIComponent(group.subject.toLocaleLowerCase())}`);
+                        heading?.focus({ preventScroll: true });
+                        heading?.scrollIntoView({ block: "start", behavior: "instant" });
+                      }}>↧</button>
+                    </div>)}
                     {!folderSets.length && <p>No sets to navigate.</p>}
                   </nav> : <nav className="library-navigation-links" aria-label="Open folder">
                     {visibleSemesterGroups.map(group => <section key={group.semester}>
@@ -3234,7 +3242,7 @@ export default function Flashbolt() {
               </aside>
             <section className="library-page-content">
               <div className="page-heading split">
-                <div>{folder && <Link className="back-link" to={`${FLASHBOLT_BASE}/library`} onClick={event => followFlashboltLink(event, () => navigate("library"))}>← Library</Link>}<span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
+                <div><span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
                 <div className="heading-actions">
                   {folder && <button className="button quiet" onClick={() => editFolder(folder)}>Edit folder</button>}
                   {!folder && <button className="button quiet" onClick={() => importInputRef.current?.click()}>Restore backup</button>}
