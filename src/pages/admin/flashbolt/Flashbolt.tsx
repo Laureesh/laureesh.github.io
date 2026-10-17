@@ -724,8 +724,7 @@ function AutoResizeTextarea({
 
   useEffect(() => {
     const textarea = textareaRef.current;
-    const container = textarea?.parentElement;
-    if (!textarea || !container) return;
+    if (!textarea) return;
     let cancelResize: (() => void) | undefined;
     const resize = () => {
       cancelResize?.();
@@ -740,7 +739,8 @@ function AutoResizeTextarea({
       previousWidth = width;
       resize();
     });
-    observer?.observe(container);
+    // Sibling controls can change the field width without resizing its row.
+    observer?.observe(textarea);
     window.addEventListener("resize", resize);
     return () => {
       cancelResize?.();

@@ -3829,6 +3829,7 @@ select {
 }
 
 .card-editor-choices label textarea {
+  flex: 1 1 0;
   width: 100%;
   min-width: 0;
   min-height: 29px;
@@ -3844,6 +3845,8 @@ select {
 }
 
 .card-editor-choices label small {
+  flex: 0 0 auto;
+  white-space: nowrap;
   color: var(--mint);
   font-size: 16px;
   font-weight: 850;
@@ -3851,6 +3854,7 @@ select {
 }
 
 .card-editor-choices .choice-remove {
+  flex: 0 0 22px;
   width: 22px;
   height: 22px;
   padding: 0;
