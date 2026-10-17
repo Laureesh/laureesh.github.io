@@ -609,9 +609,9 @@
   display: flex;
   align-items: center;
   flex: 0 0 auto;
-  gap: 6px;
-  padding-left: 10px;
-  margin-left: 6px;
+  gap: 4px;
+  padding-left: 6px;
+  margin-left: 4px;
   border-left: 1px solid var(--line);
 }
 .flashbolt-shell .topbar-semester { display: grid; gap: 2px; padding-right: 4px; color: var(--ink); font-size: 12px; font-weight: 700; white-space: nowrap; }
@@ -619,17 +619,17 @@
 .flashbolt-shell .topbar-folder-shortcut {
   display: flex;
   align-items: center;
-  gap: 7px;
-  height: 44px;
-  padding: 5px 8px;
+  gap: 5px;
+  height: 40px;
+  padding: 4px 6px;
   border: 1px solid var(--line);
   border-radius: 9px;
   background: var(--panel);
   color: var(--ink);
   text-decoration: none;
 }
-.flashbolt-shell .topbar-folder-shortcut .folder-filter-icon { width: 22px; height: 22px; flex-shrink: 0; }
-.flashbolt-shell .topbar-folder-copy { display: grid; gap: 2px; width: 115px; }
+.flashbolt-shell .topbar-folder-shortcut .folder-filter-icon { width: 20px; height: 20px; flex-shrink: 0; }
+.flashbolt-shell .topbar-folder-copy { display: grid; gap: 2px; width: 96px; }
 .flashbolt-shell .topbar-folder-copy strong { font-size: 11px; }
 .flashbolt-shell .topbar-folder-copy small { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .flashbolt-shell .topbar-folder-shortcut > b { font-size: 10px; color: var(--muted); }
@@ -637,7 +637,7 @@
 .flashbolt-shell .topbar-folder-shortcut:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 1px; }
 .flashbolt-shell.topbar-navigation-layout .topbar .search-box { flex: 1 1 180px; width: auto; min-width: 80px; max-width: 360px; }
 @media (min-width: 1800px) {
-  .flashbolt-shell .topbar-quick-navigation > a { flex-basis: auto; width: auto; gap: 6px; padding-inline: 8px; }
+  .flashbolt-shell .topbar-quick-navigation > a { flex-basis: auto; width: auto; gap: 5px; padding-inline: 6px; }
   .flashbolt-shell .topbar-quick-navigation .nav-label { display: inline; white-space: nowrap; font-size: 12px; }
 }
 @media (max-width: 780px) {
