@@ -24,3 +24,13 @@ test('swatch text meets 4.5:1 contrast for every color', () => {
     assert((Math.max(a, b) + .05) / (Math.min(a, b) + .05) >= 4.5, color.label);
   }
 });
+
+test('extended palette includes new families and preserves same-name color variants', () => {
+  assert.equal(getSetColor('moss-green').hex, '#74c365');
+  assert.equal(getSetColor('electric-indigo').hex, '#6f00ff');
+  assert.equal(getSetColor('porcelain').hex, '#fefefa');
+  assert.equal(getSetColor('pitch-black').hex, '#100c08');
+  assert(SET_COLORS.some(color => color.label === 'Sky Blue' && color.hex === '#87cefa'));
+  assert.equal(getSetColor('sky-blue').hex, '#87ceeb', 'existing saved colors keep their original shade');
+  assert.equal(new Set(SET_COLORS.map(color => `${color.label.toLowerCase()}:${color.hex}`)).size, SET_COLORS.length);
+});
