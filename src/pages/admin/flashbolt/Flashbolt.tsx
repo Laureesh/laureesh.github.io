@@ -32,7 +32,7 @@ import LearnKnowledgeDetails, { type KnowledgeLevel } from "./LearnKnowledgeDeta
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { House, BookOpen, Folder as FolderIcon, Plus, Compass, History, ClipboardCheck, Zap, NotebookPen, Download, ArrowLeft, ChevronDown, Search } from "lucide-react";
+import { House, BookOpen, Folder as FolderIcon, Plus, Compass, History, ClipboardCheck, Zap, NotebookPen, Download, ArrowLeft, Search } from "lucide-react";
 import type { CSSProperties, ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { loadFlashboltLibrary, mergeAndSaveFlashboltLibrary, saveFlashboltLibrary } from "../../../services/flashboltLibrary";
@@ -3057,42 +3057,21 @@ export default function Flashbolt() {
           <Link title="Review today" aria-label="Review today" className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><span className="nav-icon"><History aria-hidden="true" /></span><span className="nav-label">Review today</span></Link>
           <Link title="Your library" aria-label="Your library" className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span className="nav-icon"><BookOpen aria-hidden="true" /></span><span className="nav-label">Your library</span></Link>
           <Link title="Folders" aria-label="Folders" className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span className="nav-icon"><FolderIcon aria-hidden="true" /></span><span className="nav-label">Folders</span></Link>
+          {quickLinkSemester && <div className="topbar-folder-shortcuts" role="group" aria-label={`${quickLinkSemester.semester} folders`}>
+            <span className="topbar-semester">{quickLinkSemester.semester}<small>{quickLinkSemester.folders.length} folders</small></span>
+            {quickLinkSemester.folders.map(item => <Link key={item.id} to={folderPath(item)} className={`topbar-folder-shortcut${selectedFolderId === item.id ? " active" : ""}`} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} sets`} title={item.name}>
+              <span className="folder-filter-icon folder" aria-hidden="true" style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} />
+              <span className="topbar-folder-copy"><strong>{item.name.match(/^\[([^\]]+)\]/)?.[1] ?? item.name}</strong><small>{item.name.replace(/^\[[^\]]+\]\s*/, "") || item.name}</small></span>
+              <b>{item.setIds.length}</b>
+            </Link>)}
+          </div>}
           </nav>
           <div id="flashbolt-navigation" className="topbar-navigation-menu" popover="auto" onClick={event => {
             const control = (event.target as Element).closest("a, button");
             if (control && !control.closest(".theme-picker")) event.currentTarget.hidePopover();
           }}>
             <Link className="topbar-navigation-brand" to={FLASHBOLT_BASE}>Flashbolt</Link>
-        <nav className="main-nav" aria-label="Folder shortcuts and navigation">
-          <div className="topbar-menu-primary">
-          <Link title="Home" aria-label="Home" className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span className="nav-icon"><House aria-hidden="true" /></span><span className="nav-label">Home</span></Link>
-          <Link title="Review today" aria-label="Review today" className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><span className="nav-icon"><History aria-hidden="true" /></span><span className="nav-label">Review today</span></Link>
-          <Link title="Your library" aria-label="Your library" className={view === "library" && !folder ? "active" : ""} to={`${FLASHBOLT_BASE}/library`}><span className="nav-icon"><BookOpen aria-hidden="true" /></span><span className="nav-label">Your library</span></Link>
-          <Link title="Folders" aria-label="Folders" className={view === "folders" || (view === "library" && Boolean(folder)) ? "active" : ""} to={`${FLASHBOLT_BASE}/folders`}><span className="nav-icon"><FolderIcon aria-hidden="true" /></span><span className="nav-label">Folders</span></Link>
-          </div>
-          {quickLinkSemester && <details open className="sidebar-folder-dropdown" onKeyDown={(event) => {
-            if (event.key === "Escape") {
-              event.currentTarget.open = false;
-              event.currentTarget.querySelector("summary")?.focus();
-            }
-          }}>
-            <summary title={`${quickLinkSemester.semester} folder quick links`} aria-label={`${quickLinkSemester.semester} folder quick links`}>
-              <span className="nav-icon sidebar-folder-chevron" aria-hidden="true"><ChevronDown /></span>
-              <span className="nav-label">{quickLinkSemester.semester}</span>
-              <small className="nav-label">{quickLinkSemester.folders.length}</small>
-            </summary>
-            <div className="sidebar-folder-menu">
-              <div className="folder-chips" role="group" aria-label={`${quickLinkSemester.semester} folders`}>
-                {quickLinkSemester.folders.map(item => <Link key={item.id} to={folderPath(item)} className={selectedFolderId === item.id ? "active" : ""} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name}>
-                  <span className="folder-filter-icon folder" aria-hidden="true" style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} />
-                  {item.name.match(/^\[[^\]]+\]/) && <span className="sidebar-folder-course">{item.name.match(/^\[([^\]]+)\]/)?.[1]}</span>}
-                  <span className="folder-filter-name">{item.name.replace(/^\[[^\]]+\]\s*/, "") || item.name}</span>
-                  <span className="folder-filter-count">{item.setIds.length}</span>
-                </Link>)}
-              </div>
-            </div>
-          </details>}
-        </nav>
+
 
         <div className="side-section">
           <p>Study tools</p>
@@ -3461,7 +3440,6 @@ export default function Flashbolt() {
                       setAutoScrollExplanation(enabled);
                       try { window.localStorage.setItem(AUTO_SCROLL_EXPLANATION_KEY, String(enabled)); } catch { /* Keep the in-memory preference. */ }
                     }} /></label>
-                    <p className="editor-auto-scroll-hint">{autoAdvanceOn === "explanation" ? "Advances after pasting explanation." : autoAdvanceOn === "correct" ? "Advances after marking correct." : autoAdvanceOn === "choices" ? "Advances after pasting choices." : autoAdvanceOn === "question" ? "Advances after pasting a question." : "Automatic advance is off."} The lowest enabled option takes priority.</p>
                     </details>
                 </aside>
                 <div className="creator-main">
