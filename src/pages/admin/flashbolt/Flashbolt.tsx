@@ -3484,7 +3484,7 @@ export default function Flashbolt() {
                                     ? ids.filter((id) => id !== folderItem.id)
                                     : [...ids, folderItem.id])}
                                 />
-                                <span><strong>□ {folderItem.name}</strong><small>{folderItem.setIds.length} existing set{folderItem.setIds.length === 1 ? "" : "s"}</small></span>
+                                <span><strong>{folderItem.name}</strong><small>{folderItem.setIds.length} set{folderItem.setIds.length === 1 ? "" : "s"}</small></span>
                               </label>
                             );
                           })}
