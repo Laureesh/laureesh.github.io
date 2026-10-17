@@ -5,7 +5,8 @@ export type ParsedCard = {
   explanation?: string;
   answerChoices?: string[];
   correctAnswers?: string[];
-  questionType?: "multiple-choice" | "true-false" | "select-all";
+  questionType?: "multiple-choice" | "true-false" | "select-all" | "matching";
+  matchingPairs?: Array<{ id: string; left: string; right: string }>;
 };
 
 function makeCard(term: string, definition: string, answerChoices?: string[]): ParsedCard {
@@ -99,6 +100,47 @@ export function parseKahootQuestionList(text: string): ParsedCard[] {
   }
   if (prompt.length || choices.length) finish();
   return !invalid && cards.length === expectedCount ? cards : [];
+}
+
+/** Matching reviews put markers after correct selections, but before corrected selections. */
+function parseMatchingQuizQuestion(block: string): ParsedCard | null {
+  const lines = block.split("\n").map(line => line.trim()).filter(Boolean);
+  const keyboardIndex = lines.findIndex(line => /^Keyboard Instructions:?$/i.test(line));
+  if (keyboardIndex < 0) return null;
+  const term = lines.slice(0, keyboardIndex).filter(line => !/^(Correct|Incorrect|Partial|Unanswered)$/i.test(line)).join("\n");
+  if (!/\bmatch\s+(each|the following)\b/i.test(term)) return null;
+  const explanationIndex = lines.findIndex((line, index) => index > keyboardIndex && /^Explanation:?$/i.test(line));
+  const rows = lines.slice(keyboardIndex + 1, explanationIndex < 0 ? undefined : explanationIndex);
+  const pairs: Array<{ left: string; right: string }> = [];
+  let pending: string[] = [];
+  for (let index = 0; index < rows.length; index++) {
+    const line = rows[index];
+    if (/^Incorrect Answer:$/i.test(line)) {
+      const defense = pending.join(" ");
+      pending = [];
+      // Discard the user's incorrect selection and read the explicit correction.
+      index++;
+      while (index < rows.length && !/^Correct Answer:$/i.test(rows[index])) index++;
+      const answer = rows[++index];
+      if (!defense || !answer || /^(?:Correct|Incorrect) Answer:$/i.test(answer)) return null;
+      pairs.push({ left: answer, right: defense });
+    } else if (/^Correct Answer:$/i.test(line)) {
+      if (pending.length < 2) return null;
+      const answer = pending.pop()!;
+      pairs.push({ left: answer, right: pending.join(" ") });
+      pending = [];
+    } else {
+      pending.push(line);
+    }
+  }
+  if (pending.length || pairs.length < 2) return null;
+  const card = makeCard(term, pairs.map(pair => `${pair.left} :: ${pair.right}`).join("\n"));
+  return {
+    ...card,
+    questionType: "matching",
+    matchingPairs: pairs.map((pair, index) => ({ id: `${card.id}-pair-${index}`, ...pair })),
+    ...(explanationIndex < 0 ? {} : { explanation: lines.slice(explanationIndex + 1).join("\n\n") }),
+  };
 }
 
 /** CyberDefense Pro places correctness markers after each lettered choice. */
@@ -214,14 +256,17 @@ function parseAnswerShownQuestion(block: string): ParsedCard | null {
 export function parseQuizResults(text: string): ParsedCard[] {
   const htmlCards = parseQuestionCardsHtml(text);
   if (htmlCards.length) return htmlCards;
-  const normalized = decodeCopiedQuizText(text).replace(/\r\n?/g, "\n");
-  const headers = [...normalized.matchAll(/^Question\s+\d+\b[^\n]*$/gim)];
+  const normalized = decodeCopiedQuizText(text).replace(/\r\n?/g, "\n")
+    .replace(/^#{1,6}\s+(?=Question\s+\d|Explanation\b)/gim, "");
+  const headers = [...normalized.matchAll(/^Question\s+\d+(?=\s|Correct|Incorrect|Partial|Unanswered|$)[^\n]*$/gim)];
   if (!headers.length) return parseKahootQuestionList(text);
 
   const cards: ParsedCard[] = [];
   headers.forEach((header, headerIndex) => {
     const start = (header.index ?? 0) + header[0].length;
     const end = headers[headerIndex + 1]?.index ?? normalized.length;
+    const matchingCard = parseMatchingQuizQuestion(normalized.slice(start, end));
+    if (matchingCard) { cards.push(matchingCard); return; }
     const moduleCard = parseModuleQuizQuestion(normalized.slice(start, end));
     if (moduleCard) { cards.push(moduleCard); return; }
     const shownCard = parseAnswerShownQuestion(normalized.slice(start, end));

@@ -1,0 +1,48 @@
+Question 7
+Incorrect
+Match each attack on the left to the appropriate defense on the right.
+
+Keyboard Instructions
+Use rigid specifications to validate all headers, cookie query strings, hidden fields, and form fields.
+
+XSS Attack
+
+Correct Answer:
+Perform input validation. Do not permit dangerous characters in the input.
+
+Incorrect Answer:
+DoS Attack
+
+Correct Answer:
+Injection Attack
+
+Log off immediately after using a web application. Clear History after using a web application, and don't allow your browser to save your login details.
+
+CSRF Attack
+
+Correct Answer:
+Secure remote administration and connectivity testing. Perform extensive input validation. Configure the firewall to deny ICMP traffic. Stop data processed by the attacker from being executed.
+
+Incorrect Answer:
+Injection Attack
+
+Correct Answer:
+DoS Attack
+
+Update web servers with security patches on a regular basis. Limit access to the secure areas of the website.
+
+Directory Traversal
+
+Correct Answer:
+Explanation
+To guard against cross-site scripting (XSS) attacks, use rigid specifications to validate all headers, cookie query strings, hidden fields, and form fields.
+
+To guard against injection attacks, perform input validation. Do not permit dangerous characters in the input.
+
+To guard against cross-site request forgery (CSRF) attacks, log off immediately after using a web application. Clear History after using a web application, and don't allow your browser to save your login details.
+
+To guard against denial-of-service (DoS) attacks, secure remote administration and connectivity testing. Perform extensive input validation. Configure the firewall to deny ICMP traffic. Stop data processed by the attacker from being executed.
+
+To guard against directory traversal attacks, update web servers with security patches on a regular basis. Limit access to the secure areas of the website.
+
+
