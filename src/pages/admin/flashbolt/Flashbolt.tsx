@@ -19,7 +19,6 @@ import { mergeSemesterVisibility, normalizeSemesterVisibility, type SemesterVisi
 import MasteryFilterControls from "./MasteryFilterControls";
 import { DEFAULT_MASTERY_FILTER, MASTERY_FILTER_KEY, masteryPercentage, matchesMasteryFilter, normalizeMasteryFilter } from "./masteryFilter";
 import InlineSetDetails from "./InlineSetDetails";
-import Sidebar from "./Sidebar";
 import SetColorPicker from "./SetColorPicker";
 import SearchPicker from "./SearchPicker";
 import TileFolderPanel from "./TileFolderPanel";
@@ -217,7 +216,6 @@ const STORAGE_KEY = "flashbolt.local.v1";
 const FLASHBOLT_BASE = "/admin-dashboard/private-pages/flashbolt";
 const LEGACY_STORAGE_KEY = "studydeck.local.v1";
 const LIBRARY_SORT_KEY = `${STORAGE_KEY}.librarySort`;
-const SIDEBAR_COLLAPSED_KEY = `${STORAGE_KEY}.sidebarCollapsed`;
 const EDITOR_PANEL_COLLAPSED_KEY = `${STORAGE_KEY}.editorPanelCollapsed`;
 const AUTO_SCROLL_CHOICES_KEY = `${STORAGE_KEY}.autoScrollChoices`;
 const AUTO_SCROLL_QUESTION_KEY = `${STORAGE_KEY}.autoScrollQuestion`;
@@ -867,9 +865,6 @@ export default function Flashbolt() {
   const [helperSearch, setHelperSearch] = useState("");
   const pendingHelperCard = useRef<string | null>(null);
   const [collapsedHelperCards, setCollapsedHelperCards] = useState<string[]>([]);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    try { return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true"; } catch { return false; }
-  });
   const [collapsedEditorSections, setCollapsedEditorSections] = useState<string[]>(() => {
     try {
       const saved = JSON.parse(window.localStorage.getItem(EDITOR_PANEL_COLLAPSED_KEY) ?? "[]");
@@ -1661,14 +1656,6 @@ export default function Flashbolt() {
       : data.sets.filter((item) => !data.folders.some((folder) => folder.setIds.includes(item.id)));
     const collision = scopedSets.some((item) => item.id !== setItem.id && routeSlug(item.title) === base);
     return collision ? `${base}--${routeSlug(setItem.id).slice(-8)}` : base;
-  }
-
-  function toggleSidebar() {
-    setSidebarCollapsed((collapsed) => {
-      const next = !collapsed;
-      try { window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next)); } catch { /* Keep the in-memory preference. */ }
-      return next;
-    });
   }
 
   function toggleEditorSection(section: string) {
@@ -3014,7 +3001,7 @@ export default function Flashbolt() {
   return (
     <>
     {!ready && <div className="flashbolt-loading-status" role="status">Loading your saved library… If the connection is slow, your local backup will open shortly.</div>}
-    <div inert={!ready} data-view={view} className={`app-shell flashbolt-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
+    <div inert={!ready} data-view={view} className={`app-shell flashbolt-shell theme-${theme} topbar-navigation-layout`}>
       {confirmation && <Confirmation title={confirmation.title} message={confirmation.message} confirmLabel={confirmation.confirmLabel} onCancel={() => { confirmation.resolve(false); setConfirmation(null); }} onConfirm={() => { confirmation.resolve(true); setConfirmation(null); }} />}
       {clearTermsSetId && (() => {
         const setToClear = data.sets.find(set => set.id === clearTermsSetId);
@@ -3060,15 +3047,16 @@ export default function Flashbolt() {
           </div>, document.body
         );
       })()}
-      <Sidebar>
-        <div className="sidebar-brand-row">
-          <Link className="brand" to={FLASHBOLT_BASE} aria-label="Flashbolt home" title="Flashbolt home">
-            <span className="brand-mark"><i /><i /><i /></span>
-            <span>Flashbolt</span>
-          </Link>
-          <button className="sidebar-collapse-button" onClick={toggleSidebar} aria-label={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"} title={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"}>{sidebarCollapsed ? "›" : "‹"}</button>
-        </div>
 
+
+      <div className="main-column">
+        <header ref={topbarRef} className={`topbar${showEditorTopbar ? " topbar-editing" : ""}`}>
+          <button className="topbar-navigation-trigger" popoverTarget="flashbolt-navigation" aria-label="Open Flashbolt navigation" title="Navigation"><span aria-hidden="true">☰</span></button>
+          <div id="flashbolt-navigation" className="topbar-navigation-menu" popover="auto" onClick={event => {
+            const control = (event.target as Element).closest("a, button");
+            if (control && !control.closest(".theme-picker")) event.currentTarget.hidePopover();
+          }}>
+            <Link className="topbar-navigation-brand" to={FLASHBOLT_BASE}>Flashbolt</Link>
         <nav className="main-nav" aria-label="Main navigation">
           <Link title="Home" aria-label="Home" className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span className="nav-icon"><House aria-hidden="true" /></span><span className="nav-label">Home</span></Link>
           <Link title="Review today" aria-label="Review today" className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><span className="nav-icon"><History aria-hidden="true" /></span><span className="nav-label">Review today</span></Link>
@@ -3112,10 +3100,7 @@ export default function Flashbolt() {
           <button title="Back up library" aria-label="Back up library" onClick={exportLibrary}><span className="nav-icon"><Download aria-hidden="true" /></span><span className="nav-label">Back up library</span></button>
           <Link title="Back to private pages" aria-label="Back to private pages" to="/admin-dashboard/private-pages"><span className="nav-icon"><ArrowLeft aria-hidden="true" /></span><span className="nav-label">Back to private pages</span></Link>
         </div>
-      </Sidebar>
-
-      <div className="main-column">
-        <header ref={topbarRef} className={`topbar${showEditorTopbar ? " topbar-editing" : ""}`}>
+          </div>
           {showEditorTopbar ? <nav className="editor-topbar-controls" aria-label="Set editing controls">
             <div className="editor-topbar-context">
               <div className="editor-topbar-heading">
@@ -3134,7 +3119,6 @@ export default function Flashbolt() {
             </div>
           </nav> : <>
 
-          <Link className="mobile-brand" to={FLASHBOLT_BASE} aria-label="Flashbolt home"><span className="brand-mark"><i /><i /><i /></span></Link>
           <label className="search-box">
             <Search aria-hidden="true" />
             <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search sets…" aria-label="Search your library" />

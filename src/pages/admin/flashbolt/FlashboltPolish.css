@@ -497,3 +497,49 @@
   .flashbolt-shell .import-panel,
   .flashbolt-shell.sidebar-collapsed .import-panel { grid-row: auto; }
 }
+
+/* App navigation now lives in the existing, single-row topbar. */
+.flashbolt-shell.topbar-navigation-layout .main-column { margin-left: 0; }
+.flashbolt-shell.topbar-navigation-layout .topbar { padding-inline: 20px; }
+.flashbolt-shell .topbar-navigation-trigger {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--ink);
+  font-size: 21px;
+  cursor: pointer;
+}
+.flashbolt-shell .topbar-navigation-trigger:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 2px; }
+.flashbolt-shell .topbar-navigation-menu {
+  position: fixed;
+  inset: 82px auto auto 16px;
+  margin: 0;
+  width: min(380px, calc(100vw - 32px));
+  max-height: calc(100dvh - 98px);
+  overflow-y: auto;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+.flashbolt-shell .topbar-navigation-brand { display: block; margin-bottom: 14px; color: var(--ink); font-size: 20px; font-weight: 800; text-decoration: none; }
+.flashbolt-shell .topbar-navigation-menu .main-nav { display: grid; gap: 6px; }
+.flashbolt-shell .topbar-navigation-menu .side-section { margin-top: 14px; padding-top: 12px; }
+.flashbolt-shell .topbar-navigation-menu .sidebar-bottom { margin-top: 14px; }
+.flashbolt-shell .topbar-navigation-menu .theme-picker-menu { position: static; margin-top: 8px; }
+.flashbolt-shell .topbar-navigation-menu .sidebar-folder-menu { position: static; width: auto; }
+.flashbolt-shell .topbar-navigation-menu .nav-label { display: inline; }
+.flashbolt-shell.topbar-navigation-layout .editor-topbar-controls { flex: 1; min-width: 0; }
+@media (max-width: 780px) {
+  .flashbolt-shell.topbar-navigation-layout .topbar { padding-inline: 12px; }
+  .flashbolt-shell .topbar-navigation-menu { top: 74px; max-height: calc(100dvh - 90px); }
+}
+@media (max-width: 480px) {
+  .flashbolt-shell .topbar-navigation-menu { top: 70px; }
+  .flashbolt-shell.topbar-navigation-layout .topbar .search-box { flex: 1; min-width: 0; }
+}
