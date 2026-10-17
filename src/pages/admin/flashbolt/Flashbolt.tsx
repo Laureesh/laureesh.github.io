@@ -3211,14 +3211,14 @@ export default function Flashbolt() {
                   <summary>{folder ? "Set navigation" : "Folder navigation"}</summary>
                   <p className="library-navigation-count">{folder ? `${folderSets.length} sets` : `${visibleSemesterGroups.reduce((total, group) => total + group.folders.length, 0)} folders`}</p>
                   {folder ? <nav className="library-navigation-links" aria-label="Jump to set">
-                    {folderSubjectGroups.map(group => <section key={group.subject}>
-                      <h3>{group.subject}</h3>
-                      {group.sets.map(set => <button type="button" key={set.id} title={set.title} onClick={() => {
+                    {folderSubjectGroups.map(group => <details className="library-navigation-subject" key={group.subject}>
+                      <summary>{group.subject}</summary>
+                      <div>{group.sets.map(set => <button type="button" key={set.id} title={set.title} onClick={() => {
                         const target = document.getElementById(`library-set-${set.id}`);
                         target?.focus({ preventScroll: true });
                         target?.scrollIntoView({ block: "start", behavior: "instant" });
-                      }}>{set.title}</button>)}
-                    </section>)}
+                      }}>{set.title}</button>)}</div>
+                    </details>)}
                     {!folderSets.length && <p>No sets to navigate.</p>}
                   </nav> : <nav className="library-navigation-links" aria-label="Open folder">
                     {visibleSemesterGroups.map(group => <section key={group.semester}>

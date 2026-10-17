@@ -51,6 +51,16 @@ for (const width of [1800, 390]) {
         await folders.getByRole('link', { name: new RegExp(name) }).click();
         await page.getByRole('heading', { name: new RegExp(name) }).first().waitFor();
         const nav = page.getByRole('navigation', { name: 'Jump to set' });
+        const subjects = nav.locator('.library-navigation-subject');
+        assert.equal(await subjects.count(), 2);
+        assert.equal(await subjects.locator(':scope[open]').count(), 0, 'subjects start collapsed');
+        assert.equal(await nav.getByRole('button').count(), 0, 'collapsed subjects hide set links');
+        await subjects.first().locator('summary').click();
+        assert.equal(await nav.getByRole('button').count(), 6, 'subjects expand independently');
+        await subjects.first().locator('summary').focus();
+        await page.keyboard.press('Enter');
+        assert.equal(await nav.getByRole('button').count(), 0, 'keyboard can collapse a subject');
+        for (const subject of await subjects.all()) await subject.locator('summary').click();
         assert.equal(await nav.getByRole('button').count(), 12);
         const compareOrder = async () => assert.deepEqual(await nav.getByRole('button').allTextContents(), await page.locator('.library-page-content .set-tile-title').allTextContents());
         await compareOrder();
@@ -65,7 +75,7 @@ for (const width of [1800, 390]) {
         if (width > 900) {
           assert(Math.abs((await page.locator('.library-navigation-panel').boundingBox()).y - 88) < 2, 'navigation remains sticky');
         }
-        const summary = page.locator('.library-navigation-panel summary');
+        const summary = page.locator('.library-navigation-panel > .editor-card-navigation > summary');
         await summary.click();
         assert(!(await nav.isVisible()), 'navigation collapses');
         await summary.click();

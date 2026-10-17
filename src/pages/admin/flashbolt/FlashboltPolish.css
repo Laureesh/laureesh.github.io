@@ -829,6 +829,16 @@
 .flashbolt-shell .library-navigation-links > section { display: grid; gap: 6px; }
 .flashbolt-shell .library-navigation-links > section + section { margin-top: 8px; }
 .flashbolt-shell .library-navigation-links h3 { margin: 4px 0; color: var(--muted); font-size: 11px; line-height: 1.4; font-weight: 650; }
+.flashbolt-shell .library-navigation-subject > summary {
+  padding: 7px 0;
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 650;
+  cursor: pointer;
+}
+.flashbolt-shell .library-navigation-subject > summary:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 2px; border-radius: 4px; }
+.flashbolt-shell .library-navigation-subject > div { display: grid; gap: 6px; padding-bottom: 4px; }
 .flashbolt-shell .library-navigation-links :is(button, a) {
   display: flex;
   align-items: center;
