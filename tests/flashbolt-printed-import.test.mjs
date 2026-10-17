@@ -72,3 +72,33 @@ test('printed quizzes never fall back to generating 100 ordinary note cards', ()
   const invalid = ddos.replace('B Set services to throttle or shut down. Correct', 'B Set services to throttle or shut down.');
   assert.deepEqual(parseNotes(invalid), []);
 });
+
+const linux = readFileSync(new URL('./fixtures/cyberdefense-linux-printed.txt', import.meta.url), 'utf8');
+test('Linux print review retains five corrected matching pairs and all ten questions', () => {
+  const cards = parseNotes(linux).map(applyDetectedQuestionType);
+  assert.equal(cards.length, 10);
+  const card = cards[0];
+  assert.equal(card.questionType, 'matching');
+  assert.deepEqual(card.matchingPairs.map(({ left, right }) => [left, right]), [
+    ['wget', 'Retrieves content from an HTTP server.'],
+    ['ls', 'Displays the contents of a directory.'],
+    ['cat', 'Displays the content of a file.'],
+    ['cp', 'Copies a file or directory.'],
+    ['touch', 'Creates an empty file.'],
+  ]);
+  assert.equal(new Set(card.matchingPairs.map(pair => pair.id)).size, 5);
+  assert.match(card.term, /^The following are several common Linux commands/);
+  assert.match(card.term, /Drag a command on the left/);
+  assert.doesNotMatch(card.term, /Retrieves content/);
+  assert.match(card.explanation, /cat: Displays the content of a file/);
+  assert.doesNotMatch(card.explanation, /software development company/);
+  assert.equal(cards[1].definition, 'Adopting a security development life cycle (SDLC) approach');
+  assert.equal(cards[4].questionType, 'select-all');
+  assert.deepEqual(cards[4].correctAnswers, ['New-Item', 'Get-Content', 'Add-Content']);
+  assert.equal(cards[4].answerChoices.length, 7);
+  assert.equal(cards[9].definition, 'Implementing multi-factor authentication');
+});
+
+test('incomplete printed matching pairs are rejected without generating note cards', () => {
+  assert.deepEqual(parseNotes(linux.replace('\ntouch\nExplanation', '\nExplanation')), []);
+});

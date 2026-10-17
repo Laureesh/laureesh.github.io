@@ -252,6 +252,27 @@ function parseAnswerShownQuestion(block: string): ParsedCard | null {
   };
 }
 
+/** Corrected drag-and-drop printouts alternate descriptions and their answer labels. */
+function parsePrintedMatchingQuestion(block: string): ParsedCard | null {
+  const lines = block.split("\n").map(line => line.trim()).filter(Boolean);
+  const instruction = lines.findIndex(line => /^Drag\b.*\bon the left\b.*\bon the right\.$/i.test(line));
+  if (instruction < 0) return null;
+  const rows = lines.slice(instruction + 1);
+  if (rows.length < 4 || rows.length % 2 !== 0) return null;
+  const pairs = [];
+  for (let index = 0; index < rows.length; index += 2) {
+    // These are the displayed corrected answers, not the overall attempt score.
+    pairs.push({ left: rows[index + 1], right: rows[index] });
+  }
+  const card = makeCard(cleanStudyText(lines.slice(0, instruction + 1).join(" ")),
+    pairs.map(pair => `${pair.left} :: ${pair.right}`).join("\n"));
+  return {
+    ...card,
+    questionType: "matching",
+    matchingPairs: pairs.map((pair, index) => ({ id: `${card.id}-pair-${index}`, ...pair })),
+  };
+}
+
 /** Browser print copies place question numbers after the content, with page furniture in between. */
 function parsePrintedQuizResults(text: string): ParsedCard[] {
   const lines = text.split("\n").map(line => line.trim());
@@ -288,7 +309,17 @@ function parsePrintedQuizResults(text: string): ParsedCard[] {
         break;
       }
     }
-    if (choiceStart < 0) return [];
+    if (choiceStart < 0) {
+      let start = 0;
+      for (let index = 0; index < explanation; index++) {
+        if (pageFooter(lines[index]) || /^Score:.*Passing Score:/i.test(lines[index])) start = index + 1;
+      }
+      const card = parsePrintedMatchingQuestion(content(start, explanation).join("\n"));
+      if (!card) return [];
+      blocks.push({ start, explanation, card });
+      previousExplanation = explanation;
+      continue;
+    }
     let start = 0;
     for (let index = 0; index < choiceStart; index++) {
       if (pageFooter(lines[index]) || /^Score:.*Passing Score:/i.test(lines[index])) start = index + 1;

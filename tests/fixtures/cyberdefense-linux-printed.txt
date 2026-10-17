@@ -1,0 +1,224 @@
+7.6.16 Practice Questions
+Date: 10/17/2026, 6:21:05 PM
+Time Spent: 01:29
+Score: 0% Passing Score: 80%
+The following are several common Linux commands with a brief description of each listed on
+the right.
+Drag a command on the left to its appropriate description on the right.
+Retrieves content from an HTTP server.
+wget
+Displays the contents of a directory.
+ls
+Displays the content of a file.
+cat
+Copies a file or directory.
+cp
+Creates an empty file.
+touch
+Explanation
+The following are the appropriate descriptions for each of the listed Linux commands:
+cat: Displays the content of a file.
+touch: Creates an empty file.
+ls: Displays the contents of a directory.
+cp: Copies a file or directory.
+wget: Retrieves content form an HTTP server.
+Question 1 Incorrect
+10/17/26, 6:21 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 1/10
+A software development company has concerns about the potential risks associated with
+insecure design in one of its new applications.
+Which of the following controls should a security expert recommend to mitigate these risks?
+A
+Adopting a security development life cycle (SDLC)
+approach
+Correct
+B Employing Address Space Layout Randomization (ASLR)
+C Implementing regular security audits
+D Applying Content Security Policy (CSP)
+Explanation
+An SDLC approach ensures that the expert considers and integrates security throughout the entire
+software development process. It helps identify and mitigate potential risks associated with insecure
+design early in development.
+Security audits are essential to maintaining a secure environment but do not directly address insecure
+design issues in the development process.
+CSP is a security feature that helps prevent cross-site scripting (XSS) and other code injection attacks but
+does not specifically address insecure design in software development.
+ASLR is a security technique that helps protect against memory-based attacks but does not directly
+address insecure design issues in the development process.
+Question 2 Incorrect
+10/17/26, 6:21 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 2/10
+A software development company is building a custom application for a client that will collect
+and analyze large amounts of data to identify patterns and make predictions. The client has
+specified that the application must use a programming language with many libraries and
+tools for machine learning.
+Which programming language should the software developer use?
+A JavaScript
+B C++
+C Python Correct
+D Java
+Explanation
+Python has a vast and well-established ecosystem for machine learning, with numerous libraries and
+tools available for tasks such as data analysis, visualization, and modeling.
+While C++ has some libraries and tools for machine learning, it is less versatile than the ecosystem in
+Python.
+While Java does have some libraries and tools for machine learning, it is not as well-suited for dataintensive applications as other programming languages, such as Python or R.
+JavaScript is a widely-used programming language commonly used for building web applications and
+unsuitable for machine learning development.
+Question 3 Incorrect
+10/17/26, 6:21 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 3/10
+A defense contractor discovered that a competitor duplicated some of their products. While
+the contractor is afraid of losing revenue, the more significant concern is how the competitor
+was able to duplicate the product.
+What term describes how this situation occurred?
+A Reverse engineering Correct
+B Internal scan
+C External scan
+D Fuzzing
+Explanation
+Using reverse engineering, a competitor can deconstruct software and/or hardware to determine how it
+functions. Reverse engineering aims to determine how much information is extractable from delivered
+software.
+Internal scans are also important to protect systems from abuse from internal threats and to provide
+layered security. A scan would not necessarily allow a competitor to steal intellectual property.
+Fuzzing is an unknown environment testing method of purposely inputting or injecting malformed data.
+In this scenario, the company has not lost data from malformed data inputted into a database.
+External scans focus on viewing devices and services from the "outside" of the network. Not enough
+information is in this scenario to determine if this was the root cause.
+Question 4 Incorrect
+10/17/26, 6:21 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 4/10
+You are building a PowerShell script that includes creating a file, writing content into the file,
+and then display the file contents on the screen.
+Which of the following PowerShell cmdlets will you need to use to perform these tasks?
+A New-Item Correct
+B Get-Content Correct
+C Set-Location
+D Add-Content Correct
+E Rename-Item
+F Move-Item
+G Get-Location
+Explanation
+You will need to use the following PowerShell cmdlets to perform these tasks:
+New-Item: Creates a file.
+Add-Content: Writes content into the file.
+Get-Content: Displays the file contents on the screen.
+The remainder of the listed PowerShell cmdlets perform the following tasks:
+Rename-Item: Renames an existing file.
+Set-Location: Changes the current directory.
+Move-Item: Moves a file to another directory.
+Get-Location: Displays the current directory on the screen.
+Question 5 Incorrect
+10/17/26, 6:21 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 5/10
+You want to display the following text on a command line from a shell script:
+Watermelons cost $6.99 today only!
+Which of the following commands would you use to make sure the text is displayed?
+A echo Watermelons cost $6.99 today only!
+B echo --Watermelons cost $6.99 today only!--
+C echo /Watermelons cost $6.99 today only!/
+D echo "Watermelons cost $6.99 today only!" Correct
+Explanation
+You would use the echo "Watermelons cost $6.99 today only!" command as the dollar sign ($) is a
+metacharacter and needs to be recognized as text. You can use single quotes, double quotes or a
+backslash to indicate that the dollar sign is text, otherwise only Watermelons cost would be returned.
+Using forward slashes (/) or double dashes (--) would not indicate that the dollar sign is being used as
+text (instead of a metacharacter).
+Question 6 Incorrect
+10/17/26, 6:21 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 6/10
+A team of software developers at a large corporation need to exchange data between multiple
+systems. The data needs to be easily readable and writable by both systems and able to
+handle complex data structures.
+Which of the following data interchange formats would be the most appropriate for the
+software developers to use in this scenario?
+A Yet Another Markup Language (YAML)
+B Comma-Separated Values (CSV)
+C eXtensible Markup Language (XML) Correct
+D JavaScript Object Notation (JSON)
+Explanation
+eXtensible Markup Language (XML) provides a flexible and powerful way to store and exchange complex
+data structures, making it an ideal choice for software developers.
+JavaScript Object Notation (JSON) provides a simple and efficient representation of data. However, JSON
+may need help handling complex data structures and eXtensible Markup Language (XML).
+Comma-Separated Values (CSV) are easy to read and write. However, they have limited ability to store
+complex data structures and may not be an appropriate choice for software developers.
+Yet Another Markup Language (YAML) is a more human-readable alternative to JavaScript Object
+Notation (JSON).
+Question 7 Incorrect
+10/17/26, 6:21 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 7/10
+A software developer at a technology company needs to store and exchange data between
+two systems. The data needs to be easily readable and writable by both systems, and it needs
+to be lightweight and efficient to transmit over the network.
+Which of the following data interchange formats should the developer use?
+A Comma-Separated Values (CSV)
+B JavaScript Object Notation (JSON) Correct
+C Yet Another Markup Language (YAML)
+D eXtensible Markup Language (XML)
+Explanation
+JavaScript Object Notation (JSON) is a lightweight data-interchange format that is easy to read and write
+by both humans and machines.
+eXtensible Markup Language (XML) provides a flexible and powerful way to store and exchange complex
+data structures. However, XML is more verbose than JavaScript Object Notation (JSON) and not as
+efficient for transmitting data over the network.
+While Yet Another Markup Language (YAML) is a more human-readable alternative to JavaScript Object
+Notation (JSON), it is not an efficient choice for transmitting data over the network.
+While Comma-Separated Values (CSV) are easy to read and write, they have limited ability to store
+complex data structures. A CSV file is not an efficient choice for transmitting data over the network.
+Question 8 Incorrect
+10/17/26, 6:21 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 8/10
+You have just finished creating a game script in nano that allows a user to try and guess a
+number (fixed variable) that you have provided.
+The script looks like the following:
+#!/bin/bash
+mynum=25
+while :
+do
+echo "Enter a number or <CTRL+C> to quit"read num1if [ $num1 -gt $mynum ]; thenecho
+"Your number is bigger"echoelif [ $num1 -lt $mynum ]; thenecho "Your number is
+smaller"echoelseecho "We picked the same number!"echofi
+done
+Based on this script, which of the following scripting tools did you use to make sure the user
+is able to repeat the game without leaving the script and starting it again?
+A Dynamic variable
+B Echo
+C Fixed variable
+D While loop Correct
+Explanation
+In order to make sure that the user can continue playing the game without exiting the script, you
+utilized a while loop structure in the script with the while command and if/elif/else. While variables and
+the echo command are being used, they do not contribute to creating a loop in the script structure.
+The mynum=25 command line sets your number to compare against the numbers provided by the user.
+The read num1 command sets the value for the $num1 variable provided by the user. The If [ $num1 -
+gt $mynum ]; then command compares the user number to your set number to see if it is greater than
+your number. And the while : command sets the loop for allowing the user to continue playing until they
+exit the game by pressing Ctrl+C to quit.
+Question 9 Incorrect
+10/17/26, 6:21 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 9/10
+A company has just experienced a ransomware attack resulting from employees' credentials
+being used by a remote attacker after being compromised by technical means.
+The incident response team needs to provide recommendations in the incident report for
+improving the organization's cybersecurity posture.
+Which of the following recommendations would be the MOST effective?
+A Implementing multi-factor authentication Correct
+B Running regular vulnerability scans
+C Upgrading the firewall software
+D Conducting security awareness training for employees
+Explanation
+Multi-factor authentication is a critical security measure that can prevent unauthorized access to
+systems and data. This recommendation can help the organization strengthen its security posture and
+prevent future attacks.
+Although upgrading firewall software can help to protect against external threats, it would not have
+prevented the credential compromise that led to the ransomware attack.
+There is no indication that regular vulnerability scanning would have stopped the attack, which is best
+against misconfigurations and outdated software. The best recommendation is to implement multifactor authentication.
+Security awareness training can help protect against social engineering attacks, but it may not be
+sufficient to prevent credential compromises caused by technical means.
+Copyright © CompTIA, Inc. All rights reserved.
+Question 10 Incorrect
+10/17/26, 6:21 PM Individual Response
+https://labsimapp.testout.com/exam-engine.html/redacted 10/10
