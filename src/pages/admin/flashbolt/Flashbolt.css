@@ -8364,3 +8364,15 @@ kbd {
   line-height: 1.5;
   text-align: center;
 }
+
+/* General reasoning lives in the result panel when choices have none. */
+.answer-feedback .feedback-explanation {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
