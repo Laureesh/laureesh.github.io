@@ -3926,6 +3926,29 @@ export default function Flashbolt() {
 
               {learnOptionsOpen && <Modal className="learn-options-modal" labelledBy="learn-options-title" onClose={() => setLearnOptionsOpen(false)}>
                 <header><div><span className="eyebrow">Customize Learn</span><h2 id="learn-options-title">Options</h2></div><button className="icon-button" onClick={() => setLearnOptionsOpen(false)} aria-label="Close options"><UiIcon symbol="×" /></button></header>
+                <section className="options-section learn-set-actions" aria-label="Set actions">
+                  <h3>Set actions</h3>
+                  <p className="learn-options-set-title">{selectedSet.title}</p>
+                  <div className="learn-set-action-grid">
+                    <button className="button primary" onClick={() => { setLearnOptionsOpen(false); startEdit(selectedSet); }}><UiIcon symbol="✎" />Edit set</button>
+                    <button className="button quiet" onClick={() => { setLearnOptionsOpen(false); setBatchEditSets([selectedSet]); }}><UiIcon symbol="⇅" />Quick edit</button>
+                    <button className="button quiet" onClick={() => { setLearnOptionsOpen(false); startLearn(selectedSet.id); }}><UiIcon symbol="→" />Quick learn</button>
+                    <button className="button quiet" onClick={() => { setLearnOptionsOpen(false); openKahootHelper(selectedSet); }}><UiIcon symbol="◆" />Kahoot Helper</button>
+                  </div>
+                  <details className="learn-more-set-actions">
+                    <summary>More set actions</summary>
+                    <div className="learn-set-action-grid">
+                      <Link className="button quiet" to={routePathForView("set", selectedSet.id)} onClick={() => setLearnOptionsOpen(false)}>View set</Link>
+                      <a className="button quiet" href={routePathForView("set", selectedSet.id)} target="_blank" rel="noreferrer">Open in new tab ↗</a>
+                      <button className="button quiet" onClick={() => { setLearnOptionsOpen(false); duplicateSet(selectedSet); }}>Duplicate</button>
+                      {(["flashcards", "learn", "test", "edit"] as const).map(mode => <button className="button quiet" key={mode} onClick={() => void copySetModeLink(selectedSet, mode)}>Copy {mode} link</button>)}
+                    </div>
+                    <div className="learn-set-danger-actions">
+                      <button className="text-button danger-text" disabled={!selectedSet.cards.length} onClick={() => { setLearnOptionsOpen(false); setClearTermsSetId(selectedSet.id); }}>Remove all terms</button>
+                      <button className="text-button danger-text" onClick={() => { setLearnOptionsOpen(false); void deleteSetFromLibrary(selectedSet); }}>Delete set</button>
+                    </div>
+                  </details>
+                </section>
                 <div className="learn-quick-options"><button className={learnOptionsDraft.shuffle ? "selected" : ""} aria-pressed={learnOptionsDraft.shuffle} onClick={() => setLearnOptionsDraft((options) => ({ ...options, shuffle: !options.shuffle }))}><span><UiIcon symbol="⇄" /></span>Shuffle</button><button className={learnOptionsDraft.soundEffects ? "selected" : ""} aria-pressed={learnOptionsDraft.soundEffects} onClick={() => setLearnOptionsDraft((options) => ({ ...options, soundEffects: !options.soundEffects }))}><span><UiIcon symbol="♪" /></span>Sound</button><button className={learnOptionsDraft.textToSpeech ? "selected" : ""} aria-pressed={learnOptionsDraft.textToSpeech} onClick={() => setLearnOptionsDraft((options) => ({ ...options, textToSpeech: !options.textToSpeech }))}><span><UiIcon symbol="◖" /></span>Read aloud</button></div>
                 <section className="options-section"><h3>Question types</h3>{([['multipleChoice','Multiple choice','▤'],['trueFalse','True or false','◐'],['selectAll','Select all that apply','✓'],['written','Written','✎'],['flashcards','Flashcards','▱']] as const).map(([key,label,icon]) => <label className="option-row" key={key}><span className="option-row-icon"><UiIcon symbol={icon} /></span><strong>{label}</strong><input type="checkbox" role="switch" checked={learnOptionsDraft[key]} onChange={() => setLearnOptionsDraft((options) => ({ ...options, [key]: !options[key] }))} /></label>)}</section>
                 <section className="options-section"><h3>Answer with</h3><label className="option-row"><strong>Terms</strong><input type="checkbox" role="switch" checked={learnOptionsDraft.answerTerms} onChange={() => setLearnOptionsDraft((options) => ({ ...options, answerTerms: !options.answerTerms }))} /></label><label aria-label="Definitions, recommended for question cards" className="option-row"><span><strong>Definitions</strong><small>Recommended for question cards</small></span><input type="checkbox" role="switch" checked={learnOptionsDraft.answerDefinitions} onChange={() => setLearnOptionsDraft((options) => ({ ...options, answerDefinitions: !options.answerDefinitions }))} /></label></section>

@@ -8455,3 +8455,43 @@ kbd {
     width: 100%;
   }
 }
+
+.learn-options-set-title {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.learn-set-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.learn-set-action-grid .button {
+  min-width: 0;
+  min-height: 42px;
+  justify-content: flex-start;
+  text-align: left;
+  white-space: normal;
+}
+.learn-more-set-actions { margin-top: 16px; }
+.learn-more-set-actions > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 650;
+  padding: 8px 0;
+}
+.learn-more-set-actions[open] > summary { margin-bottom: 8px; }
+.learn-set-danger-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 380px) {
+  .learn-set-action-grid { grid-template-columns: minmax(0, 1fr); }
+}
