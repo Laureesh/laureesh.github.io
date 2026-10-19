@@ -3845,6 +3845,10 @@ export default function Flashbolt() {
                 <>
                   <header className="learn-session-header">
                     <Link className="learn-exit" to={routePathForView("set", selectedSet.id)} aria-label="Exit Learn">×</Link>
+                    <div className="learn-current-question" aria-live="polite" aria-atomic="true">
+                      <span>Question</span>
+                      <strong>{learnSequence + 1}</strong>
+                    </div>
                     <div className="learn-session-progress" aria-live="polite">
                       <div className="learn-round-track" aria-label={`${learnQuestionsAnswered} of ${learnQuestionsTotal} total questions answered`}>
                         <span className="learn-progress-badge"><strong>{learnQuestionsAnswered}</strong><small>Answered</small></span>
@@ -3870,10 +3874,6 @@ export default function Flashbolt() {
                     </aside>
                     <div className="learn-question-main">
                     <div className={`learn-question-status${learnAnswer ? " has-feedback" : ""}`}>
-                    <div className="learn-current-question" aria-live="polite" aria-atomic="true">
-                      <span>Question</span>
-                      <strong>{learnSequence + 1}</strong>
-                    </div>
                       {learnAnswer && <div className={`answer-feedback ${learnLastCorrect ? "correct" : "incorrect"}`}>
                         <div className="feedback-copy"><strong>{learnLastCorrect ? "Nice work." : "Not quite yet."}</strong><p>{learnLastCorrect ? (learnLastConfidence >= learnMasteryTarget ? "This card reached your session goal." : `Confidence moved to ${learnConfidenceLabel(learnLastConfidence)}. ${learnGoal === "understand" ? "It will return for another reasoning check." : "It will return later in a harder format."}`) : <>The correct answer is <b>{currentLearnCorrectAnswer}</b>. This weak card will return before the next batch.</>}</p>{!learnLastCorrect && learnOptions.retypeCorrectAnswers && <label className="retype-answer"><span>Retype the correct answer to continue</span><input value={learnRetypeAnswer} onChange={(event) => setLearnRetypeAnswer(event.target.value)} placeholder={currentLearnCorrectAnswer} /></label>}</div>
                         {learnOptions.showImagesOnAnswers && currentLearnCard.imageData && <img width={74} height={58} className="learn-feedback-image" src={currentLearnCard.imageData} alt="Answer study aid" />}

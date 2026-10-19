@@ -8495,3 +8495,28 @@ kbd {
 @media (max-width: 380px) {
   .learn-set-action-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+.learn-page.session-active .learn-session-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas: "exit question options" "progress progress progress";
+  align-items: center;
+  gap: 12px 8px;
+}
+.learn-session-header > .learn-exit { grid-area: exit; justify-self: start; }
+.learn-session-header > .learn-current-question {
+  grid-area: question;
+  justify-self: center;
+  margin: 0;
+}
+.learn-session-header > .learn-options-button { grid-area: options; justify-self: end; }
+.learn-session-header > .learn-session-progress {
+  grid-area: progress;
+  width: 100%;
+  min-width: 0;
+}
+.learn-question-status:not(.has-feedback) { display: none; }
+@media (max-width: 380px) {
+  .learn-session-header > .learn-current-question { gap: 8px; padding-left: 10px; }
+  .learn-session-header > .learn-current-question > strong { min-width: 36px; padding-inline: 6px; }
+}
