@@ -915,6 +915,49 @@ export default function Flashbolt() {
   const setContextMenuRef = useRef<HTMLDivElement>(null);
   const [setContextMenu, setSetContextMenu] = useState<{ setId: string; x: number; y: number } | null>(null);
   const [draft, setDraft] = useState<StudySet>(blankDraft);
+  const [activeEditorCardId, setActiveEditorCardId] = useState<string | null>(null);
+  const cardNavigationRef = useRef<HTMLElement>(null);
+  const draftCardOrder = draft.cards.map(card => card.id).join(",");
+  useEffect(() => {
+    if (view !== "create") return;
+    let frame = 0;
+    const updateCurrentCard = () => {
+      const offset = Math.max(0, topbarRef.current?.getBoundingClientRect().bottom ?? 0) + 24;
+      let nearestId: string | null = null;
+      let nearestDistance = Infinity;
+      for (const [id, element] of draftCardElements.current) {
+        const rect = element.getBoundingClientRect();
+        const distance = rect.top <= offset && rect.bottom > offset ? 0 : Math.abs(rect.top - offset);
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestId = id;
+        }
+      }
+      setActiveEditorCardId(nearestId);
+    };
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(updateCurrentCard);
+    };
+    schedule();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [view, draftCardOrder, search]);
+  useEffect(() => {
+    const navigation = cardNavigationRef.current;
+    const button = navigation?.querySelector<HTMLButtonElement>('[aria-current="step"]');
+    if (!navigation || !button) return;
+    const bounds = navigation.getBoundingClientRect();
+    const current = button.getBoundingClientRect();
+    if (current.top < bounds.top) navigation.scrollTop += current.top - bounds.top - 3;
+    else if (current.bottom > bounds.bottom) navigation.scrollTop += current.bottom - bounds.bottom + 3;
+  }, [activeEditorCardId, draftCardOrder]);
+
   const [notebookSource, setNotebookSource] = useState<NotebookDraftSource | null>(null);
   const [notebookDraftStorageKey, setNotebookDraftStorageKey] = useState("");
   const [editingSetId, setEditingSetId] = useState<string | null>(null);
@@ -3449,11 +3492,12 @@ export default function Flashbolt() {
                     <details className="editor-card-navigation" open>
                       <summary>Card navigation</summary>
                       <p className="editor-card-navigation-key"><span aria-hidden="true">□</span> Incomplete</p>
-                      <nav aria-label="Jump to card" className="editor-card-navigation-grid">
+                      <nav ref={cardNavigationRef} aria-label="Jump to card" className="editor-card-navigation-grid">
                         {draft.cards.map((card, index) => {
                           const incomplete = !completeDraftCardIds.has(card.id) || !draftCardsWithReadyAnswers.has(card.id);
                           return <button key={card.id} type="button" className={incomplete ? "incomplete" : ""}
-                            aria-label={`Go to card ${index + 1}${incomplete ? ", incomplete" : ", complete"}`}
+                            aria-current={activeEditorCardId === card.id ? "step" : undefined}
+                            aria-label={`Go to card ${index + 1}${activeEditorCardId === card.id ? ", current question" : ""}${incomplete ? ", incomplete" : ", complete"}`}
                             title={card.term.trim() || `Card ${index + 1}`}
                             onClick={() => {
                               cancelCardJump.current?.();
@@ -3555,6 +3599,8 @@ export default function Flashbolt() {
                         {() => <>
                         <article
                           className={`card-editor ${draggingCardId === card.id ? "dragging" : ""}`}
+                          onFocusCapture={() => setActiveEditorCardId(card.id)}
+                          onPointerDown={() => setActiveEditorCardId(card.id)}
                           onDragOver={(event) => event.preventDefault()}
                           onDrop={(event) => dropDraftCard(event, card.id)}
                         >
