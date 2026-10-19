@@ -1600,7 +1600,9 @@ export default function Flashbolt() {
   const explainedLearnChoices = currentLearnQuestionKind === "multiple-choice"
     ? currentLearnChoices
     : learnGoal === "understand" && currentLearnQuestionKind === "select-all" ? currentSelectAll.choices : [];
-  const hasLearnChoiceExplanations = explainedLearnChoices.some(choice => currentLearnCard?.choiceExplanations?.[choice]?.trim());
+  const hasLearnChoiceExplanations = explainedLearnChoices.some(choice =>
+    (currentLearnQuestionKind !== "multiple-choice" || choice === learnAnswer || normalizeAnswer(choice) === normalizeAnswer(currentLearnCorrectAnswer))
+    && currentLearnCard?.choiceExplanations?.[choice]?.trim());
   const learnFeedbackExplanation = hasLearnChoiceExplanations ? undefined : currentLearnCard?.explanation?.trim();
   const currentTrueFalse = useMemo(() => {
     const distractor = currentLearnChoices.find(
@@ -3889,7 +3891,7 @@ export default function Flashbolt() {
                         const isChosen = option === learnAnswer;
                         const resultClass = learnAnswer ? (isCorrect ? "correct" : isChosen ? "incorrect" : "muted") : "";
                         const explanation = currentLearnCard.choiceExplanations?.[option]?.trim();
-                        const showExplanation = Boolean(learnAnswer && explanation);
+                        const showExplanation = Boolean(learnAnswer && (isChosen || isCorrect) && explanation);
                         return <button key={option} className={`${resultClass}${showExplanation ? " has-explanation" : ""}`} onClick={() => chooseLearnAnswer(option)} disabled={Boolean(learnAnswer)}><span>{String.fromCharCode(65 + index)}</span><span className="answer-choice-copy"><strong className="answer-choice-title">{option}</strong>{showExplanation && <span className="answer-choice-explanation"><span className="answer-explanation-label">Explanation</span><span>{explanation}</span></span>}</span></button>;
                       })}</div>}
 
