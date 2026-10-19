@@ -6069,8 +6069,10 @@ kbd {
 }
 
 .answer-grid .answer-choice-title {
-  display: block;
-  padding-top: 5px;
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0;
   font-size: 1rem;
   font-weight: 750;
   line-height: 1.45;
