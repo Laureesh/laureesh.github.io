@@ -8520,3 +8520,41 @@ kbd {
   .learn-session-header > .learn-current-question { gap: 8px; padding-left: 10px; }
   .learn-session-header > .learn-current-question > strong { min-width: 36px; padding-inline: 6px; }
 }
+
+@media (min-width: 701px) {
+  .learn-page.session-active .learn-session-header {
+    position: relative;
+    grid-template-columns: 110px minmax(0, 1fr) auto minmax(0, 1fr) 110px;
+    grid-template-areas: "exit answered question total options";
+    gap: 12px;
+    padding: 8px 12px 16px;
+    overflow: hidden;
+  }
+
+  .learn-session-header > .learn-session-progress,
+  .learn-session-header .learn-round-track {
+    display: contents;
+  }
+
+  .learn-session-header .learn-progress-badge:first-child {
+    grid-area: answered;
+    justify-self: start;
+  }
+
+  .learn-session-header .learn-progress-badge:last-child {
+    grid-area: total;
+    justify-self: end;
+  }
+
+  .learn-session-header .learn-segments {
+    position: absolute;
+    inset: auto 12px 5px;
+    height: 4px;
+    gap: 5px;
+  }
+
+  .learn-session-header .learn-segments > i {
+    height: 4px;
+  }
+
+}
