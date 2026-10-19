@@ -1112,6 +1112,7 @@ export default function Flashbolt() {
         setSyncError("");
         setStorageStatus("saved");
       } catch (error) {
+        if (cancelled) return;
         const message = describeSyncError(error);
         setSyncError(message);
         setStorageStatus("error");
