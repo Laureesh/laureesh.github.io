@@ -8376,3 +8376,80 @@ kbd {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+.learn-question-status {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+  margin: 4px 0 24px;
+}
+
+.learn-question-status > .learn-current-question {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.learn-question-status > .answer-feedback {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 14px 16px;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  border-radius: 16px;
+}
+
+.learn-question-status .feedback-copy > p {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.learn-question-status > .answer-feedback > .feedback-explanation {
+  flex-basis: 100%;
+  margin: 0;
+  padding-top: 12px;
+}
+
+.learn-question-status .learn-continue-action .button {
+  min-height: 40px;
+}
+
+.learn-question-status .feedback-copy {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.learn-question-status .learn-continue-action {
+  margin-left: auto;
+  max-width: 100%;
+}
+
+.learn-question-status .learn-continue-action > small {
+  white-space: normal;
+}
+
+@media (max-width: 700px) {
+  .learn-question-status.has-feedback {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .learn-question-status.has-feedback > .learn-current-question {
+    align-self: center;
+  }
+
+  .learn-question-status .learn-continue-action {
+    width: 100%;
+    text-align: left;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 700px) {
+  .learn-question-status .feedback-copy {
+    flex: 0 1 auto;
+    width: 100%;
+  }
+}
