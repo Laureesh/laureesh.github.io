@@ -6017,7 +6017,7 @@ kbd {
   transform: translateY(-1px);
 }
 
-.answer-grid > button span {
+.answer-grid > button > span:first-child {
   display: grid;
   width: 34px;
   height: 34px;
@@ -6044,13 +6044,13 @@ kbd {
   box-shadow: inset 0 0 0 1px rgba(255, 123, 138, 0.08);
 }
 
-.answer-grid > button.correct span {
+.answer-grid > button.correct > span:first-child {
   border-color: #155d4d;
   background: #d9fff3;
   color: #0a4c3e;
 }
 
-.answer-grid > button.incorrect span {
+.answer-grid > button.incorrect > span:first-child {
   border-color: var(--danger);
   color: var(--danger);
 }
@@ -6058,6 +6058,32 @@ kbd {
 .answer-grid > button.muted {
   background: #14161e;
   opacity: 0.28;
+}
+
+.answer-grid .answer-choice-copy {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+
+.answer-grid .answer-choice-explanation {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.answer-grid > button.has-explanation {
+  align-items: flex-start;
+  opacity: 1;
+}
+
+.answer-grid > button.has-explanation.muted,
+.answer-grid > button.has-explanation.incorrect {
+  color: var(--ink);
+  background: var(--panel);
 }
 
 .answer-feedback {
