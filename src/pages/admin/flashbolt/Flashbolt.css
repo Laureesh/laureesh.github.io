@@ -6062,17 +6062,42 @@ kbd {
 
 .answer-grid .answer-choice-copy {
   display: grid;
+  flex: 1;
   min-width: 0;
-  gap: 8px;
+  gap: 12px;
   overflow-wrap: anywhere;
 }
 
-.answer-grid .answer-choice-explanation {
+.answer-grid .answer-choice-title {
   display: block;
-  font-size: 0.9rem;
+  padding-top: 5px;
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.answer-grid .answer-choice-explanation {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-top: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 0 0 8px 8px;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  font-size: 0.875rem;
   font-weight: 400;
-  line-height: 1.5;
+  line-height: 1.6;
   white-space: pre-wrap;
+}
+
+.answer-grid .answer-explanation-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.answer-grid > button.correct .answer-choice-explanation {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .answer-grid > button.has-explanation {
