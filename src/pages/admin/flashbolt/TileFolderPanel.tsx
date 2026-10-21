@@ -6,7 +6,10 @@ export default function TileFolderPanel({ id, label, children }: {
   const panel = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const element = panel.current;
-    const trigger = element?.parentElement?.querySelector<HTMLButtonElement>(".tile-folder-badge");
+    const focused = document.activeElement;
+    const trigger = focused instanceof HTMLButtonElement && focused.matches(".tile-folder-badge") && element?.parentElement?.contains(focused)
+      ? focused
+      : element?.parentElement?.querySelector<HTMLButtonElement>(".tile-folder-badge");
     if (!element || !trigger) return;
     element.showPopover();
     const position = () => {

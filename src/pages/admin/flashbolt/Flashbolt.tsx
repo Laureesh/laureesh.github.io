@@ -2993,7 +2993,9 @@ export default function Flashbolt() {
                 setData(current => ({ ...current, sets: current.sets.map(item => item.id === set.id ? { ...item, ...details, updatedAt: new Date().toISOString() } : item) }));
                 notify("Set details saved.");
               }} folderControl={<div className="tile-folder-control" data-tile-folder-picker={set.id}>
-                <button
+                {(setFolders.length ? setFolders : [null]).map(assignedFolder => <button
+                  key={assignedFolder?.id ?? "unfiled"}
+                  style={{ "--folder-color": assignedFolder ? assignedFolder.color ?? FOLDER_COLORS[0] : "var(--muted)" } as CSSProperties}
                   className={`tile-folder-badge ${setFolders.length ? "assigned" : "unfiled"}`}
                   title={`${setFolders.length > 1 ? "Folders" : "Folder"}: ${folderLabel}`}
                   aria-label={`Change folders for ${set.title}. Current: ${folderLabel}`}
@@ -3007,11 +3009,11 @@ export default function Flashbolt() {
                 >
                   <span className="tile-folder-icon" aria-hidden="true"><UiIcon symbol="□" /></span>
                   <span className="tile-folder-copy">
-                    <small>{setFolders.length > 1 ? "Folders" : "Folder"}</small>
-                    <b>{folderLabel}</b>
+                    <small>Folder</small>
+                    <b>{assignedFolder?.name ?? "None"}</b>
                   </span>
                   <span className="tile-folder-chevron" aria-hidden="true">⌄</span>
-                </button>
+                </button>)}
                 {tileFolderPickerId === set.id && (
                   <TileFolderPanel id={`tile-folder-menu-${set.id}`} label={`Folders for ${set.title}`}>
                     <div className="tile-folder-menu-heading">
@@ -3037,13 +3039,14 @@ export default function Flashbolt() {
                             {visibleFolders.map((folderItem) => {
                               const checked = folderItem.setIds.includes(set.id);
                               return (
-                                <label className={`tile-folder-option ${checked ? "checked" : ""}`} key={folderItem.id}>
+                                <label className={`tile-folder-option ${checked ? "checked" : ""}`} key={folderItem.id} style={{ "--folder-color": folderItem.color ?? FOLDER_COLORS[0] } as CSSProperties}>
                                   <input
                                     type="checkbox"
                                     aria-label={`${checked ? "Remove" : "Add"} ${set.title} ${checked ? "from" : "to"} ${folderItem.name}`}
                                     checked={checked}
                                     onChange={() => toggleSetFolderAssignment(set.id, folderItem.id)}
                                   />
+                                  <i className="folder-option-color" aria-hidden="true" />
                                   <span className="tile-folder-option-copy">
                                     <strong>{folderItem.name}</strong>
                                     <small>{folderItem.setIds.length} set{folderItem.setIds.length === 1 ? "" : "s"}</small>
@@ -3150,7 +3153,7 @@ export default function Flashbolt() {
           <Link title="Your library" aria-label="Your library" className={view === "library" ? "active" : ""} to={`${FLASHBOLT_BASE}/library`} onClick={event => followFlashboltLink(event, () => navigate("library"))}><span className="nav-icon"><BookOpen aria-hidden="true" /></span><span className="nav-label">Your library</span></Link>
           {quickLinkSemester && <div className="topbar-folder-shortcuts" role="group" aria-label={`${quickLinkSemester.semester} folders`}>
             <span className="topbar-semester">{quickLinkSemester.semester}<small>{quickLinkSemester.folders.length} folders</small></span>
-            {quickLinkSemester.folders.map(item => <Link key={item.id} to={folderPath(item)} className={`topbar-folder-shortcut${selectedFolderId === item.id ? " active" : ""}`} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} sets`} title={item.name}>
+            {quickLinkSemester.folders.map(item => <Link key={item.id} to={folderPath(item)} className={`topbar-folder-shortcut${selectedFolderId === item.id ? " active" : ""}`} style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} sets`} title={item.name}>
               <span className="folder-filter-icon folder" aria-hidden="true" style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} />
               <span className="topbar-folder-copy"><strong>{item.name.match(/^\[([^\]]+)\]/)?.[1] ?? item.name}</strong><small>{item.name.replace(/^\[[^\]]+\]\s*/, "") || item.name}</small></span>
               <b>{item.setIds.length}</b>
@@ -3363,7 +3366,7 @@ export default function Flashbolt() {
                     {visibleSemesterGroups.map((group) => <section className="folder-semester-group" key={group.semester}>
                       <h3>{group.semester}<small>{group.folders.length} folder{group.folders.length === 1 ? "" : "s"}</small></h3>
                       <div className="folder-semester-chips">{group.folders.map((item) => (
-                        <div className="library-folder-chip" key={item.id}>
+                        <div className="library-folder-chip" key={item.id} style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties}>
                         <Link className={selectedFolderId === item.id ? "active" : ""} aria-current={selectedFolderId === item.id ? "page" : undefined} aria-label={`Open ${item.name}, ${item.setIds.length} set${item.setIds.length === 1 ? "" : "s"}`} title={item.name} to={folderPath(item)}>
                           <span className="folder-filter-icon folder" aria-hidden="true" style={{ "--folder-color": item.color ?? FOLDER_COLORS[0] } as CSSProperties} />
                           <span className="folder-filter-name">{item.name}</span>
@@ -3574,7 +3577,7 @@ export default function Flashbolt() {
                           {draftFolderOptions.filter((folderItem) => folderItem.name.toLocaleLowerCase().includes(draftFolderSearch.trim().toLocaleLowerCase())).map((folderItem) => {
                             const checked = draftFolderIds.includes(folderItem.id);
                             return (
-                              <label className={`folder-option ${checked ? "checked" : ""}`} key={folderItem.id}>
+                              <label className={`folder-option ${checked ? "checked" : ""}`} key={folderItem.id} style={{ "--folder-color": folderItem.color ?? FOLDER_COLORS[0] } as CSSProperties}>
                                 <input
                                   type="checkbox"
                                   aria-label={`Add this set to ${folderItem.name}`}
@@ -3583,7 +3586,7 @@ export default function Flashbolt() {
                                     ? ids.filter((id) => id !== folderItem.id)
                                     : [...ids, folderItem.id])}
                                 />
-                                <span><strong>{folderItem.name}</strong><small>{folderItem.setIds.length} set{folderItem.setIds.length === 1 ? "" : "s"}</small></span>
+                                <i className="folder-option-color" aria-hidden="true" /><span><strong>{folderItem.name}</strong><small>{folderItem.setIds.length} set{folderItem.setIds.length === 1 ? "" : "s"}</small></span>
                               </label>
                             );
                           })}
@@ -4065,7 +4068,7 @@ export default function Flashbolt() {
 
       {folderModalOpen && (
         <Modal className="modal" labelledBy="folder-title" onClose={closeFolderModal}>
-            <header><div><span className="modal-icon"><UiIcon symbol="□" /></span><span className="eyebrow">{editingFolderId ? "Edit collection" : "New collection"}</span><h2 id="folder-title">{editingFolderId ? "Edit your folder" : "Name your folder"}</h2></div><button className="icon-button" onClick={closeFolderModal} aria-label="Close modal"><UiIcon symbol="×" /></button></header>
+            <header><div><span className="modal-icon" style={{ background: folderColor, color: "#18202b" }}><UiIcon symbol="□" /></span><span className="eyebrow">{editingFolderId ? "Edit collection" : "New collection"}</span><h2 id="folder-title">{editingFolderId ? "Edit your folder" : "Name your folder"}</h2></div><button className="icon-button" onClick={closeFolderModal} aria-label="Close modal"><UiIcon symbol="×" /></button></header>
             <label className="modal-field"><span>Folder name</span><input value={folderName} onChange={(event) => setFolderName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") saveFolder(); }} placeholder="e.g. Fall semester" maxLength={50} /></label>
             <label className="modal-field"><span>Semester <small>optional</small></span><input value={folderSemester} onChange={(event) => setFolderSemester(event.target.value)} placeholder="e.g. Fall 2026" list="flashbolt-semesters" maxLength={11} /><datalist id="flashbolt-semesters">{[2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027].flatMap((year) => ["Spring", "Summer", "Fall"].map((term) => <option value={`${term} ${year}`} key={`${term}-${year}`} />))}</datalist></label>
             <fieldset className="folder-color-field"><legend>Folder icon color</legend><div>{FOLDER_COLORS.map((color) => <button type="button" className={folderColor === color ? "selected" : ""} style={{ "--folder-swatch": color } as CSSProperties} onClick={() => setFolderColor(color)} aria-label={`Use folder color ${color}`} aria-pressed={folderColor === color} key={color}><span /></button>)}</div></fieldset>

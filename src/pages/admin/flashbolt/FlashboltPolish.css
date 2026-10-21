@@ -182,7 +182,7 @@
 .flashbolt-shell .set-tile-heading { display: flex; flex: 1 1 100%; min-width: 0; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
 .flashbolt-shell:not([data-view="helper"]) .set-tile-heading .set-tile-title { flex: 0 1 auto; overflow-wrap: anywhere; word-break: normal; }
 .flashbolt-shell .set-tile-heading .tile-term-tag { flex-shrink: 0; }
-.flashbolt-shell .set-tile-heading .tile-folder-control { flex: 0 1 auto; min-width: 0; max-width: 100%; }
+.flashbolt-shell .set-tile-heading .tile-folder-control { display: flex; flex-wrap: wrap; gap: 6px; flex: 0 1 auto; min-width: 0; max-width: 100%; }
 .flashbolt-shell .set-tile-heading .tile-folder-badge {
   width: auto;
   max-width: 100%;
@@ -195,6 +195,36 @@
 .flashbolt-shell .set-tile-heading .tile-folder-copy small { display: none; }
 .flashbolt-shell .set-tile-heading .tile-folder-copy b { font-size: 12px; font-weight: 650; line-height: 1.4; }
 .flashbolt-shell .set-tile-heading .tile-folder-icon { width: 18px; height: 18px; flex-basis: 18px; border-radius: 5px; font-size: 12px; }
+.flashbolt-shell .set-tile-heading .tile-folder-badge {
+  border-color: color-mix(in srgb, var(--folder-color) 55%, var(--line));
+  background: color-mix(in srgb, var(--folder-color) 14%, var(--panel));
+}
+.flashbolt-shell .set-tile-heading .tile-folder-badge:is(:hover, [aria-expanded="true"]) { border-color: var(--folder-color); }
+.flashbolt-shell .set-tile-heading .tile-folder-icon { background: var(--folder-color); color: #18202b; }
+.flashbolt-shell .set-tile-heading .tile-folder-chevron { color: var(--folder-color); }
+.flashbolt-shell .set-tile-heading .tile-folder-copy b { color: var(--ink); }
+.flashbolt-shell :is(.tile-folder-option, .folder-option) .folder-option-color {
+  display: block;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  border-radius: 3px;
+  background: var(--folder-color);
+}
+.flashbolt-shell :is(.tile-folder-option, .folder-option):is(:hover, .checked),
+.flashbolt-shell .form-card label.folder-option:is(:hover, .checked),
+.flashbolt-shell .selected-folder-chip,
+.flashbolt-shell .library-folder-chip > a:is(:hover, .active) {
+  border-color: color-mix(in srgb, var(--folder-color) 55%, var(--line));
+  background: color-mix(in srgb, var(--folder-color) 14%, var(--panel));
+}
+.flashbolt-shell :is(.tile-folder-option, .folder-option) input[type="checkbox"] { accent-color: var(--folder-color); }
+.flashbolt-shell :is(.tile-folder-option, .folder-option) input[type="checkbox"]:checked {
+  background: var(--folder-color);
+  border-color: var(--folder-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--folder-color) 14%, transparent);
+}
+.flashbolt-shell :is(.tile-folder-option, .folder-option) input[type="checkbox"]:checked::after { color: #18202b; }
 @media (min-width: 800px) {
   .flashbolt-shell .folder-list-view .set-tile { grid-template-areas: "kicker kicker" "title title" "description progress"; }
 }
@@ -705,7 +735,7 @@
 .flashbolt-shell .topbar-folder-copy strong { font-size: 11px; }
 .flashbolt-shell .topbar-folder-copy small { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .flashbolt-shell .topbar-folder-shortcut > b { font-size: 10px; color: var(--muted); }
-.flashbolt-shell .topbar-folder-shortcut:is(:hover, .active) { border-color: var(--primary-strong); background: var(--primary-soft); }
+.flashbolt-shell .topbar-folder-shortcut:is(:hover, .active) { border-color: var(--folder-color); background: color-mix(in srgb, var(--folder-color) 14%, var(--panel)); }
 .flashbolt-shell .topbar-folder-shortcut:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 1px; }
 .flashbolt-shell.topbar-navigation-layout .topbar .search-box { flex: 1 1 180px; width: auto; min-width: 80px; max-width: 440px; }
 @media (min-width: 781px) {
