@@ -2982,7 +2982,7 @@ export default function Flashbolt() {
             ? data.folders.filter((folderItem) => folderItem.name.toLocaleLowerCase().includes(normalizedFolderSearch))
             : data.folders;
           return (
-            <article id={view === "library" ? `library-set-${set.id}` : undefined} tabIndex={view === "library" ? -1 : undefined} className={`set-tile ${progress === 100 ? "completed" : ""}`} data-set-color={set.color} style={{ "--set-color": getSetColor(set.color).hex } as CSSProperties} key={set.id} onContextMenu={(event) => openSetContextMenu(event, set.id)}>
+            <article id={view === "library" ? `library-set-${set.id}` : undefined} tabIndex={view === "library" ? -1 : undefined} className={`set-tile ${progress === 100 ? "completed" : ""}`} data-set-color={set.color} style={{ "--set-color": getSetColor(set.color).hex, "--progress-color": `hsl(${Math.max(0, Math.min(100, progress)) * 1.2} 75% 65%)` } as CSSProperties} key={set.id} onContextMenu={(event) => openSetContextMenu(event, set.id)}>
               <Link className="set-tile-open" to={routePathForView("set", set.id)} aria-label={`Open ${set.title}`}><span className="visually-hidden">Open {set.title}</span></Link>
               <span className={`set-accent ${set.color}`} style={{ backgroundColor: getSetColor(set.color).hex }} />
               <span className="tile-kicker"><span>{set.subject || "General"}</span><span>{formatDate(set.updatedAt)}</span></span>
