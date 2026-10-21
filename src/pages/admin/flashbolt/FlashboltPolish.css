@@ -39,17 +39,24 @@
 .flashbolt-shell:not([data-view="helper"]) .folder-compact-view .set-tile-title { font-size: 16px; line-height: 1.45; }
 .flashbolt-shell .set-title-number {
   display: inline-block;
-  padding: 2px 7px;
-  border: 1px solid color-mix(in srgb, var(--set-color) 35%, var(--line));
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--set-color) 14%, var(--panel));
+  padding: 1px 6px;
+  border: 1px solid color-mix(in srgb, var(--folder-color, var(--set-color)) 35%, var(--line));
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--folder-color, var(--set-color)) 12%, var(--panel));
   color: var(--ink);
+  font-size: .94em;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  letter-spacing: .02em;
+  letter-spacing: .01em;
 }
 .flashbolt-shell .set-title-separator { color: var(--muted); font-weight: 400; }
 .flashbolt-shell .set-title-main { font-weight: 650; }
+.flashbolt-shell .set-title-code {
+  color: color-mix(in srgb, var(--folder-color, var(--set-color)) 65%, var(--ink));
+  font-size: .92em;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
 .flashbolt-shell .set-title-section { color: var(--muted); font-size: .85em; font-weight: 450; }
 .flashbolt-shell:not([data-view="helper"]) :is(.creator-layout, .study-layout, .guide-layout) > * { min-width: 0; }
 .flashbolt-shell:not([data-view="helper"]) :is(.card-editor, .question-card, .test-question, .guide-input-card, .guide-preview, .review-start, .study-summary) { min-width: 0; border-radius: 16px; }

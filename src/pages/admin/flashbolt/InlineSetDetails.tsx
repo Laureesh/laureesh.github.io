@@ -18,15 +18,24 @@ type Props = {
 };
 
 function SetTitle({ title }: { title: string }) {
-  const prefix = title.match(/^(\d+(?:\.\d+)+)(\s*[-–—:]\s*)(?=\S)/);
-  const remainder = prefix ? title.slice(prefix[0].length) : title;
-  const section = remainder.match(/(\s+\(Section\s+[^)]+\))$/i);
-  const main = section ? remainder.slice(0, -section[0].length) : remainder;
+  // Keep the original text intact while highlighting common study-set identifiers.
+  const parts = title.split(/(\[[^\]]+\]|\([^()]+\)|\b(?:Quiz|Module|Chapter|Part|Section|Unit|Lesson|Week)\s+\d+(?:\.\d+)*\b|^\d+(?:\.\d+)+\b|\b[A-Z]{2,}-[A-Z]?\d{2,}\b|\b\d+\s*(?:q|questions?)\b|\s+[-–—]\s+)/gi);
 
   return <strong className="set-tile-title">
-    {prefix && <><span className="set-title-number">{prefix[1]}</span><span className="set-title-separator">{prefix[2]}</span></>}
-    <span className="set-title-main">{main}</span>
-    {section && <span className="set-title-section">{section[0]}</span>}
+    {parts.map((part, index) => {
+      if (!part) return null;
+      let className = "set-title-main";
+      if (/^(?:\[|\()/.test(part)) {
+        className = /[A-Z]{2,}-[A-Z]?\d{2,}/i.test(part) ? "set-title-code" : "set-title-section";
+      } else if (/^(?:Quiz|Module|Chapter|Part|Section|Unit|Lesson|Week)\s+\d|^\d+(?:\.\d+)+$/i.test(part)) {
+        className = "set-title-number";
+      } else if (/^[A-Z]{2,}-[A-Z]?\d{2,}$|^\d+\s*(?:q|questions?)$/i.test(part)) {
+        className = "set-title-code";
+      } else if (/^\s+[-–—]\s+$/.test(part)) {
+        className = "set-title-separator";
+      }
+      return <span className={className} key={index}>{part}</span>;
+    })}
   </strong>;
 }
 
