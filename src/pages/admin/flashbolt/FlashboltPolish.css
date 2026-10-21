@@ -922,6 +922,43 @@
     var(--panel));
 }
 .flashbolt-shell .library-page-content .set-tile:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 3px; }
+.flashbolt-shell .set-tile { padding-bottom: 22px; }
+.flashbolt-shell .set-tile .tile-footer { justify-content: space-between; gap: 12px; }
+.flashbolt-shell .set-tile .tile-progress-value {
+  color: var(--ink);
+  font-family: var(--flashbolt-ui-font);
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -.04em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.flashbolt-shell .set-tile.completed .tile-progress-value { color: var(--set-color); }
+.flashbolt-shell .folder-compact-view .set-tile .tile-footer {
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5px;
+}
+.flashbolt-shell .set-tile .tile-progress-track {
+  position: absolute;
+  inset: auto 0 0;
+  height: 6px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--set-color) 14%, var(--panel-3));
+  pointer-events: none;
+}
+.flashbolt-shell .tile-progress-track > span {
+  display: block;
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+  background: var(--set-color);
+  transition: width 180ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flashbolt-shell .tile-progress-track > span { transition: none; }
+}
 @media (max-width: 900px) {
   .flashbolt-shell .library-navigation-layout { grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .flashbolt-shell .library-navigation-panel { position: static; max-height: 280px; }

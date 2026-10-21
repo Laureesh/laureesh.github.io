@@ -3071,8 +3071,10 @@ export default function Flashbolt() {
               </div>
               <span className="tile-footer">
                 <span>{set.cards.length} terms</span>
-                <span className="mini-progress"><i style={{ width: `${progress}%` }} /></span>
-                <span>{progress}%</span>
+                <span className="tile-progress-value">{progress}%</span>
+              </span>
+              <span className="tile-progress-track" role="progressbar" aria-label={`Mastery for ${set.title}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
+                <span style={{ width: `${progress}%` }} />
               </span>
             </article>
           );
