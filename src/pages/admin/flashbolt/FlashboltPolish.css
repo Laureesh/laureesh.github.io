@@ -1064,3 +1064,33 @@
   outline-offset: 1px;
   box-shadow: inset 0 -3px 0 rgba(255, 255, 255, .6);
 }
+
+/* Let descriptions occupy spare horizontal space without sizing the compact row. */
+@media (min-width: 1000px) {
+  .flashbolt-shell:not([data-view="helper"]) .folder-compact-view .set-tile:not(:has(.set-tile-inline-editor)) {
+    grid-template-columns: minmax(0, max-content) minmax(0, 1fr) 100px;
+    grid-template-areas: "title description progress";
+  }
+  .flashbolt-shell .folder-compact-view .tile-description {
+    display: block;
+    grid-area: description;
+    position: relative;
+    align-self: stretch;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .flashbolt-shell .folder-compact-view .tile-description > span {
+    position: absolute;
+    top: 50%;
+    inset-inline: 14px;
+    transform: translateY(-50%);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    max-height: 100%;
+    overflow: hidden;
+  }
+}

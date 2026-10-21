@@ -63,7 +63,7 @@ export default function InlineSetDetails({ set, termCount, folderControl, onSave
         {onOpenActions && <button type="button" className="set-tile-quick-edit set-actions-trigger" title="More actions" aria-label={`Actions for ${set.title}`} aria-haspopup="menu" onClick={onOpenActions}><Ellipsis aria-hidden="true" /></button>}
       </div>
     </div>
-    <span className="tile-description">{set.description || "Your private flashcard set."}</span>
+    <span className="tile-description" title={set.description || undefined}><span>{set.description || "Your private flashcard set."}</span></span>
   </>;
 
   return <form className="set-tile-inline-editor" aria-label={`Edit details for ${set.title}`} onClick={event => event.stopPropagation()} onKeyDown={event => {
