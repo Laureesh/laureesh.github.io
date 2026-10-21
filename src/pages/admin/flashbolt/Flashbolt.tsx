@@ -3070,7 +3070,7 @@ export default function Flashbolt() {
                 )}
               </div>
               <span className="tile-footer">
-                <span>{set.cards.length} terms</span>
+                <span className="tile-term-tag"><b>{set.cards.length}</b> {set.cards.length === 1 ? "term" : "terms"}</span>
                 <span className="tile-progress-value">{progress}%</span>
               </span>
               <span className="tile-progress-track" role="progressbar" aria-label={`Mastery for ${set.title}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
