@@ -893,7 +893,10 @@
 .flashbolt-shell .library-navigation-links small { flex-shrink: 0; color: var(--muted); font-size: 11px; }
 .flashbolt-shell .library-navigation-folder-color { width: 9px; height: 9px; flex: 0 0 9px; border-radius: 3px; }
 .flashbolt-shell .library-navigation-links p { margin: 4px 0; color: var(--muted); font-size: 12px; }
-.flashbolt-shell .library-page-content .set-tile { scroll-margin-top: 88px; }
+.flashbolt-shell .library-page-content .set-tile {
+  scroll-margin-top: 88px;
+  background: color-mix(in srgb, var(--set-color) 18%, var(--panel));
+}
 .flashbolt-shell .library-page-content .set-tile:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 3px; }
 @media (max-width: 900px) {
   .flashbolt-shell .library-navigation-layout { grid-template-columns: minmax(0, 1fr); gap: 12px; }
