@@ -179,7 +179,9 @@
 .flashbolt-ui-icon { display: inline-block; width: 1.1em; height: 1.1em; flex-shrink: 0; vertical-align: -.15em; stroke-width: 1.8; }
 .flashbolt-shell .avatar { display: grid; place-items: center; cursor: default; }
 .flashbolt-shell:not([data-view="helper"]) .set-tile-title-row { flex-wrap: wrap; gap: 12px; }
-.flashbolt-shell:not([data-view="helper"]) .set-tile-title-row .set-tile-title { flex: 1 1 100%; overflow-wrap: break-word; word-break: normal; }
+.flashbolt-shell .set-tile-heading { display: flex; flex: 1 1 100%; min-width: 0; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.flashbolt-shell:not([data-view="helper"]) .set-tile-heading .set-tile-title { flex: 0 1 auto; overflow-wrap: anywhere; word-break: normal; }
+.flashbolt-shell .set-tile-heading .tile-term-tag { flex-shrink: 0; }
 .flashbolt-shell .set-tile-actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; max-width: 100%; }
 .flashbolt-shell .set-tile-actions :is(.set-tile-quick-edit, .tile-kahoot-link) {
   display: inline-flex;
@@ -923,7 +925,7 @@
 }
 .flashbolt-shell .library-page-content .set-tile:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 3px; }
 .flashbolt-shell .set-tile { padding-bottom: 22px; }
-.flashbolt-shell .set-tile .tile-footer { justify-content: space-between; gap: 12px; }
+.flashbolt-shell .set-tile .tile-footer { justify-content: flex-end; gap: 12px; }
 .flashbolt-shell .set-tile .tile-progress-value {
   color: var(--progress-color);
   font-family: var(--flashbolt-ui-font);

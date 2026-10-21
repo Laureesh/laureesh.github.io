@@ -2986,7 +2986,7 @@ export default function Flashbolt() {
               <Link className="set-tile-open" to={routePathForView("set", set.id)} aria-label={`Open ${set.title}`}><span className="visually-hidden">Open {set.title}</span></Link>
               <span className={`set-accent ${set.color}`} style={{ backgroundColor: getSetColor(set.color).hex }} />
               <span className="tile-kicker"><span>{set.subject || "General"}</span><span>{formatDate(set.updatedAt)}</span></span>
-              <InlineSetDetails set={set} editHref={routePathForView("create", set.id)} onEdit={event => followFlashboltLink(event, () => startEdit(set))} onQuickLearn={() => startLearn(set.id)} onOpenActions={event => {
+              <InlineSetDetails set={set} termCount={set.cards.length} editHref={routePathForView("create", set.id)} onEdit={event => followFlashboltLink(event, () => startEdit(set))} onQuickLearn={() => startLearn(set.id)} onOpenActions={event => {
                 const rect = event.currentTarget.getBoundingClientRect();
                 setSetContextMenu({ setId: set.id, x: rect.left, y: rect.bottom + 6 });
               }} kahootUrl={set.kahootUrl && isSafeKahootUrl(set.kahootUrl) ? set.kahootUrl : undefined} onOpenKahootHelper={() => openKahootHelper(set)} onSave={(details) => {
@@ -3070,7 +3070,6 @@ export default function Flashbolt() {
                 )}
               </div>
               <span className="tile-footer">
-                <span className="tile-term-tag"><b>{set.cards.length}</b> {set.cards.length === 1 ? "term" : "terms"}</span>
                 <span className="tile-progress-value">{progress}%</span>
               </span>
               <span className="tile-progress-track" role="progressbar" aria-label={`Mastery for ${set.title}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>

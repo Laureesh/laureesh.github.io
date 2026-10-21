@@ -6,6 +6,7 @@ export type SetDetails = { title: string; subject: string; description: string; 
 
 type Props = {
   set: SetDetails & { id: string };
+  termCount: number;
   onSave: (details: SetDetails) => void;
   onQuickLearn: () => void;
   editHref: string;
@@ -28,14 +29,17 @@ function SetTitle({ title }: { title: string }) {
   </strong>;
 }
 
-export default function InlineSetDetails({ set, onSave, onQuickLearn, editHref, onEdit, onOpenKahootHelper, kahootUrl, onOpenActions }: Props) {
+export default function InlineSetDetails({ set, termCount, onSave, onQuickLearn, editHref, onEdit, onOpenKahootHelper, kahootUrl, onOpenActions }: Props) {
   const [draft, setDraft] = useState<SetDetails | null>(null);
   const [error, setError] = useState("");
   const cancel = () => { setDraft(null); setError(""); };
 
   if (!draft) return <>
     <div className="set-tile-title-row">
-      <SetTitle title={set.title} />
+      <div className="set-tile-heading">
+        <SetTitle title={set.title} />
+        <span className="tile-term-tag"><b>{termCount}</b> {termCount === 1 ? "term" : "terms"}</span>
+      </div>
       <div className={`set-tile-actions${onOpenKahootHelper ? " has-kahoot-helper" : ""}`}>
         <button type="button" className="set-tile-quick-edit set-action-learn" aria-label={`Quick learn ${set.title}`} title="Start a quick learning session" onClick={onQuickLearn}><Play aria-hidden="true" />Quick learn</button>
         <a className="set-tile-quick-edit set-action-edit" href={editHref} aria-label={`Edit set ${set.title}`} title="Edit cards and set details" onClick={onEdit}><Pencil aria-hidden="true" />Edit set</a>
