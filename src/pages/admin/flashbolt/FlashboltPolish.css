@@ -26,10 +26,17 @@
 .flashbolt-shell:not([data-view="helper"]) :is(.button-row, .heading-actions, .page-heading.split, .section-heading) { flex-wrap: wrap; }
 .flashbolt-shell:not([data-view="helper"]) :is(.set-tile, .folder-card, .stats-row article, .review-set-list article) { border-color: var(--line); box-shadow: 0 4px 18px rgba(0, 0, 0, .08); }
 .flashbolt-shell:not([data-view="helper"]) .set-tile:hover { transform: translateY(-1px); }
-.flashbolt-shell:not([data-view="helper"]) .set-tile-title { font-size: 17px; line-height: 1.45; letter-spacing: -.015em; }
+.flashbolt-shell:not([data-view="helper"]) .set-tile-title {
+  font-family: var(--flashbolt-ui-font);
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 1.45;
+  letter-spacing: -.01em;
+  text-wrap: pretty;
+}
 .flashbolt-shell:not([data-view="helper"]) .tile-kicker { font-size: 11px; line-height: 1.4; }
 .flashbolt-shell:not([data-view="helper"]) .tile-footer { font-size: 12px; }
-.flashbolt-shell:not([data-view="helper"]) .folder-compact-view .set-tile-title { font-size: 13px; }
+.flashbolt-shell:not([data-view="helper"]) .folder-compact-view .set-tile-title { font-size: 16px; line-height: 1.45; }
 .flashbolt-shell:not([data-view="helper"]) :is(.creator-layout, .study-layout, .guide-layout) > * { min-width: 0; }
 .flashbolt-shell:not([data-view="helper"]) :is(.card-editor, .question-card, .test-question, .guide-input-card, .guide-preview, .review-start, .study-summary) { min-width: 0; border-radius: 16px; }
 .flashbolt-shell:not([data-view="helper"]) :is(input, textarea, select) { max-width: 100%; min-width: 0; }
@@ -157,7 +164,7 @@
 .tile-folder-menu { font-family: var(--flashbolt-ui-font); }
 .flashbolt-ui-icon { display: inline-block; width: 1.1em; height: 1.1em; flex-shrink: 0; vertical-align: -.15em; stroke-width: 1.8; }
 .flashbolt-shell .avatar { display: grid; place-items: center; cursor: default; }
-.flashbolt-shell:not([data-view="helper"]) .set-tile-title-row { flex-wrap: wrap; gap: 10px; }
+.flashbolt-shell:not([data-view="helper"]) .set-tile-title-row { flex-wrap: wrap; gap: 12px; }
 .flashbolt-shell:not([data-view="helper"]) .set-tile-title-row .set-tile-title { flex: 1 1 100%; overflow-wrap: break-word; word-break: normal; }
 .flashbolt-shell .set-tile-actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; max-width: 100%; }
 .flashbolt-shell .set-tile-actions :is(.set-tile-quick-edit, .tile-kahoot-link) {
