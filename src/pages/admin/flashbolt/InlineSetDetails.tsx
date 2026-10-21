@@ -15,6 +15,19 @@ type Props = {
   onOpenActions?: (event: MouseEvent<HTMLButtonElement>) => void;
 };
 
+function SetTitle({ title }: { title: string }) {
+  const prefix = title.match(/^(\d+(?:\.\d+)+)(\s*[-–—:]\s*)(?=\S)/);
+  const remainder = prefix ? title.slice(prefix[0].length) : title;
+  const section = remainder.match(/(\s+\(Section\s+[^)]+\))$/i);
+  const main = section ? remainder.slice(0, -section[0].length) : remainder;
+
+  return <strong className="set-tile-title">
+    {prefix && <><span className="set-title-number">{prefix[1]}</span><span className="set-title-separator">{prefix[2]}</span></>}
+    <span className="set-title-main">{main}</span>
+    {section && <span className="set-title-section">{section[0]}</span>}
+  </strong>;
+}
+
 export default function InlineSetDetails({ set, onSave, onQuickLearn, editHref, onEdit, onOpenKahootHelper, kahootUrl, onOpenActions }: Props) {
   const [draft, setDraft] = useState<SetDetails | null>(null);
   const [error, setError] = useState("");
@@ -22,7 +35,7 @@ export default function InlineSetDetails({ set, onSave, onQuickLearn, editHref, 
 
   if (!draft) return <>
     <div className="set-tile-title-row">
-      <strong className="set-tile-title">{set.title}</strong>
+      <SetTitle title={set.title} />
       <div className={`set-tile-actions${onOpenKahootHelper ? " has-kahoot-helper" : ""}`}>
         <button type="button" className="set-tile-quick-edit set-action-learn" aria-label={`Quick learn ${set.title}`} title="Start a quick learning session" onClick={onQuickLearn}><Play aria-hidden="true" />Quick learn</button>
         <a className="set-tile-quick-edit set-action-edit" href={editHref} aria-label={`Edit set ${set.title}`} title="Edit cards and set details" onClick={onEdit}><Pencil aria-hidden="true" />Edit set</a>

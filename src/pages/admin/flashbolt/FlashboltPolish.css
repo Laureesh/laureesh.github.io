@@ -37,6 +37,20 @@
 .flashbolt-shell:not([data-view="helper"]) .tile-kicker { font-size: 11px; line-height: 1.4; }
 .flashbolt-shell:not([data-view="helper"]) .tile-footer { font-size: 12px; }
 .flashbolt-shell:not([data-view="helper"]) .folder-compact-view .set-tile-title { font-size: 16px; line-height: 1.45; }
+.flashbolt-shell .set-title-number {
+  display: inline-block;
+  padding: 2px 7px;
+  border: 1px solid color-mix(in srgb, var(--set-color) 35%, var(--line));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--set-color) 14%, var(--panel));
+  color: var(--ink);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+}
+.flashbolt-shell .set-title-separator { color: var(--muted); font-weight: 400; }
+.flashbolt-shell .set-title-main { font-weight: 650; }
+.flashbolt-shell .set-title-section { color: var(--muted); font-size: .85em; font-weight: 450; }
 .flashbolt-shell:not([data-view="helper"]) :is(.creator-layout, .study-layout, .guide-layout) > * { min-width: 0; }
 .flashbolt-shell:not([data-view="helper"]) :is(.card-editor, .question-card, .test-question, .guide-input-card, .guide-preview, .review-start, .study-summary) { min-width: 0; border-radius: 16px; }
 .flashbolt-shell:not([data-view="helper"]) :is(input, textarea, select) { max-width: 100%; min-width: 0; }
@@ -902,7 +916,10 @@
 .flashbolt-shell .library-navigation-links p { margin: 4px 0; color: var(--muted); font-size: 12px; }
 .flashbolt-shell .library-page-content .set-tile {
   scroll-margin-top: 88px;
-  background: color-mix(in srgb, var(--set-color) 18%, var(--panel));
+  background: linear-gradient(110deg,
+    color-mix(in srgb, var(--set-color) 12%, var(--panel)),
+    color-mix(in srgb, var(--set-color) 4%, var(--panel)) 65%,
+    var(--panel));
 }
 .flashbolt-shell .library-page-content .set-tile:focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 3px; }
 @media (max-width: 900px) {
