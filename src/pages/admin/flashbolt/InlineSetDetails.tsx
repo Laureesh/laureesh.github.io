@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from "react";
+import { useState, type MouseEvent, type ReactNode } from "react";
 import { Ellipsis, ExternalLink, Pencil, Play, SlidersHorizontal, Zap } from "lucide-react";
 import SetColorPicker from "./SetColorPicker";
 
@@ -7,6 +7,7 @@ export type SetDetails = { title: string; subject: string; description: string; 
 type Props = {
   set: SetDetails & { id: string };
   termCount: number;
+  folderControl: ReactNode;
   onSave: (details: SetDetails) => void;
   onQuickLearn: () => void;
   editHref: string;
@@ -29,7 +30,7 @@ function SetTitle({ title }: { title: string }) {
   </strong>;
 }
 
-export default function InlineSetDetails({ set, termCount, onSave, onQuickLearn, editHref, onEdit, onOpenKahootHelper, kahootUrl, onOpenActions }: Props) {
+export default function InlineSetDetails({ set, termCount, folderControl, onSave, onQuickLearn, editHref, onEdit, onOpenKahootHelper, kahootUrl, onOpenActions }: Props) {
   const [draft, setDraft] = useState<SetDetails | null>(null);
   const [error, setError] = useState("");
   const cancel = () => { setDraft(null); setError(""); };
@@ -39,6 +40,7 @@ export default function InlineSetDetails({ set, termCount, onSave, onQuickLearn,
       <div className="set-tile-heading">
         <SetTitle title={set.title} />
         <span className="tile-term-tag"><b>{termCount}</b> {termCount === 1 ? "term" : "terms"}</span>
+        {folderControl}
       </div>
       <div className={`set-tile-actions${onOpenKahootHelper ? " has-kahoot-helper" : ""}`}>
         <button type="button" className="set-tile-quick-edit set-action-learn" aria-label={`Quick learn ${set.title}`} title="Start a quick learning session" onClick={onQuickLearn}><Play aria-hidden="true" />Quick learn</button>

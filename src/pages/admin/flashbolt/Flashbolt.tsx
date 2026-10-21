@@ -2992,8 +2992,7 @@ export default function Flashbolt() {
               }} kahootUrl={set.kahootUrl && isSafeKahootUrl(set.kahootUrl) ? set.kahootUrl : undefined} onOpenKahootHelper={() => openKahootHelper(set)} onSave={(details) => {
                 setData(current => ({ ...current, sets: current.sets.map(item => item.id === set.id ? { ...item, ...details, updatedAt: new Date().toISOString() } : item) }));
                 notify("Set details saved.");
-              }} />
-              <div className="tile-folder-control" data-tile-folder-picker={set.id}>
+              }} folderControl={<div className="tile-folder-control" data-tile-folder-picker={set.id}>
                 <button
                   className={`tile-folder-badge ${setFolders.length ? "assigned" : "unfiled"}`}
                   title={`${setFolders.length > 1 ? "Folders" : "Folder"}: ${folderLabel}`}
@@ -3068,7 +3067,8 @@ export default function Flashbolt() {
                     </div>
                   </TileFolderPanel>
                 )}
-              </div>
+              </div>} />
+
               <span className="tile-footer">
                 <span className="tile-progress-value">{progress}%</span>
               </span>

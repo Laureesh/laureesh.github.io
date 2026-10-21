@@ -182,6 +182,36 @@
 .flashbolt-shell .set-tile-heading { display: flex; flex: 1 1 100%; min-width: 0; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
 .flashbolt-shell:not([data-view="helper"]) .set-tile-heading .set-tile-title { flex: 0 1 auto; overflow-wrap: anywhere; word-break: normal; }
 .flashbolt-shell .set-tile-heading .tile-term-tag { flex-shrink: 0; }
+.flashbolt-shell .set-tile-heading .tile-folder-control { flex: 0 1 auto; min-width: 0; max-width: 100%; }
+.flashbolt-shell .set-tile-heading .tile-folder-badge {
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  padding: 5px 10px;
+  gap: 6px;
+  border-radius: 999px;
+  font-family: var(--flashbolt-ui-font);
+}
+.flashbolt-shell .set-tile-heading .tile-folder-copy small { display: none; }
+.flashbolt-shell .set-tile-heading .tile-folder-copy b { font-size: 12px; font-weight: 650; line-height: 1.4; }
+.flashbolt-shell .set-tile-heading .tile-folder-icon { width: 18px; height: 18px; flex-basis: 18px; border-radius: 5px; font-size: 12px; }
+@media (min-width: 800px) {
+  .flashbolt-shell .folder-list-view .set-tile { grid-template-areas: "kicker kicker" "title title" "description progress"; }
+}
+.flashbolt-shell:not([data-view="helper"]) .folder-compact-view .set-tile {
+  grid-template-columns: minmax(0, 1fr) 100px;
+  grid-template-areas: "title progress";
+}
+.flashbolt-shell:not([data-view="helper"]) .folder-compact-view .set-tile:has(.set-tile-inline-editor) {
+  grid-template-areas: "editor editor" ". progress";
+}
+@media (max-width: 480px) {
+  .flashbolt-shell:not([data-view="helper"]) .folder-compact-view .set-tile {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "title" "progress";
+  }
+  .flashbolt-shell:not([data-view="helper"]) .folder-compact-view .set-tile:has(.set-tile-inline-editor) { grid-template-areas: "editor" "progress"; }
+}
 .flashbolt-shell .set-tile-actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; max-width: 100%; }
 .flashbolt-shell .set-tile-actions :is(.set-tile-quick-edit, .tile-kahoot-link) {
   display: inline-flex;
