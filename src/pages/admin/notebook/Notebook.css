@@ -228,3 +228,27 @@
 
 /* Pasted code may wrap each line in another pre; only the outer block is a card. */
 .rich-editor pre pre, .rich-editor .notebook-steps pre pre { margin:0; padding:0; border:0; border-radius:0; background:transparent; color:inherit; font:inherit; box-shadow:none; transition:none; }
+
+.rich-editor ul.notebook-todo {
+  list-style: none;
+  padding-inline-start: 1.6em;
+}
+.rich-editor ul.notebook-todo > li {
+  position: relative;
+  min-height: 1.5em;
+  padding-inline-start: .3em;
+}
+.rich-editor ul.notebook-todo > li > input[type="checkbox"] {
+  position: absolute;
+  inset-inline-start: -1.4em;
+  top: .3em;
+  width: 1em;
+  height: 1em;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--primary, #7c6cff);
+}
+.rich-editor ul.notebook-todo > li:has(> input:checked) {
+  text-decoration: line-through;
+  opacity: .65;
+}
