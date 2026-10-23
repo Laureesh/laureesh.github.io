@@ -475,7 +475,7 @@ function testCorrectAnswer(card: Card) {
 function learnAnswerSide(options: LearnOptions, sequence: number, card?: Card): "term" | "definition" {
   if (card) {
     const embedded = parseEmbeddedQuestion(card.term, card.definition, card.answerChoices);
-    if (embedded.prompt.endsWith("?") || embedded.choices.length >= 2) return "definition";
+    if ((card.answerChoices?.length ?? 0) >= 2 || embedded.prompt.endsWith("?") || embedded.choices.length >= 2) return "definition";
   }
   if (options.answerTerms && !options.answerDefinitions) return "term";
   if (!options.answerTerms && options.answerDefinitions) return "definition";
@@ -492,7 +492,9 @@ function enabledLearnKinds(options: LearnOptions): LearnQuestionKind[] {
   return kinds.length ? kinds : ["multiple-choice"];
 }
 
-function learnQuestionKind(options: LearnOptions, sequence: number, correctAnswer: string, confidence: number): LearnQuestionKind {
+function learnQuestionKind(options: LearnOptions, sequence: number, correctAnswer: string, confidence: number, card?: Card): LearnQuestionKind {
+  // Authored multi-answer questions must keep separate selections at every stage.
+  if (card && correctAnswersForCard(card).length > 1 && (card.answerChoices?.length ?? 0) >= 2) return "select-all";
   const canSelectAll = correctAnswer.split(/\s*(?:;|,|\band\b)\s*/i).filter((part) => part.trim().length > 2).length > 1;
   return chooseAdaptiveQuestionKind(confidence, enabledLearnKinds(options), sequence, canSelectAll);
 }
@@ -505,9 +507,9 @@ function learnChoices(set: StudySet, card: Card, answerSide: "term" | "definitio
       : parseEmbeddedQuestion(card.term, card.definition, card.answerChoices).choices;
     const suppliedChoices = [...new Set(embeddedChoices.map((choice) => choice.trim()).filter(Boolean))];
     if (suppliedChoices.length >= 2) {
-      return suppliedChoices.some((choice) => normalizeAnswer(choice) === normalizeAnswer(cleanChoiceAnswer(correct)))
-        ? suppliedChoices
-        : [...suppliedChoices, cleanChoiceAnswer(correct)];
+      const answers = correctAnswersForCard(card);
+      const missing = answers.filter(answer => !suppliedChoices.some(choice => normalizeAnswer(choice) === normalizeAnswer(answer)));
+      return [...suppliedChoices, ...missing];
     }
   }
   const distractors = set.cards
@@ -519,6 +521,9 @@ function learnChoices(set: StudySet, card: Card, answerSide: "term" | "definitio
 }
 
 function selectAllChoices(set: StudySet, card: Card, answerSide: "term" | "definition") {
+  if (answerSide === "definition" && (card.answerChoices?.length ?? 0) >= 2) {
+    return { correctParts: correctAnswersForCard(card), choices: learnChoices(set, card, answerSide, 0) };
+  }
   const correctParts = card[answerSide]
     .split(/\s*(?:;|,|\band\b)\s*/i)
     .map((part) => part.trim())
@@ -591,7 +596,8 @@ function cleanChoiceAnswer(value: string) {
 }
 
 function correctAnswersForCard(card: Card) {
-  return (card.correctAnswers?.length ? card.correctAnswers : [cleanChoiceAnswer(card.definition)]).filter((answer) => answer.trim());
+  const repaired = withCorrectChoiceAnswers(card);
+  return (repaired.correctAnswers?.length ? repaired.correctAnswers : [cleanChoiceAnswer(card.definition)]).filter((answer) => answer.trim());
 }
 
 function prepareDraftCard(card: Card): Card | null {
@@ -1588,7 +1594,7 @@ export default function Flashbolt() {
     ? currentEmbeddedQuestion.prompt
     : (currentLearnCard?.definition ?? "");
   const currentLearnCorrectAnswer = currentLearnCard?.[currentLearnAnswerSide] ?? "";
-  const currentLearnQuestionKind = learnGoal === "understand" ? (currentLearnCard && correctAnswersForCard(currentLearnCard).length > 1 ? "select-all" : "multiple-choice") : learnQuestionKind(learnOptions, learnSequence, currentLearnCorrectAnswer, learnQuestionConfidence);
+  const currentLearnQuestionKind = learnGoal === "understand" ? (currentLearnCard && correctAnswersForCard(currentLearnCard).length > 1 ? "select-all" : "multiple-choice") : learnQuestionKind(learnOptions, learnSequence, currentLearnCorrectAnswer, learnQuestionConfidence, currentLearnAnswerSide === "definition" ? currentLearnCard : undefined);
   const currentLearnChoices = useMemo(
     () => currentLearnCard ? learnChoices(selectedSet, currentLearnCard, currentLearnAnswerSide, learnSequence) : [],
     [currentLearnAnswerSide, currentLearnCard, learnSequence, selectedSet],
