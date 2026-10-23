@@ -3835,7 +3835,7 @@ export default function Flashbolt() {
           )}
 
           {!search && view === "learn" && selectedSet && (
-            <section className={`learn-page ${learnPhase === "session" ? "session-active" : ""}`}>
+            <section className={`learn-page ${learnPhase === "session" ? "session-active" : ""}`} style={{ "--set-color": getSetColor(selectedSet.color).hex } as CSSProperties}>
               {learnPhase === "goal" && (
                 <div className="learn-goal-screen">
                   <Link className="back-link" to={routePathForView("set", selectedSet.id)}>← Back to set</Link>
