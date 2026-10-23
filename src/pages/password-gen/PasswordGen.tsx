@@ -1,3 +1,4 @@
+import RangeSlider from "../../components/RangeSlider";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -450,9 +451,8 @@ export default function PasswordGen() {
               <label htmlFor="pg-length">Length</label>
               <span className="pg-length-value">{length}</span>
             </div>
-            <input
+            <RangeSlider
               id="pg-length"
-              type="range"
               min={4}
               max={64}
               value={length}

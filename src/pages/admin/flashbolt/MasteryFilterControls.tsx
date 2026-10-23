@@ -1,3 +1,4 @@
+import RangeSlider from "../../../components/RangeSlider";
 import { useId, useRef, useState } from "react";
 import { normalizeMasteryFilter, type MasteryFilter } from "./masteryFilter";
 
@@ -18,7 +19,7 @@ export default function MasteryFilterControls({ value, onChange, shown, total, c
     <div className="mastery-filter-heading"><strong>Mastery filter</strong><span role="status">Showing {shown} of {total} sets</span></div>
     <div className="mastery-filter-fields">
       <label htmlFor={`${id}-mode`}>Show or hide sets<select id={`${id}-mode`} value={value.mode} onChange={event => onChange({ ...value, mode: event.target.value as MasteryFilter["mode"] })}><option value="all">Show all sets</option><option value="above">Hide sets above this percentage</option><option value="below">Hide sets below this percentage</option></select></label>
-      <label className="mastery-filter-slider" htmlFor={`${id}-slider`}>Mastery percentage<input id={`${id}-slider`} type="range" min="0" max="100" step="1" value={value.percentage} aria-valuetext={`${value.percentage}%`} onChange={event => setPercentage(event.target.value)} /></label>
+      <label className="mastery-filter-slider" htmlFor={`${id}-slider`}>Mastery percentage<RangeSlider id={`${id}-slider`} min="0" max="100" step="1" value={value.percentage} aria-valuetext={`${value.percentage}%`} onChange={event => setPercentage(event.target.value)} /></label>
       <label className="mastery-filter-number" htmlFor={`${id}-number`}>Percent<input id={`${id}-number`} type="number" min="0" max="100" step="1" value={value.percentage} onChange={event => setPercentage(event.target.value)} /></label>
       {value.mode !== "all" && <button className="button quiet" type="button" onClick={() => onChange({ ...value, mode: "all" })}>Clear filter</button>}
     </div>

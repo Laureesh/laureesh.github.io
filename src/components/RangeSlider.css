@@ -1,0 +1,74 @@
+input[type="range"].range-slider {
+  --thumb-diameter: 2em;
+  --thumb-radius: 1em;
+  --track-height: .25em;
+  --track-cutout: 1.5em;
+  --thumb-position: calc(var(--thumb-radius) + var(--range-progress, .5) * (100% - var(--thumb-diameter)));
+  --range-track: var(--text-secondary, gainsboro);
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 2.75em;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--primary-strong, var(--accent, gold));
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Separate browser selectors: unsupported pseudo-elements invalidate a selector list. */
+input[type="range"].range-slider::-webkit-slider-runnable-track {
+  height: var(--track-height);
+  background:
+    radial-gradient(circle var(--track-cutout) at 100%, transparent 100%, currentColor) left / var(--thumb-position) 100%,
+    radial-gradient(circle var(--track-cutout) at 0, transparent 100%, var(--range-track)) right / calc(100% - var(--thumb-position)) 100%;
+  background-repeat: no-repeat;
+}
+
+input[type="range"].range-slider::-moz-range-track {
+  height: var(--track-height);
+  background:
+    radial-gradient(circle var(--track-cutout) at 100%, transparent 100%, currentColor) left / var(--thumb-position) 100%,
+    radial-gradient(circle var(--track-cutout) at 0, transparent 100%, var(--range-track)) right / calc(100% - var(--thumb-position)) 100%;
+  background-repeat: no-repeat;
+}
+
+input[type="range"].range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  margin-top: calc(var(--track-height) / 2 - var(--thumb-radius));
+  width: var(--thumb-diameter);
+  height: var(--thumb-diameter);
+  border: 3px solid currentColor;
+  border-radius: 50%;
+  background: transparent;
+}
+
+input[type="range"].range-slider::-moz-range-thumb {
+  box-sizing: border-box;
+  width: var(--thumb-diameter);
+  height: var(--thumb-diameter);
+  border: 3px solid currentColor;
+  border-radius: 50%;
+  background: transparent;
+}
+
+input[type="range"].range-slider::-moz-range-progress {
+  background: transparent;
+}
+
+input[type="range"].range-slider:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+input[type="range"].range-slider:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
