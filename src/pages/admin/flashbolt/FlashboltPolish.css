@@ -1071,6 +1071,13 @@
     grid-template-columns: minmax(0, max-content) minmax(0, 1fr) 100px;
     grid-template-areas: "title description progress";
   }
+  .flashbolt-shell:not([data-view="helper"]) .folder-compact-view .set-tile-title-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .flashbolt-shell .folder-compact-view .set-tile-heading {
+    flex: 0 1 auto;
+  }
   .flashbolt-shell .folder-compact-view .tile-description {
     display: block;
     grid-area: description;
