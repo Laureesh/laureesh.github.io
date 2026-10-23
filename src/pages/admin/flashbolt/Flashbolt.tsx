@@ -31,6 +31,8 @@ import Confirmation from "./Confirmation";
 import Modal from "./Modal";
 import UiIcon from "./UiIcon";
 import LearnRoundPanel from "./LearnRoundPanel";
+import LearnTextSizes from "./LearnTextSizes";
+import { useLearnTextSizes } from "./useLearnTextSizes";
 import UnderstandAnswer from "./UnderstandAnswer";
 import LearnKnowledgeDetails, { type KnowledgeLevel } from "./LearnKnowledgeDetails";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -988,6 +990,7 @@ export default function Flashbolt() {
   const [learnOptions, setLearnOptions] = useState<LearnOptions>(DEFAULT_LEARN_OPTIONS);
   const [learnOptionsDraft, setLearnOptionsDraft] = useState<LearnOptions>(DEFAULT_LEARN_OPTIONS);
   const [learnOptionsOpen, setLearnOptionsOpen] = useState(false);
+  const learnTextSizes = useLearnTextSizes();
   const [knowledgeLevel, setKnowledgeLevel] = useState<KnowledgeLevel | null>(null);
   const [learnSessionIds, setLearnSessionIds] = useState<string[]>([]);
   const [learnRoundIds, setLearnRoundIds] = useState<string[]>([]);
@@ -3835,7 +3838,7 @@ export default function Flashbolt() {
           )}
 
           {!search && view === "learn" && selectedSet && (
-            <section className={`learn-page ${learnPhase === "session" ? "session-active" : ""}`} style={{ "--set-color": getSetColor(selectedSet.color).hex } as CSSProperties}>
+            <section className={`learn-page ${learnPhase === "session" ? "session-active" : ""}`} data-large-header={learnTextSizes.sizes.header > 125 || undefined} data-large-panels={Math.max(learnTextSizes.sizes.knowledge, learnTextSizes.sizes.rounds) > 125 || undefined} style={{ ...learnTextSizes.style, "--set-color": getSetColor(selectedSet.color).hex } as CSSProperties}>
               {learnPhase === "goal" && (
                 <div className="learn-goal-screen">
                   <Link className="back-link" to={routePathForView("set", selectedSet.id)}>← Back to set</Link>
@@ -3936,6 +3939,7 @@ export default function Flashbolt() {
 
               {learnOptionsOpen && <Modal className="learn-options-modal" labelledBy="learn-options-title" onClose={() => setLearnOptionsOpen(false)}>
                 <header><div><span className="eyebrow">Customize Learn</span><h2 id="learn-options-title">Options</h2></div><button className="icon-button" onClick={() => setLearnOptionsOpen(false)} aria-label="Close options"><UiIcon symbol="×" /></button></header>
+                <LearnTextSizes sizes={learnTextSizes.sizes} setSizes={learnTextSizes.setSizes} />
                 <section className="options-section learn-set-actions" aria-label="Set actions">
                   <h3>Set actions</h3>
                   <p className="learn-options-set-title">{selectedSet.title}</p>
