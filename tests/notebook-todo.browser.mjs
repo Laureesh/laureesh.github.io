@@ -4,8 +4,8 @@ import { createRequire } from 'node:module';
 import test from 'node:test';
 import ts from 'typescript';
 const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
-const sources = await Promise.all(['todoList', 'listEditing'].map(name => readFile(new URL(`../src/pages/admin/notebook/${name}.ts`, import.meta.url), 'utf8')));
-const script = ts.transpile(sources.join('\n').replace(/export function /g, 'function '), { target: ts.ScriptTarget.ES2022 });
+const sources = await Promise.all(['checklistSchedule', 'todoList', 'listEditing'].map(name => readFile(new URL(`../src/pages/admin/notebook/${name}.ts`, import.meta.url), 'utf8')));
+const script = ts.transpile(sources.join('\n').replace(/^import .*;$/gm, '').replace(/export /g, ''), { target: ts.ScriptTarget.ES2022 });
 
 test('tasks convert selected text, split unchecked, persist completion, and exit on empty Enter', async () => {
   const browser = await chromium.launch({ headless: true });

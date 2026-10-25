@@ -1,14 +1,31 @@
-import { useId, useMemo, useState, type ReactNode } from 'react';
+import { calendarDate, displayDate, easternDateKey, enableHygieneSchedule, isHygieneRoutine, refreshChecklistSchedule, scheduledCheckState, taskDueLabel, WEEKDAYS, weekStartKey } from './checklistSchedule';
+import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import { checklistRoot, checklistSelector, checklistTaskContent, checklistTitle, formatChecklistReference, readableHeading, setChecklistChecked } from './checklistDocument';
 import './ChecklistView.css';
 
 type Props = { title?: string; html: string; fontSize: number; onChange: (html: string) => void };
 
 export default function ChecklistView({ title, html, fontSize, onChange }: Props) {
-  const root = useMemo(() => { const document = checklistRoot(html); formatChecklistReference(document); return document; }, [html]);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const tick = () => setNow(new Date());
+    const timer = window.setInterval(tick, 30_000);
+    window.addEventListener('focus', tick);
+    document.addEventListener('visibilitychange', tick);
+    return () => { window.clearInterval(timer); window.removeEventListener('focus', tick); document.removeEventListener('visibilitychange', tick); };
+  }, []);
+  const today = easternDateKey(now);
+  const scheduledHtml = useMemo(() => {
+    const autoEnable = isHygieneRoutine(html, title) && /Schedule: Eastern Time/i.test(html) && !html.includes('data-checklist-repeat');
+    return refreshChecklistSchedule(autoEnable ? enableHygieneSchedule(html, now) : html, now);
+  }, [html, title, now]);
+  useEffect(() => { if (scheduledHtml !== html) onChange(scheduledHtml); }, [scheduledHtml, html, onChange]);
+  const root = useMemo(() => { const document = checklistRoot(scheduledHtml); formatChecklistReference(document); return document; }, [scheduledHtml]);
+  const scheduled = Boolean(root.querySelector('ul[data-checklist-repeat]'));
+  const canSchedule = !scheduled && isHygieneRoutine(html, title);
   const boxes = [...root.querySelectorAll(checklistSelector)];
   const lists = [...root.querySelectorAll('ul.notebook-todo')].filter(list => list.querySelector(':scope > li > input[type="checkbox"]'));
-  const completed = boxes.filter(box => box.hasAttribute('checked')).length;
+  const completed = boxes.filter(box => scheduledCheckState(box, now)).length;
   const [compact, setCompact] = useState(false);
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
   const [undo, setUndo] = useState<{ before: string; after: string } | null>(null);
@@ -19,8 +36,8 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     return next;
   });
   const reset = (indices: number[]) => {
-    const next = setChecklistChecked(html, indices, false);
-    setUndo({ before: html, after: next });
+    const next = setChecklistChecked(scheduledHtml, indices, false, now);
+    setUndo({ before: scheduledHtml, after: next });
     onChange(next);
   };
   // Render only document content. Scripts, copied event handlers, and editor UI are excluded.
@@ -34,7 +51,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
       const title = checklistTitle(node, root, sectionIndex);
       const sectionBoxes = [...node.querySelectorAll(':scope > li > input[type="checkbox"]')];
       const indices = sectionBoxes.map(box => boxes.indexOf(box));
-      const done = sectionBoxes.filter(box => box.hasAttribute('checked')).length;
+      const done = sectionBoxes.filter(box => scheduledCheckState(box, now)).length;
       const isCollapsed = collapsed.has(sectionIndex);
       return <section key={key} id={`${prefix}-section-${sectionIndex}`} className={`checklist-card${done === sectionBoxes.length ? ' is-complete' : ''}`} aria-label={title}>
         <header className="checklist-card-header">
@@ -49,12 +66,14 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
               if (!box) return <li key={itemIndex}>{renderChildren(item)}</li>;
               const index = boxes.indexOf(box);
               const { title: taskTitle, detail } = checklistTaskContent(item);
-              const checked = box.hasAttribute('checked');
+              const checked = scheduledCheckState(box, now);
+              const due = taskDueLabel(box, now);
               return <li key={itemIndex} className={checked ? 'is-done' : ''}>
                 <label className="checklist-task-label">
-                  <input type="checkbox" checked={checked} onChange={event => { setUndo(null); onChange(setChecklistChecked(html, [index], event.target.checked)); }} />
+                  <input type="checkbox" checked={checked} onChange={event => { setUndo(null); onChange(setChecklistChecked(scheduledHtml, [index], event.target.checked, now)); }} />
                   <span>{taskTitle}</span>
                 </label>
+                {due && <div className={`checklist-due status-${due.status.toLowerCase().replace(' ', '-')}`}><span>{due.day}</span><time dateTime={due.date}>{displayDate(due.date)}</time><strong>{due.status}</strong></div>}
                 {!compact && detail.textContent?.trim() && <div className="checklist-task-detail">{renderChildren(detail)}</div>}
               </li>;
             })}
@@ -100,6 +119,8 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     }
   };
   return <article className={`checklist-document${compact ? ' is-compact' : ''}`} style={{ fontSize }}>
+    {canSchedule && <div className="checklist-schedule-setup"><div><strong>Give your routine a schedule</strong><p>Daily morning and night tasks, plus a Sunday–Saturday plan for weekly chores.</p></div><button onClick={() => onChange(enableHygieneSchedule(html, now))}>Add recurring schedule</button></div>}
+    {scheduled && <div className="checklist-calendar" aria-live="polite"><strong>{WEEKDAYS[calendarDate(today).getUTCDay()]}, {displayDate(today)}</strong><span>Eastern Time · Week of {displayDate(weekStartKey(now))}</span><small>Daily reset at midnight · Weekly reset on Sunday</small></div>}
     <div className="checklist-overview">
       <div><span className="checklist-eyebrow">YOUR CHECKLISTS</span><strong>{completed === boxes.length ? 'All done. Nicely done.' : 'One step at a time.'}</strong><span aria-live="polite">{completed} of {boxes.length} tasks complete</span></div>
       <button type="button" aria-pressed={compact} onClick={() => setCompact(value => !value)}>{compact ? 'Show details' : 'Hide details'}</button>

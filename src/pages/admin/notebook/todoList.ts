@@ -1,3 +1,4 @@
+import { stampScheduledCheck } from './checklistSchedule.ts';
 function addCheckbox(item: HTMLLIElement) {
   if (item.querySelector(':scope > input[type="checkbox"]')) return;
   const checkbox = document.createElement('input');
@@ -50,6 +51,6 @@ export function splitTodoItem(editor: HTMLElement): boolean {
 /** Checkbox properties must also be attributes to survive HTML autosave. */
 export function saveTodoCheckbox(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLInputElement) || !target.matches('.notebook-todo input[type="checkbox"]')) return false;
-  target.toggleAttribute('checked', target.checked);
+  stampScheduledCheck(target, target.checked);
   return true;
 }

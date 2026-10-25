@@ -127,3 +127,23 @@ test('hard breaks and escapes in fenced and inline code stay literal', () => {
   assert.match(html, /<code>\\_<\/code>/);
   assert.match(html, /<pre><code>line\\\n\\_<\/code><\/pre>/);
 });
+
+test('escaped numeric markers, spacing entities, and escaped underscores paste cleanly', () => {
+  const text = String.raw`MY DAILY HYGIENE ROUTINE&#x20;
+
+□ Teeth&#x20;
+Brush gently.&#x20;
+
+My reset day: \\\_\\\_\\\_
+
+1\. HAIR&#x20;
+&#x20;  Wash your hair.&#x20;
+
+2\. FACE&#x20;
+&#x20;  Use clean hands.`;
+  const html = pastedMarkdownToHtml(text);
+  assert.match(html, /<ol><li>HAIR\s*<br>Wash your hair\./);
+  assert.match(html, /<li>FACE\s*<br>Use clean hands\./);
+  assert.doesNotMatch(html, /&#x20;|&amp;#x20;|\\/);
+  assert.match(html, /My reset day: ___/);
+});

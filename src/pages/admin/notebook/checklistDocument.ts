@@ -1,3 +1,4 @@
+import { stampScheduledCheck } from './checklistSchedule.ts';
 /** Checklist state lives in the note HTML; presentation controls never do. */
 export const checklistSelector = 'ul.notebook-todo > li > input[type="checkbox"]';
 
@@ -7,11 +8,11 @@ export function checklistRoot(html: string): HTMLDivElement {
   return root;
 }
 
-export function setChecklistChecked(html: string, indices: number[], checked: boolean): string {
+export function setChecklistChecked(html: string, indices: number[], checked: boolean, now = new Date()): string {
   const root = checklistRoot(html);
   const targets = new Set(indices);
   root.querySelectorAll(checklistSelector).forEach((box, index) => {
-    if (targets.has(index)) box.toggleAttribute('checked', checked);
+    if (targets.has(index)) stampScheduledCheck(box, checked, now);
   });
   return root.innerHTML;
 }

@@ -123,6 +123,11 @@ test('Notebook opens existing checklists in interactive view and keeps edits and
     await page.getByRole('checkbox', { name: 'Teeth & tongue', exact: true }).waitFor();
     assert.equal(await page.getByRole('checkbox', { name: 'Teeth & tongue', exact: true }).isChecked(), true);
     assert.match(await page.locator('.checklist-document').innerText(), /My extra reminder\./);
+    await page.getByRole('button', { name: 'Add recurring schedule', exact: true }).click();
+    await page.locator('.checklist-calendar').waitFor();
+    assert.equal(await page.getByRole('checkbox', { name: 'Teeth & tongue', exact: true }).isChecked(), true);
+    assert.equal(await page.locator('.checklist-due').count(), 18);
+    assert.match(await page.getByRole('region', { name: 'Weekly checklist', exact: true }).locator('.checklist-due').first().innerText(), /Sunday/);
     assert.deepEqual(errors, []);
     await page.screenshot({path:'/tmp/notebook-checklist-integrated.png'});
   } finally { await browser.close(); }

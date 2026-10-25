@@ -2,7 +2,7 @@
 const escapeHtml = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const inline = (text: string): string => text.split(/(`[^`]+`)/g).map(part => {
   if (part.startsWith('`') && part.endsWith('`')) return `<code>${escapeHtml(part.slice(1, -1))}</code>`;
-  return escapeHtml(part).replace(/\\_/g, '_').replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>').replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
+  return escapeHtml(part).replace(/\\+_/g, '_').replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>').replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
 }).join('');
 const task = (line: string) => {
   const match = line.match(/^\s*(?:[-*+]\s+)?(?:\[([ xX])\]|([□☐☑☒]))\s+(.+)$/);
@@ -26,6 +26,7 @@ export function pastedMarkdownToHtml(text: string): string | null {
   const hardBreaks: boolean[] = [];
   const lines = rawLines.map(line => {
     if (/^```/.test(line)) inCode = !inCode;
+    if (!inCode) line = line.split(/(`[^`]+`)/g).map((part, index) => index % 2 ? part : part.replace(/&#(?:x20|32);|&nbsp;/gi, ' ')).join('').replace(/^(\s*\d+)\\([.)])(?=\s)/, '$1$2');
     const hardBreak = !inCode && /(?<!\\)\\[ \t]*$/.test(line);
     hardBreaks.push(hardBreak);
     return hardBreak ? line.replace(/\\[ \t]*$/, '') : line;
