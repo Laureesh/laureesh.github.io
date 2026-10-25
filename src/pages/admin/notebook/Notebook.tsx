@@ -1,5 +1,6 @@
+import { pastedMarkdownToHtml } from "./pastedMarkdown";
 import "./Notebook.css";
-import { repairPastedFormatting } from "./pastedFormatting";
+import { notebookRichPasteHtml, repairPastedFormatting } from "./pastedFormatting";
 import { insertTodoList, saveTodoCheckbox, splitTodoItem } from "./todoList";
 import { loadLocalNotebookBackup, saveLocalNotebookBackup } from "../../../services/notebookLocalBackup";
 import { describeNotebookSyncError } from "./notebookSyncStatus";
@@ -495,7 +496,14 @@ export default function Notebook() {
   };
   const pasteScreenshots = (event: ClipboardEvent<HTMLDivElement>) => {
     const images = [...event.clipboardData.items].filter((item) => item.kind === "file" && item.type.startsWith("image/")).map((item) => item.getAsFile()).filter((file): file is File => Boolean(file));
-    if (!images.length) return;
+    if (!images.length) {
+      const html = notebookRichPasteHtml(event.clipboardData.getData("text/html")) ?? pastedMarkdownToHtml(event.clipboardData.getData("text/plain"));
+      if (html === null) return;
+      event.preventDefault();
+      document.execCommand("insertHTML", false, html);
+      updateNote({ html: event.currentTarget.innerHTML });
+      return;
+    }
     event.preventDefault();
     void addAttachments(images.map((file, index) => new File([file], file.name || `Screenshot ${new Date().toLocaleDateString()} ${index + 1}.png`, { type: file.type })));
   };

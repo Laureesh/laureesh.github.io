@@ -1,3 +1,5 @@
+import { pastedMarkdownToHtml } from "./pastedMarkdown.ts";
+
 export type ClipboardDestination = "title" | "body";
 export const CLIPBOARD_SETTING_KEY = "flashbolt.notebook.v1.clipboardDestination";
 
@@ -8,6 +10,8 @@ export function readClipboardDestination(): ClipboardDestination {
 
 export function clipboardTextToHtml(text: string): string {
   if (!text.trim()) return "<p><br></p>";
+  const formatted = pastedMarkdownToHtml(text);
+  if (formatted !== null) return formatted;
   const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   return `<p>${escaped.replace(/\r\n?/g, "\n").replace(/\n/g, "<br>")}</p>`;
 }

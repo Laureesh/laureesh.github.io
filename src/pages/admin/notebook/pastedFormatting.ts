@@ -45,3 +45,35 @@ export function repairPastedFormatting(html: string): string {
   }
   return root.innerHTML;
 }
+
+/** Preserve a copied checklist's structure without importing styles or executable HTML. */
+export function notebookRichPasteHtml(source: string): string | null {
+  if (!source) return null;
+  const root = document.createElement('div');
+  root.innerHTML = source;
+  const hasTasks = root.querySelector('li input[type="checkbox"]') || [...root.querySelectorAll('li')].some(item => /^\s*\[[ xX]\]\s*/.test(item.textContent ?? ''));
+  if (!hasTasks) return null;
+  const allowed = new Set(['P', 'BR', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'STRONG', 'B', 'EM', 'I', 'U', 'S', 'HR', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TH', 'TD', 'BLOCKQUOTE', 'PRE', 'CODE']);
+  const clean = (node: Node): Node => {
+    if (node.nodeType === Node.TEXT_NODE) return document.createTextNode(node.textContent ?? '');
+    const fragment = document.createDocumentFragment();
+    if (!(node instanceof Element) || ['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'SVG', 'MATH', 'TEMPLATE'].includes(node.tagName)) return fragment;
+    if (node.matches('input[type="checkbox"]') && node.closest('li')) {
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.contentEditable = 'false';
+      checkbox.setAttribute('aria-label', 'Mark task complete');
+      if (node.hasAttribute('checked')) checkbox.setAttribute('checked', '');
+      return checkbox;
+    }
+    const result = allowed.has(node.tagName) ? document.createElement(node.tagName.toLowerCase()) : fragment;
+    for (const child of node.childNodes) result.appendChild(clean(child));
+    return result;
+  };
+  const sanitized = document.createElement('div');
+  for (const child of root.childNodes) sanitized.appendChild(clean(child));
+  for (const list of sanitized.querySelectorAll('ul')) {
+    if (list.querySelector(':scope > li > input[type="checkbox"]')) list.classList.add('notebook-todo');
+  }
+  return repairPastedFormatting(sanitized.innerHTML);
+}
