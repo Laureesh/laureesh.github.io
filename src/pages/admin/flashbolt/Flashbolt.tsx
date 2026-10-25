@@ -32,6 +32,7 @@ import Modal from "./Modal";
 import UiIcon from "./UiIcon";
 import LearnRoundPanel from "./LearnRoundPanel";
 import ExplanationLinks from "./ExplanationLinks";
+import ExplanationEditor from "./ExplanationEditor";
 import { referenceUrl } from "./referenceUrl";
 import LearnTextSizes from "./LearnTextSizes";
 import { useLearnTextSizes } from "./useLearnTextSizes";
@@ -3912,7 +3913,7 @@ export default function Flashbolt() {
                             {!!currentLearnCard.references?.length && <div className="learn-reference-links"><strong>References</strong><ul>{currentLearnCard.references.map((reference, index) => <li key={index}>{referenceUrl(reference) ? <a href={referenceUrl(reference)!} target="_blank" rel="noopener noreferrer">{reference}</a> : reference}</li>)}</ul></div>}
                             <button type="button" className="button quiet" onClick={() => { setLearnExplanationDraft(currentLearnCard.explanation ?? ""); setLearnReferencesDraft((currentLearnCard.references ?? []).join("\n")); }}>{currentLearnCard.explanation || currentLearnCard.references?.length ? "Edit explanation" : "Add explanation"}</button>
                           </> : <>
-                            <label className="card-explanation-field"><span>Explanation</span><AutoResizeTextarea autoFocus rows={5} value={learnExplanationDraft} onChange={event => setLearnExplanationDraft(event.target.value)} /></label>
+                            <ExplanationEditor value={learnExplanationDraft} onChange={setLearnExplanationDraft} />
                             <label className="card-explanation-field"><span>Reference links <small>optional · one URL per line</small></span><AutoResizeTextarea rows={2} value={learnReferencesDraft} onChange={event => setLearnReferencesDraft(event.target.value)} placeholder="https://example.com/article" /></label>
                             {invalidLearnReference && <p role="alert">Enter a valid http:// or https:// URL for each reference.</p>}
                             <div className="button-row">

@@ -31,3 +31,27 @@ test('existing explanation URLs become links without losing surrounding text', (
   assert.ok(html.startsWith('Reference:\n'));
   assert.ok(html.endsWith('</a>.\nMore notes.'));
 });
+
+test('bold text and links render together while HTML stays escaped', () => {
+  const html = renderToStaticMarkup(React.createElement(ExplanationLinks, { text: '**Amazon VPC**\n**https://example.com/page** <script>alert(1)</script>' }));
+  assert.ok(html.startsWith('<strong>Amazon VPC</strong>\n'));
+  assert.match(html, /<strong><a href="https:\/\/example.com\/page"/);
+  assert.ok(html.includes('&lt;script&gt;'));
+  assert.ok(!html.includes('<script>'));
+});
+
+test('Bold wraps a selection, toggles it off, and supplies text at an empty cursor', () => {
+  const editor = readFileSync(new URL('../src/pages/admin/flashbolt/ExplanationEditor.tsx', import.meta.url), 'utf8');
+  const handler = editor.match(/  function bold\(\) \{[\s\S]*?\n  }/)[0];
+  function apply(value, start, end) {
+    let next;
+    let selection;
+    const input = { selectionStart: start, selectionEnd: end, focus() {}, setSelectionRange(a, b) { selection = [a, b]; } };
+    vm.runInNewContext(`${handler}\nbold();`, { value, textarea: { current: input }, onChange: text => { next = text; }, requestAnimationFrame: callback => callback() });
+    return { next, selection };
+  }
+  assert.deepEqual(apply('Amazon VPC', 7, 10), { next: 'Amazon **VPC**', selection: [9, 12] });
+  assert.deepEqual(apply('Amazon **VPC**', 9, 12), { next: 'Amazon VPC', selection: [7, 10] });
+  assert.deepEqual(apply('Amazon **VPC**', 7, 14), { next: 'Amazon VPC', selection: [7, 10] });
+  assert.deepEqual(apply('', 0, 0), { next: '**bold text**', selection: [2, 11] });
+});
