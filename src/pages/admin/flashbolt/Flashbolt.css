@@ -8553,3 +8553,7 @@ kbd {
   }
 
 }
+
+.answer-feedback .learn-explanation-editor { white-space: normal; min-width: 0; }
+.learn-explanation-editor > p { margin: 0 0 12px; white-space: pre-wrap; }
+.learn-explanation-editor .card-explanation-field { padding: 0; margin-bottom: 12px; }

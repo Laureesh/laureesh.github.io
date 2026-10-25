@@ -1006,6 +1006,7 @@ export default function Flashbolt() {
   const [learnLastCorrect, setLearnLastCorrect] = useState<boolean | null>(null);
   const [learnWrittenAnswer, setLearnWrittenAnswer] = useState("");
   const [learnRetypeAnswer, setLearnRetypeAnswer] = useState("");
+  const [learnExplanationDraft, setLearnExplanationDraft] = useState<string | null>(null);
   const [learnSelectedAnswers, setLearnSelectedAnswers] = useState<string[]>([]);
   const [learnFlashRevealed, setLearnFlashRevealed] = useState(false);
   const [testAnswers, setTestAnswers] = useState<Record<string, string>>({});
@@ -1587,6 +1588,9 @@ export default function Flashbolt() {
   const testScore = testCards.filter((card) => normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card))).length;
   const guideTitleSuggestions = useMemo(() => suggestNoteTitles(guideNotes), [guideNotes]);
   const currentLearnCard = selectedSet?.cards.find((card) => card.id === learnRoundIds[learnIndex]);
+  useEffect(() => {
+    setLearnExplanationDraft(null);
+  }, [currentLearnCard?.id, selectedSet?.id, learnSequence, learnPhase, view]);
   const currentLearnAnswerSide = learnGoal === "understand" ? "definition" : learnAnswerSide(learnOptions, learnSequence, currentLearnCard);
   const currentLearnPromptSide = currentLearnAnswerSide === "definition" ? "term" : "definition";
   const currentEmbeddedQuestion = useMemo(
@@ -1643,13 +1647,14 @@ export default function Flashbolt() {
   const resumableLearn = data.activeLearn?.setId === selectedSet?.id ? data.activeLearn : undefined;
 
   useEffect(() => {
-    if (view !== "learn" || learnPhase !== "session" || !learnAnswer || learnOptionsOpen || knowledgeLevel || learnGoal === "understand") return;
+    if (view !== "learn" || learnPhase !== "session" || !learnAnswer || learnOptionsOpen || knowledgeLevel || learnExplanationDraft !== null || learnGoal === "understand") return;
     const retypeRequired = !learnLastCorrect && learnOptions.retypeCorrectAnswers;
     const canContinue = !retypeRequired || normalizeAnswer(learnRetypeAnswer) === normalizeAnswer(currentLearnCorrectAnswer);
     if (!canContinue) return;
     const continueOnKey = (event: globalThis.KeyboardEvent) => {
-      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      if (event.ctrlKey || event.metaKey || event.altKey || event.key === "Tab") return;
       const target = event.target;
+      if (target instanceof Element && target.closest("button, a, summary")) return;
       if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement || (target instanceof HTMLElement && target.isContentEditable)) return;
       event.preventDefault();
       nextLearnQuestion();
@@ -1658,7 +1663,7 @@ export default function Flashbolt() {
     return () => window.removeEventListener("keydown", continueOnKey);
     // nextLearnQuestion is intentionally omitted because it is recreated with the current session state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentLearnCorrectAnswer, learnAnswer, learnLastCorrect, learnOptions.retypeCorrectAnswers, learnOptionsOpen, knowledgeLevel, learnGoal, learnPhase, learnRetypeAnswer, view]);
+  }, [currentLearnCorrectAnswer, learnAnswer, learnLastCorrect, learnOptions.retypeCorrectAnswers, learnOptionsOpen, knowledgeLevel, learnGoal, learnPhase, learnRetypeAnswer, learnExplanationDraft, view]);
 
   useEffect(() => {
     if (view !== "learn" || learnPhase !== "session" || !learnOptions.textToSpeech || !currentLearnPrompt) return;
@@ -2732,6 +2737,7 @@ export default function Flashbolt() {
   }
 
   function nextLearnQuestion() {
+    if (learnExplanationDraft !== null) return;
     if (!selectedSet || (learnGoal === "understand" && !understandReviewed)) return;
     const advance = advanceLearnRound({
       roundIds: learnRoundIds,
@@ -3890,8 +3896,23 @@ export default function Flashbolt() {
                       {learnAnswer && <div className={`answer-feedback ${learnLastCorrect ? "correct" : "incorrect"}`}>
                         <div className="feedback-copy"><strong>{learnLastCorrect ? "Nice work." : "Not quite yet."}</strong><p>{learnLastCorrect ? (learnLastConfidence >= learnMasteryTarget ? "This card reached your session goal." : `Confidence moved to ${learnConfidenceLabel(learnLastConfidence)}. ${learnGoal === "understand" ? "It will return for another reasoning check." : "It will return later in a harder format."}`) : <>The correct answer is <b>{currentLearnCorrectAnswer}</b>. This weak card will return before the next batch.</>}</p>{!learnLastCorrect && learnOptions.retypeCorrectAnswers && <label className="retype-answer"><span>Retype the correct answer to continue</span><input value={learnRetypeAnswer} onChange={(event) => setLearnRetypeAnswer(event.target.value)} placeholder={currentLearnCorrectAnswer} /></label>}</div>
                         {learnOptions.showImagesOnAnswers && currentLearnCard.imageData && <img width={74} height={58} className="learn-feedback-image" src={currentLearnCard.imageData} alt="Answer study aid" />}
-                        <div className="learn-continue-action"><small>{learnGoal === "understand" ? "Review the reasoning before continuing" : "Press any key or click to continue"}</small><button className="button primary" onClick={nextLearnQuestion} disabled={(learnGoal === "understand" && !understandReviewed) || (!learnLastCorrect && learnOptions.retypeCorrectAnswers && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer))}>{learnIndex === learnRoundIds.length - 1 && learnRetryIds.length ? "Retry missed" : learnIndex === learnRoundIds.length - 1 && learnPendingIds.length ? "Next round" : learnIndex === learnRoundIds.length - 1 ? "Finish" : "Next question"} →</button></div>
-                        {learnFeedbackExplanation && <p className="feedback-explanation">{learnFeedbackExplanation}</p>}
+                        <div className="learn-continue-action"><small>{learnExplanationDraft !== null ? "Save or cancel your explanation to continue" : learnGoal === "understand" ? "Review the reasoning before continuing" : "Press any key or click to continue"}</small><button className="button primary" onClick={nextLearnQuestion} disabled={learnExplanationDraft !== null || (learnGoal === "understand" && !understandReviewed) || (!learnLastCorrect && learnOptions.retypeCorrectAnswers && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer))}>{learnIndex === learnRoundIds.length - 1 && learnRetryIds.length ? "Retry missed" : learnIndex === learnRoundIds.length - 1 && learnPendingIds.length ? "Next round" : learnIndex === learnRoundIds.length - 1 ? "Finish" : "Next question"} →</button></div>
+                        <div className="feedback-explanation learn-explanation-editor">
+                          {learnExplanationDraft === null ? <>
+                            {learnFeedbackExplanation && <p>{learnFeedbackExplanation}</p>}
+                            <button type="button" className="button quiet" onClick={() => setLearnExplanationDraft(currentLearnCard.explanation ?? "")}>{currentLearnCard.explanation ? "Edit explanation" : "Add explanation"}</button>
+                          </> : <>
+                            <label className="card-explanation-field"><span>Explanation</span><AutoResizeTextarea autoFocus rows={5} value={learnExplanationDraft} onChange={event => setLearnExplanationDraft(event.target.value)} /></label>
+                            <div className="button-row">
+                              <button type="button" className="button primary" onClick={() => {
+                                setData(current => ({ ...current, sets: current.sets.map(set => set.id === selectedSet.id ? { ...set, updatedAt: new Date().toISOString(), cards: set.cards.map(card => card.id === currentLearnCard.id ? { ...card, explanation: learnExplanationDraft } : card) } : set) }));
+                                setLearnExplanationDraft(null);
+                                notify("Explanation saved.");
+                              }}>Save explanation</button>
+                              <button type="button" className="button quiet" onClick={() => setLearnExplanationDraft(null)}>Cancel</button>
+                            </div>
+                          </>}
+                        </div>
                       </div>}
                     </div>
                     <div className={`question-card ${learnAnswer ? "ready-to-continue" : ""}`} onClick={(event) => { if (learnGoal === "understand" || !learnAnswer || event.target instanceof Element && event.target.closest("button, input, textarea, select, a, label, .study-explanation")) return; const retypeRequired = !learnLastCorrect && learnOptions.retypeCorrectAnswers; if (retypeRequired && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer)) return; nextLearnQuestion(); }}>
