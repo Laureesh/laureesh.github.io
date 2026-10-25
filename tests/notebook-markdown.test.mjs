@@ -37,3 +37,30 @@ test('task lists do not absorb ordinary lists or paragraphs', () => {
 test('inline code keeps emphasis markers literal', () => {
   assert.match(pastedMarkdownToHtml('# Test\n`**literal**` and **bold** and *italic*'), /<code>\*\*literal\*\*<\/code> and <strong>bold<\/strong> and <em>italic<\/em>/);
 });
+
+test('the exact visual-checkbox routine detects headings, grouped tasks, and six shower steps', async () => {
+  const text = await readFile(new URL('../notes/daily-hygiene-paste.txt', import.meta.url), 'utf8');
+  const html = pastedMarkdownToHtml(text);
+  assert.match(html, /^<h1>MY DAILY HYGIENE ROUTINE<\/h1>/);
+  assert.match(html, /<h2>☀️ MORNING — GET READY<\/h2>/);
+  assert.match(html, /<h2>TEETH<\/h2>/);
+  assert.equal((html.match(/type="checkbox"/g) ?? []).length, 18);
+  assert.equal((html.match(/class="notebook-todo"/g) ?? []).length, 3);
+  assert.match(html, /<strong>Teeth &amp; tongue<\/strong><br>Brush for 2 minutes[^]*?Gently clean your tongue\.<\/li>/);
+  const shower = html.match(/<ol>(.*?)<\/ol>/s)[1];
+  assert.equal((shower.match(/<li>/g) ?? []).length, 6);
+  assert.match(shower, /<li>FACE<br>Use clean hands/);
+  assert.match(html, /<li>Outdoors,[^]*?or swimming, following the label\.<\/li>/);
+  assert.doesNotMatch(html, /□/);
+  assert.equal(clipboardNoteChanges(text, 'body').html, html);
+});
+test('all visual task symbols and completion states are recognized', () => {
+  const html = pastedMarkdownToHtml('□ First\n☐ Second\n☑ Third\n☒ Fourth');
+  assert.equal((html.match(/type="checkbox"/g) ?? []).length, 4);
+  assert.equal((html.match(/ checked/g) ?? []).length, 2);
+});
+test('visual tasks do not cause uppercase prose or fenced code to be reformatted', () => {
+  assert.equal(pastedMarkdownToHtml('IMPORTANT\nNormal prose'), null);
+  const html = pastedMarkdownToHtml('```text\n□ Literal\n```\n\nPLAIN TEXT');
+  assert.match(html, /<pre><code>□ Literal<\/code><\/pre><p>PLAIN TEXT<\/p>/);
+});

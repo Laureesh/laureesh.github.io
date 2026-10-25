@@ -40,3 +40,11 @@ test('checklist rich paste drops scripts, event handlers, external styles and em
 test('ordinary rich text is left to normal browser paste', () => {
   assert.equal(notebookRichPasteHtml('<h1>Normal heading</h1><p>Text</p>'), null);
 });
+
+test('rendered visual checkboxes repair to native controls with saved completion', () => {
+  const html = notebookRichPasteHtml('<h2>Morning</h2><ul><li>□ Brush</li><li>☑ Done</li></ul>');
+  const root = document.createElement('div'); root.innerHTML = html;
+  assert.equal(root.querySelectorAll('.notebook-todo > li > input').length, 2);
+  assert.equal(root.querySelectorAll('input[checked]').length, 1);
+  assert.doesNotMatch(root.textContent, /□|☑/);
+});

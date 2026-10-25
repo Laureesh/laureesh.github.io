@@ -7,14 +7,14 @@ export function repairPastedFormatting(html: string): string {
     const walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT);
     let first = walker.nextNode();
     while (first && !first.textContent?.trim()) first = walker.nextNode();
-    const match = first?.textContent?.match(/^\s*\[([ xX])\]\s*/);
+    const match = first?.textContent?.match(/^\s*(?:\[([ xX])\]|([□☐☑☒]))\s*/);
     if (!first || !match) continue;
     first.textContent = first.textContent!.slice(match[0].length);
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.contentEditable = 'false';
     checkbox.setAttribute('aria-label', 'Mark task complete');
-    if (match[1].toLowerCase() === 'x') checkbox.setAttribute('checked', '');
+    if (/[xX☑☒]/.test(match[1] ?? match[2])) checkbox.setAttribute('checked', '');
     item.prepend(checkbox);
     item.parentElement!.classList.add('notebook-todo');
   }
@@ -51,7 +51,7 @@ export function notebookRichPasteHtml(source: string): string | null {
   if (!source) return null;
   const root = document.createElement('div');
   root.innerHTML = source;
-  const hasTasks = root.querySelector('li input[type="checkbox"]') || [...root.querySelectorAll('li')].some(item => /^\s*\[[ xX]\]\s*/.test(item.textContent ?? ''));
+  const hasTasks = root.querySelector('li input[type="checkbox"]') || [...root.querySelectorAll('li')].some(item => /^\s*(?:\[[ xX]\]|[□☐☑☒])\s*/.test(item.textContent ?? ''));
   if (!hasTasks) return null;
   const allowed = new Set(['P', 'BR', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'STRONG', 'B', 'EM', 'I', 'U', 'S', 'HR', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TH', 'TD', 'BLOCKQUOTE', 'PRE', 'CODE']);
   const clean = (node: Node): Node => {

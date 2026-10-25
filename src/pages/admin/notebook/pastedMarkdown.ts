@@ -4,13 +4,32 @@ const inline = (text: string): string => text.split(/(`[^`]+`)/g).map(part => {
   if (part.startsWith('`') && part.endsWith('`')) return `<code>${escapeHtml(part.slice(1, -1))}</code>`;
   return escapeHtml(part).replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>').replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
 }).join('');
-const task = (line: string) => line.match(/^\s*(?:[-*+]\s+)?\[([ xX])\]\s+(.+)$/);
-export const hasNoteMarkdown = (text: string): boolean => /^(?:#{1,6}\s+|\s*(?:[-*+]\s+)?\[[ xX]\]\s+|[-*+]\s+|\d+[.)]\s+|```|---+\s*$)/m.test(text);
+const task = (line: string) => {
+  const match = line.match(/^\s*(?:[-*+]\s+)?(?:\[([ xX])\]|([□☐☑☒]))\s+(.+)$/);
+  return match ? { checked: /[xX☑☒]/.test(match[1] ?? match[2]), title: match[3] } : null;
+};
+const plainHeading = (line: string) => {
+  const title = line.trim();
+  return title.length > 1 && title.length <= 90 && /\p{L}/u.test(title)
+    && title === title.toLocaleUpperCase() && !/^[\d□☐☑☒•*+#`[-]/.test(title)
+    && !/[.!?:]$/.test(title);
+};
+export const hasNoteMarkdown = (text: string): boolean => /^(?:#{1,6}\s+|\s*(?:[-*+]\s+)?(?:\[[ xX]\]|[□☐☑☒])\s+|[-*+•]\s+|\d+[.)]\s+|```|---+\s*$)/m.test(text);
 
 /** Returns null for ordinary prose, leaving the browser's normal paste intact. */
 export function pastedMarkdownToHtml(text: string): string | null {
   if (!hasNoteMarkdown(text)) return null;
   const lines = text.replace(/\r\n?/g, '\n').split('\n');
+  // Only infer unmarked headings/descriptions for the visual-checkbox note format.
+  // Ignore checkbox examples inside fenced code.
+  let fenced = false;
+  const structured = lines.some(line => {
+    if (/^```/.test(line)) { fenced = !fenced; return false; }
+    return !fenced && /^\s*(?:[-*+]\s+)?[□☐☑☒]\s+/.test(line);
+  });
+  const firstContent = lines.findIndex(line => line.trim());
+  const isHeading = (index: number) => structured && plainHeading(lines[index])
+    && (index === firstContent || !lines[index - 1]?.trim());
   const output: string[] = [];
   let list: 'todo' | 'ul' | 'ol' | null = null;
   let paragraph: string[] = [];
@@ -22,12 +41,30 @@ export function pastedMarkdownToHtml(text: string): string | null {
   };
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (!line.trim()) { flushParagraph(); closeList(); continue; }
+    if (!line.trim()) {
+      flushParagraph();
+      const next = lines.slice(i + 1).find(value => value.trim()) ?? '';
+      if (!structured || !((list === 'todo' && task(next)) || (list === 'ol' && /^\s*\d+[.)]\s+/.test(next)))) closeList();
+      continue;
+    }
+    // Descriptions stay inside their task/step rather than becoming loose paragraphs.
+    const description = () => {
+      const parts: string[] = [];
+      while (structured && i + 1 < lines.length && lines[i + 1].trim()
+        && !task(lines[i + 1]) && !/^(?:\s*[-*+•]\s+|\s*\d+[.)]\s+|#|```)/.test(lines[i + 1])
+        && !isHeading(i + 1)) parts.push(inline(lines[++i]));
+      return parts.length ? `<br>${parts.join('<br>')}` : '';
+    };
     if (/^```/.test(line)) {
       flushParagraph(); closeList();
       const code: string[] = [];
       while (++i < lines.length && !/^```\s*$/.test(lines[i])) code.push(lines[i]);
       output.push(`<pre><code>${escapeHtml(code.join('\n'))}</code></pre>`); continue;
+    }
+    if (isHeading(i)) {
+      flushParagraph(); closeList();
+      const level = i === firstContent ? 1 : 2;
+      output.push(`<h${level}>${inline(line.trim())}</h${level}>`); continue;
     }
     const heading = line.match(/^(#{1,6})\s+(.+)$/);
     if (heading) { flushParagraph(); closeList(); output.push(`<h${heading[1].length}>${inline(heading[2])}</h${heading[1].length}>`); continue; }
@@ -43,11 +80,11 @@ export function pastedMarkdownToHtml(text: string): string | null {
     const todo = task(line);
     if (todo) {
       beginList('todo');
-      output.push(`<li><input type="checkbox" contenteditable="false" aria-label="Mark task complete"${todo[1].toLowerCase() === 'x' ? ' checked' : ''}>${inline(todo[2])}</li>`); continue;
+      output.push(`<li><input type="checkbox" contenteditable="false" aria-label="Mark task complete"${todo.checked ? ' checked' : ''}>${structured ? `<strong>${inline(todo.title)}</strong>` : inline(todo.title)}${description()}</li>`); continue;
     }
-    const bullet = line.match(/^\s*[-*+]\s+(.+)$/);
+    const bullet = line.match(/^\s*[-*+•]\s+(.+)$/);
     const numbered = line.match(/^\s*\d+[.)]\s+(.+)$/);
-    if (bullet || numbered) { beginList(bullet ? 'ul' : 'ol'); output.push(`<li>${inline((bullet ?? numbered)![1])}</li>`); continue; }
+    if (bullet || numbered) { beginList(bullet ? 'ul' : 'ol'); output.push(`<li>${inline((bullet ?? numbered)![1])}${description()}</li>`); continue; }
     closeList(); paragraph.push(line);
   }
   flushParagraph(); closeList();
