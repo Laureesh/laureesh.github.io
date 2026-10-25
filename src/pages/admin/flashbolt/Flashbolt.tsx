@@ -31,6 +31,8 @@ import Confirmation from "./Confirmation";
 import Modal from "./Modal";
 import UiIcon from "./UiIcon";
 import LearnRoundPanel from "./LearnRoundPanel";
+import ExplanationLinks from "./ExplanationLinks";
+import { referenceUrl } from "./referenceUrl";
 import LearnTextSizes from "./LearnTextSizes";
 import { useLearnTextSizes } from "./useLearnTextSizes";
 import UnderstandAnswer from "./UnderstandAnswer";
@@ -110,6 +112,7 @@ type Card = {
   definition: string;
   learnEnabled?: boolean;
   explanation?: string;
+  references?: string[];
   choiceExplanations?: Record<string, string>;
   answerChoices?: string[];
   correctAnswers?: string[];
@@ -1010,6 +1013,9 @@ export default function Flashbolt() {
   const [learnWrittenAnswer, setLearnWrittenAnswer] = useState("");
   const [learnRetypeAnswer, setLearnRetypeAnswer] = useState("");
   const [learnExplanationDraft, setLearnExplanationDraft] = useState<string | null>(null);
+  const [learnReferencesDraft, setLearnReferencesDraft] = useState("");
+  const learnReferenceLines = learnReferencesDraft.split("\n").map(line => line.trim()).filter(Boolean);
+  const invalidLearnReference = learnReferenceLines.some(line => !referenceUrl(line));
   const [learnSelectedAnswers, setLearnSelectedAnswers] = useState<string[]>([]);
   const [learnFlashRevealed, setLearnFlashRevealed] = useState(false);
   const [testAnswers, setTestAnswers] = useState<Record<string, string>>({});
@@ -3902,13 +3908,17 @@ export default function Flashbolt() {
                         <div className="learn-continue-action"><small>{learnExplanationDraft !== null ? "Save or cancel your explanation to continue" : learnGoal === "understand" ? "Review the reasoning before continuing" : "Press any key or click to continue"}</small><button className="button primary" onClick={nextLearnQuestion} disabled={learnExplanationDraft !== null || (learnGoal === "understand" && !understandReviewed) || (!learnLastCorrect && learnOptions.retypeCorrectAnswers && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer))}>{learnIndex === learnRoundIds.length - 1 && learnRetryIds.length ? "Retry missed" : learnIndex === learnRoundIds.length - 1 && learnPendingIds.length ? "Next round" : learnIndex === learnRoundIds.length - 1 ? "Finish" : "Next question"} →</button></div>
                         <div className="feedback-explanation learn-explanation-editor">
                           {learnExplanationDraft === null ? <>
-                            {learnFeedbackExplanation && <p>{learnFeedbackExplanation}</p>}
-                            <button type="button" className="button quiet" onClick={() => setLearnExplanationDraft(currentLearnCard.explanation ?? "")}>{currentLearnCard.explanation ? "Edit explanation" : "Add explanation"}</button>
+                            {learnFeedbackExplanation && <p><ExplanationLinks text={learnFeedbackExplanation} /></p>}
+                            {!!currentLearnCard.references?.length && <div className="learn-reference-links"><strong>References</strong><ul>{currentLearnCard.references.map((reference, index) => <li key={index}>{referenceUrl(reference) ? <a href={referenceUrl(reference)!} target="_blank" rel="noopener noreferrer">{reference}</a> : reference}</li>)}</ul></div>}
+                            <button type="button" className="button quiet" onClick={() => { setLearnExplanationDraft(currentLearnCard.explanation ?? ""); setLearnReferencesDraft((currentLearnCard.references ?? []).join("\n")); }}>{currentLearnCard.explanation || currentLearnCard.references?.length ? "Edit explanation" : "Add explanation"}</button>
                           </> : <>
                             <label className="card-explanation-field"><span>Explanation</span><AutoResizeTextarea autoFocus rows={5} value={learnExplanationDraft} onChange={event => setLearnExplanationDraft(event.target.value)} /></label>
+                            <label className="card-explanation-field"><span>Reference links <small>optional · one URL per line</small></span><AutoResizeTextarea rows={2} value={learnReferencesDraft} onChange={event => setLearnReferencesDraft(event.target.value)} placeholder="https://example.com/article" /></label>
+                            {invalidLearnReference && <p role="alert">Enter a valid http:// or https:// URL for each reference.</p>}
                             <div className="button-row">
-                              <button type="button" className="button primary" onClick={() => {
-                                setData(current => ({ ...current, sets: current.sets.map(set => set.id === selectedSet.id ? { ...set, updatedAt: new Date().toISOString(), cards: set.cards.map(card => card.id === currentLearnCard.id ? { ...card, explanation: learnExplanationDraft } : card) } : set) }));
+                              <button type="button" className="button primary" disabled={invalidLearnReference} onClick={() => {
+                                if (invalidLearnReference) return;
+                                setData(current => ({ ...current, sets: current.sets.map(set => set.id === selectedSet.id ? { ...set, updatedAt: new Date().toISOString(), cards: set.cards.map(card => card.id === currentLearnCard.id ? { ...card, explanation: learnExplanationDraft, references: [...new Set(learnReferenceLines.map(line => referenceUrl(line)!))] } : card) } : set) }));
                                 setLearnExplanationDraft(null);
                                 notify("Explanation saved.");
                               }}>Save explanation</button>
