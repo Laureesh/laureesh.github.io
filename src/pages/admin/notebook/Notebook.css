@@ -252,3 +252,19 @@
   text-decoration: line-through;
   opacity: .65;
 }
+.rich-editor ul.notebook-todo > li:has(> input[type="checkbox"]) {
+  margin-block: .65em;
+  padding: .7em .9em .7em 2.2em;
+  border: 1px solid #7c6cff30;
+  border-radius: 10px;
+  background: #7c6cff0c;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: .9em;
+  line-height: 1.65;
+}
+.rich-editor ul.notebook-todo > li > input[type="checkbox"] {
+  inset-inline-start: .65em;
+  top: 1em;
+}
+.rich-editor ul.notebook-todo { padding-inline-start: 0; }
+.rich-editor hr { border: 0; border-top: 1px solid #7c6cff35; margin-block: 1.8em; }
