@@ -28,6 +28,10 @@ test('scheduled routine updates dates, renews completions at Eastern midnight an
     const daily=page.getByRole('checkbox',{name:'Teeth & tongue',exact:true});
     const sheets=page.getByRole('checkbox',{name:'Sunday — Wash bedsheets and pillowcases.',exact:true});
     assert.equal(await weekly.locator('.status-due-today').count(),2);
+    const highlightedDay=page.locator('.checklist-week [aria-current="date"]');
+    assert.equal(await highlightedDay.count(),1);
+    assert.equal(await highlightedDay.getAttribute('datetime'),'2026-10-25');
+    assert.equal(await weekly.locator('.is-today').count(),2);
     assert.equal(await weekly.locator('time').first().getAttribute('datetime'),'2026-10-25');
     assert.equal(await weekly.locator('time').last().getAttribute('datetime'),'2026-10-31');
     await daily.check();await sheets.check();
@@ -35,11 +39,17 @@ test('scheduled routine updates dates, renews completions at Eastern midnight an
     await page.reload();
     await page.getByText('Sunday, 10/25/2026',{exact:true}).waitFor();
     assert.equal(await daily.isChecked(),true);assert.equal(await sheets.isChecked(),true);
+    assert.equal(await weekly.locator('.is-today.is-done').count(),1);
+    assert.equal(await weekly.getByText('Done · Today',{exact:true}).count(),1);
     await page.clock.setSystemTime(new Date('2026-10-26T04:00:00Z'));await page.clock.runFor(30001);
     await page.getByText('Monday, 10/26/2026',{exact:true}).waitFor();
     assert.equal(await daily.isChecked(),false);assert.equal(await sheets.isChecked(),true);
     assert.equal(await weekly.locator('.status-overdue').count(),1); // Sunday's hair task
     assert.equal(await weekly.locator('.status-due-today').count(),1); // Monday's nails
+    assert.equal(await highlightedDay.getAttribute('datetime'),'2026-10-26');
+    assert.equal(await weekly.locator('.is-today').count(),1);
+    assert.match(await weekly.locator('.is-today').innerText(),/fingernails/);
+    assert.equal(await weekly.locator('.is-done.is-today').count(),0);
     await page.clock.setSystemTime(new Date('2026-11-01T04:00:00Z'));await page.clock.runFor(30001);
     await page.getByText('Sunday, 11/01/2026',{exact:true}).waitFor();
     assert.equal(await sheets.isChecked(),false);
@@ -48,9 +58,11 @@ test('scheduled routine updates dates, renews completions at Eastern midnight an
     // DST has ended: 04:30 UTC is still Sunday in Eastern Time.
     await page.clock.setSystemTime(new Date('2026-11-02T04:30:00Z'));await page.clock.runFor(30001);
     assert.equal(await daily.isChecked(),true);
+    assert.equal(await highlightedDay.getAttribute('datetime'),'2026-11-01');
     await page.clock.setSystemTime(new Date('2026-11-02T05:00:00Z'));await page.clock.runFor(30001);
     await page.getByText('Monday, 11/02/2026',{exact:true}).waitFor();
     assert.equal(await daily.isChecked(),false);
+    assert.equal(await highlightedDay.getAttribute('datetime'),'2026-11-02');
     await page.setViewportSize({width:390,height:844});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
     await weekly.scrollIntoViewIfNeeded();

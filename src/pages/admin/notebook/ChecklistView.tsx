@@ -1,4 +1,4 @@
-import { calendarDate, displayDate, easternDateKey, enableHygieneSchedule, isHygieneRoutine, refreshChecklistSchedule, scheduledCheckState, taskDueLabel, WEEKDAYS, weekStartKey } from './checklistSchedule';
+import { calendarDate, displayDate, easternDateKey, enableHygieneSchedule, isHygieneRoutine, refreshChecklistSchedule, scheduledCheckState, scheduledDate, taskDueLabel, WEEKDAYS, weekStartKey } from './checklistSchedule';
 import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import { checklistRoot, checklistSelector, checklistTaskContent, checklistTitle, formatChecklistReference, readableHeading, setChecklistChecked } from './checklistDocument';
 import './ChecklistView.css';
@@ -68,12 +68,13 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
               const { title: taskTitle, detail } = checklistTaskContent(item);
               const checked = scheduledCheckState(box, now);
               const due = taskDueLabel(box, now);
-              return <li key={itemIndex} className={checked ? 'is-done' : ''}>
+              const isToday = due?.date === today;
+              return <li key={itemIndex} className={[checked && 'is-done', isToday && 'is-today'].filter(Boolean).join(' ')}>
                 <label className="checklist-task-label">
                   <input type="checkbox" checked={checked} onChange={event => { setUndo(null); onChange(setChecklistChecked(scheduledHtml, [index], event.target.checked, now)); }} />
                   <span>{taskTitle}</span>
                 </label>
-                {due && <div className={`checklist-due status-${due.status.toLowerCase().replace(' ', '-')}`}><span>{due.day}</span><time dateTime={due.date}>{displayDate(due.date)}</time><strong>{due.status}</strong></div>}
+                {due && <div className={`checklist-due status-${due.status.toLowerCase().replace(' ', '-')}`}><span>{due.day}</span><time dateTime={due.date} aria-current={isToday ? 'date' : undefined}>{displayDate(due.date)}</time><strong>{isToday && checked ? 'Done · Today' : due.status}</strong></div>}
                 {!compact && detail.textContent?.trim() && <div className="checklist-task-detail">{renderChildren(detail)}</div>}
               </li>;
             })}
@@ -120,7 +121,20 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
   };
   return <article className={`checklist-document${compact ? ' is-compact' : ''}`} style={{ fontSize }}>
     {canSchedule && <div className="checklist-schedule-setup"><div><strong>Give your routine a schedule</strong><p>Daily morning and night tasks, plus a Sunday–Saturday plan for weekly chores.</p></div><button onClick={() => onChange(enableHygieneSchedule(html, now))}>Add recurring schedule</button></div>}
-    {scheduled && <div className="checklist-calendar" aria-live="polite"><strong>{WEEKDAYS[calendarDate(today).getUTCDay()]}, {displayDate(today)}</strong><span>Eastern Time · Week of {displayDate(weekStartKey(now))}</span><small>Daily reset at midnight · Weekly reset on Sunday</small></div>}
+    {scheduled && <div className="checklist-calendar" aria-live="polite">
+      <div className="checklist-today-heading"><span className="checklist-today-badge">Today</span><strong>{WEEKDAYS[calendarDate(today).getUTCDay()]}, {displayDate(today)}</strong></div>
+      <span>Eastern Time · Week of {displayDate(weekStartKey(now))}</span>
+      <div className="checklist-week" role="group" aria-label="This week in Eastern Time">
+        {WEEKDAYS.map((day, index) => {
+          const date = scheduledDate(index, now);
+          const isToday = date === today;
+          return <time key={day} dateTime={date} aria-current={isToday ? 'date' : undefined} aria-label={`${day}, ${displayDate(date)}${isToday ? ', today' : ''}`}>
+            <span>{day.slice(0, 3)}</span><strong>{calendarDate(date).getUTCDate()}</strong><small>{isToday ? 'Today' : '\u00a0'}</small>
+          </time>;
+        })}
+      </div>
+      <small>Daily reset at midnight · Weekly reset on Sunday</small>
+    </div>}
     <div className="checklist-overview">
       <div><span className="checklist-eyebrow">YOUR CHECKLISTS</span><strong>{completed === boxes.length ? 'All done. Nicely done.' : 'One step at a time.'}</strong><span aria-live="polite">{completed} of {boxes.length} tasks complete</span></div>
       <button type="button" aria-pressed={compact} onClick={() => setCompact(value => !value)}>{compact ? 'Show details' : 'Hide details'}</button>

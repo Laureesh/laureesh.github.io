@@ -69,8 +69,19 @@
 
 .checklist-calendar { display:grid; gap:4px; margin:0 0 20px; padding:16px 18px; border-left:3px solid var(--check-accent); background:#9cd9c008; border-radius:0 10px 10px 0; }
 .checklist-calendar strong { font-size:.95em; }.checklist-calendar span { font-size:.78em; color:var(--check-muted); }.checklist-calendar small { font-size:.68em; color:var(--check-muted); }
+.checklist-today-heading { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+.checklist-calendar .checklist-today-badge { padding:2px 8px; border-radius:99px; background:var(--check-accent); color:#15392b; font-size:.62em; font-weight:700; text-transform:uppercase; letter-spacing:.6px; }
+.checklist-week { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; margin:10px 0; }
+.checklist-week>time { display:grid; justify-items:center; padding:7px 2px; border:1px solid transparent; border-radius:8px; }
+.checklist-week>time>span { font-size:.65em; }
+.checklist-week>time>small { font-size:.55em; }
+.checklist-week>time[aria-current="date"] { border-color:var(--check-accent); background:#9cd9c01c; }
+.checklist-week>time[aria-current="date"] :is(span,strong,small) { color:#c5f3df; font-weight:700; }
+.checklist-note-body .checklist-rows>li.is-today { margin:4px 0; padding:10px 12px; border-left:3px solid var(--check-accent); border-radius:0 8px 8px 0; background:#9cd9c00c; }
+.checklist-rows .is-today .checklist-due>span,.checklist-rows .is-today .checklist-due>time { color:#c5f3df; font-weight:600; }
 .checklist-due { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; margin:3px 0 5px 31px; font-size:.68em; color:var(--check-muted); }
 .checklist-due>span { font-weight:600; }.checklist-due>strong { border-radius:99px; padding:1px 7px; background:#ffffff09; font-size:inherit; font-weight:500; }
 .checklist-due.status-due-today>strong { color:#b8e8d4; background:#9cd9c018; }.checklist-due.status-overdue>strong { color:#edc68f; background:#edc68f12; }.checklist-due.status-done>strong { color:#a8d8bd; }
 .checklist-schedule-setup { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; padding:16px; margin-bottom:20px; border:1px dashed var(--check-line); border-radius:12px; font-size:.8em; }.checklist-schedule-setup p { margin:4px 0 0; color:var(--check-muted); }.checklist-document .checklist-schedule-setup button { padding:9px 12px; border:1px solid #9cd9c050; border-radius:8px; color:var(--check-accent); background:#9cd9c010; font-size:.9em; }
 @media print { .checklist-schedule-setup { display:none; }.checklist-calendar,.checklist-due,.checklist-due>strong { color:black; background:white; } }
+@media print { .checklist-calendar .checklist-today-badge,.checklist-week>time[aria-current="date"] :is(span,strong,small),.checklist-rows .is-today .checklist-due :is(span,time) { color:black; }.checklist-week>time[aria-current="date"],.checklist-note-body .checklist-rows>li.is-today { border-color:black; } }
