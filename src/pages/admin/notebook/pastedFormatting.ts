@@ -1,20 +1,41 @@
+import { isRoutineChecklistHeading } from './pastedMarkdown.ts';
+
+function inferredRoutineTasks(root: HTMLElement): Set<Element> {
+  const tasks = new Set<Element>();
+  let checklistSection = false;
+  for (const element of root.querySelectorAll('h1, h2, h3, h4, h5, h6, ul > li')) {
+    if (element.closest('pre, code')) continue;
+    if (/^H[1-6]$/.test(element.tagName)) {
+      checklistSection = isRoutineChecklistHeading(element.textContent ?? '');
+      continue;
+    }
+    if (!checklistSection) continue;
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    let first = walker.nextNode();
+    while (first && !first.textContent?.trim()) first = walker.nextNode();
+    if (first?.parentElement?.closest('strong, b')) tasks.add(element);
+  }
+  return tasks;
+}
+
 /** Repair Markdown markers left behind by a partially formatted rich-text paste. */
 export function repairPastedFormatting(html: string): string {
   const root = document.createElement('div');
   root.innerHTML = html;
+  const inferred = inferredRoutineTasks(root);
   for (const item of root.querySelectorAll('ul > li')) {
     if (item.closest('pre, code') || item.querySelector('input')) continue;
     const walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT);
     let first = walker.nextNode();
     while (first && !first.textContent?.trim()) first = walker.nextNode();
     const match = first?.textContent?.match(/^\s*(?:\[([ xX])\]|([□☐☑☒]))\s*/);
-    if (!first || !match) continue;
-    first.textContent = first.textContent!.slice(match[0].length);
+    if (!first || (!match && !inferred.has(item))) continue;
+    if (match) first.textContent = first.textContent!.slice(match[0].length);
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.contentEditable = 'false';
     checkbox.setAttribute('aria-label', 'Mark task complete');
-    if (/[xX☑☒]/.test(match[1] ?? match[2])) checkbox.setAttribute('checked', '');
+    if (match && /[xX☑☒]/.test(match[1] ?? match[2])) checkbox.setAttribute('checked', '');
     item.prepend(checkbox);
     item.parentElement!.classList.add('notebook-todo');
   }
@@ -52,7 +73,7 @@ export function notebookRichPasteHtml(source: string): string | null {
   const root = document.createElement('div');
   root.innerHTML = source;
   const hasTasks = root.querySelector('li input[type="checkbox"]') || [...root.querySelectorAll('li')].some(item => /^\s*(?:\[[ xX]\]|[□☐☑☒])\s*/.test(item.textContent ?? ''));
-  if (!hasTasks) return null;
+  if (!hasTasks && !inferredRoutineTasks(root).size) return null;
   const allowed = new Set(['P', 'BR', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI', 'STRONG', 'B', 'EM', 'I', 'U', 'S', 'HR', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TH', 'TD', 'BLOCKQUOTE', 'PRE', 'CODE']);
   const clean = (node: Node): Node => {
     if (node.nodeType === Node.TEXT_NODE) return document.createTextNode(node.textContent ?? '');

@@ -48,3 +48,16 @@ test('rendered visual checkboxes repair to native controls with saved completion
   assert.equal(root.querySelectorAll('input[checked]').length, 1);
   assert.doesNotMatch(root.textContent, /□|☑/);
 });
+
+test('rendered bold routine bullets become tasks while reminders remain bullets', () => {
+  const source = '<h2>☀️ MORNING — GET READY</h2><ul><li><p><strong>Teeth &amp; tongue</strong><br>Brush for two minutes.<br>Spit.</p></li><li><strong>Shower</strong><br>Use warm water.</li></ul><p>As needed:</p><ul><li>Shower after sweating.</li></ul><h2>🧺 WEEKLY — FRESH START</h2><ul><li><b>Wash sheets.</b></li></ul><h2>REMEMBER</h2><ul><li><strong>Be gentle.</strong></li></ul>';
+  const html = notebookRichPasteHtml(source);
+  const root = document.createElement('div'); root.innerHTML = html;
+  assert.equal(root.querySelectorAll('input').length, 3);
+  assert.equal(root.querySelectorAll('.notebook-todo').length, 2);
+  assert.equal(root.querySelector('li p').textContent, 'Teeth & tongueBrush for two minutes.Spit.');
+  assert.equal(root.querySelectorAll('br').length, 3);
+  assert.equal(root.querySelector('ul:last-child input'), null);
+  assert.equal(repairPastedFormatting(html), html);
+  assert.equal(repairPastedFormatting(source).match(/type="checkbox"/g).length, 3);
+});
