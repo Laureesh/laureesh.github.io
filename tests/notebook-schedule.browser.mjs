@@ -27,6 +27,12 @@ test('scheduled routine updates dates, renews completions at Eastern midnight an
     const weekly=page.getByRole('region',{name:'Weekly checklist',exact:true});
     const daily=page.getByRole('checkbox',{name:'Teeth & tongue',exact:true});
     const sheets=page.getByRole('checkbox',{name:'Sunday — Wash bedsheets and pillowcases.',exact:true});
+    const course=page.getByRole('checkbox',{name:'Complete the Whitestrips course, then stop scheduled whitening.',exact:true});
+    const wednesdayWash=weekly.getByRole('checkbox',{name:'Wednesday — Dandruff shampoo.',exact:true}).locator('..').locator('..');
+    assert.equal(await wednesdayWash.locator('time').getAttribute('datetime'),'2026-10-28');
+    assert.equal(await course.locator('..').locator('..').locator('time').count(),0);
+    assert.equal(await page.getByRole('checkbox',{name:'Mouthwash — optional',exact:true}).count(),2);
+    await course.check();
     assert.equal(await weekly.locator('.status-due-today').count(),2);
     const highlightedDay=page.locator('.checklist-week [aria-current="date"]');
     assert.equal(await highlightedDay.count(),1);
@@ -53,6 +59,7 @@ test('scheduled routine updates dates, renews completions at Eastern midnight an
     await page.clock.setSystemTime(new Date('2026-11-01T04:00:00Z'));await page.clock.runFor(30001);
     await page.getByText('Sunday, 11/01/2026',{exact:true}).waitFor();
     assert.equal(await sheets.isChecked(),false);
+    assert.equal(await course.isChecked(),true); // A completed whitening course must not renew weekly.
     assert.equal(await weekly.locator('time').first().getAttribute('datetime'),'2026-11-01');
     await daily.check();
     // DST has ended: 04:30 UTC is still Sunday in Eastern Time.
