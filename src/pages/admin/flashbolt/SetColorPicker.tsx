@@ -1,11 +1,12 @@
 import { useId, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { colorText, getSetColor, SET_COLORS } from "./setColors";
+import "./SetColorPicker.css";
 
 const FAMILIES = ["Popular", "All", "Reds & pinks", "Oranges & browns", "Yellows", "Greens", "Blues & teals", "Purples", "Neutrals"];
 const POPULAR = new Set(["violet", "mint", "amber", "coral", "blue", "cyan", "green", "orange", "pink", "red", "cherry-rose", "burgundy", "pastel-pink", "gold", "sage-green", "emerald", "royal-blue", "teal", "lavender", "slate", "peach-fuzz", "coffee-bean", "lilac", "charcoal"]);
 
-export default function SetColorPicker({ id, value, onChange }: {
-  id?: string; value: string; onChange: (value: string) => void;
+export default function SetColorPicker({ id, value, onChange, subject = "set" }: {
+  id?: string; value: string; onChange: (value: string) => void; subject?: "set" | "note";
 }) {
   const menuId = useId();
   const trigger = useRef<HTMLButtonElement>(null);
@@ -53,11 +54,11 @@ export default function SetColorPicker({ id, value, onChange }: {
       onClick={toggle} onKeyDown={event => {
         if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); if (!open) toggle(); }
       }}><span>{selected.label}</span><span aria-hidden="true">▾</span></button>
-    {open && <div ref={panel} id={menuId} role="dialog" aria-label="Choose set color" className="set-color-palette" popover="auto"
+    {open && <div ref={panel} id={menuId} role="dialog" aria-label={`Choose ${subject} color`} className="set-color-palette" popover="auto"
       onToggle={event => { if (event.newState === "closed") setOpen(false); }}
-      onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); close(); } }}>
-      <header><div><strong>Set color</strong><small>{selected.label} · {selected.hex.toUpperCase()}</small></div><button type="button" onClick={close} aria-label="Close color picker">×</button></header>
-      <input ref={search} type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search names or #hex…" aria-label="Search set colors" />
+      onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); } }}>
+      <header><div><strong>{subject === "note" ? "Note" : "Set"} color</strong><small>{selected.label} · {selected.hex.toUpperCase()}</small></div><button type="button" onClick={close} aria-label="Close color picker">×</button></header>
+      <input ref={search} type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search names or #hex…" aria-label={`Search ${subject} colors`} />
       <div className="set-color-families" role="group" aria-label="Color families">
         {FAMILIES.map(item => <button type="button" key={item} aria-pressed={!term && family === item} onClick={() => { setFamily(item); setQuery(""); }}>{item}</button>)}
       </div>

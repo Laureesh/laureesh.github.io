@@ -1,9 +1,12 @@
-import { useLayoutEffect, useRef } from "react";
+import { useId, useLayoutEffect, useRef } from "react";
+import SetColorPicker from "../flashbolt/SetColorPicker";
 
 type Props = {
   x: number;
   y: number;
   title: string;
+  color: string;
+  onColorChange: (color: string) => void;
   folderId: string | null;
   folders: { id: string; name: string; parentId: string | null }[];
   actions: { label: string; danger?: boolean; run: () => void }[];
@@ -11,7 +14,8 @@ type Props = {
   onClose: () => void;
 };
 
-export default function NoteActionsMenu({ x, y, title, folderId, folders, actions, onMove, onClose }: Props) {
+export default function NoteActionsMenu({ x, y, title, color, onColorChange, folderId, folders, actions, onMove, onClose }: Props) {
+  const colorId = useId();
   const menuRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef(onClose);
   useLayoutEffect(() => { closeRef.current = onClose; }, [onClose]);
@@ -35,14 +39,16 @@ export default function NoteActionsMenu({ x, y, title, folderId, folders, action
   }, [x, y]);
 
   return <div ref={menuRef} className="note-actions-menu" role="dialog" aria-label={`Actions for ${title || "Untitled"}`} style={{ left: x, top: y }} onKeyDown={event => {
+    if (event.defaultPrevented || (event.target instanceof Element && event.target.closest('.set-color-palette'))) return;
     if (event.key === "Escape") { event.preventDefault(); onClose(); return; }
     if (!["ArrowDown", "ArrowUp", "Home", "End", "Tab"].includes(event.key) || (event.target instanceof HTMLSelectElement && event.key !== "Tab")) return;
-    const controls = [...event.currentTarget.querySelectorAll<HTMLElement>("button, select")];
+    const controls = [...event.currentTarget.querySelectorAll<HTMLElement>("button, select")].filter(control => !control.closest('.set-color-palette'));
     const index = controls.indexOf(document.activeElement as HTMLElement);
     const next = event.key === "Home" ? 0 : event.key === "End" ? controls.length - 1 : (index + (event.key === "ArrowUp" || (event.key === "Tab" && event.shiftKey) ? -1 : 1) + controls.length) % controls.length;
     event.preventDefault(); controls[next]?.focus();
   }}>
     <header><strong>{title || "Untitled"}</strong><button aria-label="Close note actions" onClick={onClose}>×</button></header>
+    <div className="note-color-field"><label htmlFor={colorId}>Note color</label><SetColorPicker id={colorId} subject="note" value={color} onChange={onColorChange} /></div>
     {actions.map(action => <button key={action.label} className={action.danger ? "danger" : ""} onClick={() => { onClose(); action.run(); }}>{action.label}</button>)}
     <label>Move to folder<select value={folderId ?? ""} onChange={event => { onMove(event.target.value || null); onClose(); }}><option value="">No folder</option>{folders.map(folder => <option key={folder.id} value={folder.id}>{folder.parentId ? `${folders.find(parent => parent.id === folder.parentId)?.name ?? ""} / ` : ""}{folder.name}</option>)}</select></label>
   </div>;

@@ -118,6 +118,19 @@
 .note-actions-menu .danger { color:#ff9aac; }
 .note-actions-menu label { display:grid; gap:5px; padding:8px; border-top:1px solid var(--nb-line); font-size:12px; }
 .note-actions-menu select { width:100%; padding:8px; background:var(--nb-bg); color:var(--nb-text); border:1px solid var(--nb-line); border-radius:5px; }
+.notebook-shell .set-color-picker { --picker-panel:var(--nb-panel); --picker-panel-2:var(--nb-panel2); --picker-line:var(--nb-line); --picker-ink:var(--nb-text); --picker-muted:var(--nb-muted); --picker-accent:var(--nb-accent); --picker-soft:#7c6cff20; --picker-shadow:0 12px 40px #0009; }
+.note-color-field { padding:10px 6px; border-bottom:1px solid var(--nb-line); }
+.note-actions-menu .note-color-field>label { display:block; border:0; padding:0 0 5px; color:var(--nb-muted); }
+.note-header-color { display:flex; align-items:center; gap:7px; flex:0 0 auto; }
+.note-header-color>span { font-size:12px; color:var(--nb-muted); }
+.note-header-color .set-color-trigger { min-height:34px; max-width:170px; padding:6px 10px; font-size:13px; }
+.note-list-row[style] { box-shadow:inset 3px 0 var(--note-color); }
+.note-list-row[style].active { background:color-mix(in srgb,var(--note-color) 16%,var(--nb-panel)); box-shadow:inset 5px 0 var(--note-color); }
+.note-list-row[style]:hover { background:color-mix(in srgb,var(--note-color) 10%,var(--nb-panel)); }
+.note-list-row[style].active:hover { background:color-mix(in srgb,var(--note-color) 21%,var(--nb-panel)); }
+.note-list-row[style] .note-list-number { background:var(--note-color); color:var(--note-color-ink); border-color:var(--note-color); }
+.note-list-row[style].active .note-list-number { outline:1px solid var(--nb-text); outline-offset:2px; }
+.calendar-grid a[style] { border-left:3px solid var(--note-color); background:color-mix(in srgb,var(--note-color) 18%,var(--nb-panel)); color:var(--nb-text); }
 .notebook-shell :is(button,a,select,input):focus-visible { outline:2px solid #b8b0ff; outline-offset:2px; }
 @media print { .note-actions-menu { display:none!important; } }
 
