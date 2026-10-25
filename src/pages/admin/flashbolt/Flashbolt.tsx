@@ -713,6 +713,7 @@ function AutoResizeTextarea({
   className,
   placeholder,
   rows = 2,
+  autoFocus,
   readOnly,
   "aria-label": ariaLabel,
 }: {
@@ -722,6 +723,7 @@ function AutoResizeTextarea({
   className?: string;
   placeholder?: string;
   rows?: number;
+  autoFocus?: boolean;
   readOnly?: boolean;
   "aria-label"?: string;
 }) {
@@ -763,6 +765,7 @@ function AutoResizeTextarea({
   return (
     <textarea
       ref={textareaRef}
+      autoFocus={autoFocus}
       readOnly={readOnly}
       aria-label={ariaLabel}
       className={className}
