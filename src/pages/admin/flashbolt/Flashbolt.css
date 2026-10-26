@@ -8540,6 +8540,7 @@ kbd {
 
 .answer-feedback .learn-explanation-editor { white-space: normal; min-width: 0; }
 .learn-explanation-editor > p { margin: 0 0 12px; white-space: pre-wrap; }
+.answer-feedback .learn-explanation-editor > p { color: var(--ink); }
 .learn-explanation-editor .card-explanation-field { padding: 0; margin-bottom: 12px; }
 
 .learn-explanation-editor a { color: var(--primary-strong); text-decoration: underline; overflow-wrap: anywhere; }
