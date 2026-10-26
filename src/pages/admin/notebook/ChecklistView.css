@@ -140,6 +140,3 @@
 .fitness-link-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .5rem; }
 .fitness-link-options label { display: flex !important; flex-direction: row !important; align-items: center; gap: .5rem; }
 .fitness-link-options input[type="checkbox"] { width: auto; }
-.checklist-editable-text { margin-block: .75rem; }
-.checklist-editable-text > .checklist-edit-schedule { margin-bottom: .4rem; }
-.checklist-editable-text p { white-space: pre-wrap; }

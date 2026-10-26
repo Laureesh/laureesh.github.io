@@ -1,5 +1,3 @@
-import ChecklistTextEditor from './ChecklistTextEditor';
-import { editableTextBlocks, saveChecklistText } from './checklistTextEditing';
 import { numberText } from './fitnessCalculations';
 import FitnessCalculators from './FitnessCalculators';
 import { refreshFitnessDocument, shoppingTotal } from './fitnessDocument';
@@ -30,7 +28,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     return refreshFitnessDocument(refreshChecklistSchedule(autoEnable ? enableHygieneSchedule(html, now) : html, now));
   }, [html, title, now]);
   useEffect(() => { if (scheduledHtml !== html) onChange(scheduledHtml); }, [scheduledHtml, html, onChange]);
-  const root = useMemo(() => { const document = checklistRoot(scheduledHtml); editableTextBlocks(document).forEach((block, index) => block.setAttribute('data-checklist-text-index', String(index))); formatChecklistReference(document); return document; }, [scheduledHtml]);
+  const root = useMemo(() => { const document = checklistRoot(scheduledHtml); formatChecklistReference(document); return document; }, [scheduledHtml]);
   const customSchedules = Boolean(root.querySelector('[data-task-schedule]'));
   const scheduled = customSchedules || Boolean(root.querySelector('ul[data-checklist-repeat]'));
   const canSchedule = !scheduled && isHygieneRoutine(html, title);
@@ -49,7 +47,6 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
   const [undo, setUndo] = useState<{ before: string; after: string; message: string } | null>(null);
   const prefix = useId();
-  const [textEdit, setTextEdit] = useState<{ index: number; block: Element } | null>(null);
   const [contentEdit, setContentEdit] = useState<ChecklistEdit | null>(null);
   const [scheduleTarget, setScheduleTarget] = useState<{ indices: number[]; title: string; initial: TaskSchedule; mixed: boolean } | null>(null);
   const openSchedule = (indices: number[], title: string) => {
@@ -69,14 +66,6 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
   // Render only document content. Scripts, copied event handlers, and editor UI are excluded.
   const renderChildren = (node: Node): ReactNode[] => [...node.childNodes].map((child, index) => renderNode(child, index));
   const renderNode = (node: Node, key: number): ReactNode => {
-    const content = renderElement(node, key);
-    if (node instanceof Element && node.hasAttribute('data-checklist-text-index')) {
-      const index = Number(node.getAttribute('data-checklist-text-index'));
-      return <div key={key} className="checklist-editable-text">{content}<button type="button" className="checklist-edit-schedule" aria-label={`Edit text: ${(node.textContent ?? '').slice(0, 70)}`} onClick={() => setTextEdit({ index, block: node })}>Edit text</button></div>;
-    }
-    return content;
-  };
-  const renderElement = (node: Node, key: number): ReactNode => {
     if (node.nodeType === Node.TEXT_NODE) return node.textContent;
     if (!(node instanceof Element)) return null;
     if (['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'SVG', 'MATH', 'TEMPLATE', 'INPUT', 'BUTTON'].includes(node.tagName)) return null;
@@ -166,12 +155,6 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     }
   };
   return <article className={`checklist-document${compact ? ' is-compact' : ''}`} style={{ fontSize }}>
-    {textEdit && <ChecklistTextEditor block={textEdit.block} onClose={() => setTextEdit(null)} onSave={values => {
-      const next = saveChecklistText(scheduledHtml, textEdit.index, values);
-      setUndo({ before: scheduledHtml, after: next, message: 'Text updated.' });
-      onChange(next);
-      setTextEdit(null);
-    }} />}
     {contentEdit && <ChecklistContentEditor fitness={Boolean(plan || root.querySelector('[data-fitness-values]'))} edit={contentEdit} onClose={() => setContentEdit(null)} onSave={content => {
       const next = refreshFitnessDocument(saveChecklistContent(scheduledHtml, contentEdit, content));
       setUndo({ before: scheduledHtml, after: next, message: "Checklist updated." });
