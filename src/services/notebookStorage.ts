@@ -60,3 +60,15 @@ export function decodeNotebook(record: NotebookRecord, chunks: unknown[]): unkno
   }
   return JSON.parse(json) as unknown;
 }
+
+/** Firestore maps have no meaningful field order; JSON.stringify alone is not equality. */
+export function sameNotebookRecord(left: NotebookRecord, right: NotebookRecord): boolean {
+  const canonical = (record: NotebookRecord) => JSON.stringify(record, (_key, value: unknown) => {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      const fields = value as Record<string, unknown>;
+      return Object.fromEntries(Object.keys(fields).sort().map(key => [key, fields[key]]));
+    }
+    return value;
+  });
+  return canonical(left) === canonical(right);
+}

@@ -1,6 +1,6 @@
-import { getDoc, setDoc, runTransaction, serverTimestamp, type Transaction } from "firebase/firestore";
+import { getDoc, getDocFromServer, setDoc, runTransaction, serverTimestamp, type Transaction } from "firebase/firestore";
 import { documentRef } from "../firebase/firestore";
-import { decodeNotebook, encodeNotebook, notebookChunkCount, NOTEBOOK_STORAGE_FORMAT, type NotebookRecord } from "./notebookStorage";
+import { decodeNotebook, sameNotebookRecord, encodeNotebook, notebookChunkCount, NOTEBOOK_STORAGE_FORMAT, type NotebookRecord } from "./notebookStorage";
 
 type SyncItem = { id: string; updatedAt?: string; title?: string; html?: string; tags?: string[]; attachments?: Array<{ id: string }>; versions?: Array<{ id: string; title: string; html: string; savedAt: string }>; [key: string]: unknown };
 type SyncLibrary = { notes?: SyncItem[]; folders?: SyncItem[]; deletedNoteIds?: Record<string, string>; deletedFolderIds?: Record<string, string>; [key: string]: unknown };
@@ -34,9 +34,9 @@ function unpackNotebook(record: NotebookRecord, chunks: unknown[]) {
   return { data, chunks, record };
 }
 
-async function readCurrentNotebook(uid: string) {
+async function readCurrentNotebook(uid: string, fromServer = false) {
   const reference = notebookDocument(uid);
-  const snapshot = await getDoc(reference);
+  const snapshot = await (fromServer ? getDocFromServer(reference) : getDoc(reference));
   const record = snapshot.exists() ? snapshot.data() : {};
   if (record.format === 'chunked-v1') {
     // The old format overwrites chunks in place, so it needs a consistent read.
@@ -105,11 +105,39 @@ export function mergeNotebookLibraries(remoteValue: unknown, localValue: unknown
   return { ...remote, ...local, notes: activeNotes, folders: activeFolders, deletedNoteIds, deletedFolderIds };
 }
 
-export async function saveNotebookLibrary(uid: string, data: unknown) {
-  const safeData = JSON.parse(JSON.stringify(data)) as unknown;
+type PendingSave = { data: unknown; waiters: Array<{ resolve: (data: unknown) => void; reject: (error: unknown) => void }> };
+const saveQueues = new Map<string, { pending: PendingSave | null }>();
+
+// One writer per account in this tab. Edits arriving during an upload are combined
+// into the next save rather than starting competing publish transactions.
+export function saveNotebookLibrary(uid: string, data: unknown): Promise<unknown> {
+  const snapshot = JSON.parse(JSON.stringify(data)) as unknown;
+  let queue = saveQueues.get(uid);
+  const start = !queue;
+  if (!queue) { queue = { pending: null }; saveQueues.set(uid, queue); }
+  const result = new Promise<unknown>((resolve, reject) => {
+    if (queue.pending) {
+      queue.pending.data = mergeNotebookLibraries(queue.pending.data, snapshot);
+      queue.pending.waiters.push({ resolve, reject });
+    } else queue.pending = { data: snapshot, waiters: [{ resolve, reject }] };
+  });
+  if (start) void (async () => {
+    try {
+      while (queue.pending) {
+        const next = queue.pending;
+        queue.pending = null;
+        try { const saved = await publishNotebookLibrary(uid, next.data); next.waiters.forEach(waiter => waiter.resolve(saved)); }
+        catch (error) { next.waiters.forEach(waiter => waiter.reject(error)); }
+      }
+    } finally { saveQueues.delete(uid); }
+  })();
+  return result;
+}
+
+async function publishNotebookLibrary(uid: string, safeData: unknown) {
   const reference = notebookDocument(uid);
   for (let attempt = 0; attempt < 5; attempt++) {
-    const remote = await readCurrentNotebook(uid);
+    const remote = await readCurrentNotebook(uid, true);
     const merged = mergeNotebookLibraries(remote.data, safeData);
     const chunks = encodeNotebook(merged);
     const generation = crypto.randomUUID();
@@ -127,7 +155,7 @@ export async function saveNotebookLibrary(uid: string, data: unknown) {
     const published = await runTransaction(reference.firestore, async transaction => {
       const snapshot = await transaction.get(reference);
       const current = snapshot.exists() ? snapshot.data() : {};
-      if (JSON.stringify(current) !== JSON.stringify(remote.record)) return false;
+      if (!sameNotebookRecord(current, remote.record)) return false;
       transaction.set(reference, {
         format: NOTEBOOK_STORAGE_FORMAT,
         chunkCount: chunks.length,
@@ -140,5 +168,5 @@ export async function saveNotebookLibrary(uid: string, data: unknown) {
     if (published) return merged;
     // Another device published first: re-read and merge before trying again.
   }
-  throw new Error("The notebook changed on another device during sync. Your local copy is saved; retry cloud sync.");
+  throw new Error("Cloud sync could not finish because the cloud copy kept changing. Your local copy is saved; retry cloud sync.");
 }

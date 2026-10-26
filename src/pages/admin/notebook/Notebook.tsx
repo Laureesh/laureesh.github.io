@@ -240,7 +240,7 @@ export default function Notebook() {
         if (merged && JSON.stringify(merged) !== JSON.stringify(latestData)) setData(merged);
         setSaveState(dataRevisionRef.current === savingRevision ? "saved" : "saving");
         setSyncError("");
-      }).catch((error: unknown) => { setSaveState("offline"); setSyncError(describeNotebookSyncError(error)); });
+      }).catch((error: unknown) => { if (dataRevisionRef.current !== savingRevision) return; setSaveState("offline"); setSyncError(describeNotebookSyncError(error)); });
     }, CLOUD_SAVE_DELAY_MS);
     return () => window.clearTimeout(timer);
   }, [data, user?.uid, syncReady]);
@@ -361,7 +361,7 @@ export default function Notebook() {
       if (merged && JSON.stringify(merged) !== JSON.stringify(latest)) setData(merged);
       setSaveState(dataRevisionRef.current === revision ? "saved" : "saving");
     }
-    catch (error) { setSaveState("offline"); setSyncError(describeNotebookSyncError(error)); }
+    catch (error) { if (dataRevisionRef.current !== revision) return; setSaveState("offline"); setSyncError(describeNotebookSyncError(error)); }
   };
   const noteHref = (noteId: string, view = folderFilter) => `${NOTEBOOK_BASE}/note/${encodeURIComponent(noteId)}?view=${encodeURIComponent(view)}`;
   const openNote = (noteId: string, view = folderFilter) => { setSelectedId(noteId); setMobileEditorOpen(true); setHistoryOpen(false); navigate(noteHref(noteId, view)); };

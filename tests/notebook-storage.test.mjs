@@ -11,6 +11,8 @@ let writes = 0;
 let uploads = 0;
 let failUploadAt = Infinity;
 let largestCommit = 0;
+let reorderTransactionFields = false;
+const reverseFields = value => Array.isArray(value) ? value.map(reverseFields) : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value).reverse().map(([key, child]) => [key, reverseFields(child)])) : value;
 globalThis.__notebookFirestore = {
   documentRef: (path, id) => ({ path: `${path}/${id}`, firestore: {} }),
   serverTimestamp: () => 'server timestamp',
@@ -34,7 +36,7 @@ globalThis.__notebookFirestore = {
         async get(ref) {
           assert.equal(writing, false, 'all reads must precede writes');
           const data = documents.get(ref.path);
-          return { exists: () => data !== undefined, data: () => structuredClone(data) };
+          return { exists: () => data !== undefined, data: () => reorderTransactionFields ? reverseFields(structuredClone(data)) : structuredClone(data) };
         },
         set(ref, data) {
           writing = true;
@@ -55,7 +57,7 @@ globalThis.__notebookFirestore = {
     }
   },
 };
-const stub = 'data:text/javascript,' + encodeURIComponent('export const {documentRef,serverTimestamp,runTransaction,getDoc,setDoc}=globalThis.__notebookFirestore;');
+const stub = 'data:text/javascript,' + encodeURIComponent('export const {documentRef,serverTimestamp,runTransaction,getDoc,setDoc}=globalThis.__notebookFirestore; export const getDocFromServer = getDoc;');
 registerHooks({ resolve(specifier, context, next) {
   if (context.parentURL?.endsWith('/services/notebookLibrary.ts')) {
     if (specifier === 'firebase/firestore' || specifier === '../firebase/firestore') return { url: stub, shortCircuit: true };
@@ -201,3 +203,29 @@ if (process.env.NOTEBOOK_BACKUP_PATH) {
     assert.deepEqual(readFileSync(process.env.NOTEBOOK_BACKUP_PATH), bytes);
   });
 }
+
+test('different field ordering in server snapshots is not an edit conflict', async () => {
+  documents = new Map([[root, { data: library([note('remote')]), updatedAt: { seconds: 123, nanoseconds: 456 } }]]);
+  reorderTransactionFields = true;
+  try {
+    const saved = await saveNotebookLibrary('test', library([note('local')]));
+    assert.deepEqual(saved.notes.map(n => n.id).sort(), ['local', 'remote']);
+    assert.deepEqual(await loadNotebookLibrary('test'), saved);
+  } finally { reorderTransactionFields = false; }
+});
+
+test('overlapping autosaves are serialized and pending edits are combined', async () => {
+  documents = new Map(); uploads = 0;
+  const saves = await Promise.all(Array.from({ length: 12 }, (_, i) => saveNotebookLibrary('test', library([note(`edit-${i}`)]))));
+  const saved = await loadNotebookLibrary('test');
+  assert.equal(saved.notes.length, 12);
+  assert(uploads <= 2, 'one active upload and one combined pending upload');
+  assert.equal(saves.at(-1).notes.length, 12);
+});
+test('a failed queued save does not block subsequent saves', async () => {
+  documents = new Map(); failCommit = true;
+  await assert.rejects(saveNotebookLibrary('test', library([note('failed')])), /network failure/);
+  failCommit = false;
+  await saveNotebookLibrary('test', library([note('recovered')]));
+  assert.equal((await loadNotebookLibrary('test')).notes[0].id, 'recovered');
+});
