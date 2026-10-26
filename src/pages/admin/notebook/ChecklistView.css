@@ -146,3 +146,7 @@
 .checklist-inline-text[contenteditable] [contenteditable="false"] { cursor: default; background: rgba(150, 220, 204, .08); }
 .checklist-task-label > .checklist-inline-text { flex: 1; }
 .checklist-inline-hint { color: #b7c7d9; font-size: .85em; }
+.fitness-formula-tools > details { margin: .8rem 0; padding: .8rem; border: 1px solid #45535e; border-radius: 10px; }
+.fitness-auto-link { display: flex; align-items: center; gap: .5rem; margin: .7rem 0; }
+.fitness-calculators .fitness-auto-link input { width: auto; }
+.fitness-formula-tools select { max-width: 100%; }

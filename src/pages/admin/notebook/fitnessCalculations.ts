@@ -1,8 +1,9 @@
+import { applyEstimateLinks, calculateEstimates, estimateLabels, idealFormulas, type EstimateSettings } from './fitnessEstimates.ts';
 import { ageToday, calculateAge, validAgeDate } from './ageCalculations.ts';
-export const fitnessNumberKeys = ['age', 'weight', 'goal', 'idealGoal', 'adjustedGoal', 'height', 'maintenance', 'calories', 'alternateCalories', 'weeklyRate', 'protein', 'carbs', 'sugar', 'fat', 'saturatedFat', 'water', 'activityMin', 'activityMax', 'squatGoal', 'pushupGoal'] as const;
+export const fitnessNumberKeys = ['age', 'weight', 'goal', 'idealGoal', 'adjustedGoal', 'height', 'maintenance', 'calories', 'alternateCalories', 'weeklyRate', 'protein', 'carbs', 'sugar', 'fat', 'saturatedFat', 'water', 'activityMin', 'activityMax', 'squatGoal', 'pushupGoal', 'activityFactor', 'bodyFat', 'proteinPercent', 'carbPercent', 'fatPercent', 'waterRate', 'bottleSize'] as const;
 export type FitnessNumberKey = typeof fitnessNumberKeys[number];
-export type FitnessValues = Partial<Record<FitnessNumberKey, number>> & { gender?: string; ageMode?: 'manual' | 'birthdate'; birthDate?: string; ageOnDate?: string; goalMode?: 'custom' | 'ideal' | 'adjusted' };
-export const fitnessLabels = { age: 'Age (years)', gender: 'Gender', weight: 'Weight (lb)', goal: 'Selected goal weight (lb)', idealGoal: 'Ideal weight goal (lb)', adjustedGoal: 'Adjusted weight goal (lb)', height: 'Height (ft & in)', bmi: 'BMI', remaining: 'Weight to lose (lb)', idealRemaining: 'Weight to ideal goal (lb)', adjustedRemaining: 'Weight to adjusted goal (lb)', calories: 'Calories per day', alternateCalories: 'Alternate calories per day', maintenance: 'Maintenance calories', deficit: 'Daily calorie deficit', alternateDeficit: 'Alternate daily deficit', caloriePercent: 'Calorie target (% of maintenance)', weeklyRate: 'Planned loss (lb/week)', estimatedWeeks: 'Arithmetic timeline (weeks)', protein: 'Protein (g)', carbs: 'Carbs (g)', sugar: 'Sugar limit (g/day)', fat: 'Fat (g)', saturatedFat: 'Saturated fat limit (g/day)', macroCalories: 'Calories from macros', macroDifference: 'Macros minus calorie target', water: 'Water (US fl oz)', liters: 'Water (liters)', activityMin: 'Weekly activity minimum (minutes)', activityMax: 'Weekly activity maximum (minutes)', squatGoal: 'Squat goal (reps)', pushupGoal: 'Push-up goal (reps)' };
+export type FitnessValues = EstimateSettings & Partial<Record<FitnessNumberKey, number>> & { gender?: string; ageMode?: 'manual' | 'birthdate'; birthDate?: string; ageOnDate?: string; goalMode?: 'custom' | 'ideal' | 'adjusted' };
+export const fitnessLabels = { ...estimateLabels, activityFactor: 'Activity multiplier', bodyFat: 'Body fat (%)', proteinPercent: 'Protein (% of calories)', carbPercent: 'Carbs (% of calories)', fatPercent: 'Fat (% of calories)', waterRate: 'Water formula factor', bottleSize: 'Bottle size (US fl oz)', age: 'Age (years)', gender: 'Gender', weight: 'Weight (lb)', goal: 'Selected goal weight (lb)', idealGoal: 'Ideal weight goal (lb)', adjustedGoal: 'Adjusted weight goal (lb)', height: 'Height (ft & in)', bmi: 'BMI', remaining: 'Weight to lose (lb)', idealRemaining: 'Weight to ideal goal (lb)', adjustedRemaining: 'Weight to adjusted goal (lb)', calories: 'Calories per day', alternateCalories: 'Alternate calories per day', maintenance: 'Maintenance calories', deficit: 'Daily calorie deficit', alternateDeficit: 'Alternate daily deficit', caloriePercent: 'Calorie target (% of maintenance)', weeklyRate: 'Planned loss (lb/week)', estimatedWeeks: 'Arithmetic timeline (weeks)', protein: 'Protein (g)', carbs: 'Carbs (g)', sugar: 'Sugar limit (g/day)', fat: 'Fat (g)', saturatedFat: 'Saturated fat limit (g/day)', macroCalories: 'Calories from macros', macroDifference: 'Macros minus calorie target', water: 'Water (US fl oz)', liters: 'Water (liters)', activityMin: 'Weekly activity minimum (minutes)', activityMax: 'Weekly activity maximum (minutes)', squatGoal: 'Squat goal (reps)', pushupGoal: 'Push-up goal (reps)' };
 export type FitnessKey = keyof typeof fitnessLabels;
 export const numberText = (value: number | undefined) => value === undefined || !Number.isFinite(value) ? 'Not entered' : new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value);
 export function cleanFitnessValues(raw: unknown): FitnessValues {
@@ -15,8 +16,6 @@ export function cleanFitnessValues(raw: unknown): FitnessValues {
   const extra = raw as FitnessValues;
   if (typeof extra.gender === 'string' && extra.gender.trim()) result.gender = extra.gender.slice(0, 80);
   if (extra.goalMode && ['custom', 'ideal', 'adjusted'].includes(extra.goalMode)) result.goalMode = extra.goalMode;
-  if (result.goalMode === 'ideal') result.goal = result.idealGoal;
-  if (result.goalMode === 'adjusted') result.goal = result.adjustedGoal;
   if (extra.ageMode === 'manual' || extra.ageMode === 'birthdate') result.ageMode = extra.ageMode;
   if (typeof extra.birthDate === 'string' && validAgeDate(extra.birthDate)) result.birthDate = extra.birthDate;
   if (typeof extra.ageOnDate === 'string' && validAgeDate(extra.ageOnDate)) result.ageOnDate = extra.ageOnDate;
@@ -24,12 +23,21 @@ export function cleanFitnessValues(raw: unknown): FitnessValues {
     const age = calculateAge(result.birthDate ?? '', result.ageOnDate ?? ageToday());
     result.age = age?.years;
   }
-  return result;
+  if (extra.formulaSex === 'male' || extra.formulaSex === 'female') result.formulaSex = extra.formulaSex;
+  if (extra.energyFormula && ['mifflin', 'harris', 'katch'].includes(extra.energyFormula)) result.energyFormula = extra.energyFormula;
+  if (extra.idealFormula && idealFormulas.includes(extra.idealFormula)) result.idealFormula = extra.idealFormula;
+  if (extra.calorieMode && ['manual', 'maintain', 'loss'].includes(extra.calorieMode)) result.calorieMode = extra.calorieMode;
+  for (const key of ['autoIdeal', 'autoMaintenance', 'autoMacros', 'autoWater'] as const) if (typeof extra[key] === 'boolean') result[key] = extra[key];
+  const linked = applyEstimateLinks(result);
+  if (linked.goalMode === 'ideal') linked.goal = linked.idealGoal;
+  if (linked.goalMode === 'adjusted') linked.goal = linked.adjustedGoal;
+  return linked;
 }
 export function calculateFitness(values: FitnessValues): Partial<Record<Exclude<FitnessKey, 'gender'>, number>> & { gender?: string } {
   const v = cleanFitnessValues(values);
   const result: Partial<Record<Exclude<FitnessKey, 'gender'>, number>> & { gender?: string } = {};
   for (const key of fitnessNumberKeys) if (v[key] !== undefined) result[key] = v[key];
+  Object.assign(result, calculateEstimates(v));
   if (v.gender) result.gender = v.gender;
   if (v.weight !== undefined && v.height) result.bmi = (v.weight * 0.45359237) / (v.height * 0.0254) ** 2;
   if (v.weight !== undefined && v.goal !== undefined) result.remaining = Math.max(0, v.weight - v.goal);

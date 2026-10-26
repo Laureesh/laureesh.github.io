@@ -70,3 +70,18 @@ test('birth date and reference date persist and drive the linked age', () => {
   html = refreshFitnessDocument(html, { ...values, ageOnDate: '2026-10-26' });
   assert.match(checklistRoot(html).querySelector('[data-fitness-links]').textContent, /26/);
 });
+
+test('formula settings persist and linked calorie and macro targets update after profile edits', () => {
+  const content = readTaskContent(checklistRoot(source).querySelector('li'));
+  let html = saveChecklistContent(source, { kind: 'task', index: 0, content }, { ...content, linkedValues: ['maintenance', 'calories', 'protein', 'hamwi', 'water'] });
+  html = refreshFitnessDocument(html, { age: 25, gender: 'Male', weight: 165, height: 70, energyFormula: 'harris', activityFactor: 1.55, autoMaintenance: true, calorieMode: 'loss', weeklyRate: 1, autoMacros: true, proteinPercent: 30, carbPercent: 40, fatPercent: 30, autoWater: true, waterRate: 30 });
+  const saved = readFitnessValues(html);
+  assert.equal(saved.energyFormula, 'harris'); assert.equal(saved.autoMaintenance, true); assert.equal(saved.autoMacros, true);
+  const before = checklistRoot(html).querySelector('[data-fitness-links]').textContent;
+  html = refreshFitnessDocument(html, { ...saved, weight: 180 });
+  const after = checklistRoot(html).querySelector('[data-fitness-links]').textContent;
+  assert.notEqual(before, after);
+  assert.equal(readFitnessValues(html).calorieMode, 'loss');
+  assert.match(checklistRoot(html).textContent, /Historical weight: 271.4 lb/);
+  assert.equal(refreshFitnessDocument(html), html);
+});
