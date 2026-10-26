@@ -1,5 +1,5 @@
 import { checklistRoot } from './checklistDocument.ts';
-import { calculateFitness, calculationText, cleanFitnessValues, fitnessLabels, numberText, validTaskCalculation, type FitnessValues, type FitnessKey } from './fitnessCalculations.ts';
+import { calculateFitness, calculationText, cleanFitnessValues, fitnessLabels, fitnessValueText, validTaskCalculation, type FitnessValues, type FitnessKey } from './fitnessCalculations.ts';
 export function readFitnessValues(html: string): FitnessValues {
   try { return cleanFitnessValues(JSON.parse(checklistRoot(html).querySelector('[data-fitness-values]')?.getAttribute('data-fitness-values') || '{}')); } catch { return {}; }
 }
@@ -15,12 +15,12 @@ export function refreshFitnessDocument(html: string, values?: FitnessValues): st
     const heading = document.createElement('p'); heading.textContent = 'My linked values';
     const description = document.createElement('p'); description.textContent = 'Editable values from Checklist View. Historical records below are kept separately.';
     summary.replaceChildren(heading, description);
-    for (const key of Object.keys(results) as FitnessKey[]) { const p = document.createElement('p'); p.textContent = `${fitnessLabels[key]}: ${numberText(results[key])}`; summary.append(p); }
+    for (const key of Object.keys(results) as FitnessKey[]) { const p = document.createElement('p'); p.textContent = `${fitnessLabels[key]}: ${fitnessValueText(key, results[key])}`; summary.append(p); }
   }
   root.querySelectorAll('[data-fitness-links]').forEach(node => {
     let keys: string[] = [];
     try { const raw = JSON.parse(node.getAttribute('data-fitness-links') || '[]'); if (Array.isArray(raw)) keys = raw; } catch { /* Invalid pasted metadata is ignored. */ }
-    node.textContent = keys.filter((key): key is FitnessKey => Object.hasOwn(fitnessLabels, key)).map(key => `${fitnessLabels[key]}: ${numberText(results[key])}`).join(' · ');
+    node.textContent = keys.filter((key): key is FitnessKey => Object.hasOwn(fitnessLabels, key)).map(key => `${fitnessLabels[key]}: ${fitnessValueText(key, results[key])}`).join(' · ');
   });
   root.querySelectorAll('[data-fitness-calculation]').forEach(node => {
     try { const value = JSON.parse(node.getAttribute('data-fitness-calculation') || '{}'); if (validTaskCalculation(value)) node.textContent = calculationText(value); } catch { /* Leave ordinary text intact. */ }

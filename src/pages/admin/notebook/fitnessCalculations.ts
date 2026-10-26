@@ -1,5 +1,5 @@
 export type FitnessValues = Partial<Record<'weight' | 'goal' | 'height' | 'maintenance' | 'calories' | 'protein' | 'carbs' | 'fat' | 'water', number>>;
-export const fitnessLabels = { weight: 'Weight (lb)', goal: 'Goal weight (lb)', height: 'Height (inches)', bmi: 'BMI', remaining: 'Weight to lose (lb)', calories: 'Calories per day', maintenance: 'Maintenance calories', deficit: 'Daily calorie deficit', protein: 'Protein (g)', carbs: 'Carbs (g)', fat: 'Fat (g)', macroCalories: 'Calories from macros', macroDifference: 'Macros minus calorie target', water: 'Water (US fl oz)', liters: 'Water (liters)' };
+export const fitnessLabels = { weight: 'Weight (lb)', goal: 'Goal weight (lb)', height: 'Height (ft & in)', bmi: 'BMI', remaining: 'Weight to lose (lb)', calories: 'Calories per day', maintenance: 'Maintenance calories', deficit: 'Daily calorie deficit', protein: 'Protein (g)', carbs: 'Carbs (g)', fat: 'Fat (g)', macroCalories: 'Calories from macros', macroDifference: 'Macros minus calorie target', water: 'Water (US fl oz)', liters: 'Water (liters)' };
 export type FitnessKey = keyof typeof fitnessLabels;
 export const numberText = (value: number | undefined) => value === undefined || !Number.isFinite(value) ? 'Not entered' : new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value);
 export function cleanFitnessValues(raw: unknown): FitnessValues {
@@ -32,4 +32,24 @@ export function validTaskCalculation(value: unknown): value is TaskCalculation {
 }
 export function calculationText(v: TaskCalculation): string {
   return v.kind === 'shopping' ? `${numberText(v.a)} × $${numberText(v.b)} = $${numberText(v.a * v.b)}` : `${numberText(v.a)} sets/rounds × ${numberText(v.b)} ${v.unit || 'reps'} = ${numberText(v.a * v.b)} ${v.unit || 'reps'} total`;
+}
+
+/** Stored heights stay in inches so existing notes and BMI calculations need no migration. */
+export function parseFeetInches(text: string): number | undefined {
+  const normalized = text.trim().replace(/[’′]/g, "'").replace(/[”″]/g, '"');
+  const match = normalized.match(/^(\d+)\s*(?:'|ft|feet)\s*(?:(\d+(?:\.\d+)?)\s*(?:"|in|inches)?)?$/i);
+  if (!match) return undefined;
+  const inches = Number(match[2] ?? 0);
+  const total = Number(match[1]) * 12 + inches;
+  return inches < 12 && total > 0 && total <= 1e7 ? total : undefined;
+}
+export function formatFeetInches(height: number | undefined): string {
+  if (height === undefined || !Number.isFinite(height) || height <= 0) return '';
+  const rounded = Math.round(height * 10000) / 10000;
+  const feet = Math.floor(rounded / 12);
+  const inches = Number((rounded - feet * 12).toFixed(4));
+  return `${feet}'${inches}"`;
+}
+export function fitnessValueText(key: FitnessKey, value: number | undefined): string {
+  return key === 'height' ? formatFeetInches(value) || 'Not entered' : numberText(value);
 }

@@ -1,3 +1,4 @@
+import HeightInput from './HeightInput';
 import { calculateFitness, fitnessLabels, numberText, type FitnessValues } from './fitnessCalculations';
 import { readFitnessValues, refreshFitnessDocument } from './fitnessDocument';
 
@@ -17,9 +18,9 @@ export default function FitnessCalculators({ html, onChange }: Props) {
     <p>Values save with this note. Changing an input updates its conversions, totals, and every task linked to that value. Use <strong>Edit task → Linked values</strong> to show them in any checklist.</p>
     <p>Your 2024 records remain historical. Enter your current values here, or load the old numbers as a starting point and revise them.</p>
     <button type="button" onClick={() => update({ weight: 271.4, goal: 205, height: 75.5, maintenance: 2891, calories: 2391, protein: 160, carbs: 335, fat: 54, water: 152.5, ...values })}>Fill empty inputs with 2024 values</button>
-    <fieldset><legend>Measurements & goal</legend><div className="fitness-fields">{field('weight')}{field('weight', 'Weight (kg)', 1 / 0.45359237)}{field('goal')}{field('goal', 'Goal weight (kg)', 1 / 0.45359237)}{field('height')}{field('height', 'Height (cm)', 1 / 2.54)}</div>
+    <fieldset><legend>Measurements & goal</legend><div className="fitness-fields">{field('weight')}{field('goal')}<HeightInput value={values.height} onChange={height => update({ ...values, height })} /></div>
       {output('BMI', result.bmi)}{output('Weight remaining (lb)', result.remaining)}
-      <p>Height example: 6 ft 3.5 in = 75.5 inches. BMI = kilograms ÷ meters²; it is a screening measure. <a href="https://www.cdc.gov/bmi/adult-calculator/">CDC adult BMI calculator</a></p>
+      <p>BMI updates from your weight and height. It is a screening measure. <a href="https://www.cdc.gov/bmi/adult-calculator/">CDC adult BMI calculator</a></p>
     </fieldset>
     <fieldset><legend>Calories & macros</legend><div className="fitness-fields">{field('maintenance')}{field('calories')}<label>Daily deficit (maintenance − target)<input type="number" step="any" disabled={values.maintenance === undefined} value={result.deficit ?? ''} onChange={event => {
       const deficit = Number(event.target.value);

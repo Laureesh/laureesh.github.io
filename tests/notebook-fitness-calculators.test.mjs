@@ -24,3 +24,15 @@ test('task calculators distinguish quantities, costs and workout units', () => {
   assert.equal(calculationText({ kind: 'workout', a: 3, b: 15, unit: 'reps per leg' }), '3 sets/rounds × 15 reps per leg = 45 reps per leg total');
   assert.equal(validTaskCalculation({ kind: 'shopping', a: NaN, b: 1, unit: '' }), false);
 });
+
+test('height accepts feet/inches notation and keeps the existing stored inches', async () => {
+  const { parseFeetInches, formatFeetInches, fitnessValueText } = await import('../src/pages/admin/notebook/fitnessCalculations.ts');
+  for (const text of ['6\'3.5"', '6 ft 3.5 in', '6′3.5″', '6 feet 3.5 inches']) assert.equal(parseFeetInches(text), 75.5);
+  assert.equal(parseFeetInches("6'"), 72);
+  assert.equal(formatFeetInches(75.5), '6\'3.5"');
+  assert.equal(formatFeetInches(72), '6\'0"');
+  assert.equal(formatFeetInches(undefined), '');
+  assert.equal(fitnessValueText('height', 75.5), '6\'3.5"');
+  for (const invalid of ['', '75.5', '6\'12"', '-6\'3"', '6\'3.', '0\'0"', 'six feet']) assert.equal(parseFeetInches(invalid), undefined);
+  assert.equal(calculateFitness({ weight: 271.4, height: parseFeetInches('6\'3.5"') }).bmi, calculateFitness({ weight: 271.4, height: 75.5 }).bmi);
+});
