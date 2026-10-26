@@ -1,3 +1,5 @@
+import InlineChecklistText from './InlineChecklistText';
+import { editableInlineBlocks, saveInlineBlock, saveInlineTask } from './inlineChecklistEditing';
 import { numberText } from './fitnessCalculations';
 import FitnessCalculators from './FitnessCalculators';
 import { refreshFitnessDocument, shoppingTotal } from './fitnessDocument';
@@ -28,7 +30,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     return refreshFitnessDocument(refreshChecklistSchedule(autoEnable ? enableHygieneSchedule(html, now) : html, now));
   }, [html, title, now]);
   useEffect(() => { if (scheduledHtml !== html) onChange(scheduledHtml); }, [scheduledHtml, html, onChange]);
-  const root = useMemo(() => { const document = checklistRoot(scheduledHtml); formatChecklistReference(document); return document; }, [scheduledHtml]);
+  const root = useMemo(() => { const document = checklistRoot(scheduledHtml); editableInlineBlocks(document).forEach((node, index) => node.setAttribute('data-inline-index', String(index))); formatChecklistReference(document); return document; }, [scheduledHtml]);
   const customSchedules = Boolean(root.querySelector('[data-task-schedule]'));
   const scheduled = customSchedules || Boolean(root.querySelector('ul[data-checklist-repeat]'));
   const canSchedule = !scheduled && isHygieneRoutine(html, title);
@@ -63,6 +65,10 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     setUndo({ before: scheduledHtml, after: next, message: "Checklist reset." });
     onChange(next);
   };
+  const saveInline = (next: string) => {
+    if (next === scheduledHtml) return;
+    onChange(refreshFitnessDocument(next));
+  };
   // Render only document content. Scripts, copied event handlers, and editor UI are excluded.
   const renderChildren = (node: Node): ReactNode[] => [...node.childNodes].map((child, index) => renderNode(child, index));
   const renderNode = (node: Node, key: number): ReactNode => {
@@ -71,6 +77,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     if (['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'SVG', 'MATH', 'TEMPLATE', 'INPUT', 'BUTTON'].includes(node.tagName)) return null;
     if (node.hasAttribute('data-fitness-values')) return null;
     if (node.hasAttribute('data-weightloss-week') && node.getAttribute('data-weightloss-week') !== String(planWeek)) return null;
+    if (node.hasAttribute('data-inline-index')) return <InlineChecklistText key={key} as={node.tagName.toLowerCase()} html={node.innerHTML} label={/^H/.test(node.tagName) ? 'Edit heading' : 'Edit note text'} onChange={edited => saveInline(saveInlineBlock(scheduledHtml, Number(node.getAttribute('data-inline-index')), edited))} />;
     if (lists.includes(node)) {
       const sectionIndex = lists.indexOf(node);
       const title = checklistTitle(node, root, sectionIndex);
@@ -99,14 +106,14 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
               const due = taskDueLabel(box, now);
               const isToday = due?.date === today;
               return <li key={itemIndex} className={[checked && 'is-done', isToday && 'is-today'].filter(Boolean).join(' ')}>
-                <label className="checklist-task-label">
-                  <input type="checkbox" disabled={due?.status === "Ended"} checked={checked} onChange={event => { setUndo(null); onChange(setChecklistChecked(scheduledHtml, [index], event.target.checked, now)); }} />
-                  <span>{taskTitle}</span>
-                </label>
+                <div className="checklist-task-label">
+                  <input type="checkbox" aria-label={`Mark ${taskTitle} complete`} disabled={due?.status === "Ended"} checked={checked} onChange={event => { setUndo(null); onChange(setChecklistChecked(scheduledHtml, [index], event.target.checked, now)); }} />
+                  <InlineChecklistText as="span" html={(() => { const span = document.createElement('span'); span.textContent = taskTitle; return span.innerHTML; })()} label="Edit task name" onChange={edited => saveInline(saveInlineTask(scheduledHtml, index, 'title', edited))} />
+                </div>
                 {due && <div className={`checklist-due status-${due.status.toLowerCase().replace(' ', '-')}`}><span>{due.day}</span><time dateTime={due.date} aria-current={isToday ? 'date' : undefined}>{displayDate(due.date)}</time><strong>{isToday && checked ? 'Done · Today' : due.status}</strong></div>}
                 <button type="button" className="checklist-edit-schedule task-schedule-button" aria-label={`Edit task ${taskTitle}`} onClick={() => setContentEdit({ kind: 'task', index, content: readTaskContent(item) })}>Edit task</button>
                 <button type="button" className="checklist-edit-schedule task-schedule-button" aria-label={`Edit schedule for ${taskTitle}`} onClick={() => openSchedule([index], taskTitle)}>Edit schedule</button>
-                {!compact && detail.textContent?.trim() && <div className="checklist-task-detail">{renderChildren(detail)}</div>}
+                {!compact && <InlineChecklistText className="checklist-task-detail" html={detail.innerHTML} label="Edit task details" onChange={edited => saveInline(saveInlineTask(scheduledHtml, index, 'detail', edited))} />}
               </li>;
             })}
           </ul>
@@ -203,6 +210,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     <nav className="checklist-jump" aria-label="Jump to checklist">{visibleLists.map((list) => <button key={lists.indexOf(list)} onClick={() => document.getElementById(`${prefix}-section-${lists.indexOf(list)}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{checklistTitle(list, root, lists.indexOf(list))}</button>)}</nav>
     <button type="button" className="checklist-add-section" onClick={() => setContentEdit({ kind: 'add-section' })}>＋ Add section</button>
     {undo && undo.after === html && <div className="checklist-undo" role="status">{undo.message}<button onClick={() => { onChange(undo.before); setUndo(null); }}>{undo.message === "Checklist reset." ? "Undo reset" : "Undo"}</button></div>}
+    <p className="checklist-inline-hint">Click any heading, paragraph, task name, or detail to edit it here. Text saves automatically. Use schedule and calculator controls for linked dates and values.</p>
     <div className="checklist-note-body">{!root.querySelector('h1') && title && <h1>{title}</h1>}{renderChildren(root)}</div>
   </article>;
 }

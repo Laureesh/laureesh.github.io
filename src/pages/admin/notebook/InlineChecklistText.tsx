@@ -1,11 +1,13 @@
-import { createElement, useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, type ElementType, type MouseEvent, type ClipboardEvent, type DragEvent, type KeyboardEvent } from 'react';
 import { inlineEditorHtml } from './inlineChecklistEditing';
 type Props = { as?: string; html: string; label: string; className?: string; onChange: (html: string) => void };
 /** An uncontrolled editing surface keeps the caret stable through note autosaves. */
 export default function InlineChecklistText({ as = 'div', html, label, className = '', onChange }: Props) {
   const ref = useRef<HTMLElement>(null);
   const composing = useRef(false);
+  const latestHtml = useRef(html);
   useLayoutEffect(() => {
+    latestHtml.current = html;
     const element = ref.current;
     if (element && document.activeElement !== element) {
       const next = inlineEditorHtml(html);
@@ -13,20 +15,39 @@ export default function InlineChecklistText({ as = 'div', html, label, className
     }
   }, [html]);
   const save = () => { if (ref.current) onChange(ref.current.innerHTML); };
-  return createElement(as, {
+  const Tag = as as ElementType;
+  return <Tag {...{
     ref, className: `checklist-inline-text ${className}`, contentEditable: true, suppressContentEditableWarning: true,
     role: 'textbox', 'aria-label': label, 'aria-multiline': true, spellCheck: true,
     onInput: () => { if (!composing.current) save(); },
     onCompositionStart: () => { composing.current = true; },
     onCompositionEnd: () => { composing.current = false; save(); },
-    onBlur: save,
-    onClick: (event: React.MouseEvent) => { if ((event.target as Element).closest('a') && !event.ctrlKey && !event.metaKey) event.preventDefault(); },
-    onPaste: (event: React.ClipboardEvent) => {
+    onBlur: () => {
+      save();
+      // Reconcile protected values after React processes the last input, never while typing.
+      window.setTimeout(() => {
+        const element = ref.current;
+        if (element && document.activeElement !== element) {
+          const next = inlineEditorHtml(latestHtml.current);
+          if (element.innerHTML !== next) element.innerHTML = next;
+        }
+      }, 0);
+    },
+    onClick: (event: MouseEvent) => { if ((event.target as Element).closest('a') && !event.ctrlKey && !event.metaKey) event.preventDefault(); },
+    onKeyDown: (event: KeyboardEvent) => {
+      if (event.key === 'Enter' && !composing.current) {
+        event.preventDefault(); document.execCommand('insertLineBreak'); save();
+      }
+    },
+    onPaste: (event: ClipboardEvent) => {
       event.preventDefault();
       // Plain-text paste avoids injecting active content into the live editor.
-      document.execCommand('insertText', false, event.clipboardData.getData('text/plain'));
+      event.clipboardData.getData('text/plain').split(/\r?\n/).forEach((line, index) => {
+        if (index) document.execCommand('insertLineBreak');
+        if (line) document.execCommand('insertText', false, line);
+      });
       save();
     },
-    onDrop: (event: React.DragEvent) => event.preventDefault(),
-  });
+    onDrop: (event: DragEvent) => event.preventDefault(),
+  }} />;
 }
