@@ -5,7 +5,7 @@ import { numberText } from './fitnessCalculations';
 import FitnessCalculators from './FitnessCalculators';
 import { refreshFitnessDocument, shoppingTotal } from './fitnessDocument';
 import ChecklistContentEditor from "./ChecklistContentEditor";
-import { editableSectionTitle, readTaskContent, removeChecklistTask, saveChecklistContent, type ChecklistEdit } from "./checklistEditing";
+import { editableSectionTitle, isRepeatedChecklistHeading, readTaskContent, removeChecklistSection, removeChecklistTask, saveChecklistContent, type ChecklistEdit } from "./checklistEditing";
 import ChecklistScheduleEditor from "./ChecklistScheduleEditor";
 import { editableTaskSchedule, TASK_SCHEDULE_ATTRIBUTE, type TaskSchedule } from "./customTaskSchedule";
 import { changeWeightLossStart, validPlanDate, weightLossDates } from "./weightLossPlan";
@@ -85,6 +85,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     if (['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'SVG', 'MATH', 'TEMPLATE', 'INPUT', 'BUTTON'].includes(node.tagName)) return null;
     if (node.hasAttribute('data-fitness-values')) return null;
     if (node.hasAttribute('data-weightloss-week') && node.getAttribute('data-weightloss-week') !== String(planWeek)) return null;
+    if (isRepeatedChecklistHeading(node, root)) return null;
     if (node.hasAttribute('data-inline-index')) return <InlineChecklistText key={key} as={node.tagName.toLowerCase()} html={node.innerHTML} label={/^H/.test(node.tagName) ? 'Edit heading' : 'Edit note text'} onRemoveEmpty={['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'PRE'].includes(node.tagName) ? () => removeEmptyLines(Number(node.getAttribute('data-inline-index'))) : undefined} onChange={edited => saveInline(saveInlineBlock(scheduledHtml, Number(node.getAttribute('data-inline-index')), edited))} />;
     if (lists.includes(node)) {
       const sectionIndex = lists.indexOf(node);
@@ -178,9 +179,10 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
       onChange(next);
       setContentEdit(null);
     }} onDelete={() => {
-      if (contentEdit.kind !== 'task') return;
-      const next = removeChecklistTask(scheduledHtml, contentEdit.index);
-      setUndo({ before: scheduledHtml, after: next, message: "Task deleted." });
+      if (contentEdit.kind !== 'task' && contentEdit.kind !== 'section') return;
+      const next = contentEdit.kind === 'section' ? removeChecklistSection(scheduledHtml, contentEdit.index) : removeChecklistTask(scheduledHtml, contentEdit.index);
+      setUndo({ before: scheduledHtml, after: next, message: contentEdit.kind === 'section' ? 'Section deleted. Heading kept.' : 'Task deleted.' });
+      setCollapsed(new Set());
       onChange(next);
       setContentEdit(null);
     }} />}

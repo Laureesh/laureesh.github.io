@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createRequire } from 'node:module';
 import { checklistRoot, checklistSelector, checklistTitle } from '../src/pages/admin/notebook/checklistDocument.ts';
-import { readTaskContent, saveChecklistContent, removeChecklistTask, editableSectionTitle, taskContentError } from '../src/pages/admin/notebook/checklistEditing.ts';
+import { readTaskContent, saveChecklistContent, removeChecklistSection, isRepeatedChecklistHeading, removeChecklistTask, editableSectionTitle, taskContentError } from '../src/pages/admin/notebook/checklistEditing.ts';
 import { changeWeightLossStart } from '../src/pages/admin/notebook/weightLossPlan.ts';
 const { parseHTML, NodeFilter } = createRequire(import.meta.url)(process.env.DOM_TEST_MODULE || 'linkedom');
 const { window } = parseHTML('<html><body></body></html>');
@@ -82,4 +82,22 @@ test('editing details retains existing study images', () => {
   const root = checklistRoot(saveChecklistContent(original, { kind: 'task', index: 0, content }, content));
   assert.equal(root.querySelector('img').getAttribute('src'), '/exercise.png');
   assert.equal(root.querySelector('img').getAttribute('alt'), 'Form guide');
+});
+
+test('section deletion keeps its heading and neighboring content, including for empty sections', () => {
+  for (const content of ['', '<li><input type="checkbox" checked>Task</li>']) {
+    const before = '<h2>Before I start</h2><ul class="notebook-todo">' + content + '</ul><p>Keep this</p>' + source;
+    const after = removeChecklistSection(before, 0);
+    assert.equal(after, '<h2>Before I start</h2><p>Keep this</p>' + checklistRoot(source).innerHTML);
+    const root = checklistRoot(after);
+    assert.equal(isRepeatedChecklistHeading(root.querySelector('h2'), root), false);
+  }
+});
+test('only matching adjacent checklist headings are hidden in presentation', () => {
+  const root = checklistRoot(source);
+  assert.equal(isRepeatedChecklistHeading(root.querySelector('h2'), root), true);
+  root.querySelector('ul').setAttribute('data-checklist-title', 'Different title');
+  assert.equal(isRepeatedChecklistHeading(root.querySelector('h2'), root), false);
+  const separate = checklistRoot('<h2>Notes</h2><p>Explanation</p><ul class="notebook-todo"></ul>');
+  assert.equal(isRepeatedChecklistHeading(separate.querySelector('h2'), separate), false);
 });

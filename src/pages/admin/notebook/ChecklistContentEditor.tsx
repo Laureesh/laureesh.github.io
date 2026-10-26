@@ -34,7 +34,8 @@ export default function ChecklistContentEditor({ fitness, edit, onSave, onDelete
       </>}
       {error && <p className="schedule-error" role="status">{error}</p>}
       {edit.kind === 'task' && <p className="schedule-help">Your checkmark and schedule stay unchanged when you edit the text.</p>}
-      <footer>{edit.kind === 'task' && <button className="delete-checklist-task" type="button" onClick={onDelete}>Delete task</button>}<button type="button" onClick={onClose}>Cancel</button><button type="submit" disabled={Boolean(error)}>Save {section ? 'section' : 'task'}</button></footer>
+      {edit.kind === 'section' && <p className="schedule-help">Deleting this section removes its tasks and keeps the heading above it. You can undo this.</p>}
+      <footer>{edit.kind === 'section' && <button className="delete-checklist-task" type="button" onClick={onDelete}>Delete section</button>}{edit.kind === 'task' && <button className="delete-checklist-task" type="button" onClick={onDelete}>Delete task</button>}<button type="button" onClick={onClose}>Cancel</button><button type="submit" disabled={Boolean(error)}>Save {section ? 'section' : 'task'}</button></footer>
     </form>
   </dialog>, document.body);
 }

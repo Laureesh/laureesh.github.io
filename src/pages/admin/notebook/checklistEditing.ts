@@ -1,5 +1,5 @@
 import { calculationText, fitnessLabels, validTaskCalculation, type FitnessKey, type TaskCalculation } from './fitnessCalculations.ts';
-import { checklistRoot, checklistSelector, checklistTaskContent } from './checklistDocument.ts';
+import { checklistRoot, checklistSelector, checklistTaskContent, checklistTitle } from './checklistDocument.ts';
 import { TASK_SCHEDULE_ATTRIBUTE } from './customTaskSchedule.ts';
 
 export type TaskLink = { label: string; url: string };
@@ -121,4 +121,21 @@ export function removeChecklistTask(html: string, index: number): string {
   const root = checklistRoot(html);
   root.querySelectorAll(checklistSelector)[index]?.parentElement?.remove();
   return root.innerHTML;
+}
+
+/** Remove only the checklist; surrounding headings and note text belong to the note. */
+export function removeChecklistSection(html: string, index: number): string {
+  const root = checklistRoot(html);
+  const list = lists(root)[index];
+  if (!list) return html;
+  list.remove();
+  return root.innerHTML;
+}
+/** Suppress an adjacent repeated heading in Checklist View without deleting source text. */
+export function isRepeatedChecklistHeading(node: Element, root: Element): boolean {
+  if (!node.matches('h2,h3,h4')) return false;
+  const next = node.nextElementSibling;
+  if (!next?.matches('ul.notebook-todo')) return false;
+  const normalize = (text: string) => text.replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+  return normalize(node.textContent ?? '') === normalize(checklistTitle(next, root, lists(root).indexOf(next)));
 }
