@@ -1,0 +1,1799 @@
+Question 1
+What is a thread in an operating system?
+
+answer
+A
+A basic unit of execution within a process
+Correct Answer:
+B
+A complete operating system stored on disk
+C
+A separate virtual address space in every case
+D
+A physical CPU core
+
+Explanation
+A process provides a resource container; its threads are execution paths within that container. A thread is software, not a processor core.
+Source: Slides 3, 7; PDF pp. 3-4.
+
+Question 2
+What information does each thread keep for itself?
+
+answer
+A
+A separate copy of all process code and open files
+B
+An independent kernel for each thread
+C
+The process's entire heap as private memory
+D
+Thread ID, program counter, register state, and stack
+Correct Answer:
+
+Explanation
+Threads need their own execution state so they can pause and resume independently. Code, ordinary process data, and open files are generally shared.
+Source: Slide 7; PDF pp. 4, 8.
+
+Question 3
+What resources do threads in the same process usually share?
+
+answer
+A
+One identical stack pointer for all threads
+B
+A separate address space for each thread
+C
+Every thread's program counter and register state
+D
+Code, ordinary process data, and open files
+Correct Answer:
+
+Explanation
+Shared process resources make communication convenient. Each thread still maintains its own stack and saved execution state.
+Source: Slides 4, 7; PDF pp. 3-4, 8.
+
+Question 4
+What does a thread's program counter tell it?
+
+answer
+A
+The total number of processes in the system
+B
+The instruction location at which execution continues
+Correct Answer:
+C
+The amount of unused disk space
+D
+The number of CPU cores assigned to the process
+
+Explanation
+The program counter is part of the thread's execution state. Saving it lets execution resume at the appropriate instruction.
+Source: Slide 7; PDF p. 4.
+
+Question 5
+Why does each thread need its own stack?
+
+answer
+A
+To maintain its own function calls and automatic local variables
+Correct Answer:
+B
+To store every other thread's register values
+C
+To create a private copy of the entire operating system
+D
+To prevent all access to process memory
+
+Explanation
+Different threads can be in different function calls at the same time. Separate stacks preserve those independent call histories.
+Source: Slide 7; PDF pp. 4, 8.
+
+Question 6
+Why does creating a thread usually cost less than creating a new process?
+
+answer
+A
+Thread creation always happens without kernel involvement
+B
+A thread requires no execution state at all
+C
+Much of the existing process environment can be reused
+Correct Answer:
+D
+Threads never use memory
+
+Explanation
+A new thread needs state such as a stack and registers, but can reuse process resources. Kernel involvement depends on the threading implementation.
+Source: Slides 3-4, 11; PDF pp. 3, 10, 16.
+
+Question 7
+How can a word processor use multiple threads?
+
+answer
+A
+Each feature must run on a physically separate computer
+B
+All threads must execute the exact same instruction simultaneously
+C
+Every feature must use a different process address space
+D
+Separate threads can handle typing, spell-checking, and background work
+Correct Answer:
+
+Explanation
+The slides use application activities to motivate threads. Work can be separated while remaining inside one process.
+Source: Slide 3; PDF p. 3.
+
+Question 8
+What is the difference between a process and its threads?
+
+answer
+A
+Each thread necessarily owns an unrelated address space
+B
+A process cannot contain more than one thread
+C
+The process supplies resources; threads supply execution paths using those resources
+Correct Answer:
+D
+A process is a CPU register and a thread is a disk sector
+
+Explanation
+Keeping resource ownership separate from execution makes the remaining chapter easier: one process can support many independent execution contexts.
+Source: Slides 3, 7; PDF pp. 3-4, 8.
+
+Question 9
+An app still responds to the user while a worker thread waits for the network. Which benefit of threads does this show?
+
+answer
+A
+Responsiveness
+Correct Answer:
+B
+Guaranteed elimination of all synchronization
+C
+Making every operation instantaneous
+D
+Replacing virtual memory
+
+Explanation
+Responsiveness means useful work can continue while some work waits. Whether blocking affects other threads also depends on the threading model.
+Source: Slide 4; PDF p. 5.
+
+Question 10
+Several worker threads use the same document in memory. Which benefit of threads does this show?
+
+answer
+A
+Resource sharing
+Correct Answer:
+B
+Automatic prevention of all data races
+C
+Physical processor duplication
+D
+Separate address spaces for every worker
+
+Explanation
+Sharing the process's resources avoids constructing a separate communication mechanism just to exchange the document. Safe concurrent updates still require coordination.
+Source: Slide 4; PDF p. 5.
+
+Question 11
+What is the name for the benefit of threads costing less to create and switch between than processes?
+
+answer
+A
+Thread cancellation
+B
+Economy
+Correct Answer:
+C
+Address-space isolation
+D
+Signal masking
+
+Explanation
+Economy concerns overhead and resource cost. It does not mean threads are free or that creating unlimited threads improves performance.
+Source: Slides 3-4; PDF pp. 3, 5.
+
+Question 12
+Which benefit lets a process use multiple CPU cores?
+
+answer
+A
+A single kernel thread in every implementation
+B
+Guaranteed serial execution
+C
+Scalability
+Correct Answer:
+D
+Elimination of thread stacks
+
+Explanation
+A suitable threading model lets runnable threads execute on multiple cores. The number of user threads alone does not establish parallel execution.
+Source: Slides 4-6, 10-12; PDF pp. 5-7.
+
+Question 13
+What does concurrency mean?
+
+answer
+A
+Multiple tasks make progress during overlapping periods of time
+Correct Answer:
+B
+The operating system contains only one process
+C
+Every task executes at precisely the same instant
+D
+One task must finish before another can start
+
+Explanation
+Concurrency is about overlapping progress. A single execution core can provide it by interleaving work.
+Source: Slides 5-6; PDF p. 7.
+
+Question 14
+What does parallelism mean?
+
+answer
+A
+Tasks only take turns on one execution resource
+B
+Tasks share a filename
+C
+Multiple tasks execute at the same time
+Correct Answer:
+D
+Tasks must belong to different processes
+
+Explanation
+Parallelism concerns simultaneous execution. Threads of the same process can run in parallel if the hardware and mapping support it.
+Source: Slides 5-6; PDF p. 7.
+
+Question 15
+A CPU has one core and no simultaneous multithreading (SMT). It takes turns running two threads. What is this called?
+
+answer
+A
+Two threads physically executing at once
+B
+Concurrency without simultaneous execution of the two threads
+Correct Answer:
+C
+Two new physical cores
+D
+No concurrency because the threads are interleaved
+
+Explanation
+The scheduler can alternate rapidly enough that both tasks progress. Time slicing does not create another execution core.
+Source: Slides 5-6; PDF pp. 4, 7.
+
+Question 16
+You look for parts of a big job that can run independently. Which multicore programming challenge are you solving?
+
+answer
+A
+Dividing activities
+Correct Answer:
+B
+Removing all process memory
+C
+Duplicating every kernel
+D
+Disabling thread creation
+
+Explanation
+Parallel work must first be identified and separated. Activities that depend entirely on earlier results cannot all run independently.
+Source: Slide 5; PDF pp. 6-7.
+
+Question 17
+One of four cores does most of the work while the others finish quickly. What needs to improve?
+
+answer
+A
+The spelling of the thread IDs
+B
+The size of the executable filename
+C
+The number of default signal handlers
+D
+Load balance
+Correct Answer:
+
+Explanation
+Poor balance leaves cores idle while one worker becomes the bottleneck. Dividing a job is not enough; the portions should have appropriate workloads.
+Source: Slide 5; PDF p. 7.
+
+Question 18
+Why can it be hard to test and debug a program with multiple threads?
+
+answer
+A
+Shared state automatically prevents timing-related bugs
+B
+More cores make testing unnecessary
+C
+Threads always execute in one fixed order
+D
+Different execution interleavings can reveal different failures
+Correct Answer:
+
+Explanation
+A bug may depend on timing and shared-state access. Multicore programming does not automatically make debugging faster or correctness easier.
+Source: Slide 5; PDF p. 7 clarification.
+
+Question 19
+In this chapter's model, what manages user-level threads?
+
+answer
+A
+The disk controller alone
+B
+The BIOS alone
+C
+A user-level thread library
+Correct Answer:
+D
+A separate operating system installed for each thread
+
+Explanation
+User-level management is performed by a library in user space. How those threads map to kernel threads is a separate question.
+Source: Slide 8; PDF pp. 9-10.
+
+Question 20
+What manages kernel-level threads?
+
+answer
+A
+A network switch
+B
+The operating-system kernel
+Correct Answer:
+C
+Only a text editor's spell checker
+D
+The application without any kernel knowledge
+
+Explanation
+Kernel threads are visible to the kernel's scheduling machinery. This allows the kernel to schedule runnable execution contexts individually.
+Source: Slide 8; PDF pp. 12-13.
+
+Question 21
+Which three thread libraries do the slides name?
+
+answer
+A
+HTML, CSS, and JPEG
+B
+POSIX Pthreads, Windows threads, and Java threads
+Correct Answer:
+C
+FAT, NTFS, and ext4
+D
+TCP, UDP, and DNS
+
+Explanation
+These are threading interfaces named in the course. A library's name alone does not establish one universal user-to-kernel mapping for every implementation.
+Source: Slide 8.
+
+Question 22
+What jobs can a user-level thread library handle?
+
+answer
+A
+Creating, terminating, and scheduling its user threads
+Correct Answer:
+B
+Preventing the OS from scheduling any process
+C
+Assigning every process a new kernel
+D
+Replacing the computer's physical cores
+
+Explanation
+The handwritten notes list thread-management responsibilities. A library can manage user execution contexts without making each one an independent kernel scheduling entity.
+Source: PDF pp. 9-10; slide 8.
+
+Question 23
+Why can switching between threads managed entirely in user space be fast?
+
+answer
+A
+The threads have no registers to save
+B
+The runtime creates a new process for every switch
+C
+The machine does not execute instructions
+D
+The runtime can switch execution state without a kernel transition for each switch
+Correct Answer:
+
+Explanation
+Avoiding a kernel transition can reduce overhead. This is a property of user-space management, not a claim that all threads avoid the kernel.
+Source: PDF pp. 9-10; slides 8, 10.
+
+Question 24
+What does the many-to-one threading model mean?
+
+answer
+A
+Each user thread mapped to its own kernel thread
+B
+One user thread mapped to many independent processes
+C
+Many kernel threads mapped to no user activity
+D
+Many user threads mapped to one kernel thread
+Correct Answer:
+
+Explanation
+Read model names in user-thread-to-kernel-thread order. Many-to-one creates a bottleneck at the single kernel thread.
+Source: Slides 9-10; PDF p. 15.
+
+Question 25
+In a many-to-one process, the only kernel thread is blocked by a system call. What happens to the other user threads while it waits?
+
+answer
+A
+They run simultaneously on every CPU core
+B
+They cannot execute through that blocked kernel thread
+Correct Answer:
+C
+They become unrelated processes
+D
+They automatically acquire separate kernel threads
+
+Explanation
+A blocking operation can stall the process's user threads because they depend on one kernel thread. A user-space runtime wait is not necessarily the same as a blocking system call.
+Source: Slide 10; PDF pp. 11, 15.
+
+Question 26
+Why can't threads in a many-to-one process run on several CPU cores at the same time?
+
+answer
+A
+Only one underlying kernel thread is available to run them
+Correct Answer:
+B
+User threads cannot contain any instructions
+C
+The computer necessarily has only one core
+D
+The process has no shared data
+
+Explanation
+Even on multicore hardware, one runnable kernel execution context cannot supply parallel execution for all its mapped user threads.
+Source: Slide 10; PDF p. 15.
+
+Question 27
+Which older systems do the slides list as examples of many-to-one threading?
+
+answer
+A
+Windows one-to-one threads and Linux one-to-one threads
+B
+ETHREAD and TEB
+C
+Solaris Green Threads and GNU Portable Threads
+Correct Answer:
+D
+fork() and exec()
+
+Explanation
+These are examples attached to the many-to-one slide. Treat version-specific examples as course history, not a statement about every version of those systems.
+Source: Slide 10.
+
+Question 28
+What does the one-to-one threading model mean?
+
+answer
+A
+Each user thread maps to a corresponding kernel thread
+Correct Answer:
+B
+One user thread always requires every kernel thread
+C
+All user threads map to one kernel thread
+D
+Threads are replaced by files
+
+Explanation
+One-to-one gives each user thread a kernel scheduling counterpart. This increases flexibility compared with many-to-one but carries kernel-resource overhead.
+Source: Slide 11; PDF p. 16.
+
+Question 29
+In the one-to-one model, what else usually needs to be created when a new user thread is created?
+
+answer
+A
+Creating a new address space for the entire application
+B
+Creating another corresponding kernel thread
+Correct Answer:
+C
+Creating another physical CPU
+D
+Deleting all other threads in the process
+
+Explanation
+The kernel must support the new execution context. This is why thread creation in this model is not entirely a user-space operation.
+Source: Slide 11; PDF p. 16.
+
+Question 30
+In a one-to-one process, one thread waits for input or output (I/O). What can the other ready threads do?
+
+answer
+A
+The kernel can schedule them independently
+Correct Answer:
+B
+They all lose their stacks
+C
+They must all block until the first thread exits
+D
+They can run only after exec() replaces the process
+
+Explanation
+Separate kernel threads let other runnable work proceed, subject to resources, scheduling, and any shared synchronization dependencies.
+Source: Slide 11; PDF pp. 13, 16.
+
+Question 31
+What resource costs can limit how many threads a one-to-one system creates?
+
+answer
+A
+The need for a separate physical core for every existing thread
+B
+The impossibility of blocking on I/O
+C
+Kernel-thread management and memory overhead
+Correct Answer:
+D
+The absence of thread IDs
+
+Explanation
+Each thread consumes resources even when it is not running. More threads do not imply unlimited useful parallelism.
+Source: Slide 11; PDF pp. 13, 16.
+
+Question 32
+Which systems do the slides list as examples of one-to-one threading?
+
+answer
+A
+Every Solaris release without exception
+B
+Windows, Linux, and Solaris 9 and later
+Correct Answer:
+C
+Solaris Green Threads and GNU Portable Threads
+D
+Only systems with exactly one physical CPU
+
+Explanation
+The version qualifier matters: the course contrasts Solaris before version 9 with Solaris 9 and later.
+Source: Slides 11-12.
+
+Question 33
+What does the many-to-many threading model mean?
+
+answer
+A
+Exactly one user thread per entire computer
+B
+Every user thread forced onto one kernel thread forever
+C
+Many processes sharing one thread ID
+D
+Many user threads multiplexed over a set of kernel threads
+Correct Answer:
+
+Explanation
+Many-to-many separates the number of user threads from the number of kernel threads. It allows concurrency and potential parallelism without requiring a kernel thread for every user thread.
+Source: Slide 12; PDF p. 17.
+
+Question 34
+In the notes' many-to-many model, how can the number of kernel threads compare with the number of user threads?
+
+answer
+A
+It is always zero
+B
+It must always be ten times larger
+C
+It must equal the number of source-code files
+D
+It can be smaller than or equal to the user-thread count
+Correct Answer:
+
+Explanation
+The runtime multiplexes user threads over available kernel threads. Mapping all user threads one-to-one is not required.
+Source: Slide 12; PDF p. 17.
+
+Question 35
+There are 12 ready user threads mapped to 3 kernel threads on an 8-core CPU. With no simultaneous multithreading (SMT), how many of these user threads can run at once?
+
+answer
+A
+Three
+Correct Answer:
+B
+Twelve
+C
+One hundred
+D
+Eight
+
+Explanation
+Parallel execution is bounded by both available execution resources and runnable kernel threads. Here the three kernel threads are the tighter bound.
+Source: Application of slides 5-6, 12.
+
+Question 36
+There are 8 ready one-to-one threads and 4 available CPU cores. With no simultaneous multithreading (SMT), how many threads can run at once?
+
+answer
+A
+Eight
+B
+One
+C
+Four
+Correct Answer:
+D
+Thirty-two
+
+Explanation
+The remaining threads can wait or take turns. Having eight kernel threads does not create eight physical execution cores.
+Source: Application of slides 5-6, 11.
+
+Question 37
+Is one-to-one threading useful only on computers with multiple cores?
+
+answer
+A
+No; it eliminates the need for CPU scheduling
+B
+Yes; each existing thread permanently owns a core
+C
+Yes; it cannot exist unless the CPU has at least two cores
+D
+No; it can also provide independently schedulable threads on a single core
+Correct Answer:
+
+Explanation
+On one core, runnable threads can be interleaved and another can run when one blocks. Multiple cores additionally permit parallel execution.
+Source: Slides 5-6, 11; PDF pp. 7, 16 clarification.
+
+Question 38
+What is fork() used for?
+
+answer
+A
+To replace the current program without creating a child
+B
+To cancel a target thread
+C
+To allocate only thread-local storage
+D
+To create a child process
+Correct Answer:
+
+Explanation
+fork() is process creation. The chapter then asks which threads are represented in the child of a multithreaded parent.
+Source: Slide 14; PDF pp. 18-19.
+
+Question 39
+What happens when exec() successfully runs a new program?
+
+answer
+A
+Duplicates all processes on the machine
+B
+Replaces the current process's running program image
+Correct Answer:
+C
+Creates a new thread that continues the old program
+D
+Only changes the calling thread's stack contents
+
+Explanation
+The new program replaces the old process image. It is not merely a new task added alongside all the old threads.
+Source: Slide 14; PDF pp. 18-20.
+
+Question 40
+Why do we need to consider threads when a program calls fork()?
+
+answer
+A
+A child process cannot execute instructions
+B
+The system must define whether the child contains only the calling thread or copies of all threads
+Correct Answer:
+C
+Threads cannot exist in a process that has a parent
+D
+Every fork() permanently disables signals
+
+Explanation
+The slides identify this as a semantic choice and mention historical UNIX variants. Do not assume one rule for every API variant.
+Source: Slide 14; PDF p. 19.
+
+Question 41
+With normal Linux/POSIX fork(), which thread is copied into the child process?
+
+answer
+A
+Only the thread that called fork()
+Correct Answer:
+B
+No thread at all
+C
+Only threads that are blocked
+D
+Every thread in the parent
+
+Explanation
+The child starts with a replica of the caller. The handwritten fork(1)/fork(2) labels should not be treated as portable function arguments.
+Source: Clarification: Linux fork(2) manual; slide 14.
+
+Question 42
+A Linux process has 4 threads, and one calls normal fork(). If no threads exit, how many threads are now in the parent and the child?
+
+answer
+A
+Five in each
+B
+Four in each
+C
+One in the parent and four in the child
+D
+Four in the parent and one in the child
+Correct Answer:
+
+Explanation
+The parent keeps its original threads. The ordinary fork rule gives the child only the calling thread's execution path.
+Source: Application of Linux fork(2); slide 14.
+
+Question 43
+If a child process will call exec() right away, why is copying just the thread that called fork() usually enough?
+
+answer
+A
+All parent threads automatically migrate to the child later
+B
+exec() starts by running every old thread to completion
+C
+exec() requires the child to have no thread at all
+D
+The old program's other execution paths would be discarded by the replacement
+Correct Answer:
+
+Explanation
+The fork-then-exec pattern needs a path that launches the replacement program. Replicating old sibling execution paths is not needed for that purpose.
+Source: Slide 14; PDF pp. 19-20.
+
+Question 44
+One thread successfully calls exec() to run a new program. What happens to the process's other old threads?
+
+answer
+A
+They are copied into the replacement executable file
+B
+They automatically become separate processes
+C
+They all keep executing the old shared code
+D
+They do not continue running alongside the replacement program
+Correct Answer:
+
+Explanation
+The replacement applies to the process image, including the old multithreaded execution. It does not update just one thread's private data.
+Source: Slide 14; PDF p. 20.
+
+Question 45
+Which answer correctly explains the difference between fork() and exec()?
+
+answer
+A
+Both names mean creating a thread-local variable
+B
+fork() cancels a thread; exec() changes a signal mask
+C
+fork() creates a child; exec() replaces a running program image
+Correct Answer:
+D
+fork() always replaces the program; exec() always creates a child
+
+Explanation
+These calls are often used together but perform different jobs. The question is about their roles, not a claim that every program must use both.
+Source: Slide 14; PDF pp. 18-20.
+
+Question 46
+The notes describe two versions of fork() behavior. How should you decide which threads get copied on a specific operating system?
+
+answer
+A
+Assume every UNIX release copies all threads
+B
+Assume exec() and fork() are interchangeable
+C
+Identify the named API and OS, then apply its documented thread-copying rule
+Correct Answer:
+D
+Assume fork(1) and fork(2) are universal C calls with different integer arguments
+
+Explanation
+The slide discusses historical variants. In manual-page notation, fork(2) means the fork entry in manual section 2, not fork called with argument 2.
+Source: Slide 14; PDF p. 19 clarification; Linux fork(2) manual.
+
+Question 47
+What is a UNIX signal used for?
+
+answer
+A
+To notify a process or thread that an event occurred
+Correct Answer:
+B
+To allocate one CPU core per user thread
+C
+To store every thread's local variables
+D
+To duplicate all process memory
+
+Explanation
+A signal is an event notification. What happens next depends on the signal and its handling rules.
+Source: Slide 15; PDF pp. 20-21.
+
+Question 48
+In what order is a signal created, delivered, and handled?
+
+answer
+A
+A thread is canceled, then a process is forked, then a file is opened
+B
+A process is always destroyed before any signal is generated
+C
+TLS is copied into the CPU before every signal
+D
+An event generates a signal, the signal is delivered, and a handler or default action handles it
+Correct Answer:
+
+Explanation
+Separate generation, delivery, and handling. An event's occurrence and its eventual effect are not the same step.
+Source: Slide 15.
+
+Question 49
+What does a signal's default action or handler mean?
+
+answer
+A
+A mandatory request to clone the process
+B
+A user thread's program counter
+C
+A handler that always ignores the signal
+D
+The system-defined behavior when no applicable custom handling replaces it
+Correct Answer:
+
+Explanation
+Different signals have different default actions. Default does not always mean terminate.
+Source: Slide 15; PDF p. 21; signal(7) clarification.
+
+Question 50
+For a signal that can be caught, what does a custom signal handler do?
+
+answer
+A
+It replaces all thread stacks with one shared stack
+B
+It guarantees every signal can be ignored
+C
+It supplies application-defined handling instead of the default handling
+Correct Answer:
+D
+It creates another physical core
+
+Explanation
+Applications can customize handling for catchable signals. Avoid the unrestricted claim that every signal's default behavior can be overridden.
+Source: Slide 15; PDF p. 21.
+
+Question 51
+A thread accesses invalid memory and causes a fault. What type of signal does this produce?
+
+answer
+A
+Always asynchronous because it is unexpected
+B
+A many-to-many mapping event
+C
+A normal request to create a thread
+D
+Synchronous with that thread's execution
+Correct Answer:
+
+Explanation
+Synchronous means the event is directly associated with the executing thread's instruction. It does not mean that all threads run simultaneously.
+Source: Slides 13, 15-16; PDF pp. 20-22.
+
+Question 52
+A user presses Ctrl+C while a program runs. What type of signal event is this, compared with the instruction the program is running?
+
+answer
+A
+Asynchronous
+Correct Answer:
+B
+A function-local variable
+C
+An exec() replacement
+D
+A synchronous arithmetic result
+
+Explanation
+The input event is external to the particular instruction being executed. This differs from a fault caused directly by that instruction.
+Source: Slides 13, 15-16; PDF p. 20.
+
+Question 53
+A thread's instruction causes a fault and a synchronous signal. Which thread should receive that signal?
+
+answer
+A
+Every thread on the machine regardless of process
+B
+The thread that caused the fault
+Correct Answer:
+C
+Always the thread created most recently
+D
+An arbitrary unrelated process
+
+Explanation
+The cause identifies the affected execution path. This is different from choosing a recipient for a process-directed external notification.
+Source: Slide 16; PDF p. 22.
+
+Question 54
+What extra decision is needed when sending a signal to a process with multiple threads?
+
+answer
+A
+Which thread or designated handler should receive the signal
+Correct Answer:
+B
+Whether every thread must be renamed
+C
+Whether the process has any code at all
+D
+Which disk partition becomes a CPU core
+
+Explanation
+The slides discuss delivery to the applicable thread, selected threads, all threads where appropriate, or a designated handling thread. These are design possibilities, not a rule that one signal always reaches everyone.
+Source: Slide 16; PDF p. 22.
+
+Question 55
+Does an asynchronous signal always end the whole process?
+
+answer
+A
+No; asynchronous signals can never affect a process
+B
+Yes; it is identical to asynchronous thread cancellation
+C
+No; the effect depends on the signal's action and handling
+Correct Answer:
+D
+Yes; all asynchronous signals have exactly the same terminating action
+
+Explanation
+Asynchronous describes the source/timing relationship, not a mandatory result. The handwritten shorthand should not be memorized as a universal termination rule.
+Source: PDF p. 22 clarification; signal(7).
+
+Question 56
+Which claim about signals is not always true in POSIX/Linux?
+
+answer
+A
+Signals can notify a process of an event
+B
+Some signals are tied to a specific thread's execution
+C
+A user-defined handler can override every signal's default behavior
+Correct Answer:
+D
+Applications can define handlers for catchable signals
+
+Explanation
+SIGKILL and SIGSTOP cannot be caught, blocked, or ignored. The slide's general description of custom handlers does not remove these exceptions.
+Source: Slide 15 clarification; signal(7).
+
+Question 57
+What does thread cancellation mean?
+
+answer
+A
+Creating an additional process
+B
+Terminating a thread before it finishes its work normally
+Correct Answer:
+C
+Assigning a thread a permanent physical core
+D
+Copying every register into every other thread
+
+Explanation
+Cancellation stops work that is no longer wanted or should not continue. The thread being canceled is called the target.
+Source: Slide 17; PDF p. 23.
+
+Question 58
+In thread cancellation, what is the target thread?
+
+answer
+A
+The only thread allowed to create a process
+B
+The kernel's name for the entire computer
+C
+The thread whose cancellation is requested
+Correct Answer:
+D
+Every thread sharing the same executable file
+
+Explanation
+Target describes the intended recipient of a cancellation request. It does not mean all threads in the process.
+Source: Slide 17; PDF p. 23.
+
+Question 59
+What makes asynchronous cancellation different?
+
+answer
+A
+The target must always finish its entire task
+B
+The request can only be delivered after exec()
+C
+The target can be canceled without waiting for a normal cancellation point
+Correct Answer:
+D
+The request creates a new child process
+
+Explanation
+The slides describe this as immediate cancellation. The key contrast is that it need not wait for a safe checkpoint, so it can interrupt sensitive work.
+Source: Slide 17; PDF p. 24.
+
+Question 60
+What makes deferred cancellation different?
+
+answer
+A
+Cancellation happens only when all CPU cores are idle
+B
+The target responds at a cancellation point rather than at an arbitrary instruction
+Correct Answer:
+C
+The whole process must be replaced with exec()
+D
+The request is permanently ignored
+
+Explanation
+Deferred cancellation gives the program opportunities to handle cancellation at defined points. It does not require finishing the entire job first.
+Source: Slides 17-18; PDF p. 24.
+
+Question 61
+Why can stopping a thread at any point in its code be risky?
+
+answer
+A
+It automatically improves every other thread's data
+B
+It makes the process's address space read-only
+C
+It prevents all resource leaks by definition
+D
+It may be holding a lock or have only partly updated shared state
+Correct Answer:
+
+Explanation
+Stopping at an unsafe moment can strand resources or leave invariants broken. Deferred cancellation and appropriate cleanup help manage this risk.
+Source: Application of slides 17-18; PDF pp. 23-24.
+
+Question 62
+In Pthreads, does sending a cancellation request mean the target thread has already stopped?
+
+answer
+A
+Yes; successful requests always destroy the entire process
+B
+No; cancellation requests can never lead to termination
+C
+No; the target's cancellation state and type affect when it stops
+Correct Answer:
+D
+Yes; the request always waits for target termination
+
+Explanation
+A request and its completion are different events. A disabled or deferred target may continue executing after the request is made.
+Source: Slide 18.
+
+Question 63
+What happens to a cancellation request if the target thread has cancellation turned off?
+
+answer
+A
+It creates a second target thread
+B
+It remains pending until cancellation is enabled and can take effect
+Correct Answer:
+C
+It automatically becomes a fork() request
+D
+It always terminates the thread immediately
+
+Explanation
+Disabled cancellation prevents the request from taking effect at that time. Enabling cancellation later allows the configured cancellation type to govern it.
+Source: Slide 18.
+
+Question 64
+Which cancellation type do the slides list as the default?
+
+answer
+A
+Deferred
+Correct Answer:
+B
+Asynchronous
+C
+Signal-free
+D
+Fork-only
+
+Explanation
+The default type waits for a cancellation point. Do not confuse the cancellation type with whether cancellation is enabled or disabled.
+Source: Slide 18.
+
+Question 65
+What does pthread_testcancel() do?
+
+answer
+A
+Providing an explicit point at which pending deferred cancellation can be acted on
+Correct Answer:
+B
+Switching the process to many-to-one mode
+C
+Replacing the process image
+D
+Creating a new thread
+
+Explanation
+The slides give it as an example of a cancellation point. A deferred target can check for pending cancellation while carrying out longer work.
+Source: Slide 18.
+
+Question 66
+What does a cancellation cleanup handler do?
+
+answer
+A
+To turn a cancellation request into thread creation
+B
+To create one new kernel for every lock
+C
+To guarantee canceled work finishes normally
+D
+To perform cleanup such as releasing resources when cancellation takes effect
+Correct Answer:
+
+Explanation
+Cleanup code must be designed appropriately. Cancellation does not magically restore every shared object or release every resource correctly without such handling.
+Source: Slide 18; PDF p. 24.
+
+Question 67
+What does thread-local storage (TLS) give each thread?
+
+answer
+A
+A separate physical disk for each process
+B
+A separate instance of designated data for each thread
+Correct Answer:
+C
+One mandatory shared value used by every thread
+D
+A replacement for every CPU register
+
+Explanation
+TLS is per-thread data even though the threads share a process. It is useful when different threads need independent copies of the same logical variable.
+Source: Slide 19; PDF p. 25.
+
+Question 68
+How is thread-local storage (TLS) different from a regular local variable created during a function call?
+
+answer
+A
+TLS cannot be accessed by functions
+B
+TLS is always shared by all threads
+C
+An automatic local always survives until the process exits
+D
+TLS can persist across function invocations in that thread, while an automatic local belongs to an invocation
+Correct Answer:
+
+Explanation
+The important distinctions are lifetime and association: an invocation-local variable is tied to a call, while TLS is tied to the thread.
+Source: Slide 19.
+
+Question 69
+How is thread-local storage (TLS) different from a regular shared static or global variable?
+
+answer
+A
+TLS must be a kernel thread
+B
+A global variable is always destroyed after one function call
+C
+Both necessarily have one value shared by all threads
+D
+TLS has a separate instance per thread; an ordinary process-wide variable is shared
+Correct Answer:
+
+Explanation
+TLS can have persistence similar to static data while retaining per-thread instances. An ordinary shared static is not automatically thread-local.
+Source: Slide 19; PDF p. 25.
+
+Question 70
+Why is thread-local storage (TLS) useful in a thread pool?
+
+answer
+A
+A worker can maintain its own data even when the application does not directly control worker creation
+Correct Answer:
+B
+TLS forces all workers to use the same private variable
+C
+A pool cannot execute functions
+D
+A pool guarantees each task gets a brand-new thread
+
+Explanation
+The slides mention thread pools because workers may be created elsewhere. TLS associates data with the existing worker, not necessarily with one short-lived task.
+Source: Slide 19.
+
+Question 71
+Thread A sets its own TLS variable to 7. Thread B sets its own copy to 9. What value should each thread read?
+
+answer
+A
+Both must read 9
+B
+A reads 7 and B reads 9
+Correct Answer:
+C
+Both must read the number of CPU cores
+D
+Both must read 7
+
+Explanation
+The identical variable name refers to different per-thread instances. There is no single shared TLS value that B overwrites for A.
+Source: Application of slide 19.
+
+Question 72
+Two threads increase the same shared counter without coordinating access. What can go wrong?
+
+answer
+A
+A data race or lost update
+Correct Answer:
+B
+Automatic creation of independent TLS copies
+C
+A guaranteed deadlock merely because both access the variable
+D
+Guaranteed correct counting because memory is shared
+
+Explanation
+Shared access does not mean coordinated access. A race concerns uncontrolled access/interleaving; deadlock concerns threads waiting so none can proceed.
+Source: PDF p. 25 clarification; application of resource sharing.
+
+Question 73
+Does using thread-local storage (TLS) solve every problem with coordinating access to shared data?
+
+answer
+A
+No; TLS cannot store independent values
+B
+No; genuinely shared data may still need synchronization
+Correct Answer:
+C
+Yes; TLS prevents all possible deadlocks
+D
+Yes; TLS makes every process variable private automatically
+
+Explanation
+Only data actually made thread-local becomes separate. Shared queues, documents, and counters remain shared unless the design changes them too.
+Source: Application of slides 4, 19.
+
+Question 74
+A thread pool uses the same worker thread for another request. What should you remember about its thread-local storage (TLS)?
+
+answer
+A
+It belongs to the worker thread, so request-specific values may need resetting
+Correct Answer:
+B
+It always belongs to the newest process on the system
+C
+It is automatically a fresh variable for every request
+D
+It is necessarily shared with every other worker
+
+Explanation
+Thread lifetime and task/request lifetime are different. Reusing a thread can preserve its TLS between tasks unless the program manages that state.
+Source: Application of slide 19.
+
+Question 75
+Which threading model does the Windows example use?
+
+answer
+A
+No user-to-kernel mapping
+B
+One thread for the entire OS
+C
+Many-to-one only
+D
+One-to-one with kernel-level support
+Correct Answer:
+
+Explanation
+The slides describe each Windows user thread as having a kernel counterpart. This supports independent scheduling and potential parallelism.
+Source: Slide 21; PDF p. 26.
+
+Question 76
+According to the slides, what information makes up a Windows thread's context?
+
+answer
+A
+Only the executable filename
+B
+Register state, stacks, and a private data-storage area
+Correct Answer:
+C
+Only the parent process's open-file count
+D
+A separate copy of every kernel data structure
+
+Explanation
+The slide includes separate user and kernel stacks and private runtime/DLL data. Context is the information needed for that thread's execution.
+Source: Slide 21.
+
+Question 77
+Why does the Windows example use separate user-mode and kernel-mode stacks?
+
+answer
+A
+User mode and kernel mode are names for different disks
+B
+Each stack represents a different physical processor
+C
+A thread can execute in user mode and enter kernel mode
+Correct Answer:
+D
+Kernel threads never run application code
+
+Explanation
+The separate stacks support the thread's execution in the two modes. A thread is not permanently a CPU core or permanently in one privilege mode.
+Source: Slide 21.
+
+Question 78
+According to the chapter, what does the Windows ETHREAD structure contain?
+
+answer
+A
+The signal handler for every process
+B
+Links to the owning process and KTHREAD
+Correct Answer:
+C
+The entire physical RAM chip
+D
+Only thread-local data in user space
+
+Explanation
+ETHREAD is the executive thread block. The slides place it in kernel space and describe links to the process and kernel thread block.
+Source: Slide 22; PDF p. 26.
+
+Question 79
+According to the slides, what information belongs to KTHREAD?
+
+answer
+A
+Scheduling and synchronization information, a kernel stack, and a link to TEB
+Correct Answer:
+B
+A separate address space for every local variable
+C
+Only user-interface colors
+D
+Only a filename and disk partition
+
+Explanation
+KTHREAD is the kernel thread block and belongs in kernel space. Its role is distinct from the user-space thread environment block.
+Source: Slide 22; PDF p. 26.
+
+Question 80
+Which user-space structure holds a thread ID, user stack information, and thread-local storage (TLS)?
+
+answer
+A
+ETHREAD
+B
+TEB
+Correct Answer:
+C
+KTHREAD
+D
+The disk's partition table
+
+Explanation
+TEB means thread environment block. In the course diagram, ETHREAD and KTHREAD are kernel-space structures, while TEB is in user space.
+Source: Slides 22-23; PDF p. 26.
+
+Question 81
+What does the Linux example call the units of work that its scheduler manages?
+
+answer
+A
+Only fibers with no kernel support
+B
+Disk blocks
+C
+Tasks
+Correct Answer:
+D
+Thread environment blocks
+
+Explanation
+The chapter describes Linux threads as tasks. This connects the thread/process discussion to Linux's task representation.
+Source: Slide 24; PDF p. 26.
+
+Question 82
+Which Linux system call creates tasks and lets you choose which resources they share?
+
+answer
+A
+clone()
+Correct Answer:
+B
+pthread_testcancel()
+C
+A signal handler named TEB
+D
+exec()
+
+Explanation
+The slide emphasizes clone() and its flags. Applications often use a higher-level thread library rather than invoking the low-level call directly.
+Source: Slide 24.
+
+Question 83
+What do the flags passed to Linux clone() control?
+
+answer
+A
+They guarantee every task gets a dedicated physical core
+B
+They always force a completely separate address space
+C
+They control which resources the new task shares
+Correct Answer:
+D
+They specify only a color for the task
+
+Explanation
+The chapter emphasizes configurable sharing, including address-space sharing. Task creation and resource sharing are related but not identical decisions.
+Source: Slide 24.
+
+Question 84
+What does struct task_struct do in the Linux example?
+
+answer
+A
+It is a physical CPU register that replaces memory
+B
+It is a mandatory custom signal handler
+C
+It represents a task and references data structures that can be shared or distinct
+Correct Answer:
+D
+It is the name of Windows's user-mode stack
+
+Explanation
+The diagram's key idea is that task structures can reference shared process resources. The degree of sharing helps distinguish thread-like and process-like relationships.
+Source: Slide 24; PDF p. 26.
+
+Question 85
+A server has 100 user threads mapped to 1 kernel thread on an 8-core CPU. Why might work that needs lots of CPU time fail to use all 8 cores?
+
+answer
+A
+The server has too few user threads to use one core
+B
+Every user thread permanently consumes eight cores
+C
+The many-to-one mapping exposes only one kernel execution context for those threads
+Correct Answer:
+D
+TLS prevents the scheduler from running anything
+
+Explanation
+Hardware capacity alone does not guarantee parallelism. The mapping must expose enough runnable kernel execution contexts to use it.
+Source: Application of slides 5-6, 10.
+
+Question 86
+A browser uses separate user threads for its interface and downloads, but both share 1 kernel thread. What could still make the interface freeze?
+
+answer
+A
+The machine has more than one core
+B
+The UI thread has its own program counter
+C
+Both threads share executable code
+D
+The worker blocks the only kernel thread in a system call
+Correct Answer:
+
+Explanation
+Separating activities is not enough if the implementation cannot schedule another thread while the shared kernel context is blocked.
+Source: Application of slides 4, 10.
+
+Question 87
+The notes say threads cannot make system calls. Which answer corrects that claim?
+
+answer
+A
+Executing threads can invoke system calls; user-space-only thread management does not itself require a syscall for every operation
+Correct Answer:
+B
+Only a disk controller may invoke system calls
+C
+No application execution path ever enters the kernel
+D
+All threads are permanently confined to user mode
+
+Explanation
+The notes conflate lightweight user-space management with a universal restriction. The slides' kernel-thread and separate-stack descriptions show why that restriction is misleading.
+Source: PDF pp. 4, 8 clarification; slides 8, 11, 21.
+
+Question 88
+How are software threads related to hardware simultaneous multithreading (SMT), such as Hyper-Threading?
+
+answer
+A
+Every software thread is a physical core
+B
+SMT removes the need for scheduling
+C
+They are different concepts; software threads can exist without hardware SMT
+Correct Answer:
+D
+An OS can create threads only if Hyper-Threading is enabled
+
+Explanation
+The course's software threading models describe execution contexts and mappings. Hardware SMT concerns a processor's execution resources; the terms should not be treated as synonyms.
+Source: PDF pp. 5-7, 12 clarification; slides 5-6, 8.
+
+Question 89
+A thread has deferred cancellation enabled and a cancellation request waiting. What happens when it reaches pthread_testcancel()?
+
+answer
+A
+The pending cancellation can take effect and cleanup runs
+Correct Answer:
+B
+The request is erased because testing disables cancellation
+C
+The thread necessarily creates a child process
+D
+The request must wait until the whole process exits
+
+Explanation
+Combine state, type, and checkpoint: enabled permits cancellation, deferred waits for a point, and pthread_testcancel() provides one.
+Source: Slides 17-18.
+
+Question 90
+One thread receives an asynchronous external signal. Another has asynchronous cancellation enabled. How do these two uses of "asynchronous" relate?
+
+answer
+A
+They both mean every thread in the process must terminate
+B
+They describe different mechanisms: event notification versus thread cancellation
+Correct Answer:
+C
+They both mean copying all threads with fork()
+D
+They both mean storing a separate variable per thread
+
+Explanation
+The shared word asynchronous does not make signal handling and cancellation identical. Keep the event, target, and resulting action separate.
+Source: Slides 13, 15-18; PDF pp. 20-24.
+
+Question 91
+A program splits a large array into sections for different workers. Which multicore design challenge does this address?
+
+answer
+A
+Replacing a process with exec()
+B
+Thread cancellation state
+C
+Signal delivery
+D
+Data splitting
+Correct Answer:
+
+Explanation
+Data splitting concerns distributing the data that work operates on. It complements dividing the activities and balancing the work.
+Source: Slide 5; PDF p. 7.
+
+Question 92
+Which older systems or packages are listed on the many-to-many slide?
+
+answer
+A
+Linux task_struct and Windows TEB
+B
+Solaris before version 9 and Windows with the ThreadFiber package
+Correct Answer:
+C
+Solaris Green Threads and GNU Portable Threads only
+D
+Every Windows thread without qualification
+
+Explanation
+The qualifier is essential: the slide names a particular Windows package and older Solaris versions. Its ordinary Windows example elsewhere is one-to-one.
+Source: Slides 11-12, 21.
+
+Question 93
+According to the cancellation slide, what does Linux use to carry out thread cancellation?
+
+answer
+A
+Giving every target a dedicated core
+B
+Creating a separate filesystem
+C
+Signals
+Correct Answer:
+D
+Replacing every process with exec()
+
+Explanation
+Signals are the underlying mechanism named in the slide. This does not make every signal a cancellation request.
+Source: Slide 18.
+
+Question 94
+What does the declaration pthread_t tid; create?
+
+answer
+A
+The default signal handler
+B
+A variable used to hold a thread identifier
+Correct Answer:
+C
+A complete child process that has already started
+D
+A new physical CPU core
+
+Explanation
+Declaring the identifier variable does not itself create a thread. The later pthread_create call creates the thread and supplies its identifier.
+Source: Slide 17 code image.
+
+Question 95
+In pthread_create(&tid, 0, worker, NULL), what is worker used for?
+
+answer
+A
+A cancellation request sent to all threads
+B
+The name of the kernel's scheduler
+C
+The function where the new thread starts its work
+Correct Answer:
+D
+The number of physical cores requested
+
+Explanation
+The start routine identifies the work the new thread should run. The call also provides storage for its identifier and an argument for the routine.
+Source: Slide 17 code image.
+
+Question 96
+Why is &tid passed to pthread_create()?
+
+answer
+A
+So tid becomes a physical memory address for a CPU core
+B
+So the call can store the new thread's identifier in tid
+Correct Answer:
+C
+So the caller's whole process is replaced
+D
+So every thread uses the same program counter
+
+Explanation
+The identifier is needed later to refer to that thread, including when requesting its cancellation.
+Source: Slide 17 code image.
+
+Question 97
+What does pthread_cancel(tid) ask the system to do?
+
+answer
+A
+Cancellation of the thread identified by tid
+Correct Answer:
+B
+Immediate replacement of the process image
+C
+Cancellation of every process using Pthreads
+D
+Creation of a new worker thread
+
+Explanation
+The target is identified by tid. Whether the request takes effect immediately depends on the target's cancellation settings.
+Source: Slides 17-18.
+
+Question 98
+A thread's cancellation type is asynchronous, but cancellation is turned off. What happens if it receives a cancellation request?
+
+answer
+A
+It automatically changes all other threads' cancellation types
+B
+It changes the thread into a process
+C
+It must terminate the thread immediately because type overrides state
+D
+It remains pending while cancellation is disabled
+Correct Answer:
+
+Explanation
+The table separates state from type. Disabled state prevents cancellation from taking effect, even if the stored type is asynchronous.
+Source: Slide 18 cancellation table.
+
+Question 99
+Which settings in the slide's table allow deferred cancellation?
+
+answer
+A
+Cancellation disabled, with no effective cancellation
+B
+Cancellation enabled, with asynchronous type
+C
+Cancellation enabled, with deferred type
+Correct Answer:
+D
+No thread identifier and no stack
+
+Explanation
+Enabled answers whether cancellation can occur; deferred answers when it can occur. Mixing up state and type leads to incorrect predictions.
+Source: Slide 18 cancellation table.
+
+Question 100
+When a paused thread starts running again, why must its saved register values be restored?
+
+answer
+A
+To make all ordinary shared variables thread-local
+B
+To continue its own computation rather than another thread's computation
+Correct Answer:
+C
+To turn a single-core CPU into a multicore CPU
+D
+To copy every file into its stack
+
+Explanation
+Register values are part of private execution context. Threads share process resources, but their computation state must remain distinct.
+Source: Slides 7, 21; PDF pp. 4, 8.
