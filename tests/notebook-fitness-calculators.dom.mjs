@@ -42,3 +42,18 @@ test('ordinary notes remain unchanged and removing links removes generated value
   html = saveChecklistContent(html, { kind: 'task', index: 0, content: draft }, { ...draft, linkedValues: [] });
   assert.equal(checklistRoot(html).querySelector('[data-fitness-links]'), null);
 });
+
+test('additional profile fields survive reload and update linked task values', () => {
+  const content = readTaskContent(checklistRoot(source).querySelector('li'));
+  let html = saveChecklistContent(source, { kind: 'task', index: 0, content }, { ...content, linkedValues: ['age', 'gender', 'idealGoal', 'adjustedGoal', 'goal', 'sugar', 'saturatedFat'] });
+  html = refreshFitnessDocument(html, { age: 24, gender: 'Male', idealGoal: 205, adjustedGoal: 228, goalMode: 'adjusted', sugar: 64, saturatedFat: 27 });
+  const values = readFitnessValues(html);
+  assert.equal(values.age, 24); assert.equal(values.gender, 'Male'); assert.equal(values.goalMode, 'adjusted');
+  assert.equal(values.goal, 228);
+  html = refreshFitnessDocument(html, { ...values, adjustedGoal: 225 });
+  const linked = checklistRoot(html).querySelector('[data-fitness-links]').textContent;
+  assert.match(linked, /Age \(years\): 24/); assert.match(linked, /Gender: Male/);
+  assert.match(linked, /Selected goal weight \(lb\): 225/);
+  assert.match(linked, /Sugar limit \(g\/day\): 64/);
+  assert.match(checklistRoot(html).textContent, /Historical weight: 271.4 lb/);
+});

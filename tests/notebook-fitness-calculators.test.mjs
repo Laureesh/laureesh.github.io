@@ -36,3 +36,26 @@ test('height accepts feet/inches notation and keeps the existing stored inches',
   for (const invalid of ['', '75.5', '6\'12"', '-6\'3"', '6\'3.', '0\'0"', 'six feet']) assert.equal(parseFeetInches(invalid), undefined);
   assert.equal(calculateFitness({ weight: 271.4, height: parseFeetInches('6\'3.5"') }).bmi, calculateFitness({ weight: 271.4, height: 75.5 }).bmi);
 });
+
+test('the full original profile is saved and related goals recalculate', () => {
+  const values = { age: 22, gender: 'Male', weight: 271.4, idealGoal: 205, adjustedGoal: 228, goalMode: 'adjusted', weeklyRate: 2, sugar: 64, saturatedFat: 27, activityMin: 150, activityMax: 300, squatGoal: 100, pushupGoal: 50, alternateCalories: 1891, maintenance: 2891, calories: 2391 };
+  const saved = cleanFitnessValues(values);
+  assert.equal(saved.age, 22); assert.equal(saved.gender, 'Male'); assert.equal(saved.goal, 228);
+  assert.equal(saved.sugar, 64); assert.equal(saved.saturatedFat, 27);
+  assert.equal(saved.activityMin, 150); assert.equal(saved.pushupGoal, 50);
+  const result = calculateFitness(saved);
+  assert(Math.abs(result.estimatedWeeks - 21.7) < .00001);
+  assert.equal(result.alternateDeficit, 1000);
+  assert(Math.abs(result.idealRemaining - 66.4) < .00001);
+  const changed = calculateFitness({ ...saved, adjustedGoal: 225 });
+  assert.equal(changed.goal, 225);
+  assert(Math.abs(changed.remaining - 46.4) < .00001);
+  assert.equal(calculateFitness({ ...saved, goalMode: 'custom', goal: 220 }).goal, 220);
+  assert.equal(cleanFitnessValues({ age: 22.5 }).age, undefined);
+  assert.equal(cleanFitnessValues({ age: 121 }).age, undefined);
+  assert.equal(calculateFitness({ weight: 271.4, goal: 205 }).estimatedWeeks, undefined);
+});
+test('sugar and saturated-fat limits are included in macros, not extra calories', () => {
+  const result = calculateFitness({ protein: 160, carbs: 335, fat: 54, sugar: 64, saturatedFat: 27 });
+  assert.equal(result.macroCalories, 2466);
+});
