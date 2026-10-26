@@ -1642,6 +1642,13 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   const learnMissedCards = selectedSet?.cards.filter(card => learnMissedIds.includes(card.id)) ?? [];
   const testScore = testCards.filter((card) => normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card))).length;
   const guideTitleSuggestions = useMemo(() => suggestNoteTitles(guideNotes), [guideNotes]);
+  const reviewedAttempt = learnReviewIndex === null ? undefined : learnHistory[learnReviewIndex];
+  const reviewedCard = reviewedAttempt ? selectedSet?.cards.find(card => card.id === reviewedAttempt.cardId || (!reviewedAttempt.cardId && parseEmbeddedQuestion(card.term, card.definition, card.answerChoices).prompt === reviewedAttempt.prompt)) : undefined;
+  const previousLearnIndex = learnReviewIndex !== null ? learnReviewIndex - 1 : learnHistory.map(attempt => attempt.sequence < learnSequence).lastIndexOf(true);
+  function nextReviewedQuestion() {
+    if (learnReviewIndex !== null && learnReviewIndex < learnHistory.length - 1) setLearnReviewIndex(learnReviewIndex + 1);
+    else setLearnReviewIndex(null);
+  }
   const currentLearnCard = selectedSet?.cards.find((card) => card.id === learnRoundIds[learnIndex]);
   useEffect(() => {
     setLearnExplanationDraft(null);
@@ -1684,8 +1691,9 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   }, [currentLearnChoices, currentLearnCorrectAnswer, learnSequence]);
   const learnMasteryTarget = learnGoal === "cram" ? 2 : 3;
   const selectedLearnProgress = data.learnProgress?.[selectedSet?.id ?? ""]?.cards ?? {};
-  const currentKnowledgeLevel = currentLearnCard
-    ? learnConfidenceLabel(selectedLearnProgress[currentLearnCard.id]?.confidence ?? 0).toLowerCase() as KnowledgeLevel
+  const knowledgeCard = reviewedCard ?? currentLearnCard;
+  const currentKnowledgeLevel = knowledgeCard
+    ? learnConfidenceLabel(selectedLearnProgress[knowledgeCard.id]?.confidence ?? 0).toLowerCase() as KnowledgeLevel
     : undefined;
   const learnQuestionsAnswered = learnSequence + (learnAnswer ? 1 : 0);
   const learnQuestionsTotal = projectLearnQuestionTotal(
@@ -2736,15 +2744,26 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     const relevantAnswers = new Set([answer, correctAnswer, ...(currentLearnQuestionKind === "select-all" ? [...learnSelectedAnswers, ...currentSelectAll.correctParts] : [])]);
     const attempt: LearnAttempt = {
       sequence: learnSequence,
+      cardId: currentLearnCard.id,
+      kind: currentLearnQuestionKind,
+      choices: currentLearnQuestionKind === "true-false" ? ["True", "False"] : currentLearnQuestionKind === "select-all" ? [...currentSelectAll.choices] : [...currentLearnChoices],
+      selectedAnswers: currentLearnQuestionKind === "select-all" ? [...learnSelectedAnswers] : [answer],
+      correctAnswers: currentLearnQuestionKind === "select-all" ? [...currentSelectAll.correctParts] : [correctAnswer],
+      references: currentLearnCard.references ?? [],
+      stage: currentLearnQuestionKind === "written" ? `Write the ${currentLearnAnswerSide}` : currentLearnQuestionKind === "true-false" ? "True or false" : currentLearnQuestionKind === "select-all" ? "Select all that apply" : currentLearnQuestionKind === "flashcard" ? "Recall, then reveal" : `Choose the ${currentLearnAnswerSide}`,
+      imageData: learnOptions.showImagesOnQuestions ? (currentLearnCard.imageData ?? "") : "",
+      round: learnRound, roundSize: learnRoundIds.length, roundIndex: learnIndex, retries: learnRetryIds.length + Number(!correct), pending: learnPendingIds.length,
+      retryPass: learnRetryPass,
       prompt: currentLearnPrompt + (currentLearnQuestionKind === "true-false" ? `\nThe matching ${currentLearnAnswerSide} is: ${currentTrueFalse.statement}` : ""),
       answer, correctAnswer, correct,
       explanation: currentLearnCard.explanation?.trim() ?? "",
       reasons: Object.entries(currentLearnCard.choiceExplanations ?? {}).filter(([choice, reason]) => relevantAnswers.has(choice) && reason.trim()).map(([choice, explanation]) => ({ answer: choice, explanation })),
     };
     const history = [...learnHistory.filter(entry => entry.sequence !== learnSequence), attempt];
-    setLearnHistory(history);
     const previousProgress = selectedLearnProgress[currentLearnCard.id] ?? EMPTY_LEARN_CARD_PROGRESS;
     const nextProgress = updateLearnCardProgress(previousProgress, correct, learnSequence);
+    attempt.feedback = correct ? (nextProgress.confidence >= learnMasteryTarget ? "This card reached your session goal." : `Confidence moved to ${learnConfidenceLabel(nextProgress.confidence)}. ${learnGoal === "understand" ? "It will return for another reasoning check." : "It will return later in a harder format."}`) : `The correct answer is ${correctAnswer}. This weak card will return before the next batch.`;
+    setLearnHistory(history);
     if (!correct) setLearnMissedIds(ids => ids.includes(currentLearnCard.id) ? ids : [...ids, currentLearnCard.id]);
     setLearnAnswer(answer || "Answered");
     setLearnLastCorrect(correct);
@@ -3955,20 +3974,20 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                 </div>
               )}
 
-              {learnPhase === "session" && currentLearnCard && (
+              {(learnPhase === "session" || reviewedAttempt) && currentLearnCard && (
                 <>
-                  <header className={`learn-session-header${learnRetryPass ? " has-retry" : ""}`}>
+                  <header className={`learn-session-header${(reviewedAttempt?.retryPass ?? learnRetryPass) ? " has-retry" : ""}`}>
                     <Link className="learn-exit" to={routePathForView("set", selectedSet.id)} aria-label="Exit Learn">×</Link>
                     <div className="learn-question-heading">
                       <div className="learn-current-question" aria-live="polite" aria-atomic="true">
                         <span>Question</span>
-                        <strong>{learnSequence + 1}</strong>
+                        <strong>{(reviewedAttempt?.sequence ?? learnSequence) + 1}</strong>
                       </div>
-                      {learnRetryPass && <div className="learn-retry-notice" role="status"><strong><span aria-hidden="true">↻</span> RETRY</strong><span>Previously missed — try this one again.</span></div>}
+                      {(reviewedAttempt?.retryPass ?? learnRetryPass) && <div className="learn-retry-notice" role="status"><strong><span aria-hidden="true">↻</span> RETRY</strong><span>Previously missed — try this one again.</span></div>}
                     </div>
                     <div className="learn-session-progress" aria-live="polite">
                       <div className="learn-round-track" aria-label={`${learnQuestionsAnswered} of ${learnQuestionsTotal} total questions answered`}>
-                        <span className="learn-progress-badge learn-answered-review"><span><strong>{learnQuestionsAnswered}</strong><small>Answered</small></span><button type="button" className="button quiet" disabled={!learnHistory.length} onClick={() => setLearnReviewIndex(learnHistory.length - 1)}>Previous</button></span>
+                        <span className="learn-progress-badge learn-answered-review"><span><strong>{learnQuestionsAnswered}</strong><small>Answered</small></span><button type="button" className="button quiet" disabled={previousLearnIndex < 0} onClick={() => setLearnReviewIndex(previousLearnIndex)}>Previous</button></span>
                         <div className="learn-segments">{Array.from({ length: learnQuestionSegmentCount }, (_, groupIndex) => {
                           const segmentStart = groupIndex * 7;
                           const segmentSize = Math.min(7, Math.max(1, learnQuestionsTotal - segmentStart));
@@ -3989,7 +4008,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                     </div>
                       <p className="learn-knowledge-note">Select a level to see its questions and what’s next.</p>
                     </aside>
-                    <div className="learn-question-main">
+                    {reviewedAttempt ? <LearnHistory attempt={{ ...reviewedAttempt, choices: reviewedAttempt.choices ?? (reviewedCard ? parseEmbeddedQuestion(reviewedCard.term, reviewedCard.definition, reviewedCard.answerChoices).choices : undefined) }} explanation={reviewedCard?.explanation} references={reviewedCard?.references} onNext={nextReviewedQuestion} onReturn={() => setLearnReviewIndex(null)} /> : <div className="learn-question-main">
                     <div className={`learn-question-status${learnAnswer ? " has-feedback" : ""}`}>
                       {learnAnswer && <div className={`answer-feedback ${learnLastCorrect ? "correct" : "incorrect"}`}>
                         <div className="feedback-copy"><strong>{learnLastCorrect ? "Nice work." : "Not quite yet."}</strong><p>{learnLastCorrect ? (learnLastConfidence >= learnMasteryTarget ? "This card reached your session goal." : `Confidence moved to ${learnConfidenceLabel(learnLastConfidence)}. ${learnGoal === "understand" ? "It will return for another reasoning check." : "It will return later in a harder format."}`) : <>The correct answer is <b>{currentLearnCorrectAnswer}</b>. This weak card will return before the next batch.</>}</p>{!learnLastCorrect && learnOptions.retypeCorrectAnswers && <label className="retype-answer"><span>Retype the correct answer to continue</span><input value={learnRetypeAnswer} onChange={(event) => setLearnRetypeAnswer(event.target.value)} placeholder={currentLearnCorrectAnswer} /></label>}</div>
@@ -4041,17 +4060,15 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
 
                       {learnGoal === "understand" ? <UnderstandAnswer key={`${currentLearnCard.id}-${learnSequence}`} revealed={Boolean(learnAnswer)} choices={currentLearnQuestionKind === "multiple-choice" ? [] : currentLearnQuestionKind === "select-all" ? currentSelectAll.choices : currentLearnChoices} correctAnswers={correctAnswersForCard(currentLearnCard)} reasons={currentLearnCard.choiceExplanations} reviewed={understandReviewed} onReviewed={setUnderstandReviewed} /> : null}
                     </div>
-                    </div>
-                    <LearnRoundPanel round={learnRound} size={learnRoundIds.length} index={learnIndex} answered={Boolean(learnAnswer)} retries={learnRetryIds.length} pending={learnPendingIds.length} />
+                    </div>}
+                    <LearnRoundPanel round={reviewedAttempt?.round ?? learnRound} size={reviewedAttempt?.roundSize ?? learnRoundIds.length} index={reviewedAttempt?.roundIndex ?? learnIndex} answered={Boolean(reviewedAttempt || learnAnswer)} retries={reviewedAttempt?.retries ?? learnRetryIds.length} pending={reviewedAttempt?.pending ?? learnPendingIds.length} />
                   </div>
                 </>
               )}
 
-              {learnPhase === "complete" && (
+              {learnPhase === "complete" && !reviewedAttempt && (
                 <><div className="results-card learn-complete"><span className="result-burst"><UiIcon symbol="✓" /></span><span className="eyebrow">100% goal reached</span><h1>You completed the adaptive path.</h1><p className="learn-complete-count"><strong>{learnQuestionsAnswered}</strong> questions answered across <strong>{learnRound}</strong> adaptive round{learnRound === 1 ? "" : "s"}.</p><p>Every card reached the {learnGoal === "cram" ? "familiar" : "mastered"} level. {learnGoal === "understand" ? "You practiced answers and reviewed their reasoning. Your written reflections were not graded." : "Weak cards repeated and stronger cards advanced to harder recall."} {shared ? "Your progress stays in this browser." : "Your progress was queued for account sync."}</p><div className="button-row center"><button className="button quiet" disabled={!learnHistory.length} onClick={() => setLearnReviewIndex(learnHistory.length - 1)}>Review answers</button><button className="button primary" onClick={() => beginLearnSession(learnGoal)}>Practice again</button><button className="button quiet" onClick={() => navigate("set")}>Back to set</button></div></div><StudySummary missed={learnMissedCards} onRetry={() => beginLearnSession(learnGoal, learnOptions, learnMissedIds)} /></>
               )}
-
-              {learnReviewIndex !== null && learnHistory[learnReviewIndex] && <LearnHistory attempts={learnHistory} index={learnReviewIndex} onIndex={setLearnReviewIndex} onClose={() => setLearnReviewIndex(null)} />}
 
               {knowledgeLevel && learnPhase === "session" && <LearnKnowledgeDetails
                 level={knowledgeLevel}

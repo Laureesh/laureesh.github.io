@@ -1244,13 +1244,5 @@
 .flashbolt-shell .learn-progress-badge.learn-answered-review { display: flex; flex-direction: row; align-items: center; gap: 10px; flex-wrap: wrap; }
 .learn-answered-review > span { display: flex; align-items: baseline; gap: 6px; }
 .flashbolt-shell .learn-answered-review .button { min-height: 36px; padding: 6px 10px; font-size: 13px; }
-.learn-history-modal { width: min(720px, calc(100vw - 24px)); padding: 24px; color: var(--ink); }
-.learn-history-modal header, .learn-history-modal footer { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.learn-history-modal header { justify-content: space-between; }
-.learn-history-modal h2 { font-size: 20px; }
-.learn-history-modal article { overflow-wrap: anywhere; white-space: pre-wrap; }
-.learn-history-modal section { margin: 12px 0; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
-.learn-history-modal section p { margin: 8px 0 0; line-height: 1.6; }
-.learn-history-modal .history-correct { border-left: 4px solid #22a06b; }
-.learn-history-modal .history-incorrect { border-left: 4px solid #dc4545; }
-.learn-history-modal footer { margin-top: 20px; }
+.learn-history-selection { display: block; margin-top: 4px; font-size: .7em; }
+.learn-history-question h1 { white-space: pre-line; }
