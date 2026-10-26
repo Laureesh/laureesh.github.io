@@ -265,3 +265,10 @@
 .rich-editor ul.notebook-todo > li > input[type="checkbox"] { inset-inline-start:0; top:.4em; width:1.1em; height:1.1em; }
 .rich-editor ul.notebook-todo { padding-inline-start:0; }
 .rich-editor hr { border: 0; border-top: 1px solid #7c6cff35; margin-block: 1.8em; }
+
+.note-checklist-status { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.note-checklist-status .note-checklist-badge { display: inline-flex; align-items: center; padding: 4px 8px; border: 1px solid; border-radius: 7px; font-size: 12px; font-weight: 750; line-height: 1.4; }
+.note-checklist-badge.is-due { background: #3b2c0c; border-color: #b98a2e; color: #ffe3a1; }
+.note-checklist-badge.is-done { background: #103c2b; border-color: #54bd91; color: #c3ffe1; }
+.note-checklist-badge.is-overdue { background: #421e27; border-color: #d8798e; color: #ffd2dc; }
+.note-checklist-badge.is-idle { background: var(--nb-panel); border-color: var(--nb-line); color: var(--nb-muted); }
