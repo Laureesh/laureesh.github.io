@@ -8,11 +8,13 @@ export function validPlanDate(value: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) && Number(value.slice(0, 4)) >= 1900 && Number(value.slice(0, 4)) <= 9998 && !Number.isNaN(calendarDate(value).getTime()) && calendarDate(value).toISOString().slice(0, 10) === value;
 }
 /** Keep the workbook's 156 scheduled sessions, always on Monday, Wednesday, Friday. */
-export function weightLossDates(start: string): string[] {
+export function weightLossDates(start: string, count = workbook.sessionCount, alignMonday = false): string[] {
   if (!validPlanDate(start)) throw new Error('Choose a valid start date.');
+  if (!Number.isInteger(count) || count < 1 || count > 159) throw new Error('Invalid session count.');
   const date = calendarDate(start);
+  if (alignMonday) while (date.getUTCDay() !== 1) date.setUTCDate(date.getUTCDate() + 1);
   const dates: string[] = [];
-  while (dates.length < workbook.sessionCount) {
+  while (dates.length < count) {
     if ([1, 3, 5].includes(date.getUTCDay())) dates.push(date.toISOString().slice(0, 10));
     date.setUTCDate(date.getUTCDate() + 1);
   }
@@ -39,10 +41,10 @@ export function createWeightLossHtml(start = WEIGHT_LOSS_START): string {
 }
 /** Update every stored date without rebuilding the note or losing checks and edits. */
 export function changeWeightLossStart(html: string, start: string): string {
-  const dates = weightLossDates(start);
   const root = document.createElement('div'); root.innerHTML = html;
   const plan = root.querySelector('[data-weightloss-plan]');
   if (!plan) return html;
+  const dates = weightLossDates(start, Number(plan.getAttribute('data-weightloss-count')) || workbook.sessionCount, plan.getAttribute('data-weightloss-align') === 'monday');
   plan.setAttribute('data-weightloss-start', start);
   plan.querySelectorAll('[data-weightloss-start-label]').forEach(node => { node.textContent = displayDate(start); });
   plan.querySelectorAll('[data-weightloss-date]').forEach(node => {

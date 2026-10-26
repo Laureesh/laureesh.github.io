@@ -26,9 +26,13 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
   const canSchedule = !scheduled && isHygieneRoutine(html, title);
   const boxes = [...root.querySelectorAll(checklistSelector)];
   const lists = [...root.querySelectorAll('ul.notebook-todo')].filter(list => list.querySelector(':scope > li > input[type="checkbox"]'));
-  const planStart = root.querySelector('[data-weightloss-plan]')?.getAttribute('data-weightloss-start');
-  const [planWeek, setPlanWeek] = useState(0);
-  const planDates = planStart && validPlanDate(planStart) ? weightLossDates(planStart) : [];
+  const plan = root.querySelector('[data-weightloss-plan]');
+  const planStart = plan?.getAttribute('data-weightloss-start');
+  const planCount = Number(plan?.getAttribute('data-weightloss-count')) || 156;
+  const weekCount = Math.ceil(planCount / 3);
+  const [selectedPlanWeek, setPlanWeek] = useState(0);
+  const planWeek = Math.min(selectedPlanWeek, weekCount - 1);
+  const planDates = planStart && validPlanDate(planStart) ? weightLossDates(planStart, planCount, plan?.getAttribute('data-weightloss-align') === 'monday') : [];
   const visibleLists = lists.filter(list => !list.closest('[data-weightloss-week]') || list.closest('[data-weightloss-week]')?.getAttribute('data-weightloss-week') === String(planWeek));
   const completed = boxes.filter(box => scheduledCheckState(box, now)).length;
   const [compact, setCompact] = useState(false);
@@ -129,9 +133,9 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
   return <article className={`checklist-document${compact ? ' is-compact' : ''}`} style={{ fontSize }}>
     {planStart && <div className="weightloss-schedule-controls">
       <label>Start date<input type="date" value={planStart} min="1900-01-01" max="9998-12-31" onChange={event => { if (validPlanDate(event.target.value)) { setUndo(null); onChange(changeWeightLossStart(scheduledHtml, event.target.value)); } }} /></label>
-      <label>Workout week<select value={planWeek} onChange={event => setPlanWeek(Number(event.target.value))}>{Array.from({ length: 52 }, (_, index) => <option key={index} value={index}>Week {index + 1} · {planDates[index * 3] ? displayDate(planDates[index * 3]) : ''}</option>)}</select></label>
-      <div className="weightloss-week-buttons"><button disabled={planWeek === 0} onClick={() => setPlanWeek(week => week - 1)}>← Previous week</button><button disabled={planWeek === 51} onClick={() => setPlanWeek(week => week + 1)}>Next week →</button></div>
-      <p>Changing the start date updates all 52 weeks. Workouts stay on Monday, Wednesday and Friday; your checkmarks stay saved.</p>
+      <label>Workout week<select value={planWeek} onChange={event => setPlanWeek(Number(event.target.value))}>{Array.from({ length: weekCount }, (_, index) => <option key={index} value={index}>Week {index + 1} · {planDates[index * 3] ? displayDate(planDates[index * 3]) : ''}</option>)}</select></label>
+      <div className="weightloss-week-buttons"><button disabled={planWeek === 0} onClick={() => setPlanWeek(planWeek - 1)}>← Previous week</button><button disabled={planWeek === weekCount - 1} onClick={() => setPlanWeek(planWeek + 1)}>Next week →</button></div>
+      <p>Changing the start date updates all {weekCount} weeks. {plan?.getAttribute('data-weightloss-align') === 'monday' ? 'Session 1 starts on the first Monday on or after your start date.' : 'Workouts stay on Monday, Wednesday and Friday.'} Your checkmarks stay saved.</p>
     </div>}
     {canSchedule && <div className="checklist-schedule-setup"><div><strong>Give your routine a schedule</strong><p>Daily morning and night tasks, plus a Sunday–Saturday plan for weekly chores.</p></div><button onClick={() => onChange(enableHygieneSchedule(html, now))}>Add recurring schedule</button></div>}
     {scheduled && !planStart && <div className="checklist-calendar" aria-live="polite">

@@ -1,0 +1,90 @@
+import { calendarDate, displayDate, easternDateKey } from './checklistSchedule.ts';
+import { weightLossDates } from './weightLossPlan.ts';
+
+export const PERSONAL_FITNESS_TITLE = 'MY WEIGHT LOSS & BODYWEIGHT PLAN';
+const esc = (text: string) => text.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!);
+const link = (url: string, label: string) => `<a href="${esc(url)}">${esc(label)}</a>`;
+const task = (title: string, detail = '', attrs = '') => `<li><input type="checkbox"${attrs}><strong>${esc(title)}</strong>${detail ? `<br>${detail}` : ''}</li>`;
+export const personalSessions = [
+  { title: 'Monday — Full Body Circuit', rounds: 'Repeat the circuit 3 times.', tasks: ['Bodyweight squats — 20 reps', 'Push-ups on PushFit App — 15–20 reps (knees if needed)', 'Mountain climbers — 30 reps (15 per leg)', 'Glute bridges — 20 reps', 'Plank hold — 30 seconds', 'Russian twists — 40 reps (20 per side)'] },
+  { title: 'Wednesday — Lower Body Focus', rounds: 'Repeat the circuit 4 times.', tasks: ['Lunges — 15 reps per leg', 'Wall sits — 45-second hold', 'Calf raises — 30 reps', 'Glute bridges with a hold — 15 reps (hold the top for 2 seconds each time)', 'Squat pulses — 15 reps'] },
+  { title: 'Friday — Core and Upper Body', rounds: 'Repeat the circuit 3 times.', tasks: ['Push-ups on PushFit App — 15 reps', 'Plank to push-up — 10 reps', 'Russian twists — 30 reps', 'Bicycle crunches — 30 reps', 'Forearm plank hold — 40 seconds', 'Tricep dips — 15 reps (original note: use a sturdy chair)'] },
+  { title: 'Monday — Cardio and Core Burn', rounds: 'Perform 5 rounds. Rest for 30–45 seconds between rounds.', tasks: ['Mountain climbers — 40 reps (20 per leg)', 'Plank jacks — 20 reps (original note: modified for low ceilings)', 'Plank hold — 30 seconds', 'Bicycle crunches — 30 reps', 'Superman hold — 30 seconds'] },
+  { title: 'Wednesday — Full Body Power', rounds: 'Repeat the circuit 4 times.', tasks: ['Squat to stand — 20 reps (squat, then raise your arms overhead)', 'Push-ups on PushFit App — 15 reps', 'Plank to push-up — 10 reps', 'Reverse lunges — 15 reps per leg', 'Leg raises — 20 reps'] },
+  { title: 'Friday — Low Impact, High Burn', rounds: 'Repeat the circuit 3 times. Rest for 30–60 seconds between rounds.', tasks: ['Squat pulses — 15 reps', 'Glute bridges — 20 reps', 'Plank hold — 45 seconds', 'Standing side crunch — 20 reps (10 per side)', 'Lunges — 15 reps per leg'] },
+  { title: 'Monday — Active Recovery / Stretch', rounds: 'Focus on light stretching and mobility. No rounds or duration were specified.', tasks: ['Light stretching and mobility work'] },
+];
+
+export function createPersonalFitnessHtml(start = easternDateKey()): string {
+  const dates = weightLossDates(start, 7, true);
+  const dated = (index: number) => `<span data-weightloss-date="${index}">${new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone: 'UTC' }).format(calendarDate(dates[index]))}, ${displayDate(dates[index])}</span>`;
+  let html = `<div data-personal-fitness-note="1" data-weightloss-plan="personal" data-weightloss-start="${start}" data-weightloss-count="7" data-weightloss-align="monday">
+<h1>${PERSONAL_FITNESS_TITLE}</h1>
+<p>Tags: Weight Loss · 7 Day Workout · Bodyweight training</p>
+<p>Original notes updated December 29, 2024 at 9:48 AM. Measurements, food prices and calculator results below are historical, not current measurements or newly prescribed targets.</p>
+<p>Plan start: <span data-weightloss-start-label>${displayDate(start)}</span>. Seven sessions, from ${dated(0)} to ${dated(6)}. The repeated Monday/Wednesday/Friday headings are organized in order across three weeks, not seven consecutive days. Use the start-date picker to move the schedule.</p>
+<h2>Before I start</h2><ul class="notebook-todo">
+${task('Update my current measurements', 'Enter my current weight and age in Edit note. The pasted note only supplies measurements from 2024; no birth date was supplied.')}
+${task('Choose and review my target', '205 lb and 228 lb are the original calculator outputs. Decide on an appropriate current goal with a clinician or registered dietitian rather than treating “ideal” or “adjusted” weight as a prescription.')}
+${task('Recalculate my food targets', `Use current weight, age and activity. ${link('https://www.niddk.nih.gov/bwp', 'NIH Body Weight Planner')}. Do not combine this note’s old macros with the separate Excel meal targets.`)}
+${task('Choose an achievable workout starting level', 'The rounds and reps below preserve the original plan. Scale to current ability; use stable supports and stop an exercise if it causes pain. A loose or rolling dumbbell is not a stable incline push-up surface.')}
+</ul>
+<h2>My recorded profile — December 2024</h2>
+<table><thead><tr><th>Item</th><th>Original record</th><th>Review</th></tr></thead><tbody>
+<tr><td>Age</td><td>22 years</td><td>Age at the time of the note. Current age cannot be determined exactly without a birth date.</td></tr>
+<tr><td>Gender</td><td>Male</td><td>Preserved as supplied.</td></tr>
+<tr><td>Weight</td><td>271.4 lb</td><td>Assumed pounds from the surrounding pound-based goals; approximately 123.1 kg.</td></tr>
+<tr><td>Goals</td><td>205 lb “Ideal Weight”; 228 lb “Adjusted Weight”</td><td>Historical calculator labels. Required changes from 271.4 lb: 66.4 lb and 43.4 lb, respectively.</td></tr>
+<tr><td>Height</td><td>6 ft 3.5 in</td><td>75.5 inches / 191.77 cm.</td></tr>
+<tr><td>BMI</td><td>33.5</td><td>The calculation matches: approximately 33.47 using the recorded height and weight. BMI is a screening measure, not a diagnosis.</td></tr>
+</tbody></table>
+<p>${link('https://www.cdc.gov/bmi/about/', 'CDC: understanding BMI')}</p>
+<p>Current weight: ______ lb · Measured on: ______ · Current age: ______ · Chosen goal: ______ lb</p>
+<h2>Calories and timelines — checked calculations</h2>
+<p>Original rule: “1 pound of fat = 3,500 calories,” with 500 calories/day for 1 lb/week and 1,000 calories/day for 2 lb/week. These are rough energy estimates, not guaranteed rates. Energy needs change during weight loss. ${link('https://www.niddk.nih.gov/health-information/professionals/diabetes-discoveries-practice/nih-body-weight-planner', 'NIH explanation of weight-loss modeling')}.</p>
+<table><thead><tr><th>Original entry</th><th>What the numbers show</th></tr></thead><tbody>
+<tr><td>Weight Loss: 2,391 calories/day; 81%; 1 lb/week</td><td>Adding the stated 500-calorie deficit implies 2,891 calories/day maintenance. 2,391 is 82.7% of 2,891, not 81%.</td></tr>
+<tr><td>“Extreme Weight Loss”: 1,891 calories/day; 63%; 2 lb/week</td><td>Adding the stated 1,000-calorie deficit also implies 2,891 maintenance. 1,891 is 65.4% of 2,891, not 63%. “Extreme” is the old calculator label; this is not a recommended current intake.</td></tr>
+<tr><td>83.8 weeks at 1 lb/week (~1 year 7 months); 41.9 weeks at 2 lb/week (~10 months)</td><td>Both imply 83.8 lb lost, or 187.6 lb from 271.4 lb. Neither matches the stated 205 or 228 lb goal.</td></tr>
+</tbody></table>
+<table><thead><tr><th>Goal from 271.4 lb</th><th>Difference</th><th>At 1 lb/week</th><th>At 2 lb/week</th></tr></thead><tbody><tr><td>205 lb</td><td>66.4 lb</td><td>66.4 weeks</td><td>33.2 weeks</td></tr><tr><td>228 lb</td><td>43.4 lb</td><td>43.4 weeks</td><td>21.7 weeks</td></tr></tbody></table>
+<p>These are arithmetic comparisons, not completion-date predictions. CDC describes gradual loss of about 1–2 lb/week; individual results vary. ${link('https://www.cdc.gov/healthy-weight-growth/losing-weight/index.html', 'CDC: steps for losing weight')}.</p>
+<h2>Original macro targets — not yet reconciled</h2>
+<ul><li>Protein: 160 g/day = 640 calories.</li><li>Carbohydrates: 335 g/day = 1,340 calories. Original sugar limit: less than 64 g/day. Sugar is included in carbohydrates, not extra.</li><li>Fat: 54 g/day = 486 calories. Original saturated-fat limit: less than 27 g/day. Saturated fat is included in total fat, not extra.</li></ul>
+<p>Total: 2,466 calories using 4 calories/g protein, 4 calories/g carbohydrate and 9 calories/g fat. That is 75 above the old 2,391 target, or 575 above 1,891. The sugar and saturated-fat thresholds are preserved historical calculator outputs, not validated current limits. Choose one consistent calorie-and-macro plan after updating inputs.</p>
+<h2>Movement and hydration notes</h2>
+<p>Original idea: combine cardio, such as walking or running, with strength training; aim for 150–300 minutes of moderate-intensity activity weekly. General adult guidelines also include muscle-strengthening activity on at least two days weekly. Build toward this from your current activity level. ${link('https://www.cdc.gov/physical-activity/media/pdfs/Physical_Activity_Guidelines_2nd_edition.pdf', 'Physical Activity Guidelines')}.</p>
+<p>Original water result: 152.5 ounces/day. Assuming US fluid ounces, that is about 4.51 liters. This is an old calculator result, not an automatic drinking-water target. General adequate intake for adult men is approximately 3.7 liters of total water from food and all beverages; needs vary with activity and conditions. ${link('https://www.nationalacademies.org/read/10925/chapter/6', 'National Academies: total water intake')}.</p>
+<h2>My bodyweight goal and progression</h2>
+<p>Original goal: “100 Body Weight Squats &amp; Pushups.” Clarify whether this means 100 of each, total reps per session, or unbroken reps. No deadline or advancement test was provided; it is a long-term goal rather than an extra daily workout.</p>
+<ul class="notebook-todo">
+${task('Level 1 — Wall push-ups')}${task('Level 2 — Waist-high push-ups', 'Original support: desk. Use a stable surface.')}${task('Level 3 — Knee-high incline push-ups', 'Original label: “Dumbbell.” Use a stable elevated surface that cannot roll or slide.')}${task('Level 4 — Knee push-ups')}${task('Final goal — Full push-ups', 'Original label: “FINAL BOSS.” These boxes track milestones; no automatic progression or daily reset.')}
+</ul>
+<h2>Workout setup</h2>
+<p>Warm up for 5–10 minutes using the original options: jog in place, high knees, arm circles, leg swings, bodyweight squats and dynamic stretches. Choose movements appropriate to your ability. Cool down for 5 minutes with comfortable stretches after the session.</p>
+<p>Each exercise box means its listed work is complete for the session, across the stated rounds. Rest instructions are shown for the two sessions that supplied them; other rest intervals were unspecified. “Low ceilings” and “Low Impact, High Burn” are original labels, not descriptions of a tested modification or guaranteed calorie burn. All workout checks remain saved.</p>`;
+  for (let week = 0; week < 3; week++) {
+    html += `<section data-weightloss-week="${week}"><h2>Week ${week + 1} · ${dated(week * 3)} – ${dated(Math.min(week * 3 + 2, 6))}</h2>`;
+    for (let index = week * 3; index < Math.min(week * 3 + 3, 7); index++) {
+      const session = personalSessions[index];
+      const attrs = ` data-weightloss-session="${index}" data-checklist-date="${dates[index]}"`;
+      html += `<h3>Session ${index + 1}: ${esc(session.title)}</h3><p>${esc(session.rounds)} ${dated(index)}</p><ul class="notebook-todo">`;
+      if (index < 6) html += task('Warm-up — 5–10 minutes', 'Use the warm-up options above.', attrs);
+      html += session.tasks.map(item => task(item, '', attrs)).join('');
+      if (index < 6) html += task('Cooldown — 5 minutes', 'Comfortable stretches for recovery.', attrs);
+      html += '</ul>';
+    }
+    html += '</section>';
+  }
+  html += `<h2>Shopping checklist — original prices</h2><p>Prices are from the old note and have not been rechecked. Quantity and package sizes need confirmation; “x20” and “x2” are quantities, not completed checkboxes.</p><ul class="notebook-todo">
+${task('Vanilla protein milk — $20', 'Original wording: “Plus protein milks vanilla.” Confirm brand, pack size and quantity.')}
+${task('Chicken yakisoba noodles — 20 × $1', 'Estimated line total: $20 if $1 is the price per item.')}
+${task('Bread — $4')}${task('Peanut butter — $4')}${task('Banana pack — $3')}${task('Apples — 2 × $1', 'Estimated line total: $2 if $1 is the price per apple.')}
+</ul><p>Conditional subtotal: $53 before tax, assuming the quantities and per-item prices above. No price was supplied for the missing image.</p>
+<h2>Restaurant notes</h2><p>Whealthy — Order: ______ · Price: ______. The original “Orders &amp; Price” field was empty.</p>
+<h2>Original calculator and converter links</h2><ul>
+${[['https://www.calculatorsoup.com/calculators/time/age-calculator.php','Age calculator'],['https://www.calculator.net/ideal-weight-calculator.html','Ideal/adjusted weight calculator'],['https://www.calculator.net/bmi-calculator.html','BMI calculator'],['https://www.calculator.net/calorie-calculator.html','Calorie calculator'],['https://www.calculator.net/macro-calculator.html','Macro calculator'],['https://www.unitconverters.net/length/inches-to-feet.htm','Inches to feet converter'],['https://www.medindia.net/patients/calculators/daily-water-req-result.asp','Original water calculator result page']].map(([url,label]) => `<li>${link(url,label)}</li>`).join('')}
+</ul><p>Saved links may require entering your measurements again; a result-page URL does not preserve the original inputs.</p>
+<h2>Cleanup and missing details</h2><p>Removed escaped spaces (including &amp;#x20;), stray backslashes, broken bold markers and repeated tags. The encoded “33.&amp;#x35;” reads 33.5. Two pasted image placeholders had no image data: one near shopping and one before the workout section. Their contents could not be recovered. No restaurant order, birth date, current weight, or detailed active-recovery routine was provided.</p></div>`;
+  return html;
+}
