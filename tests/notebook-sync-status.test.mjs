@@ -9,9 +9,13 @@ test('sync errors distinguish permission, connectivity, and expired sessions',()
 });
 test('size errors retain the original detail for diagnosis',()=>{
  const message='Document exceeds maximum allowed size of 1048576 bytes';
- assert.match(describeNotebookSyncError(error('invalid-argument',message)),/cloud document size limit/);
+ assert.match(describeNotebookSyncError(error('invalid-argument',message)),/cloud write exceeded a size limit/);
  assert.ok(describeNotebookSyncError(error('invalid-argument',message)).includes(message));
 });
 test('unknown errors preserve detail without asserting a cause',()=>{
  assert.equal(describeNotebookSyncError(new Error('Unexpected problem')),'Unexpected problem');
+});
+
+test('datastore transaction-too-big errors explain the recovery action', () => {
+ assert.match(describeNotebookSyncError(error('invalid-argument', 'datastore transaction or write too big.')), /retry cloud sync/);
 });

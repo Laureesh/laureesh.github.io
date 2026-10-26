@@ -1,11 +1,12 @@
 // Leave ample room below Firestore's 1 MiB document limit for field/path overhead.
 export const NOTEBOOK_CHUNK_BYTES = 700 * 1024;
-export const NOTEBOOK_STORAGE_FORMAT = "chunked-v1";
+export const NOTEBOOK_STORAGE_FORMAT = "chunked-v2";
 
 export type NotebookRecord = {
   data?: unknown;
   format?: string;
   chunkCount?: number;
+  chunkIds?: string[];
   byteLength?: number;
   updatedAt?: unknown;
 };
@@ -35,10 +36,13 @@ export function encodeNotebook(data: unknown): string[] {
 
 export function notebookChunkCount(record: NotebookRecord): number {
   if (!record.format) return 0; // Original single-document notebooks.
-  if (record.format !== NOTEBOOK_STORAGE_FORMAT) {
+  if (record.format !== NOTEBOOK_STORAGE_FORMAT && record.format !== "chunked-v1") {
     throw new Error("This notebook uses a newer storage format. Refresh or update the app before syncing.");
   }
   if (!Number.isSafeInteger(record.chunkCount) || record.chunkCount! < 1 || !Number.isSafeInteger(record.byteLength) || record.byteLength! < 1) {
+    throw new Error("The cloud notebook manifest is incomplete. Keep your backup and retry; cloud data has not been overwritten.");
+  }
+  if (record.format === NOTEBOOK_STORAGE_FORMAT && (!Array.isArray(record.chunkIds) || record.chunkIds.length !== record.chunkCount || record.chunkIds.some(id => typeof id !== 'string' || !/^library-part-[a-zA-Z0-9-]+$/.test(id)))) {
     throw new Error("The cloud notebook manifest is incomplete. Keep your backup and retry; cloud data has not been overwritten.");
   }
   return record.chunkCount!;
