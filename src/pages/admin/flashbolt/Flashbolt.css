@@ -5405,7 +5405,7 @@ kbd {
   font-size: calc((16px) * var(--learn-font-scale, 1));
   font-weight: 900;
   letter-spacing: 0.5px;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .learn-question-image {
