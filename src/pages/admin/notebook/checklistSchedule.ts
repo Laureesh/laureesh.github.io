@@ -91,6 +91,11 @@ export function refreshChecklistSchedule(html: string, now = new Date()): string
 }
 
 export function taskDueLabel(box: Element, now = new Date()): { date: string; day: string; status: string } | null {
+  const fixedDate = box.getAttribute('data-checklist-date');
+  if (fixedDate && /^\d{4}-\d{2}-\d{2}$/.test(fixedDate)) {
+    const today = easternDateKey(now);
+    return { date: fixedDate, day: WEEKDAYS[calendarDate(fixedDate).getUTCDay()], status: box.hasAttribute('checked') ? 'Done' : fixedDate === today ? 'Due today' : fixedDate < today ? 'Overdue' : 'Upcoming' };
+  }
   const repeat = box.closest('ul')?.getAttribute('data-checklist-repeat');
   if (!repeat) return null;
   const today = easternDateKey(now);

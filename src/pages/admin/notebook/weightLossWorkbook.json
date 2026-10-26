@@ -1,0 +1,283 @@
+{
+  "source": "Laureesh Volmar – Weight Loss Journey (2026–2027).xlsx",
+  "startDate": "2026-10-24",
+  "sessionCount": 156,
+  "workouts": [
+    {
+      "title": "Full-Body Dumbbell Strength",
+      "exercises": [
+        "20 Min Full Body ",
+        "Plank Hold (30 or more)"
+      ],
+      "url": "https://www.youtube.com/watch?v=u1My2n961KM&pp=ygUrRnVsbC1Cb2R5IER1bWJiZWxsIFN0cmVuZ3RoIHdvcmtvdXQgYXQgaG9tZQ%3D%3D"
+    },
+    {
+      "title": "Cardio + Core Conditioning",
+      "exercises": [
+        "60–90 min Ride (10 – 15 miles) ",
+        "10 Min Dumbbell Standing Abs ",
+        "Russian Twists (10per side/30s rest) ",
+        "Leg Raises (15 reps/30s rest)",
+        "Flutter Kicks (30s/30s rest)"
+      ],
+      "url": "https://www.youtube.com/watch?v=9wlr8x0Iukg"
+    },
+    {
+      "title": "Dumbbell Upper + Yoga Mobility",
+      "exercises": [
+        "20 Min Upper Body Dumbbell Workout At Home ",
+        "20 Min Yoga Routine for Athletes"
+      ],
+      "url": "https://www.youtube.com/watch?v=kNRVHfT7-_M&t=197s&pp=ygUjZHVtYmJlbGwgdXBwZXIgYm9keSB3b3Jrb3V0IGF0IGhvbWU%3D"
+    }
+  ],
+  "pushups": [
+    {
+      "variation": "#1 Wall Pushups",
+      "level": 1,
+      "reps": "2 Sets of 30 Pushups",
+      "url": "https://www.hybridcalisthenics.com/wall-pushups"
+    },
+    {
+      "variation": "#1 Wall Pushups",
+      "level": 2,
+      "reps": "2 Sets of 50 Pushups",
+      "url": "https://www.hybridcalisthenics.com/wall-pushups"
+    },
+    {
+      "variation": "#1 Wall Pushups",
+      "level": 3,
+      "reps": "3 Sets of 50 Pushups",
+      "url": "https://www.hybridcalisthenics.com/wall-pushups"
+    },
+    {
+      "variation": "#2 Incline Pushups",
+      "level": 1,
+      "reps": "2 Sets of 20 Pushups",
+      "url": "https://www.hybridcalisthenics.com/incline-pushups"
+    },
+    {
+      "variation": "#2 Incline Pushups",
+      "level": 2,
+      "reps": "2 Sets of 30 Pushups",
+      "url": "https://www.hybridcalisthenics.com/incline-pushups"
+    },
+    {
+      "variation": "#2 Incline Pushups",
+      "level": 3,
+      "reps": "3 Sets of 40 Pushups",
+      "url": "https://www.hybridcalisthenics.com/incline-pushups"
+    },
+    {
+      "variation": "#3 Advanced Incline Pushups",
+      "level": 1,
+      "reps": "2 Sets of 20 Pushups",
+      "url": "https://www.hybridcalisthenics.com/advanced-incline-pushups"
+    },
+    {
+      "variation": "#3 Advanced Incline Pushups",
+      "level": 2,
+      "reps": "2 Sets of 30 Pushups",
+      "url": "https://www.hybridcalisthenics.com/advanced-incline-pushups"
+    },
+    {
+      "variation": "#3 Advanced Incline Pushups",
+      "level": 3,
+      "reps": "3 Sets of 35 Pushups",
+      "url": "https://www.hybridcalisthenics.com/advanced-incline-pushups"
+    },
+    {
+      "variation": "#4 Knee Pushups",
+      "level": 1,
+      "reps": "2 Sets of 10 Pushups",
+      "url": "https://www.hybridcalisthenics.com/knee-pushups"
+    },
+    {
+      "variation": "#4 Knee Pushups",
+      "level": 2,
+      "reps": "2 Sets of 20 Pushups",
+      "url": "https://www.hybridcalisthenics.com/knee-pushups"
+    },
+    {
+      "variation": "#4 Knee Pushups",
+      "level": 3,
+      "reps": "3 Sets of 30 Pushups",
+      "url": "https://www.hybridcalisthenics.com/knee-pushups"
+    },
+    {
+      "variation": "#5 Full Pushups",
+      "level": 1,
+      "reps": "2 Sets of 5 Pushups",
+      "url": "https://www.hybridcalisthenics.com/full-pushups"
+    },
+    {
+      "variation": "#5 Full Pushups",
+      "level": 2,
+      "reps": "2 Sets of 15 Pushups",
+      "url": "https://www.hybridcalisthenics.com/full-pushups"
+    },
+    {
+      "variation": "#5 Full Pushups",
+      "level": 3,
+      "reps": "3 Sets of 25 Pushups",
+      "url": "https://www.hybridcalisthenics.com/full-pushups"
+    },
+    {
+      "variation": "#6 Narrow Pushups",
+      "level": 1,
+      "reps": "2 Sets of 5 Pushups",
+      "url": "https://www.hybridcalisthenics.com/narrow-pushups"
+    },
+    {
+      "variation": "#6 Narrow Pushups",
+      "level": 2,
+      "reps": "2 Sets of 10 Pushups",
+      "url": "https://www.hybridcalisthenics.com/narrow-pushups"
+    },
+    {
+      "variation": "#6 Narrow Pushups",
+      "level": 3,
+      "reps": "3 Sets of 20 Pushups",
+      "url": "https://www.hybridcalisthenics.com/narrow-pushups"
+    },
+    {
+      "variation": "#7 Side Staggered Pushups",
+      "level": 1,
+      "reps": "2 Sets of 5 Pushups (Per Side)",
+      "url": "https://www.hybridcalisthenics.com/side-staggered-pushups"
+    },
+    {
+      "variation": "#7 Side Staggered Pushups",
+      "level": 2,
+      "reps": "2 Sets of 10 Pushups (Per Side)",
+      "url": "https://www.hybridcalisthenics.com/side-staggered-pushups"
+    },
+    {
+      "variation": "#7 Side Staggered Pushups",
+      "level": 3,
+      "reps": "2 Sets of 20 Pushups (Per Side)",
+      "url": "https://www.hybridcalisthenics.com/side-staggered-pushups"
+    },
+    {
+      "variation": "#8 Archer Pushups",
+      "level": 1,
+      "reps": "2 Sets of 5 Pushups (Per Side)",
+      "url": "https://www.hybridcalisthenics.com/archer-pushups"
+    },
+    {
+      "variation": "#8 Archer Pushups",
+      "level": 2,
+      "reps": "2 Sets of 9 Pushups (Per Side)",
+      "url": "https://www.hybridcalisthenics.com/archer-pushups"
+    },
+    {
+      "variation": "#8 Archer Pushups",
+      "level": 3,
+      "reps": "2 Sets of 12 Pushups (Per Side)",
+      "url": "https://www.hybridcalisthenics.com/archer-pushups"
+    },
+    {
+      "variation": "#9 Sliding One Arm Pushups",
+      "level": 1,
+      "reps": "2 Sets of 5 Pushups (Per Side)",
+      "url": "https://www.hybridcalisthenics.com/sliding-onearm-pushups"
+    },
+    {
+      "variation": "#9 Sliding One Arm Pushups",
+      "level": 2,
+      "reps": "2 Sets of 9 Pushups (Per Side)",
+      "url": "https://www.hybridcalisthenics.com/sliding-onearm-pushups"
+    },
+    {
+      "variation": "#9 Sliding One Arm Pushups",
+      "level": 3,
+      "reps": "2 Sets of 12 Pushups (Per Side)",
+      "url": "https://www.hybridcalisthenics.com/sliding-onearm-pushups"
+    },
+    {
+      "variation": "#10 One Arm Pushups",
+      "level": 1,
+      "reps": "2 Sets of 3 Pushups (Per Side)",
+      "url": "https://www.hybridcalisthenics.com/onearm-pushups"
+    },
+    {
+      "variation": "#10 One Arm Pushups",
+      "level": 2,
+      "reps": "2 Sets of 6 Pushups (Per Side)",
+      "url": "https://www.hybridcalisthenics.com/onearm-pushups"
+    },
+    {
+      "variation": "#10 One Arm Pushups",
+      "level": 3,
+      "reps": "2 Sets of 9 Pushups (Per Side)",
+      "url": "https://www.hybridcalisthenics.com/onearm-pushups"
+    },
+    {
+      "variation": "#11 Advanced One Arm Pushups",
+      "level": 1,
+      "reps": "2 Sets of 3 Pushups (Per Side)",
+      "url": "https://www.hybridcalisthenics.com/advanced-onearm-pushups"
+    },
+    {
+      "variation": "#11 Advanced One Arm Pushups",
+      "level": 2,
+      "reps": "2 Sets of 6 Pushups (Per Side)",
+      "url": "https://www.hybridcalisthenics.com/advanced-onearm-pushups"
+    },
+    {
+      "variation": "#11 Advanced One Arm Pushups",
+      "level": 3,
+      "reps": "2 Sets of 9 Pushups (Per Side)",
+      "url": "https://www.hybridcalisthenics.com/advanced-onearm-pushups"
+    }
+  ],
+  "meals": [
+    {
+      "title": "Meal 1 – Breakfast",
+      "focus": "High-protein, energizing",
+      "calories": 500,
+      "protein": "40g",
+      "carbs": "40g",
+      "fats": "15g"
+    },
+    {
+      "title": "Meal 2 – Lunch",
+      "focus": "Balanced & filling",
+      "calories": 600,
+      "protein": "45g",
+      "carbs": "50g",
+      "fats": "15g"
+    },
+    {
+      "title": "Meal 3 – Snack/Pre-Workout",
+      "focus": "Quick fuel",
+      "calories": 300,
+      "protein": "25g",
+      "carbs": "30g",
+      "fats": "5g"
+    },
+    {
+      "title": "Meal 4 – Dinner",
+      "focus": "High-protein, low-carb",
+      "calories": 600,
+      "protein": "55g",
+      "carbs": "35g",
+      "fats": "20g"
+    },
+    {
+      "title": "Meal 5 – Late Snack (optional)",
+      "focus": "Protein-based recovery",
+      "calories": 300,
+      "protein": "35g",
+      "carbs": "25g",
+      "fats": "10g"
+    }
+  ],
+  "totals": {
+    "A": "Total",
+    "C": "2,300 kcal",
+    "D": "200g",
+    "E": "180g",
+    "F": "75g"
+  }
+}

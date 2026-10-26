@@ -1,3 +1,4 @@
+import { changeWeightLossStart, validPlanDate, weightLossDates } from "./weightLossPlan";
 import { calendarDate, displayDate, easternDateKey, enableHygieneSchedule, isHygieneRoutine, refreshChecklistSchedule, scheduledCheckState, scheduledDate, taskDueLabel, WEEKDAYS, weekStartKey } from './checklistSchedule';
 import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import { checklistRoot, checklistSelector, checklistTaskContent, checklistTitle, formatChecklistReference, readableHeading, setChecklistChecked } from './checklistDocument';
@@ -25,6 +26,10 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
   const canSchedule = !scheduled && isHygieneRoutine(html, title);
   const boxes = [...root.querySelectorAll(checklistSelector)];
   const lists = [...root.querySelectorAll('ul.notebook-todo')].filter(list => list.querySelector(':scope > li > input[type="checkbox"]'));
+  const planStart = root.querySelector('[data-weightloss-plan]')?.getAttribute('data-weightloss-start');
+  const [planWeek, setPlanWeek] = useState(0);
+  const planDates = planStart && validPlanDate(planStart) ? weightLossDates(planStart) : [];
+  const visibleLists = lists.filter(list => !list.closest('[data-weightloss-week]') || list.closest('[data-weightloss-week]')?.getAttribute('data-weightloss-week') === String(planWeek));
   const completed = boxes.filter(box => scheduledCheckState(box, now)).length;
   const [compact, setCompact] = useState(false);
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
@@ -46,6 +51,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     if (node.nodeType === Node.TEXT_NODE) return node.textContent;
     if (!(node instanceof Element)) return null;
     if (['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'SVG', 'MATH', 'TEMPLATE', 'INPUT', 'BUTTON'].includes(node.tagName)) return null;
+    if (node.hasAttribute('data-weightloss-week') && node.getAttribute('data-weightloss-week') !== String(planWeek)) return null;
     if (lists.includes(node)) {
       const sectionIndex = lists.indexOf(node);
       const title = checklistTitle(node, root, sectionIndex);
@@ -89,6 +95,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
       case 'H2': return <h2 key={key}>{readableHeading(node.textContent ?? '')}</h2>;
       case 'H3': return <h3 key={key}>{readableHeading(node.textContent ?? '')}</h3>;
       case 'H4': case 'H5': case 'H6': return <h4 key={key}>{children}</h4>;
+      case 'SPAN': return <span key={key}>{children}</span>;
       case 'P': return <p key={key}>{children}</p>;
       case 'BR': return <br key={key} />;
       case 'HR': return <hr key={key} />;
@@ -120,8 +127,14 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     }
   };
   return <article className={`checklist-document${compact ? ' is-compact' : ''}`} style={{ fontSize }}>
+    {planStart && <div className="weightloss-schedule-controls">
+      <label>Start date<input type="date" value={planStart} min="1900-01-01" max="9998-12-31" onChange={event => { if (validPlanDate(event.target.value)) { setUndo(null); onChange(changeWeightLossStart(scheduledHtml, event.target.value)); } }} /></label>
+      <label>Workout week<select value={planWeek} onChange={event => setPlanWeek(Number(event.target.value))}>{Array.from({ length: 52 }, (_, index) => <option key={index} value={index}>Week {index + 1} · {planDates[index * 3] ? displayDate(planDates[index * 3]) : ''}</option>)}</select></label>
+      <div className="weightloss-week-buttons"><button disabled={planWeek === 0} onClick={() => setPlanWeek(week => week - 1)}>← Previous week</button><button disabled={planWeek === 51} onClick={() => setPlanWeek(week => week + 1)}>Next week →</button></div>
+      <p>Changing the start date updates all 52 weeks. Workouts stay on Monday, Wednesday and Friday; your checkmarks stay saved.</p>
+    </div>}
     {canSchedule && <div className="checklist-schedule-setup"><div><strong>Give your routine a schedule</strong><p>Daily morning and night tasks, plus a Sunday–Saturday plan for weekly chores.</p></div><button onClick={() => onChange(enableHygieneSchedule(html, now))}>Add recurring schedule</button></div>}
-    {scheduled && <div className="checklist-calendar" aria-live="polite">
+    {scheduled && !planStart && <div className="checklist-calendar" aria-live="polite">
       <div className="checklist-today-heading"><span className="checklist-today-badge">Today</span><strong>{WEEKDAYS[calendarDate(today).getUTCDay()]}, {displayDate(today)}</strong></div>
       <span>Eastern Time · Week of {displayDate(weekStartKey(now))}</span>
       <div className="checklist-week" role="group" aria-label="This week in Eastern Time">
@@ -140,7 +153,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
       <button type="button" aria-pressed={compact} onClick={() => setCompact(value => !value)}>{compact ? 'Show details' : 'Hide details'}</button>
       <progress max={boxes.length || 1} value={completed} aria-label="Overall checklist progress" />
     </div>
-    <nav className="checklist-jump" aria-label="Jump to checklist">{lists.map((list, index) => <button key={index} onClick={() => document.getElementById(`${prefix}-section-${index}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{checklistTitle(list, root, index)}</button>)}</nav>
+    <nav className="checklist-jump" aria-label="Jump to checklist">{visibleLists.map((list) => <button key={lists.indexOf(list)} onClick={() => document.getElementById(`${prefix}-section-${lists.indexOf(list)}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{checklistTitle(list, root, lists.indexOf(list))}</button>)}</nav>
     {undo && undo.after === html && <div className="checklist-undo" role="status">Checklist reset.<button onClick={() => { onChange(undo.before); setUndo(null); }}>Undo reset</button></div>}
     <div className="checklist-note-body">{!root.querySelector('h1') && title && <h1>{title}</h1>}{renderChildren(root)}</div>
   </article>;

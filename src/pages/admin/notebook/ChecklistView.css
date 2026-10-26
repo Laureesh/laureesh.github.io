@@ -85,3 +85,10 @@
 .checklist-schedule-setup { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; padding:16px; margin-bottom:20px; border:1px dashed var(--check-line); border-radius:12px; font-size:.8em; }.checklist-schedule-setup p { margin:4px 0 0; color:var(--check-muted); }.checklist-document .checklist-schedule-setup button { padding:9px 12px; border:1px solid #9cd9c050; border-radius:8px; color:var(--check-accent); background:#9cd9c010; font-size:.9em; }
 @media print { .checklist-schedule-setup { display:none; }.checklist-calendar,.checklist-due,.checklist-due>strong { color:black; background:white; } }
 @media print { .checklist-calendar .checklist-today-badge,.checklist-week>time[aria-current="date"] :is(span,strong,small),.checklist-rows .is-today .checklist-due :is(span,time) { color:black; }.checklist-week>time[aria-current="date"],.checklist-note-body .checklist-rows>li.is-today { border-color:black; } }
+
+.weightloss-schedule-controls { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; padding: 20px; margin-bottom: 20px; border: 1px solid var(--line, #465167); border-radius: 16px; background: #152825; color: #f5fffa; }
+.weightloss-schedule-controls label { display: grid; gap: 8px; flex: 1 1 180px; font-weight: 700; }
+.weightloss-schedule-controls :is(input, select, button) { color-scheme: dark; background: #18252a; color: #fff; border: 1px solid #668279; border-radius: 8px; padding: 10px; min-height: 42px; font: inherit; max-width: 100%; min-width: 0; }
+.weightloss-week-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.weightloss-schedule-controls button:disabled { opacity: .45; }
+.weightloss-schedule-controls p { flex-basis: 100%; margin: 0; font-size: .85em; line-height: 1.6; }

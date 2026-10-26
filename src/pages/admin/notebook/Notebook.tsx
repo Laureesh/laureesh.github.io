@@ -1,3 +1,4 @@
+import { createWeightLossHtml, WEIGHT_LOSS_TITLE } from "./weightLossPlan";
 import ChecklistView from "./ChecklistView";
 import NotebookCalendar from "./NotebookCalendar";
 import SetColorPicker from "../flashbolt/SetColorPicker";
@@ -378,6 +379,13 @@ export default function Notebook() {
         : current);
     });
   };
+  const createWeightLossNote = () => {
+    const existing = data.notes.find(note => note.html.includes('data-weightloss-plan'));
+    if (existing) { setQuery(""); setTagFilter(""); setListMode("notes"); setEditingChecklistId(null); openNote(existing.id, existing.archived ? "archive" : "all"); return; }
+    const note: Note = { id: id("weightloss"), title: WEIGHT_LOSS_TITLE, html: createWeightLossHtml(), folderId: null, tags: ["fitness"], pinned: true, archived: false, color: "green", noteDate: localDateKey(), createdAt: now(), updatedAt: now(), attachments: [], versions: [] };
+    setData(current => ({ ...current, notes: [note, ...current.notes] }));
+    setQuery(""); setTagFilter(""); setListMode("notes"); setEditingChecklistId(null); openNote(note.id, "all");
+  };
   const addFolder = (parentId: string | null = null) => { const name = prompt(parentId ? "Subfolder name" : "Folder name"); if (!name?.trim()) return; setData((current) => ({ ...current, folders: [...current.folders, { id: id("folder"), name: name.trim(), parentId, color: COLORS[current.folders.length % COLORS.length], updatedAt: now() }] })); };
   const editFolder = (folder: Folder) => { const name = prompt("Rename folder", folder.name); if (!name?.trim()) return; setData((current) => ({ ...current, folders: current.folders.map((item) => item.id === folder.id ? { ...item, name: name.trim(), updatedAt: now() } : item) })); };
   const changeFolderColor = (folder: Folder) => setData((current) => ({ ...current, folders: current.folders.map((item) => item.id === folder.id ? { ...item, color: COLORS[(COLORS.indexOf(item.color) + 1) % COLORS.length], updatedAt: now() } : item) }));
@@ -545,7 +553,7 @@ export default function Notebook() {
     if (utilityPage === "help") return <NotebookHelp returnTo={returnTo} />;
     return <NotebookSettings destination={clipboardDestination} onChange={changeClipboardDestination} returnTo={returnTo} storageError={settingsStorageError} preferences={preferences} onPreferencesChange={changePreferences} sort={noteSort} onSortChange={setNoteSort} pinnedFirst={pinnedFirst} onPinnedFirstChange={setPinnedFirst} onReset={resetPreferences} onBackup={() => download("notebook-backup.json", JSON.stringify(data, null, 2), "application/json")} />;
   }
-  if (!selected) return <main className="notebook-empty"><div><span>▱</span><h1>Your notebook is empty</h1><p>Create a note to start writing. Everything will autosave.</p><button onClick={() => createNote()}>＋ Create your first note</button><label>Restore a backup<input type="file" accept="application/json,.json" onChange={importBackup} /></label><button onClick={openSettings}>Settings</button><button onClick={openHelp}>Help</button><button className="quiet" onClick={() => navigate("/admin-dashboard/private-pages")}>← Private pages</button></div></main>;
+  if (!selected) return <main className="notebook-empty"><div><span>▱</span><h1>Your notebook is empty</h1><p>Create a note to start writing. Everything will autosave.</p><button onClick={() => createNote()}>＋ Create your first note</button><button onClick={createWeightLossNote}>☑ Weight-loss checklist</button><label>Restore a backup<input type="file" accept="application/json,.json" onChange={importBackup} /></label><button onClick={openSettings}>Settings</button><button onClick={openHelp}>Help</button><button className="quiet" onClick={() => navigate("/admin-dashboard/private-pages")}>← Private pages</button></div></main>;
 
   return <div className={`notebook-shell ${sidebarOpen ? "" : "sidebar-hidden"}`}>
     {contextMenu && contextNote && <NoteActionsMenu x={contextMenu.x} y={contextMenu.y} title={contextNote.title} color={contextNote.color ?? "violet"} onColorChange={color => updateNoteById(contextNote.id, { color })} folderId={contextNote.folderId} folders={data.folders} onClose={() => setContextMenu(null)} onMove={folderId => updateNoteById(contextNote.id, { folderId })} actions={[
@@ -565,6 +573,7 @@ export default function Notebook() {
     <aside className="notebook-sidebar">
       <header><button className="notebook-logo" onClick={() => navigate("/admin-dashboard/private-pages/flashbolt")}>▱ <strong>Notebook</strong></button><button onClick={() => setSidebarOpen(false)}>‹</button></header>
       <button className="new-note" onClick={() => createNote()}>＋ New note</button>
+      <button className="new-note weightloss-note-button" onClick={createWeightLossNote}>☑ Weight-loss checklist</button>
       <nav><a href={NOTEBOOK_BASE} className={folderFilter === "all" ? "active" : ""} onClick={(event) => followNotebookLink(event, () => openFolder("all"))}>▤ All notes <b>{data.notes.filter(n => !n.archived).length}</b></a><a href={`${NOTEBOOK_BASE}/view/pinned`} className={folderFilter === "pinned" ? "active" : ""} onClick={(event) => followNotebookLink(event, () => openFolder("pinned"))}>★ Pinned</a><a href={`${NOTEBOOK_BASE}/view/archive`} className={folderFilter === "archive" ? "active" : ""} onClick={(event) => followNotebookLink(event, () => openFolder("archive"))}>⌁ Archive</a><Link to="/admin-dashboard/private-pages/flashbolt"><span aria-hidden="true">ϟ</span> Flashbolt</Link></nav>
       <div className="folder-heading"><span>Folders</span><button onClick={() => addFolder()}>＋</button></div>
       <nav>{data.folders.filter(folder => !folder.parentId).map((folder) => <div key={folder.id}>
