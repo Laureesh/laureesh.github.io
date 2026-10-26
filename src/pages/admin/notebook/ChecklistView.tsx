@@ -1,3 +1,4 @@
+import { groupFitnessHistory } from './fitnessHistory';
 import InlineChecklistText from './InlineChecklistText';
 import { editableInlineBlocks, saveInlineBlock, saveInlineTask } from './inlineChecklistEditing';
 import { numberText } from './fitnessCalculations';
@@ -30,7 +31,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     return refreshFitnessDocument(refreshChecklistSchedule(autoEnable ? enableHygieneSchedule(html, now) : html, now));
   }, [html, title, now]);
   useEffect(() => { if (scheduledHtml !== html) onChange(scheduledHtml); }, [scheduledHtml, html, onChange]);
-  const root = useMemo(() => { const document = checklistRoot(scheduledHtml); editableInlineBlocks(document).forEach((node, index) => node.setAttribute('data-inline-index', String(index))); formatChecklistReference(document); return document; }, [scheduledHtml]);
+  const root = useMemo(() => { const document = checklistRoot(scheduledHtml); editableInlineBlocks(document).forEach((node, index) => node.setAttribute('data-inline-index', String(index))); formatChecklistReference(document); groupFitnessHistory(document); return document; }, [scheduledHtml]);
   const customSchedules = Boolean(root.querySelector('[data-task-schedule]'));
   const scheduled = customSchedules || Boolean(root.querySelector('ul[data-checklist-repeat]'));
   const canSchedule = !scheduled && isHygieneRoutine(html, title);
@@ -130,6 +131,8 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
       case 'H2': return <h2 key={key}>{readableHeading(node.textContent ?? '')}</h2>;
       case 'H3': return <h3 key={key}>{readableHeading(node.textContent ?? '')}</h3>;
       case 'H4': case 'H5': case 'H6': return <h4 key={key}>{children}</h4>;
+      case 'DETAILS': return <details key={key} className={node.hasAttribute('data-fitness-history') ? 'checklist-history' : undefined}>{children}</details>;
+      case 'SUMMARY': return <summary key={key}>{children}</summary>;
       case 'SPAN': return <span key={key}>{children}</span>;
       case 'P': return <p key={key}>{children}</p>;
       case 'BR': return <br key={key} />;

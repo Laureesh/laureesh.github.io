@@ -18,12 +18,10 @@ export default function FitnessCalculators({ html, onChange }: Props) {
   return <details className="fitness-calculators" open>
     <summary>My values & calculators</summary>
     <p>Values save with this note. Changing an input updates its conversions, totals, and every task linked to that value. Use <strong>Edit task → Linked values</strong> to show them in any checklist.</p>
-    <p>Your 2024 records remain historical. Enter your current values here, or load the old numbers as a starting point and revise them.</p>
     <button type="button" onClick={() => update({ age: 22, gender: 'Male', weight: 271.4, goal: 205, idealGoal: 205, adjustedGoal: 228, height: 75.5, maintenance: 2891, calories: 2391, alternateCalories: 1891, weeklyRate: 1, sugar: 64, saturatedFat: 27, activityMin: 150, activityMax: 300, protein: 160, carbs: 335, fat: 54, water: 152.5, ...values })}>Fill empty inputs with 2024 values</button>
     <AgeCalculator values={values} onChange={update} />
     <fieldset><legend>My profile & measurements</legend><div className="fitness-fields"><label>Gender<input type="text" maxLength={80} value={values.gender ?? ''} placeholder="Male" onChange={event => update({ ...values, gender: event.target.value })} /></label>{field('weight')}<HeightInput value={values.height} onChange={height => update({ ...values, height })} /></div>
       {output('BMI', result.bmi)}
-      <p>The original age of 22 belongs to your 2024 record. Your profile feeds the formula calculators below; automatic target links are optional.</p>
       <p>BMI updates from your weight and height. It is a screening measure. <a href="https://www.cdc.gov/bmi/adult-calculator/">CDC adult BMI calculator</a></p>
     </fieldset>
     <FitnessFormulaTools values={values} onChange={update} />
