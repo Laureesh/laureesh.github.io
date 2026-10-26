@@ -1,0 +1,20 @@
+.share-set-dialog { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); overflow: auto; padding: 24px; border: 1px solid var(--line); border-radius: 20px; background: var(--panel); color: var(--ink); }
+.share-set-dialog header, .share-set-dialog footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.share-set-dialog h2 { margin: 4px 0 12px; }
+.share-set-dialog h3 { overflow-wrap: anywhere; }
+.share-set-dialog p { line-height: 1.6; color: var(--muted); }
+.share-link-label { display: grid; gap: 8px; margin: 18px 0 12px; }
+.share-link-label input { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: var(--panel); }
+.share-set-dialog footer { margin-top: 24px; }
+.share-stop-confirm { border-top: 1px solid var(--line); margin-top: 20px; }
+.shared-study-header { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 16px 24px; border-bottom: 1px solid var(--line); }
+.shared-study-header strong { color: var(--ink); }
+.shared-study-header span { color: var(--muted); font-size: 13px; }
+.shared-study-header nav { display: flex; gap: 16px; margin-left: auto; }
+.shared-study-header a { color: var(--ink); text-decoration: none; }
+.shared-study-header a[aria-current="page"] { color: var(--primary); text-decoration: underline; text-underline-offset: 6px; }
+.shared-set-status { max-width: 600px; margin: 15vh auto; padding: 24px; font: 16px/1.6 system-ui, sans-serif; }
+.shared-set-status button { padding: 12px 20px; cursor: pointer; }
+@media (max-width: 600px) { .shared-study-header nav { margin-left: 0; width: 100%; } }
+
+.shared-study-identity { display: grid; gap: 3px; min-width: 0; max-width: 420px; overflow-wrap: anywhere; }

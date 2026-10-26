@@ -303,6 +303,38 @@ service cloud.firestore {
         );
     }
     
+    // Only a chosen snapshot is public. Listing the shared collection is forbidden.
+    match /sharedFlashboltSets/{shareId} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if isAdminUser() && request.resource.data.ownerId == request.auth.uid
+        && validSharedSet();
+      allow update: if isAdminUser() && resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerId == resource.data.ownerId && validSharedSet();
+      allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    function validSharedSet() {
+      return request.resource.data.keys().hasOnly(['ownerId', 'version', 'revision', 'payload', 'updatedAt'])
+        && request.resource.data.ownerId is string
+        && request.resource.data.version == 1
+        && request.resource.data.revision is string
+        && request.resource.data.revision.size() <= 100
+        && request.resource.data.payload is string
+        && request.resource.data.payload.size() <= 900000
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    match /users/{uid}/flashboltShares/{setId} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) && isAdminUser()
+        && request.resource.data.keys().hasOnly(['shareId'])
+        && request.resource.data.shareId is string
+        && request.resource.data.shareId.matches('^[A-Za-z0-9]{20}$')
+        && getAfter(/databases/$(database)/documents/sharedFlashboltSets/$(request.resource.data.shareId)).data.ownerId == uid;
+      allow delete: if isOwner(uid);
+    }
+
     match /users/{uid}/flashbolt/{documentId} {
       allow read, write: if isOwner(uid);
     }

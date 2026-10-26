@@ -64,7 +64,7 @@ for (const width of [1440, 390]) {
       await page.screenshot({ path: `/tmp/notebook-colors-${width}.png` });
       await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
       await page.getByRole('button', { name: 'Calendar', exact: true }).click();
-      assert.equal(await page.locator('.calendar-grid a').filter({ hasText: 'Beta note' }).evaluate(el => getComputedStyle(el).borderLeftColor), 'rgb(171, 39, 79)');
+      assert.equal(await page.locator('.calendar-day-notes li').filter({ hasText: 'Beta note' }).evaluate(el => getComputedStyle(el).borderLeftColor), 'rgb(171, 39, 79)');
       await page.getByRole('button', { name: 'List', exact: true }).click();
       await betaRow.locator('a').click();
       await page.locator('.note-header-color').getByRole('button', { name: 'Color: Cherry Rose', exact: true }).click();

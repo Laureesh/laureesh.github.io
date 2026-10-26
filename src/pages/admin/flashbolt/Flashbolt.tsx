@@ -1,3 +1,7 @@
+import ShareSetDialog from './sharing/ShareSetDialog';
+import { sharedProgressKey, sharedStudyPath } from './sharing/sharedSet';
+import { revokeSetShare } from '../../../services/flashboltSharing';
+import type { SharedPublication } from '../../../services/flashboltSharing';
 import { isPrintedQuizReview } from "./note-parser";
 import { getSetColor } from "./setColors";
 import { jumpToEditorCard } from "./editorCardNavigation";
@@ -107,7 +111,7 @@ type LearnSessionSnapshot = {
   updatedAt: string;
 };
 
-type Card = {
+export type Card = {
   id: string;
   term: string;
   definition: string;
@@ -157,7 +161,7 @@ declare global {
   }
 }
 
-type StudySet = {
+export type StudySet = {
   id: string;
   title: string;
   description: string;
@@ -847,12 +851,24 @@ function ThemePicker({
   );
 }
 
-export default function Flashbolt() {
+export default function Flashbolt({ shared }: { shared?: SharedPublication } = {}) {
   const { user } = useAuth();
   const location = useLocation();
   const routerNavigate = useNavigate();
-  const userId = user?.uid;
+  const userId = shared ? undefined : user?.uid;
+  const [sharingSet, setSharingSet] = useState<StudySet | null>(null);
+  const [sharedStorageError, setSharedStorageError] = useState(false);
+  const sharedStorageKey = shared ? sharedProgressKey(shared.id, shared.revision) : '';
+
   const [data, setData] = useState<AppData>(() => {
+    if (shared) {
+      const base: AppData = { sets: [shared.set], folders: [], mastered: {}, sessions: 0 };
+      try {
+        const saved = JSON.parse(localStorage.getItem(sharedStorageKey) ?? 'null');
+        if (saved && typeof saved === 'object') return withDataDefaults({ ...base, mastered: saved.mastered ?? {}, learnProgress: saved.learnProgress ?? {}, activeLearn: saved.activeLearn, sessions: saved.sessions ?? 0 });
+      } catch { /* Study remains available when browser storage is blocked. */ }
+      return withDataDefaults(base);
+    }
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY) ?? window.localStorage.getItem(LEGACY_STORAGE_KEY);
       const parsed: unknown = saved ? JSON.parse(saved) : null;
@@ -860,9 +876,9 @@ export default function Flashbolt() {
     } catch { /* Account sync will restore the library if the local backup is unavailable. */ }
     return initialData;
   });
-  const [ready, setReady] = useState(false);
-  const [view, setView] = useState<View>(() => initialFlashboltView(location.pathname));
-  const [selectedSetId, setSelectedSetId] = useState(initialData.sets[0].id);
+  const [ready, setReady] = useState(Boolean(shared));
+  const [view, setView] = useState<View>(() => shared ? "learn" : initialFlashboltView(location.pathname));
+  const [selectedSetId, setSelectedSetId] = useState(shared?.set.id ?? initialData.sets[0].id);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [masteryFilter, setMasteryFilter] = useState(() => {
     try { return normalizeMasteryFilter(JSON.parse(localStorage.getItem(MASTERY_FILTER_KEY) ?? "null")); }
@@ -1037,6 +1053,17 @@ export default function Flashbolt() {
   const handledRouteRef = useRef("");
 
   useEffect(() => {
+    if (!sharedStorageKey) return;
+    try {
+      const { mastered, learnProgress, activeLearn, sessions } = data;
+      localStorage.setItem(sharedStorageKey, JSON.stringify({ mastered, learnProgress, activeLearn, sessions }));
+    } catch {
+      // Show the storage limitation without interrupting the current session.
+      queueMicrotask(() => setSharedStorageError(true));
+    }
+  }, [data, sharedStorageKey]);
+
+  useEffect(() => {
     if (!userId) return;
     const syncUserId = userId;
     let cancelled = false;
@@ -1148,12 +1175,20 @@ export default function Flashbolt() {
 
   useEffect(() => {
     applyThemeToDocument(theme);
-    if (ready) window.localStorage.setItem(`${STORAGE_KEY}.theme`, theme);
+    if (ready) { try { window.localStorage.setItem(`${STORAGE_KEY}.theme`, theme); } catch { /* In-memory theme still works. */ } }
   }, [theme, ready]);
 
   // Resolve internal navigation before paint without replacing the workspace with a loader.
   useLayoutEffect(() => {
     if (handledRouteRef.current === location.pathname) return;
+    if (shared) {
+      handledRouteRef.current = location.pathname;
+      const mode = location.pathname.split('/').at(-1);
+      if (mode === 'flashcards') openSet(shared.set.id);
+      else if (mode === 'test') startTest(shared.set.id);
+      else startLearn(shared.set.id);
+      return;
+    }
     if (location.pathname === "/flashbolt" || location.pathname.startsWith("/flashbolt/")) {
       routerNavigate(`${FLASHBOLT_BASE}${location.pathname.slice("/flashbolt".length)}`, { replace: true });
       return;
@@ -1288,11 +1323,11 @@ export default function Flashbolt() {
   // Route handlers are intentionally re-run only when the route or persisted library changes.
   // Adding the inline navigation helpers would retrigger this effect on every render.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.folders, data.sets, location.pathname, location.search, ready, userId]);
+  }, [data.folders, data.sets, location.pathname, location.search, ready, userId, shared]);
 
   useEffect(() => {
-    if (ready) window.localStorage.setItem(LIBRARY_SORT_KEY, librarySort);
-  }, [librarySort, ready]);
+    if (ready && !shared) window.localStorage.setItem(LIBRARY_SORT_KEY, librarySort);
+  }, [librarySort, ready, shared]);
 
   useEffect(() => {
     if (!toast) return;
@@ -1369,8 +1404,12 @@ export default function Flashbolt() {
   useEffect(() => {
     if (!setContextMenu) return;
     const close = () => setSetContextMenu(null);
+    const openingScroll = { x: window.scrollX, y: window.scrollY };
     const closeOnOutsideScroll = (event: Event) => {
       if (event.target instanceof Node && setContextMenuRef.current?.contains(event.target)) return;
+      // A scroll that brought the trigger into view can be delivered after the menu opens.
+      if ((event.target === document || event.target === window)
+        && window.scrollX === openingScroll.x && window.scrollY === openingScroll.y) return;
       close();
     };
     const closeOnEscape = (event: globalThis.KeyboardEvent) => {
@@ -1696,6 +1735,7 @@ export default function Flashbolt() {
   }
 
   function routePathForView(nextView: View, setId = selectedSetId) {
+    if (shared) return sharedStudyPath(shared.id, nextView === 'set' ? 'flashcards' : nextView === 'test' ? 'test' : 'learn');
     if (!["set", "learn", "test", "create", "helper"].includes(nextView) || (["create", "helper"].includes(nextView) && !setId)) {
       return nextView === "home" ? FLASHBOLT_BASE : `${FLASHBOLT_BASE}/${nextView}`;
     }
@@ -1718,6 +1758,7 @@ export default function Flashbolt() {
   }
 
   function navigate(nextView: View, setId = selectedSetId) {
+    if (shared && !["set", "learn", "test"].includes(nextView)) return;
     if (nextView === "library") setSelectedFolderId(null);
     setView(nextView);
     setNewMenuOpen(false);
@@ -2865,6 +2906,10 @@ export default function Flashbolt() {
   async function deleteSelectedSet() {
     if (!selectedSet) return;
     if (!await askConfirmation(`Delete “${selectedSet.title}”? This cannot be undone.`, "Delete set?", "Delete set")) return;
+    if (userId) {
+      try { await revokeSetShare(userId, selectedSet.id); }
+      catch { notify("Could not disable this set's study link. Check your connection and try deleting again."); return; }
+    }
     setData((current) => removeSetFromLibraryData(current, selectedSet.id));
     setSelectedSetId(data.sets.find((set) => set.id !== selectedSet.id)?.id ?? "");
     notify("Set deleted.");
@@ -2891,7 +2936,7 @@ export default function Flashbolt() {
   async function copySetModeLink(set: StudySet, mode: "flashcards" | "learn" | "test" | "edit") {
     try {
       await navigator.clipboard.writeText(setModeUrl(set, mode));
-      notify(`${mode === "flashcards" ? "Flashcards" : mode[0].toUpperCase() + mode.slice(1)} link copied.`);
+      notify(`${mode === "flashcards" ? "Flashcards" : mode[0].toUpperCase() + mode.slice(1)} private link copied. Use Share study link for classmates.`);
     } catch {
       notify("The link could not be copied. Open the mode and copy it from the address bar.");
     }
@@ -2940,6 +2985,10 @@ export default function Flashbolt() {
 
   async function deleteSetFromLibrary(setToDelete: StudySet) {
     if (!await askConfirmation(`Delete “${setToDelete.title}”? This cannot be undone.`, "Delete set?", "Delete set")) return;
+    if (userId) {
+      try { await revokeSetShare(userId, setToDelete.id); }
+      catch { notify("Could not disable this set's study link. Check your connection and try deleting again."); return; }
+    }
     setData((current) => removeSetFromLibraryData(current, setToDelete.id));
     if (selectedSetId === setToDelete.id) setSelectedSetId(data.sets.find((item) => item.id !== setToDelete.id)?.id ?? "");
     notify("Set deleted.");
@@ -3148,6 +3197,7 @@ export default function Flashbolt() {
             event.preventDefault(); items[next]?.focus();
           }}>
             <strong>{contextSet.title}</strong>
+            <button role="menuitem" onClick={() => { setSetContextMenu(null); setSharingSet(contextSet); }}>Share study link</button>
             <Link role="menuitem" to={routePathForView("set", contextSet.id)} onClick={() => setSetContextMenu(null)}><span>▣</span>View set</Link>
             <a role="menuitem" href={routePathForView("set", contextSet.id)} target="_blank" rel="noreferrer" onClick={() => setSetContextMenu(null)}><span><UiIcon symbol="↗" /></span>Open in new tab</a>
             <a role="menuitem" href={routePathForView("create", contextSet.id)} onClick={(event) => { setSetContextMenu(null); followFlashboltLink(event, () => startEdit(contextSet)); }}><span><UiIcon symbol="✎" /></span>Edit set</a>
@@ -3157,10 +3207,10 @@ export default function Flashbolt() {
             </>}
             <button role="menuitem" onClick={() => { setSetContextMenu(null); duplicateSet(contextSet); }}><span><UiIcon symbol="⧉" /></span>Duplicate</button>
             <i />
-            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "flashcards")}><span><UiIcon symbol="↗" /></span>Copy flashcards link</button>
-            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "learn")}><span><UiIcon symbol="↗" /></span>Copy learn link</button>
-            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "test")}><span><UiIcon symbol="↗" /></span>Copy test link</button>
-            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "edit")}><span><UiIcon symbol="↗" /></span>Copy edit link</button>
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "flashcards")}><span><UiIcon symbol="↗" /></span>Copy private flashcards link</button>
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "learn")}><span><UiIcon symbol="↗" /></span>Copy private learn link</button>
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "test")}><span><UiIcon symbol="↗" /></span>Copy private test link</button>
+            <button role="menuitem" onClick={() => void copySetModeLink(contextSet, "edit")}><span><UiIcon symbol="↗" /></span>Copy private edit link</button>
             <i />
             <button role="menuitem" className="danger" disabled={!contextSet.cards.length} onClick={() => { setSetContextMenu(null); setClearTermsSetId(contextSet.id); }}><span><UiIcon symbol="−" /></span>Remove all terms</button>
             <button role="menuitem" className="danger" onClick={() => { setSetContextMenu(null); deleteSetFromLibrary(contextSet); }}><span><UiIcon symbol="×" /></span>Delete set</button>
@@ -3170,7 +3220,7 @@ export default function Flashbolt() {
 
 
       <div className="main-column">
-        <header ref={topbarRef} className={`topbar${showEditorTopbar ? " topbar-editing" : ""}`}>
+        {shared ? <header className="shared-study-header"><div className="shared-study-identity"><span>Flashbolt · Shared set</span><strong>{shared.set.title}</strong></div><span role="status">{sharedStorageError ? 'Progress cannot be saved in this browser; keep this tab open.' : 'No account needed · Progress saved in this browser'}</span><nav aria-label="Shared study modes">{(['set', 'learn', 'test'] as const).map(mode => <Link key={mode} to={routePathForView(mode)} aria-current={view === mode ? 'page' : undefined}>{mode === 'set' ? 'Flashcards' : mode === 'learn' ? 'Learn' : 'Test'}</Link>)}</nav><ThemePicker compact theme={theme} onThemeChange={setTheme} /></header> : <header ref={topbarRef} className={`topbar${showEditorTopbar ? " topbar-editing" : ""}`}>
           <button className="topbar-navigation-trigger" popoverTarget="flashbolt-navigation" aria-label="Open Flashbolt navigation" title="Navigation"><span aria-hidden="true">☰</span></button>
           <nav className="topbar-quick-navigation" aria-label="Main navigation">
           <Link title="Home" aria-label="Home" className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span className="nav-icon"><House aria-hidden="true" /></span><span className="nav-label">Home</span></Link>
@@ -3251,7 +3301,7 @@ export default function Flashbolt() {
           </div>
           <span className="avatar" aria-label="Signed-in account" title={user?.email ?? "Signed-in account"}>ME</span>
           </>}
-        </header>
+        </header>}
 
         <main className="workspace">
           {view !== "library" && (view === "home" || Boolean(search)) && <MasteryFilterControls compact="chip" value={masteryFilter} onChange={setMasteryFilter} shown={!search && view === "home" ? recentSets.length : visibleSets.length} total={!search && view === "home" ? data.sets.length : filteredSets.length} />}
@@ -3786,8 +3836,8 @@ export default function Flashbolt() {
           {!search && view === "set" && selectedSet && (
             <section className="study-page">
               <div className="page-heading split compact">
-                <div><Link className="back-link" to={`${FLASHBOLT_BASE}/library`} onClick={event => followFlashboltLink(event, () => navigate("library"))}>← Library</Link><span className="eyebrow">{selectedSet.subject}</span><h1>{selectedSet.title}</h1><p>{selectedSet.description}</p></div>
-                <div className="heading-actions">{selectedSet.kahootUrl && isSafeKahootUrl(selectedSet.kahootUrl) && <a className="button quiet" href={selectedSet.kahootUrl} target="_blank" rel="noreferrer">◆ Open Kahoot ↗</a>}<a className="button quiet" href={routePathForView("create", selectedSet.id)} onClick={(event) => followFlashboltLink(event, () => startEdit(selectedSet))}>Edit set</a><button className="icon-button danger" onClick={deleteSelectedSet} aria-label="Delete set"><UiIcon symbol="×" /></button></div>
+                <div>{!shared && <Link className="back-link" to={`${FLASHBOLT_BASE}/library`} onClick={event => followFlashboltLink(event, () => navigate("library"))}>← Library</Link>}<span className="eyebrow">{selectedSet.subject}</span><h1>{selectedSet.title}</h1><p>{selectedSet.description}</p></div>
+                <div className="heading-actions">{!shared && <><button className="button primary" onClick={() => setSharingSet(selectedSet)}>Share study link</button>{selectedSet.kahootUrl && isSafeKahootUrl(selectedSet.kahootUrl) && <a className="button quiet" href={selectedSet.kahootUrl} target="_blank" rel="noreferrer">◆ Open Kahoot ↗</a>}<a className="button quiet" href={routePathForView("create", selectedSet.id)} onClick={(event) => followFlashboltLink(event, () => startEdit(selectedSet))}>Edit set</a><button className="icon-button danger" onClick={deleteSelectedSet} aria-label="Delete set"><UiIcon symbol="×" /></button></>}</div>
               </div>
               {folder && folderSetIndex >= 0 && folderSets.length > 1 && (
                 <nav className="folder-set-navigation" aria-label={`Move between sets in ${folder.name}`}>
@@ -3824,7 +3874,7 @@ export default function Flashbolt() {
                   <Link className="button primary full" to={routePathForView("learn", selectedSet.id)}>Practice in Learn</Link><Link className="button quiet full" to={routePathForView("test", selectedSet.id)}>Take a test</Link>
                 </aside>
               </div>
-              : <div className="empty-state" role="status"><h2>No cards in this set yet</h2><p>Add or import cards to start studying.</p><button className="button primary" onClick={() => startEdit(selectedSet)}>Add cards</button></div>}
+              : <div className="empty-state" role="status"><h2>No cards in this set yet</h2><p>Add or import cards to start studying.</p>{!shared && <button className="button primary" onClick={() => startEdit(selectedSet)}>Add cards</button>}</div>}
               <section className="term-list">
                 <div className="section-heading term-list-heading"><div><span className="eyebrow">Review</span><h2>Terms in this set ({selectedSet.cards.length})</h2></div><label className="term-search"><span aria-hidden="true"><UiIcon symbol="⌕" /></span><input type="search" value={termSearch} onChange={(event) => setTermSearch(event.target.value)} placeholder="Search terms and answers" aria-label="Search terms, definitions, and answer choices in this set" />{termSearch && <button type="button" onClick={() => setTermSearch("")} aria-label="Clear term search"><UiIcon symbol="×" /></button>}</label></div>
                 {termSearch && <p className="term-search-count" role="status">Showing {visibleSetCards.length} of {selectedSet.cards.length} terms</p>}
@@ -3865,7 +3915,7 @@ export default function Flashbolt() {
                     <button role="radio" aria-checked={learnGoal === "understand"} className={learnGoal === "understand" ? "selected" : ""} onClick={() => setLearnGoal("understand")}><span className="goal-copy"><strong>Understand the concepts</strong><small>Study saved explanations and why each choice fits or fails</small></span><span className="goal-icon memorize"><UiIcon symbol="✦" /></span></button>
                   </div>
                   <div className="learn-mastery-overview" aria-label="Saved knowledge levels"><span><i className="level-new" />New <b>{learnStatusCounts.new}</b></span><span><i className="level-learning" />Learning <b>{learnStatusCounts.learning}</b></span><span><i className="level-familiar" />Familiar <b>{learnStatusCounts.familiar}</b></span><span><i className="level-mastered" />Mastered <b>{learnStatusCounts.mastered}</b></span></div>
-                  {!enabledLearnCards.length && <div className="empty-state" role="status"><p>No questions are enabled for Learn mode. Enable questions on the edit set page to begin.</p><button className="button quiet" onClick={() => startEdit(selectedSet)}>Edit set</button></div>}
+                  {!enabledLearnCards.length && <div className="empty-state" role="status"><p>No questions are enabled for Learn mode. {shared ? 'Ask the owner to enable questions and update the shared copy.' : 'Enable questions on the edit set page to begin.'}</p>{!shared && <button className="button quiet" onClick={() => startEdit(selectedSet)}>Edit set</button>}</div>}
                   <div className="learn-goal-footer"><span>{enabledLearnCards.length} enabled terms · progress saves on this device</span><div className="learn-goal-actions">{resumableLearn && <button className="button quiet learn-start" onClick={resumeLearnSession} disabled={!enabledLearnCards.length}>Resume session</button>}<button className="button primary learn-start" onClick={() => beginLearnSession(learnGoal)} disabled={!enabledLearnCards.length}>{resumableLearn ? "Start new" : "Start Learn"} <b>→</b></button></div></div>
                 </div>
               )}
@@ -3911,7 +3961,7 @@ export default function Flashbolt() {
                           {learnExplanationDraft === null ? <>
                             {learnFeedbackExplanation && <p><ExplanationLinks text={learnFeedbackExplanation} /></p>}
                             {!!currentLearnCard.references?.length && <div className="learn-reference-links"><strong>References</strong><ul>{currentLearnCard.references.map((reference, index) => <li key={index}>{referenceUrl(reference) ? <a href={referenceUrl(reference)!} target="_blank" rel="noopener noreferrer">{reference}</a> : reference}</li>)}</ul></div>}
-                            <button type="button" className="button quiet" onClick={() => { setLearnExplanationDraft(currentLearnCard.explanation ?? ""); setLearnReferencesDraft((currentLearnCard.references ?? []).join("\n")); }}>{currentLearnCard.explanation || currentLearnCard.references?.length ? "Edit explanation" : "Add explanation"}</button>
+                            {!shared && <button type="button" className="button quiet" onClick={() => { setLearnExplanationDraft(currentLearnCard.explanation ?? ""); setLearnReferencesDraft((currentLearnCard.references ?? []).join("\n")); }}>{currentLearnCard.explanation || currentLearnCard.references?.length ? "Edit explanation" : "Add explanation"}</button>}
                           </> : <>
                             <ExplanationEditor value={learnExplanationDraft} onChange={setLearnExplanationDraft} />
                             <label className="card-explanation-field"><span>Reference links <small>optional · one URL per line</small></span><AutoResizeTextarea rows={2} value={learnReferencesDraft} onChange={event => setLearnReferencesDraft(event.target.value)} placeholder="https://example.com/article" /></label>
@@ -3960,7 +4010,7 @@ export default function Flashbolt() {
               )}
 
               {learnPhase === "complete" && (
-                <><div className="results-card learn-complete"><span className="result-burst"><UiIcon symbol="✓" /></span><span className="eyebrow">100% goal reached</span><h1>You completed the adaptive path.</h1><p className="learn-complete-count"><strong>{learnQuestionsAnswered}</strong> questions answered across <strong>{learnRound}</strong> adaptive round{learnRound === 1 ? "" : "s"}.</p><p>Every card reached the {learnGoal === "cram" ? "familiar" : "mastered"} level. {learnGoal === "understand" ? "You practiced answers and reviewed their reasoning. Your written reflections were not graded." : "Weak cards repeated and stronger cards advanced to harder recall."} Your progress was queued for account sync.</p><div className="button-row center"><button className="button primary" onClick={() => beginLearnSession(learnGoal)}>Practice again</button><button className="button quiet" onClick={() => navigate("set")}>Back to set</button></div></div><StudySummary missed={learnMissedCards} onRetry={() => beginLearnSession(learnGoal, learnOptions, learnMissedIds)} /></>
+                <><div className="results-card learn-complete"><span className="result-burst"><UiIcon symbol="✓" /></span><span className="eyebrow">100% goal reached</span><h1>You completed the adaptive path.</h1><p className="learn-complete-count"><strong>{learnQuestionsAnswered}</strong> questions answered across <strong>{learnRound}</strong> adaptive round{learnRound === 1 ? "" : "s"}.</p><p>Every card reached the {learnGoal === "cram" ? "familiar" : "mastered"} level. {learnGoal === "understand" ? "You practiced answers and reviewed their reasoning. Your written reflections were not graded." : "Weak cards repeated and stronger cards advanced to harder recall."} {shared ? "Your progress stays in this browser." : "Your progress was queued for account sync."}</p><div className="button-row center"><button className="button primary" onClick={() => beginLearnSession(learnGoal)}>Practice again</button><button className="button quiet" onClick={() => navigate("set")}>Back to set</button></div></div><StudySummary missed={learnMissedCards} onRetry={() => beginLearnSession(learnGoal, learnOptions, learnMissedIds)} /></>
               )}
 
               {knowledgeLevel && learnPhase === "session" && <LearnKnowledgeDetails
@@ -3975,8 +4025,8 @@ export default function Flashbolt() {
               {learnOptionsOpen && <Modal className="learn-options-modal" labelledBy="learn-options-title" onClose={() => setLearnOptionsOpen(false)}>
                 <header><div><span className="eyebrow">Customize Learn</span><h2 id="learn-options-title">Options</h2></div><button className="icon-button" onClick={() => setLearnOptionsOpen(false)} aria-label="Close options"><UiIcon symbol="×" /></button></header>
                 <LearnTextSizes sizes={learnTextSizes.sizes} setSizes={learnTextSizes.setSizes} />
-                <section className="options-section learn-set-actions" aria-label="Set actions">
-                  <h3>Set actions</h3>
+                {!shared && <section className="options-section learn-set-actions" aria-label="Set actions">
+                  <h3>Set actions</h3><button className="button quiet" onClick={() => { setLearnOptionsOpen(false); setSharingSet(selectedSet); }}>Share study link</button>
                   <p className="learn-options-set-title">{selectedSet.title}</p>
                   <div className="learn-set-action-grid">
                     <button className="button primary" onClick={() => { setLearnOptionsOpen(false); startEdit(selectedSet); }}><UiIcon symbol="✎" />Edit set</button>
@@ -3990,14 +4040,14 @@ export default function Flashbolt() {
                       <Link className="button quiet" to={routePathForView("set", selectedSet.id)} onClick={() => setLearnOptionsOpen(false)}>View set</Link>
                       <a className="button quiet" href={routePathForView("set", selectedSet.id)} target="_blank" rel="noreferrer">Open in new tab ↗</a>
                       <button className="button quiet" onClick={() => { setLearnOptionsOpen(false); duplicateSet(selectedSet); }}>Duplicate</button>
-                      {(["flashcards", "learn", "test", "edit"] as const).map(mode => <button className="button quiet" key={mode} onClick={() => void copySetModeLink(selectedSet, mode)}>Copy {mode} link</button>)}
+                      {(["flashcards", "learn", "test", "edit"] as const).map(mode => <button className="button quiet" key={mode} onClick={() => void copySetModeLink(selectedSet, mode)}>Copy private {mode} link</button>)}
                     </div>
                     <div className="learn-set-danger-actions">
                       <button className="text-button danger-text" disabled={!selectedSet.cards.length} onClick={() => { setLearnOptionsOpen(false); setClearTermsSetId(selectedSet.id); }}>Remove all terms</button>
                       <button className="text-button danger-text" onClick={() => { setLearnOptionsOpen(false); void deleteSetFromLibrary(selectedSet); }}>Delete set</button>
                     </div>
                   </details>
-                </section>
+                </section>}
                 <div className="learn-quick-options"><button className={learnOptionsDraft.shuffle ? "selected" : ""} aria-pressed={learnOptionsDraft.shuffle} onClick={() => setLearnOptionsDraft((options) => ({ ...options, shuffle: !options.shuffle }))}><span><UiIcon symbol="⇄" /></span>Shuffle</button><button className={learnOptionsDraft.soundEffects ? "selected" : ""} aria-pressed={learnOptionsDraft.soundEffects} onClick={() => setLearnOptionsDraft((options) => ({ ...options, soundEffects: !options.soundEffects }))}><span><UiIcon symbol="♪" /></span>Sound</button><button className={learnOptionsDraft.textToSpeech ? "selected" : ""} aria-pressed={learnOptionsDraft.textToSpeech} onClick={() => setLearnOptionsDraft((options) => ({ ...options, textToSpeech: !options.textToSpeech }))}><span><UiIcon symbol="◖" /></span>Read aloud</button></div>
                 <section className="options-section"><h3>Question types</h3>{([['multipleChoice','Multiple choice','▤'],['trueFalse','True or false','◐'],['selectAll','Select all that apply','✓'],['written','Written','✎'],['flashcards','Flashcards','▱']] as const).map(([key,label,icon]) => <label className="option-row" key={key}><span className="option-row-icon"><UiIcon symbol={icon} /></span><strong>{label}</strong><input type="checkbox" role="switch" checked={learnOptionsDraft[key]} onChange={() => setLearnOptionsDraft((options) => ({ ...options, [key]: !options[key] }))} /></label>)}</section>
                 <section className="options-section"><h3>Answer with</h3><label className="option-row"><strong>Terms</strong><input type="checkbox" role="switch" checked={learnOptionsDraft.answerTerms} onChange={() => setLearnOptionsDraft((options) => ({ ...options, answerTerms: !options.answerTerms }))} /></label><label aria-label="Definitions, recommended for question cards" className="option-row"><span><strong>Definitions</strong><small>Recommended for question cards</small></span><input type="checkbox" role="switch" checked={learnOptionsDraft.answerDefinitions} onChange={() => setLearnOptionsDraft((options) => ({ ...options, answerDefinitions: !options.answerDefinitions }))} /></label></section>
@@ -4092,15 +4142,16 @@ export default function Flashbolt() {
           )}
         </main>
 
-        <nav className="mobile-nav" aria-label="Mobile navigation">
+        {!shared && <nav className="mobile-nav" aria-label="Mobile navigation">
           <Link className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><House aria-hidden="true" /><span>Home</span></Link>
           <Link className={view === "library" ? "active" : ""} to={`${FLASHBOLT_BASE}/library`} onClick={event => followFlashboltLink(event, () => navigate("library"))}><BookOpen aria-hidden="true" /><span>Library</span></Link>
           <a className="mobile-create" aria-label="Create a set" href={`${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, startCreate)}><Plus aria-hidden="true" /></a>
           <Link className={view === "helper" ? "active" : ""} to={`${FLASHBOLT_BASE}/helper`}><Zap aria-hidden="true" /><span>Helper</span></Link>
           <Link className={view === "review" ? "active" : ""} to={`${FLASHBOLT_BASE}/review`}><History aria-hidden="true" /><span>Review</span></Link>
-        </nav>
+        </nav>}
       </div>
 
+      {!shared && sharingSet && userId && <ShareSetDialog uid={userId} set={sharingSet} onClose={() => setSharingSet(null)} />}
       {batchEditSets && <BatchSetDetails sets={batchEditSets} onClose={() => setBatchEditSets(null)} onSave={changes => {
         if (changes.length) {
           const patches = new Map(changes.map(change => [change.id, change.details]));

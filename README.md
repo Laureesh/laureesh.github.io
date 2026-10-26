@@ -168,7 +168,7 @@ The repository contains the frontend billing integration, not a complete billing
 5. Enable and configure Storage if you need features such as profile-photo uploads. Storage authorization is separate from Firestore rules.
 6. Configure Turnstile for registration on the relevant hostnames.
 
-The Pages workflow deploys static frontend files. It does **not** publish Firebase rules or provision Firebase services. There is no checked-in Firebase CLI deployment configuration; manage those services separately.
+The Pages workflow deploys static frontend files. It does **not** publish Firebase rules or provision Firebase services. The checked-in `firebase.json` configures Firestore rules only; Firebase services are managed separately.
 
 ### Administrator bootstrap
 
@@ -535,3 +535,40 @@ Flashbolt's device backup is browser local storage under `flashbolt.local.v1`
 (legacy key: `studydeck.local.v1`). Use **Back up library** to download a JSON
 file; a **Download backup** button also appears beside cloud errors. Browser
 storage belongs to that site/browser profile and is removed when site data is cleared.
+
+
+### Sharing Flashbolt sets
+
+Open a set and choose **Share study link → Create study link → Copy link**.
+The same action is in each library tile’s menu and Learn’s Options. Each set gets
+its own reusable `/flashbolt/shared/{random-id}/learn` link. Classmates can use the
+existing Learn, flashcards, and test modes without signing in. The private library
+and editing routes still require an admin account.
+
+Sharing publishes a snapshot of that one set, including answers, descriptions,
+images, references, and explanations. It excludes folders, account details, and
+study history. Only the owner can update or revoke it. Use **Update shared copy**
+after edits; the URL stays the same, and the revised copy starts fresh visitor
+progress. **Stop sharing** disables future loads; creating a link again gives a
+new URL. Deleting a set first revokes its link. Already opened or downloaded
+copies cannot be recalled. Replacing the entire library from a backup does not
+revoke existing links; stop sharing those sets before replacing the library.
+
+Visitor progress is local to that browser and shared revision, isolated from the
+signed-in library even when an admin opens a share. Clearing site data clears it.
+A server connection is required to open a link and check whether it is still
+shared. Shared snapshots are limited to 900 KB; large image sets must be reduced
+or split before sharing.
+
+**Deployment:** publish the updated rules before the new frontend. GitHub Pages
+does not deploy them. With Firebase CLI credentials for the intended project:
+
+```sh
+npx firebase-tools deploy --only firestore:rules --project YOUR_FIREBASE_PROJECT_ID
+```
+
+`firebase.json` points to `src/firebase/firestore.rules`. These rules allow public
+single-document reads in `sharedFlashboltSets`, deny public listing/writes, and
+keep `users/{uid}/flashboltShares` owner-only. Creating/updating shares requires an
+active admin; ownership cannot be transferred through the client. No changes to
+the existing private-library permissions are needed.

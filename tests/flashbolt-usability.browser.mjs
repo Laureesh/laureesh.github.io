@@ -6,13 +6,14 @@ const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODUL
 const origin = process.env.TEST_ORIGIN || 'http://127.0.0.1:5173';
 const hash = JSON.parse(readFileSync(new URL('../node_modules/.vite/deps/_metadata.json', import.meta.url))).browserHash;
 let browser;
-before(async () => { browser = await chromium.launch({ headless: true }); });
+before(async () => { browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH, args: ['--disable-features=LocalNetworkAccessChecks'] }); });
 after(async () => { await browser?.close(); });
 
 async function mount(view, width = 300) {
   const page = await browser.newPage({ viewport: { width, height: 700 } });
   await page.route('**/src/contexts/AuthContext.tsx', route => route.fulfill({ contentType: 'application/javascript', body: 'export const useAuth=()=>({user:{uid:"usability-test"}});' }));
   await page.route('**/src/services/flashboltLibrary.ts', route => route.fulfill({ contentType: 'application/javascript', body: 'export const loadFlashboltLibrary=async()=>null; export const mergeAndSaveFlashboltLibrary=async(_,data)=>data; export const saveFlashboltLibrary=async()=>{};' }));
+  await page.route('**/src/services/flashboltSharing.ts', route => route.fulfill({ contentType: 'application/javascript', body: 'export const revokeSetShare=async()=>{}; export const findSetShare=async()=>null; export const publishSetShare=async()=>null;' }));
   const path = ['flashcards', 'learn', 'test'].includes(view) ? `no-semester/itec-4450/midterm-mobile-application-development/${view}` : view;
   await page.route('**/usability-test', route => route.fulfill({ contentType: 'text/html', body: `<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><div id="root"></div><script type="module">
     import RefreshRuntime from '/@react-refresh'; RefreshRuntime.injectIntoGlobalHook(window); window.$RefreshReg$=()=>{}; window.$RefreshSig$=()=>type=>type; window.__vite_plugin_react_preamble_installed__=true;
@@ -75,7 +76,7 @@ test('touch menu supports keyboard navigation and destructive cancellation', asy
   try {
     const before = await page.locator('.set-tile').count();
     await page.getByRole('button', { name: /^Actions for/ }).first().click();
-    assert(await page.evaluate(() => document.activeElement?.getAttribute('role') === 'menuitem'));
+    await page.waitForFunction(() => document.activeElement?.getAttribute('role') === 'menuitem', null, { timeout: 5000 });
     await page.keyboard.press('End');
     assert.match(await page.evaluate(() => document.activeElement.textContent), /Delete set/);
     await page.keyboard.press('Enter');

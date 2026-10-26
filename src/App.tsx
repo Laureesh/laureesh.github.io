@@ -57,6 +57,7 @@ import "./App.css";
 
 const AdminFnLeaderboardPage = lazy(() => import("./pages/admin/AdminFnLeaderboardPage"));
 const Flashbolt = lazy(() => import("./pages/admin/flashbolt/Flashbolt"));
+const SharedFlashbolt = lazy(() => import("./pages/admin/flashbolt/sharing/SharedFlashbolt"));
 const Notebook = lazy(() => import("./pages/admin/notebook/Notebook"));
 
 const PAGE_TITLES: Record<string, string> = {
@@ -111,6 +112,7 @@ function pageTitleForPath(pathname: string) {
   if (pathname.startsWith("/blog/")) return `${readableRouteSegment(pathname.split("/").filter(Boolean).at(-1) ?? "Article")} | Laureesh Volmar`;
   if (pathname.startsWith("/user/")) return "Member Portfolio | Laureesh Volmar";
 
+  if (pathname.startsWith("/flashbolt/shared/")) return "Shared Study Set | Flashbolt";
   const parts = pathname.split("/").filter(Boolean);
   const flashboltIndex = parts.indexOf("flashbolt");
   if (flashboltIndex >= 0) {
@@ -384,6 +386,9 @@ export default function App() {
                 </ProtectedRoute>
               )}
             />
+            <Route path="/flashbolt/shared/:shareId/*" element={(
+              <Suspense fallback={<div role="status">Opening shared set…</div>}><SharedFlashbolt /></Suspense>
+            )} />
             <Route
               path="/flashbolt/*"
               element={(
