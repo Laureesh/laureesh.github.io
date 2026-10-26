@@ -127,3 +127,39 @@ test('the real app routes a shared link around the admin guard', async () => {
     await page.screenshot({ path: '/tmp/flashbolt-shared-learn.png', fullPage: true });
   } finally { await context.close(); }
 });
+
+
+test('Learn labels actual retries, retains the label on resume, and clears it for normal practice', async () => {
+  const { context, page, errors } = await mount({ width: 390 });
+  const retry = page.locator('.learn-retry-notice');
+  try {
+    await page.getByRole('button', { name: 'Start Learn' }).click();
+    assert.equal(await retry.count(), 0);
+    await page.locator('.answer-grid button').filter({ hasText: 'Registers' }).click();
+    assert.equal(await retry.count(), 0, 'Missing a first attempt does not turn that attempt into a retry');
+    await page.getByRole('button', { name: /Next question/ }).click();
+    assert.equal(await retry.count(), 0);
+    await page.locator('.answer-grid button').filter({ hasText: 'Stack' }).click();
+    await page.getByRole('button', { name: /Retry missed/ }).click();
+    await retry.waitFor();
+    assert.match(await retry.innerText(), /RETRY/);
+    assert.match(await page.locator('.question-card h1').innerText(), /threads share/);
+    await page.reload();
+    await page.getByRole('button', { name: 'Resume session' }).click();
+    await retry.waitFor();
+    await page.locator('.answer-grid button').filter({ hasText: 'Registers' }).click();
+    await page.getByRole('button', { name: /Retry missed/ }).click();
+    await retry.waitFor();
+    await page.screenshot({ path: '/tmp/flashbolt-retry-mobile.png', fullPage: true });
+    const bounds = await retry.boundingBox();
+    assert(bounds.x >= 0 && bounds.x + bounds.width <= 391);
+    await page.locator('.answer-grid button').filter({ hasText: 'Code' }).click();
+    await page.getByRole('button', { name: /Next round/ }).click();
+    assert.equal(await retry.count(), 0, 'Normal adaptive practice is not a missed-question retry');
+    await page.getByRole('link', { name: 'Exit Learn' }).click();
+    await page.getByRole('navigation', { name: 'Shared study modes' }).getByRole('link', { name: 'Learn', exact: true }).click();
+    await page.getByRole('button', { name: /^Start new/ }).click();
+    assert.equal(await retry.count(), 0);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});

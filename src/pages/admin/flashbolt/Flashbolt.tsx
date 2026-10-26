@@ -104,6 +104,7 @@ type LearnSessionSnapshot = {
   roundIds: string[];
   pendingIds: string[];
   retryIds: string[];
+  retryPass?: boolean;
   masteredIds: string[];
   round: number;
   index: number;
@@ -1019,6 +1020,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   const [learnRoundIds, setLearnRoundIds] = useState<string[]>([]);
   const [learnPendingIds, setLearnPendingIds] = useState<string[]>([]);
   const [learnRetryIds, setLearnRetryIds] = useState<string[]>([]);
+  const [learnRetryPass, setLearnRetryPass] = useState(false);
   const [learnMasteredIds, setLearnMasteredIds] = useState<string[]>([]);
   const [learnRound, setLearnRound] = useState(1);
   const [learnIndex, setLearnIndex] = useState(0);
@@ -2579,6 +2581,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     const questionFirstOptions = { ...learnOptions, multipleChoice: true, trueFalse: false, selectAll: false, written: false, flashcards: false, answerTerms: false, answerDefinitions: true };
     setLearnPhase("goal");
     setLearnMissedIds([]);
+    setLearnRetryPass(false);
     setLearnGoal("memorize");
     setLearnOptions(questionFirstOptions);
     setLearnOptionsDraft(questionFirstOptions);
@@ -2611,6 +2614,8 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     const cardProgress = data.learnProgress?.[selectedSet.id]?.cards ?? {};
     const orderedIds = rankAdaptiveCardIds(ids, cardProgress, options.shuffle);
     const firstRoundIds = orderedIds.slice(0, 7);
+    const retryPass = Boolean(cardIds?.length);
+    setLearnRetryPass(retryPass);
     const pendingIds = orderedIds.slice(7);
     setLearnGoal(goal);
     setLearnOptions(options);
@@ -2644,6 +2649,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
         roundIds: firstRoundIds,
         pendingIds,
         retryIds: [],
+        retryPass,
         masteredIds: [],
         round: 1,
         index: 0,
@@ -2674,6 +2680,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     setLearnRoundIds(roundIds);
     setLearnPendingIds(resumableLearn.pendingIds.filter((id) => validIds.has(id)));
     setLearnRetryIds(resumableLearn.retryIds.filter((id) => validIds.has(id)));
+    setLearnRetryPass(resumableLearn.retryPass === true);
     setLearnMasteredIds(resumableLearn.masteredIds.filter((id) => validIds.has(id)));
     setLearnRound(resumableLearn.round);
     setLearnIndex(index);
@@ -2804,6 +2811,8 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
       return;
     }
 
+    const retryPass = advance.startedRetry || (!advance.startedRound && learnRetryPass);
+    setLearnRetryPass(retryPass);
     const nextSequence = learnSequence + 1;
     const nextCardId = advance.roundIds[advance.index];
     setLearnRoundIds(advance.roundIds);
@@ -2832,6 +2841,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
         roundIds: advance.roundIds,
         pendingIds: advance.pendingIds,
         retryIds: advance.retryIds,
+        retryPass,
         masteredIds: learnMasteredIds,
         round: advance.round,
         index: advance.index,
@@ -3981,6 +3991,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                     </div>
                     <div className={`question-card ${learnAnswer ? "ready-to-continue" : ""}`} onClick={(event) => { if (learnGoal === "understand" || !learnAnswer || event.target instanceof Element && event.target.closest("button, input, textarea, select, a, label, .study-explanation")) return; const retypeRequired = !learnLastCorrect && learnOptions.retypeCorrectAnswers; if (retypeRequired && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer)) return; nextLearnQuestion(); }}>
                       <div className="learn-question-stage"><span className="eyebrow">{currentLearnQuestionKind === "written" ? `Write the ${currentLearnAnswerSide}` : currentLearnQuestionKind === "true-false" ? "True or false" : currentLearnQuestionKind === "select-all" ? "Select all that apply" : currentLearnQuestionKind === "flashcard" ? "Recall, then reveal" : `Choose the ${currentLearnAnswerSide}`}</span><span>{learnConfidenceLabel(learnQuestionConfidence)} · stage {Math.min(3, learnQuestionConfidence + 1)}</span></div>
+                      {learnRetryPass && <div className="learn-retry-notice" role="status"><strong><span aria-hidden="true">↻</span> RETRY</strong><span>Previously missed — try this one again.</span></div>}
                       <h1>{currentLearnPrompt}</h1>
                       {learnOptions.showImagesOnQuestions && currentLearnCard.imageData && <img width={320} height={185} className="learn-question-image" src={currentLearnCard.imageData} alt={currentLearnCard.imageName ?? "Question study aid"} />}
 

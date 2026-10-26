@@ -1171,3 +1171,26 @@
   }
 }
 .flashbolt-shell .learn-page .knowledge-level-button > b { flex-shrink: 0; white-space: nowrap; }
+
+/* Keep the current retry distinct from the count of queued retries. */
+.flashbolt-shell .learn-retry-notice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 12px 0;
+  color: var(--ink);
+  font-size: calc(14px * var(--learn-size-other, 1));
+  line-height: 1.5;
+}
+.flashbolt-shell .learn-retry-notice strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--yellow);
+  color: #17120a;
+  font-weight: 850;
+  letter-spacing: .06em;
+}
