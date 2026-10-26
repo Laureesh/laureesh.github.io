@@ -1,4 +1,5 @@
-import { stampScheduledCheck } from './checklistSchedule.ts';
+import { scheduleError, TASK_SCHEDULE_ATTRIBUTE, type TaskSchedule } from './customTaskSchedule.ts';
+import { scheduledCheckState, taskDueLabel, stampScheduledCheck } from './checklistSchedule.ts';
 /** Checklist state lives in the note HTML; presentation controls never do. */
 export const checklistSelector = 'ul.notebook-todo > li > input[type="checkbox"]';
 
@@ -79,4 +80,27 @@ export function formatChecklistReference(root: HTMLElement): void {
   }
   heading.after(table);
   consumed.forEach(node => node.remove());
+}
+
+/** Save overrides in task HTML, leaving unrelated content and the original plan intact. */
+export function setTaskSchedules(html: string, indices: number[], schedule: TaskSchedule, now = new Date()): string {
+  const error = scheduleError(schedule);
+  if (error) throw new Error(error);
+  const root = checklistRoot(html);
+  const targets = new Set(indices);
+  root.querySelectorAll(checklistSelector).forEach((box, index) => {
+    if (!targets.has(index)) return;
+    setBoxTaskSchedule(box, schedule, now);
+  });
+  return root.innerHTML;
+}
+
+export function setBoxTaskSchedule(box: Element, schedule: TaskSchedule, now = new Date()): void {
+  const error = scheduleError(schedule);
+  if (error) throw new Error(error);
+  const checked = scheduledCheckState(box, now);
+  const previousDate = taskDueLabel(box, now)?.date;
+  box.setAttribute(TASK_SCHEDULE_ATTRIBUTE, JSON.stringify(schedule));
+  const nextDate = taskDueLabel(box, now)?.date;
+  stampScheduledCheck(box, checked && (previousDate === nextDate || schedule.repeat === 'never' && !schedule.start), now);
 }

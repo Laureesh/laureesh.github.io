@@ -92,3 +92,27 @@
 .weightloss-week-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
 .weightloss-schedule-controls button:disabled { opacity: .45; }
 .weightloss-schedule-controls p { flex-basis: 100%; margin: 0; font-size: .85em; line-height: 1.6; }
+
+.checklist-card-header { flex-wrap: wrap; }
+.checklist-document .checklist-edit-schedule { border: 1px solid var(--check-line); background: transparent; border-radius: 7px; padding: 5px 9px; color: #c6e9db; font-size: 12px; white-space: nowrap; }
+.checklist-document .task-schedule-button { margin: 6px 0 0 34px; }
+.checklist-document .checklist-custom-schedule-note { margin: 0 18px 10px; font-size: 12px; color: var(--check-muted); }
+.checklist-schedule-editor { box-sizing: border-box; width: min(560px, calc(100vw - 24px)); max-height: calc(100dvh - 32px); overflow: auto; border: 1px solid #586377; border-radius: 16px; background: #171d27; color: #f1f5fb; padding: 24px; font: 15px/1.5 Inter, system-ui, sans-serif; color-scheme: dark; }
+.checklist-schedule-editor::backdrop { background: #0009; }
+.checklist-schedule-editor header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.checklist-schedule-editor h2 { margin: 0; font-size: 22px; }
+.checklist-schedule-editor .schedule-target { font-weight: 700; overflow-wrap: anywhere; }
+.checklist-schedule-editor form, .checklist-schedule-editor label { display: grid; gap: 8px; }
+.checklist-schedule-editor form { gap: 16px; }
+.checklist-schedule-editor :is(input, select, button) { box-sizing: border-box; min-width: 0; max-width: 100%; min-height: 40px; padding: 8px 10px; font: inherit; color: #f1f5fb; background: #222e3c; border: 1px solid #596c83; border-radius: 7px; }
+.checklist-schedule-editor button { cursor: pointer; }
+.checklist-schedule-editor button:disabled { opacity: .5; cursor: not-allowed; }
+.checklist-schedule-editor :is(input, select, button):focus-visible { outline: 2px solid #b4f4d8; outline-offset: 3px; }
+.checklist-schedule-editor fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.checklist-schedule-editor legend { padding: 0; margin-bottom: 8px; }
+.schedule-weekdays { display: flex; flex-wrap: wrap; gap: 6px; }
+.schedule-weekdays button[aria-pressed="true"] { background: #a5e4c7; color: #102c20; border-color: #b4f4d8; font-weight: 750; }
+.checklist-schedule-editor footer { display: flex; gap: 8px; flex-wrap: wrap; }
+.checklist-schedule-editor button[type="submit"] { background: #a5e4c7; color: #102c20; margin-left: auto; }
+.checklist-schedule-editor .schedule-help { font-size: 13px; color: #bdc8d8; }
+.checklist-schedule-editor .schedule-error { color: #ffb7c5; margin: 0; }

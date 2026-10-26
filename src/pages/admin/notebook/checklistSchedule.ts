@@ -1,3 +1,4 @@
+import { customTaskSchedule, nextTaskDate } from './customTaskSchedule.ts';
 export const ROUTINE_TIME_ZONE = 'America/New_York';
 export const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const dayMs = 86_400_000;
@@ -24,11 +25,24 @@ export function schedulePeriod(repeat: string | null, now = new Date()): string 
   return repeat === 'daily' ? easternDateKey(now) : repeat === 'weekly' ? weekStartKey(now) : null;
 }
 export function scheduledCheckState(box: Element, now = new Date()): boolean {
+  const custom = customTaskSchedule(box);
+  if (custom) {
+    if (custom.repeat === 'never') return box.hasAttribute('checked');
+    const date = nextTaskDate(custom, easternDateKey(now));
+    return Boolean(date && box.hasAttribute('checked') && box.getAttribute('data-checklist-period') === date);
+  }
   const period = schedulePeriod(box.closest('ul')?.getAttribute('data-checklist-repeat') ?? null, now);
   return box.hasAttribute('checked') && (!period || box.getAttribute('data-checklist-period') === period);
 }
 export function stampScheduledCheck(box: Element, checked: boolean, now = new Date()): void {
   box.toggleAttribute('checked', checked);
+  const custom = customTaskSchedule(box);
+  if (custom) {
+    const date = custom.repeat === 'never' ? null : nextTaskDate(custom, easternDateKey(now));
+    if (checked && date) box.setAttribute('data-checklist-period', date);
+    else box.removeAttribute('data-checklist-period');
+    return;
+  }
   const period = schedulePeriod(box.closest('ul')?.getAttribute('data-checklist-repeat') ?? null, now);
   if (period && checked) box.setAttribute('data-checklist-period', period);
   else if (!checked) box.removeAttribute('data-checklist-period');
@@ -85,12 +99,19 @@ export function refreshChecklistSchedule(html: string, now = new Date()): string
   const root = document.createElement('div'); root.innerHTML = html;
   let changed = false;
   for (const box of root.querySelectorAll('ul[data-checklist-repeat] > li > input[type="checkbox"][checked]')) {
-    if (!scheduledCheckState(box, now)) { box.removeAttribute('checked'); changed = true; }
+    if (!customTaskSchedule(box) && !scheduledCheckState(box, now)) { box.removeAttribute('checked'); changed = true; }
   }
   return changed ? root.innerHTML : html;
 }
 
 export function taskDueLabel(box: Element, now = new Date()): { date: string; day: string; status: string } | null {
+  const custom = customTaskSchedule(box);
+  if (custom) {
+    const today = easternDateKey(now);
+    const date = nextTaskDate(custom, today);
+    if (!date) return custom.repeat === 'never' ? null : { date: custom.end, day: 'Repeat finished', status: 'Ended' };
+    return { date, day: custom.repeat === 'daily' ? 'Every day' : custom.repeat === 'weekdays' ? custom.days.map(day => WEEKDAYS[day].slice(0, 3)).join(', ') : WEEKDAYS[calendarDate(date).getUTCDay()], status: scheduledCheckState(box, now) ? 'Done' : date === today ? 'Due today' : date < today ? 'Overdue' : 'Upcoming' };
+  }
   const fixedDate = box.getAttribute('data-checklist-date');
   if (fixedDate && /^\d{4}-\d{2}-\d{2}$/.test(fixedDate)) {
     const today = easternDateKey(now);

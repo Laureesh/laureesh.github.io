@@ -18,9 +18,9 @@ export function checklistStatusForBoxes(boxes: Element[], now = new Date()): Che
     const remaining = tasks.filter(task => !task.checked);
     return [{ kind: remaining.length ? 'idle' : 'done', label: remaining.length ? `${remaining.length} task${remaining.length === 1 ? "" : "s"} left` : '✓ All done', detail: remaining.length ? detail(remaining) : 'Every checklist task is checked.' }];
   }
-  const todaysTasks = dated.filter(task => task.due!.date === today);
+  const todaysTasks = dated.filter(task => task.due!.status !== 'Ended' && task.due!.date === today);
   const dueToday = todaysTasks.filter(task => !task.checked);
-  const overdue = dated.filter(task => task.due!.date < today && !task.checked);
+  const overdue = dated.filter(task => task.due!.status !== 'Ended' && task.due!.date < today && !task.checked);
   const badges: ChecklistBadge[] = dueToday.length
     ? [{ kind: 'due', label: `${dueToday.length} due today`, detail: detail(dueToday) }]
     : todaysTasks.length
