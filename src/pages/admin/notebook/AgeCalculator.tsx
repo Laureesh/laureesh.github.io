@@ -6,9 +6,11 @@ export default function AgeCalculator({ values, onChange }: { values: FitnessVal
   const automatic = values.ageMode === 'birthdate';
   const onDate = values.ageOnDate ?? ageToday();
   const age = calculateAge(values.birthDate ?? '', onDate);
-  return <fieldset><legend>Age calculator</legend>
+  return <div className="fitness-age-field">
+    <label>Age (years)<input type="number" min="0" max="120" step="1" readOnly={automatic} value={values.age ?? ''} onChange={event => { if (!automatic && event.target.validity.valid) onChange({ ...values, age: event.target.value === '' ? undefined : Number(event.target.value) }); }} /></label>
+    <details className="fitness-age-options"><summary>{automatic ? 'From birth date · options' : 'Use birth date'}</summary>
     <div className="fitness-fields"><label>Age entry<select value={values.ageMode ?? 'manual'} onChange={event => onChange({ ...values, ageMode: event.target.value as FitnessValues['ageMode'] })}><option value="manual">Enter age myself</option><option value="birthdate">Calculate from birth date</option></select></label>
-    {!automatic ? <label>Age (years)<input type="number" min="0" max="120" step="1" value={values.age ?? ''} onChange={event => { if (event.target.validity.valid) onChange({ ...values, age: event.target.value === '' ? undefined : Number(event.target.value) }); }} /></label> : <>
+    {automatic && <>
       <label>Date of birth<input type="date" min="0001-01-01" max={onDate} value={values.birthDate ?? ''} aria-describedby={id} onChange={event => onChange({ ...values, birthDate: event.target.value || undefined })} /></label>
       <label>Find age on<select value={values.ageOnDate ? 'date' : 'today'} onChange={event => onChange({ ...values, ageOnDate: event.target.value === 'today' ? undefined : ageToday() })}><option value="today">Today (updates automatically)</option><option value="date">Choose a date</option></select></label>
       {values.ageOnDate && <label>Reference date<input type="date" min={values.birthDate || '0001-01-01'} value={values.ageOnDate} onChange={event => onChange({ ...values, ageOnDate: event.target.value || undefined })} /></label>}
@@ -22,8 +24,8 @@ export default function AgeCalculator({ values, onChange }: { values: FitnessVal
         <li>Approximately {numberText(age.totalDays * 24)} hours, {numberText(age.totalDays * 1440)} minutes, or {numberText(age.totalDays * 86400)} seconds</li>
         <li>Age last birthday: {age.years}; next birthday: {age.years + 1}; nearest birthday: {age.nearestBirthdayAge}</li>
       </ul></details>
-      <p>Your linked age is {age.years}. {values.ageOnDate ? 'This uses your chosen reference date.' : 'Today follows Eastern Time, like your checklist.'}</p>
-    </> : <p>{values.birthDate ? 'The reference date must be on or after your birth date.' : 'Choose your birth date to calculate your age. No birth date is assumed from your 2024 age.'}</p>}</div>}
-    <p>Uses calendar months and leap years. Month-end anniversaries use the last available day; February 29 birthdays use February 28 in other years. Hours, minutes, and seconds are approximate because birth time is not entered.</p>
-  </fieldset>;
+    </> : <p>{values.birthDate ? 'The reference date must be on or after your birth date.' : 'Choose your birth date.'}</p>}</div>}
+    <details><summary>Calculation details</summary><p>Calendar months and leap years are included. February 29 uses February 28 in other years. Hours, minutes, and seconds are approximate. Today follows Eastern Time.</p></details>
+    </details>
+  </div>;
 }

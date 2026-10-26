@@ -152,3 +152,17 @@
 .fitness-formula-tools select { max-width: 100%; }
 .checklist-history { margin-top: 1.5rem; border-top: 1px solid #45535e; padding-top: 1rem; }
 .checklist-history > summary { cursor: pointer; color: #b7c7d9; font-size: .9em; }
+.fitness-simple .fitness-save-hint { margin: .6rem 0 1rem; font-size: .85em; color: #b7c7d9; }
+.fitness-simple > h3 { margin: 1.1rem 0 .6rem; font-size: 1em; }
+.fitness-simple .fitness-profile-fields { margin-top: 1rem; align-items: start; }
+.fitness-age-field { min-width: 0; }
+.fitness-age-options { margin-top: .35rem; }
+.fitness-calculators .fitness-age-options > summary { font-size: .8em; font-weight: 400; color: #a3dcca; }
+.fitness-age-options[open] { padding: .6rem; border: 1px solid #45535e; border-radius: 8px; }
+.fitness-age-options .fitness-fields { margin-top: .5rem; }
+.fitness-quick-stats { display: flex; gap: 1.3rem; flex-wrap: wrap; padding: .65rem 0; font-size: .9em; color: #b7c7d9; }
+.fitness-quick-stats strong { color: #fff; margin-left: .35rem; }
+.fitness-option { border-top: 1px solid #45535e; padding: .75rem 0; }
+.fitness-calculators .fitness-option > summary { font-size: .95em; font-weight: 500; }
+.fitness-option[open] > summary { margin-bottom: .8rem; }
+.fitness-simple select { max-width: 100%; }
