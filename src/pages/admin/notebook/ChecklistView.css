@@ -116,3 +116,13 @@
 .checklist-schedule-editor button[type="submit"] { background: #a5e4c7; color: #102c20; margin-left: auto; }
 .checklist-schedule-editor .schedule-help { font-size: 13px; color: #bdc8d8; }
 .checklist-schedule-editor .schedule-error { color: #ffb7c5; margin: 0; }
+
+.checklist-document :is(.checklist-add-task, .checklist-add-section) { padding: 8px 12px; border: 1px solid var(--check-line); border-radius: 8px; background: #9cd9c014; color: #c6f7e1; font-size: 13px; margin: 12px 18px; }
+.checklist-document .checklist-add-section { margin: 0 0 16px; }
+.checklist-card-header .checklist-disclosure { flex: 1 1 180px; }
+.checklist-document .task-schedule-button + .task-schedule-button { margin-left: 8px; }
+.checklist-content-editor form { margin-top: 20px; }
+.checklist-content-editor textarea { box-sizing: border-box; width: 100%; min-height: 120px; resize: vertical; border: 1px solid #596c83; border-radius: 7px; padding: 10px; font: inherit; background: #222e3c; color: #f1f5fb; }
+.checklist-content-editor textarea:focus-visible { outline: 2px solid #b4f4d8; outline-offset: 3px; }
+.checklist-link-fields { display: grid; gap: 8px; padding: 12px; border: 1px solid #596c83; border-radius: 8px; margin-bottom: 12px; }
+.checklist-content-editor .delete-checklist-task { color: #ffb7c5; }

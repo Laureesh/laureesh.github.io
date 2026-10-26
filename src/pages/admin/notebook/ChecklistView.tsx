@@ -1,3 +1,5 @@
+import ChecklistContentEditor from "./ChecklistContentEditor";
+import { editableSectionTitle, readTaskContent, removeChecklistTask, saveChecklistContent, type ChecklistEdit } from "./checklistEditing";
 import ChecklistScheduleEditor from "./ChecklistScheduleEditor";
 import { editableTaskSchedule, TASK_SCHEDULE_ATTRIBUTE, type TaskSchedule } from "./customTaskSchedule";
 import { changeWeightLossStart, validPlanDate, weightLossDates } from "./weightLossPlan";
@@ -28,7 +30,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
   const scheduled = customSchedules || Boolean(root.querySelector('ul[data-checklist-repeat]'));
   const canSchedule = !scheduled && isHygieneRoutine(html, title);
   const boxes = [...root.querySelectorAll(checklistSelector)];
-  const lists = [...root.querySelectorAll('ul.notebook-todo')].filter(list => list.querySelector(':scope > li > input[type="checkbox"]'));
+  const lists = [...root.querySelectorAll('ul.notebook-todo')];
   const plan = root.querySelector('[data-weightloss-plan]');
   const planStart = plan?.getAttribute('data-weightloss-start');
   const planCount = Number(plan?.getAttribute('data-weightloss-count')) || 156;
@@ -40,8 +42,9 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
   const completed = boxes.filter(box => scheduledCheckState(box, now)).length;
   const [compact, setCompact] = useState(false);
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
-  const [undo, setUndo] = useState<{ before: string; after: string } | null>(null);
+  const [undo, setUndo] = useState<{ before: string; after: string; message: string } | null>(null);
   const prefix = useId();
+  const [contentEdit, setContentEdit] = useState<ChecklistEdit | null>(null);
   const [scheduleTarget, setScheduleTarget] = useState<{ indices: number[]; title: string; initial: TaskSchedule; mixed: boolean } | null>(null);
   const openSchedule = (indices: number[], title: string) => {
     const schedules = indices.map(index => editableTaskSchedule(boxes[index], today));
@@ -54,7 +57,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
   });
   const reset = (indices: number[]) => {
     const next = setChecklistChecked(scheduledHtml, indices, false, now);
-    setUndo({ before: scheduledHtml, after: next });
+    setUndo({ before: scheduledHtml, after: next, message: "Checklist reset." });
     onChange(next);
   };
   // Render only document content. Scripts, copied event handlers, and editor UI are excluded.
@@ -71,14 +74,15 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
       const indices = sectionBoxes.map(box => boxes.indexOf(box));
       const done = sectionBoxes.filter(box => scheduledCheckState(box, now)).length;
       const isCollapsed = collapsed.has(sectionIndex);
-      return <section key={key} id={`${prefix}-section-${sectionIndex}`} className={`checklist-card${done === sectionBoxes.length ? ' is-complete' : ''}`} aria-label={title}>
+      return <section key={key} id={`${prefix}-section-${sectionIndex}`} className={`checklist-card${sectionBoxes.length > 0 && done === sectionBoxes.length ? ' is-complete' : ''}`} aria-label={title}>
         <header className="checklist-card-header">
           <button type="button" className="checklist-disclosure" aria-expanded={!isCollapsed} aria-controls={`${prefix}-tasks-${sectionIndex}`} onClick={() => toggleSection(sectionIndex)}><span aria-hidden="true">{isCollapsed ? '›' : '⌄'}</span>{title}</button>
-          <button type="button" className="checklist-edit-schedule" aria-label={`Edit schedule for section ${title}`} onClick={() => openSchedule(indices, title)}>Edit schedule</button>
+          <button type="button" className="checklist-edit-schedule" disabled={!indices.length} aria-label={`Edit schedule for section ${title}`} onClick={() => openSchedule(indices, title)}>Edit schedule</button>
+          <button type="button" className="checklist-edit-schedule" aria-label={`Edit section ${title}`} onClick={() => setContentEdit({ kind: 'section', index: sectionIndex, title: editableSectionTitle(node, root) })}>Edit section</button>
           <span className="checklist-count" aria-live="polite">{done}/{sectionBoxes.length} completed</span>
         </header>
         {sectionBoxes.some(box => box.hasAttribute(TASK_SCHEDULE_ATTRIBUTE)) && <p className="checklist-custom-schedule-note">Custom schedules · use the dates shown on each task.</p>}
-        <progress max={sectionBoxes.length} value={done} aria-label={`${title} progress`} />
+        <progress max={sectionBoxes.length || 1} value={done} aria-label={`${title} progress`} />
         <div id={`${prefix}-tasks-${sectionIndex}`} hidden={isCollapsed}>
           <ul className="checklist-rows">
             {[...node.children].map((item, itemIndex) => {
@@ -95,11 +99,14 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
                   <span>{taskTitle}</span>
                 </label>
                 {due && <div className={`checklist-due status-${due.status.toLowerCase().replace(' ', '-')}`}><span>{due.day}</span><time dateTime={due.date} aria-current={isToday ? 'date' : undefined}>{displayDate(due.date)}</time><strong>{isToday && checked ? 'Done · Today' : due.status}</strong></div>}
+                <button type="button" className="checklist-edit-schedule task-schedule-button" aria-label={`Edit task ${taskTitle}`} onClick={() => setContentEdit({ kind: 'task', index, content: readTaskContent(item) })}>Edit task</button>
                 <button type="button" className="checklist-edit-schedule task-schedule-button" aria-label={`Edit schedule for ${taskTitle}`} onClick={() => openSchedule([index], taskTitle)}>Edit schedule</button>
                 {!compact && detail.textContent?.trim() && <div className="checklist-task-detail">{renderChildren(detail)}</div>}
               </li>;
             })}
           </ul>
+          {!sectionBoxes.length && <p className="checklist-custom-schedule-note">No tasks yet. Add your first task below.</p>}
+          <button type="button" className="checklist-add-task" onClick={() => setContentEdit({ kind: 'add-task', index: sectionIndex })}>＋ Add task</button>
           <button type="button" className="checklist-reset" disabled={!done} onClick={() => reset(indices)}>↺ Reset {title.toLowerCase()}</button>
         </div>
       </section>;
@@ -142,6 +149,18 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     }
   };
   return <article className={`checklist-document${compact ? ' is-compact' : ''}`} style={{ fontSize }}>
+    {contentEdit && <ChecklistContentEditor edit={contentEdit} onClose={() => setContentEdit(null)} onSave={content => {
+      const next = saveChecklistContent(scheduledHtml, contentEdit, content);
+      setUndo({ before: scheduledHtml, after: next, message: "Checklist updated." });
+      onChange(next);
+      setContentEdit(null);
+    }} onDelete={() => {
+      if (contentEdit.kind !== 'task') return;
+      const next = removeChecklistTask(scheduledHtml, contentEdit.index);
+      setUndo({ before: scheduledHtml, after: next, message: "Task deleted." });
+      onChange(next);
+      setContentEdit(null);
+    }} />}
     {scheduleTarget && <ChecklistScheduleEditor title={scheduleTarget.title} count={scheduleTarget.indices.length} mixed={scheduleTarget.mixed} initial={scheduleTarget.initial} today={today} onClose={() => setScheduleTarget(null)} onSave={schedule => {
       setUndo(null);
       onChange(setTaskSchedules(scheduledHtml, scheduleTarget.indices, schedule, now));
@@ -169,12 +188,13 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
       <small>{customSchedules ? "Custom schedules use each task’s selected days · Eastern Time" : "Daily reset at midnight · Weekly reset on Sunday"}</small>
     </div>}
     <div className="checklist-overview">
-      <div><span className="checklist-eyebrow">YOUR CHECKLISTS</span><strong>{completed === boxes.length ? 'All done. Nicely done.' : 'One step at a time.'}</strong><span aria-live="polite">{completed} of {boxes.length} tasks complete</span></div>
+      <div><span className="checklist-eyebrow">YOUR CHECKLISTS</span><strong>{boxes.length > 0 && completed === boxes.length ? 'All done. Nicely done.' : 'One step at a time.'}</strong><span aria-live="polite">{completed} of {boxes.length} tasks complete</span></div>
       <button type="button" aria-pressed={compact} onClick={() => setCompact(value => !value)}>{compact ? 'Show details' : 'Hide details'}</button>
       <progress max={boxes.length || 1} value={completed} aria-label="Overall checklist progress" />
     </div>
     <nav className="checklist-jump" aria-label="Jump to checklist">{visibleLists.map((list) => <button key={lists.indexOf(list)} onClick={() => document.getElementById(`${prefix}-section-${lists.indexOf(list)}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{checklistTitle(list, root, lists.indexOf(list))}</button>)}</nav>
-    {undo && undo.after === html && <div className="checklist-undo" role="status">Checklist reset.<button onClick={() => { onChange(undo.before); setUndo(null); }}>Undo reset</button></div>}
+    <button type="button" className="checklist-add-section" onClick={() => setContentEdit({ kind: 'add-section' })}>＋ Add section</button>
+    {undo && undo.after === html && <div className="checklist-undo" role="status">{undo.message}<button onClick={() => { onChange(undo.before); setUndo(null); }}>{undo.message === "Checklist reset." ? "Undo reset" : "Undo"}</button></div>}
     <div className="checklist-note-body">{!root.querySelector('h1') && title && <h1>{title}</h1>}{renderChildren(root)}</div>
   </article>;
 }

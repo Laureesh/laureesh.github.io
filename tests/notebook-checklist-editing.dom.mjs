@@ -1,0 +1,85 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { createRequire } from 'node:module';
+import { checklistRoot, checklistSelector, checklistTitle } from '../src/pages/admin/notebook/checklistDocument.ts';
+import { readTaskContent, saveChecklistContent, removeChecklistTask, editableSectionTitle, taskContentError } from '../src/pages/admin/notebook/checklistEditing.ts';
+import { changeWeightLossStart } from '../src/pages/admin/notebook/weightLossPlan.ts';
+const { parseHTML, NodeFilter } = createRequire(import.meta.url)(process.env.DOM_TEST_MODULE || 'linkedom');
+const { window } = parseHTML('<html><body></body></html>');
+for (const name of ['document', 'Node', 'Element']) globalThis[name] = window[name];
+globalThis.NodeFilter = NodeFilter;
+const source = '<h2>Daily meals</h2><ul class="notebook-todo" data-checklist-repeat="daily"><li><input type="checkbox" checked data-checklist-period="2026-10-26" data-checklist-date="2026-10-26"><strong>Breakfast</strong><br><em>High protein</em><br>500 kcal<br><a href="https://example.com/recipe">Recipe</a></li><li><input type="checkbox"><strong>Lunch</strong><br>600 kcal</li></ul>';
+test('title-only editing preserves completion, schedule, formatting, links, and other tasks', () => {
+  const content = readTaskContent(checklistRoot(source).querySelector('li'));
+  assert.equal(content.title, 'Breakfast');
+  assert.equal(content.details, 'High protein\n500 kcal');
+  assert.deepEqual(content.links, [{ label: 'Recipe', url: 'https://example.com/recipe' }]);
+  const html = saveChecklistContent(source, { kind: 'task', index: 0, content }, { ...content, title: 'My breakfast' });
+  const root = checklistRoot(html), box = root.querySelector('input');
+  assert(box.hasAttribute('checked'));
+  assert.equal(box.getAttribute('data-checklist-period'), '2026-10-26');
+  assert.equal(box.getAttribute('data-checklist-date'), '2026-10-26');
+  assert.equal(root.querySelector('em').textContent, 'High protein');
+  assert.equal(root.querySelector('a').getAttribute('href'), 'https://example.com/recipe');
+  assert.equal(root.querySelectorAll('li')[1].textContent, 'Lunch600 kcal');
+});
+test('details and links can be replaced without interpreting user text as HTML', () => {
+  const content = { title: '<img src=x onerror=alert(1)>', details: 'First line\n<b>literal text</b>', links: [{ label: 'New recipe', url: 'https://example.com/new?a=1&b=2' }] };
+  const root = checklistRoot(saveChecklistContent(source, { kind: 'task', index: 0, content }, content));
+  assert.equal(root.querySelector('li strong').textContent, content.title);
+  assert.equal(root.querySelector('li img'), null);
+  assert.equal(root.querySelector('li b'), null);
+  assert.equal(root.querySelector('a').textContent, 'New recipe');
+  assert.equal(root.querySelector('a').getAttribute('href'), content.links[0].url);
+  assert(taskContentError({ ...content, links: [{ label: 'Bad link', url: 'javascript:alert(1)' }] }));
+});
+test('adding and deleting tasks leaves an editable empty section and existing schedules intact', () => {
+  const content = { title: 'Dinner', details: 'My dinner', links: [] };
+  let html = saveChecklistContent(source, { kind: 'add-task', index: 0 }, content);
+  let root = checklistRoot(html);
+  assert.equal(root.querySelectorAll(checklistSelector).length, 3);
+  assert.equal(root.querySelectorAll('input')[2].hasAttribute('checked'), false);
+  assert.equal(root.querySelector('ul').getAttribute('data-checklist-repeat'), 'daily');
+  html = removeChecklistTask(removeChecklistTask(removeChecklistTask(html, 0), 0), 0);
+  root = checklistRoot(html);
+  assert.equal(root.querySelectorAll(checklistSelector).length, 0);
+  assert.equal(root.querySelectorAll('ul.notebook-todo').length, 1);
+  html = saveChecklistContent(html, { kind: 'add-task', index: 0 }, content);
+  assert.equal(checklistRoot(html).querySelectorAll(checklistSelector).length, 1);
+});
+test('new sections and section renaming appear in reading and checklist views', () => {
+  let html = saveChecklistContent(source, { kind: 'add-section' }, { title: 'My habits', details: '', links: [] });
+  let root = checklistRoot(html);
+  assert.equal(root.querySelectorAll('ul.notebook-todo').length, 2);
+  html = saveChecklistContent(html, { kind: 'section', index: 0, title: 'Daily meals' }, { title: 'My meals', details: '', links: [] });
+  root = checklistRoot(html);
+  assert.equal(root.querySelector('h2').textContent, 'My meals');
+  assert.equal(checklistTitle(root.querySelector('ul'), root, 0), 'My meals');
+  assert.equal(root.querySelectorAll('input').length, 2);
+});
+test('renaming a workout section keeps automatic date updates working', () => {
+  const original = '<div data-weightloss-plan="1" data-weightloss-start="2026-10-26"><h2>Week 1 · <span data-weightloss-date="0">Monday, 10/26/2026</span> – <span data-weightloss-date="2">Friday, 10/30/2026</span></h2><ul class="notebook-todo"><li><input type="checkbox" data-weightloss-session="0" data-checklist-date="2026-10-26"><strong>Workout</strong></li></ul></div>';
+  const initial = checklistRoot(original);
+  assert.equal(editableSectionTitle(initial.querySelector('ul'), initial), 'Week 1');
+  const renamed = saveChecklistContent(original, { kind: 'section', index: 0, title: 'Week 1' }, { title: 'Strength week', details: '', links: [] });
+  const root = checklistRoot(changeWeightLossStart(renamed, '2026-11-02'));
+  assert.match(root.querySelector('h2').textContent, /Strength week.*11\/02\/2026.*11\/06\/2026/);
+  assert.equal(root.querySelectorAll('[data-weightloss-date]').length, 2);
+  assert.equal(root.querySelector('input').getAttribute('data-checklist-date'), '2026-11-02');
+});
+test('new tasks inherit a unanimous custom section schedule without inheriting completion', () => {
+  const root = checklistRoot(source);
+  const schedule = JSON.stringify({ repeat: 'weekdays', start: '2026-10-26', end: '', days: [2, 4] });
+  root.querySelectorAll('input').forEach(box => box.setAttribute('data-task-schedule', schedule));
+  const next = checklistRoot(saveChecklistContent(root.innerHTML, { kind: 'add-task', index: 0 }, { title: 'New', details: '', links: [] }));
+  const task = next.querySelectorAll('input')[2];
+  assert.equal(task.getAttribute('data-task-schedule'), schedule);
+  assert.equal(task.hasAttribute('checked'), false);
+});
+test('editing details retains existing study images', () => {
+  const original = '<ul class="notebook-todo"><li><input type="checkbox"><strong>Exercise</strong><br>Instructions<img src="/exercise.png" alt="Form guide"></li></ul>';
+  const content = { title: 'Exercise', details: 'Updated instructions', links: [] };
+  const root = checklistRoot(saveChecklistContent(original, { kind: 'task', index: 0, content }, content));
+  assert.equal(root.querySelector('img').getAttribute('src'), '/exercise.png');
+  assert.equal(root.querySelector('img').getAttribute('alt'), 'Form guide');
+});

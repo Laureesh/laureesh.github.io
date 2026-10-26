@@ -19,6 +19,8 @@ export function setChecklistChecked(html: string, indices: number[], checked: bo
 }
 
 export function checklistTitle(list: Element, root: Element, index: number): string {
+  const custom = list.getAttribute('data-checklist-title');
+  if (custom) return custom;
   let heading = '';
   for (const node of root.querySelectorAll('h1,h2,h3,h4,ul.notebook-todo')) {
     if (node === list) break;
