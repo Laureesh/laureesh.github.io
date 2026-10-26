@@ -5397,16 +5397,7 @@ kbd {
   gap: 18px;
 }
 
-.learn-question-stage > span:last-child {
-  padding: 6px 9px;
-  border-radius: 99px;
-  background: var(--primary-soft);
-  color: var(--primary-strong);
-  font-size: calc((16px) * var(--learn-font-scale, 1));
-  font-weight: 900;
-  letter-spacing: 0.5px;
-  text-transform: none;
-}
+
 
 .learn-question-image {
   width: min(320px, 100%);

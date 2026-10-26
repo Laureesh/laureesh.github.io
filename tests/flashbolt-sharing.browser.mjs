@@ -171,3 +171,34 @@ test('Learn labels actual retries, retains the label on resume, and clears it fo
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });
+
+
+test('Knowledge panel highlights only the current question level and follows grading', async () => {
+  const { context, page, errors } = await mount();
+  const current = page.locator('.knowledge-level-button[aria-current="true"]');
+  async function expectLevel(level) {
+    assert.equal(await current.count(), 1);
+    assert.equal(await current.locator('span').textContent(), level);
+    assert.equal(await page.locator('.learn-question-stage > span').count(), 1, 'Only the question instruction remains; no knowledge pill');
+  }
+  try {
+    await page.getByRole('button', { name: 'Start Learn' }).click();
+    await expectLevel('new');
+    for (const [index, answer] of ['Code', 'Stack', 'Code', 'Stack', 'Code'].entries()) {
+      await page.locator('.answer-grid button').filter({ hasText: answer }).click();
+      await expectLevel(index < 2 ? 'learning' : index < 4 ? 'familiar' : 'mastered');
+      if (index < 4) {
+        await page.getByRole('button', { name: /Next question|Next round/ }).click();
+        await expectLevel(index === 0 ? 'new' : index < 3 ? 'learning' : 'familiar');
+      }
+    }
+    await page.screenshot({ path: '/tmp/flashbolt-knowledge-highlight.png', fullPage: true });
+    await page.setViewportSize({ width: 390, height: 900 });
+    await current.click();
+    await page.getByRole('dialog').waitFor();
+    assert.match(await page.getByRole('dialog').innerText(), /Current question/);
+    await page.getByRole('button', { name: 'Close knowledge overview' }).click();
+    await expectLevel('mastered');
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});

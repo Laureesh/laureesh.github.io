@@ -1233,3 +1233,10 @@
   .flashbolt-shell .learn-retry-notice { flex-wrap: nowrap; max-width: none; }
   .flashbolt-shell .learn-retry-notice > span { white-space: nowrap; }
 }
+
+.flashbolt-shell .learn-knowledge-panel .knowledge-level-button.is-current {
+  border-color: var(--primary-strong);
+  background: var(--primary-soft);
+  color: var(--ink);
+  box-shadow: 0 0 0 1px var(--primary-strong), inset 3px 0 0 var(--primary-strong);
+}

@@ -1680,6 +1680,9 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   }, [currentLearnChoices, currentLearnCorrectAnswer, learnSequence]);
   const learnMasteryTarget = learnGoal === "cram" ? 2 : 3;
   const selectedLearnProgress = data.learnProgress?.[selectedSet?.id ?? ""]?.cards ?? {};
+  const currentKnowledgeLevel = currentLearnCard
+    ? learnConfidenceLabel(selectedLearnProgress[currentLearnCard.id]?.confidence ?? 0).toLowerCase() as KnowledgeLevel
+    : undefined;
   const learnQuestionsAnswered = learnSequence + (learnAnswer ? 1 : 0);
   const learnQuestionsTotal = projectLearnQuestionTotal(
     learnSessionIds,
@@ -3960,7 +3963,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                     <aside className="learn-knowledge-panel" aria-label="Knowledge progress">
                       <div className="learn-panel-heading"><UiIcon symbol="✦" /><h2>Knowledge</h2></div>
                     <div className="learn-mastery-overview compact" aria-label="Adaptive knowledge levels">
-                      {(["new", "learning", "familiar", "mastered"] as const).map(level => <button type="button" className="knowledge-level-button" key={level} onClick={() => setKnowledgeLevel(level)} aria-haspopup="dialog"><i className={`level-${level}`} /><span>{level}</span><b>{learnStatusCounts[level]}</b></button>)}
+                      {(["new", "learning", "familiar", "mastered"] as const).map(level => <button type="button" className={`knowledge-level-button${level === currentKnowledgeLevel ? " is-current" : ""}`} aria-current={level === currentKnowledgeLevel ? "true" : undefined} title={level === currentKnowledgeLevel ? "Current question’s knowledge level" : undefined} key={level} onClick={() => setKnowledgeLevel(level)} aria-haspopup="dialog"><i className={`level-${level}`} /><span>{level}</span><b>{learnStatusCounts[level]}</b></button>)}
                     </div>
                       <p className="learn-knowledge-note">Select a level to see its questions and what’s next.</p>
                     </aside>
@@ -3993,7 +3996,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                       </div>}
                     </div>
                     <div className={`question-card ${learnAnswer ? "ready-to-continue" : ""}`} onClick={(event) => { if (learnGoal === "understand" || !learnAnswer || event.target instanceof Element && event.target.closest("button, input, textarea, select, a, label, .study-explanation")) return; const retypeRequired = !learnLastCorrect && learnOptions.retypeCorrectAnswers; if (retypeRequired && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer)) return; nextLearnQuestion(); }}>
-                      <div className="learn-question-stage"><span className="eyebrow">{currentLearnQuestionKind === "written" ? `Write the ${currentLearnAnswerSide}` : currentLearnQuestionKind === "true-false" ? "True or false" : currentLearnQuestionKind === "select-all" ? "Select all that apply" : currentLearnQuestionKind === "flashcard" ? "Recall, then reveal" : `Choose the ${currentLearnAnswerSide}`}</span><span>Knowledge: {learnConfidenceLabel(learnQuestionConfidence).toUpperCase()}</span></div>
+                      <div className="learn-question-stage"><span className="eyebrow">{currentLearnQuestionKind === "written" ? `Write the ${currentLearnAnswerSide}` : currentLearnQuestionKind === "true-false" ? "True or false" : currentLearnQuestionKind === "select-all" ? "Select all that apply" : currentLearnQuestionKind === "flashcard" ? "Recall, then reveal" : `Choose the ${currentLearnAnswerSide}`}</span></div>
                       <h1>{currentLearnPrompt}</h1>
                       {learnOptions.showImagesOnQuestions && currentLearnCard.imageData && <img width={320} height={185} className="learn-question-image" src={currentLearnCard.imageData} alt={currentLearnCard.imageName ?? "Question study aid"} />}
 
