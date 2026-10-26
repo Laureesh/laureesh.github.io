@@ -57,3 +57,16 @@ test('additional profile fields survive reload and update linked task values', (
   assert.match(linked, /Sugar limit \(g\/day\): 64/);
   assert.match(checklistRoot(html).textContent, /Historical weight: 271.4 lb/);
 });
+
+test('birth date and reference date persist and drive the linked age', () => {
+  const content = readTaskContent(checklistRoot(source).querySelector('li'));
+  let html = saveChecklistContent(source, { kind: 'task', index: 0, content }, { ...content, linkedValues: ['age'] });
+  html = refreshFitnessDocument(html, { ageMode: 'birthdate', birthDate: '2000-10-26', ageOnDate: '2026-10-25' });
+  const values = readFitnessValues(html);
+  assert.equal(values.birthDate, '2000-10-26');
+  assert.equal(values.ageOnDate, '2026-10-25');
+  assert.equal(values.ageMode, 'birthdate');
+  assert.match(checklistRoot(html).querySelector('[data-fitness-links]').textContent, /25/);
+  html = refreshFitnessDocument(html, { ...values, ageOnDate: '2026-10-26' });
+  assert.match(checklistRoot(html).querySelector('[data-fitness-links]').textContent, /26/);
+});

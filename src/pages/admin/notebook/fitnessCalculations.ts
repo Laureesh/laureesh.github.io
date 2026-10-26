@@ -1,6 +1,7 @@
+import { ageToday, calculateAge, validAgeDate } from './ageCalculations.ts';
 export const fitnessNumberKeys = ['age', 'weight', 'goal', 'idealGoal', 'adjustedGoal', 'height', 'maintenance', 'calories', 'alternateCalories', 'weeklyRate', 'protein', 'carbs', 'sugar', 'fat', 'saturatedFat', 'water', 'activityMin', 'activityMax', 'squatGoal', 'pushupGoal'] as const;
 export type FitnessNumberKey = typeof fitnessNumberKeys[number];
-export type FitnessValues = Partial<Record<FitnessNumberKey, number>> & { gender?: string; goalMode?: 'custom' | 'ideal' | 'adjusted' };
+export type FitnessValues = Partial<Record<FitnessNumberKey, number>> & { gender?: string; ageMode?: 'manual' | 'birthdate'; birthDate?: string; ageOnDate?: string; goalMode?: 'custom' | 'ideal' | 'adjusted' };
 export const fitnessLabels = { age: 'Age (years)', gender: 'Gender', weight: 'Weight (lb)', goal: 'Selected goal weight (lb)', idealGoal: 'Ideal weight goal (lb)', adjustedGoal: 'Adjusted weight goal (lb)', height: 'Height (ft & in)', bmi: 'BMI', remaining: 'Weight to lose (lb)', idealRemaining: 'Weight to ideal goal (lb)', adjustedRemaining: 'Weight to adjusted goal (lb)', calories: 'Calories per day', alternateCalories: 'Alternate calories per day', maintenance: 'Maintenance calories', deficit: 'Daily calorie deficit', alternateDeficit: 'Alternate daily deficit', caloriePercent: 'Calorie target (% of maintenance)', weeklyRate: 'Planned loss (lb/week)', estimatedWeeks: 'Arithmetic timeline (weeks)', protein: 'Protein (g)', carbs: 'Carbs (g)', sugar: 'Sugar limit (g/day)', fat: 'Fat (g)', saturatedFat: 'Saturated fat limit (g/day)', macroCalories: 'Calories from macros', macroDifference: 'Macros minus calorie target', water: 'Water (US fl oz)', liters: 'Water (liters)', activityMin: 'Weekly activity minimum (minutes)', activityMax: 'Weekly activity maximum (minutes)', squatGoal: 'Squat goal (reps)', pushupGoal: 'Push-up goal (reps)' };
 export type FitnessKey = keyof typeof fitnessLabels;
 export const numberText = (value: number | undefined) => value === undefined || !Number.isFinite(value) ? 'Not entered' : new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value);
@@ -9,13 +10,20 @@ export function cleanFitnessValues(raw: unknown): FitnessValues {
   const result: FitnessValues = {};
   for (const key of fitnessNumberKeys) {
     const value = (raw as FitnessValues)[key];
-    if (typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1e7 && (!['weight', 'goal', 'idealGoal', 'adjustedGoal', 'height', 'weeklyRate'].includes(key) || value > 0) && (key !== 'age' || (Number.isInteger(value) && value >= 1 && value <= 120))) result[key] = value;
+    if (typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1e7 && (!['weight', 'goal', 'idealGoal', 'adjustedGoal', 'height', 'weeklyRate'].includes(key) || value > 0) && (key !== 'age' || (Number.isInteger(value) && value >= 0 && value <= 120))) result[key] = value;
   }
   const extra = raw as FitnessValues;
   if (typeof extra.gender === 'string' && extra.gender.trim()) result.gender = extra.gender.slice(0, 80);
   if (extra.goalMode && ['custom', 'ideal', 'adjusted'].includes(extra.goalMode)) result.goalMode = extra.goalMode;
   if (result.goalMode === 'ideal') result.goal = result.idealGoal;
   if (result.goalMode === 'adjusted') result.goal = result.adjustedGoal;
+  if (extra.ageMode === 'manual' || extra.ageMode === 'birthdate') result.ageMode = extra.ageMode;
+  if (typeof extra.birthDate === 'string' && validAgeDate(extra.birthDate)) result.birthDate = extra.birthDate;
+  if (typeof extra.ageOnDate === 'string' && validAgeDate(extra.ageOnDate)) result.ageOnDate = extra.ageOnDate;
+  if (result.ageMode === 'birthdate') {
+    const age = calculateAge(result.birthDate ?? '', result.ageOnDate ?? ageToday());
+    result.age = age?.years;
+  }
   return result;
 }
 export function calculateFitness(values: FitnessValues): Partial<Record<Exclude<FitnessKey, 'gender'>, number>> & { gender?: string } {
