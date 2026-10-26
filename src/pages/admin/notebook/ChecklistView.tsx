@@ -85,7 +85,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     if (['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'SVG', 'MATH', 'TEMPLATE', 'INPUT', 'BUTTON'].includes(node.tagName)) return null;
     if (node.hasAttribute('data-fitness-values')) return null;
     if (node.hasAttribute('data-weightloss-week') && node.getAttribute('data-weightloss-week') !== String(planWeek)) return null;
-    if (node.hasAttribute('data-inline-index')) return <InlineChecklistText key={key} as={node.tagName.toLowerCase()} html={node.innerHTML} label={/^H/.test(node.tagName) ? 'Edit heading' : 'Edit note text'} onRemoveEmpty={node.tagName === 'P' ? () => removeEmptyLines(Number(node.getAttribute('data-inline-index'))) : undefined} onChange={edited => saveInline(saveInlineBlock(scheduledHtml, Number(node.getAttribute('data-inline-index')), edited))} />;
+    if (node.hasAttribute('data-inline-index')) return <InlineChecklistText key={key} as={node.tagName.toLowerCase()} html={node.innerHTML} label={/^H/.test(node.tagName) ? 'Edit heading' : 'Edit note text'} onRemoveEmpty={['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'PRE'].includes(node.tagName) ? () => removeEmptyLines(Number(node.getAttribute('data-inline-index'))) : undefined} onChange={edited => saveInline(saveInlineBlock(scheduledHtml, Number(node.getAttribute('data-inline-index')), edited))} />;
     if (lists.includes(node)) {
       const sectionIndex = lists.indexOf(node);
       const title = checklistTitle(node, root, sectionIndex);

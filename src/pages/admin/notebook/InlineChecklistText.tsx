@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, type ElementType, type MouseEvent, type ClipboardEvent, type DragEvent, type KeyboardEvent } from 'react';
+import { checklistRoot } from './checklistDocument';
 import { inlineEditorHtml, isEmptyInlineParagraph } from './inlineChecklistEditing';
 type Props = { as?: string; html: string; label: string; className?: string; onChange: (html: string) => void; onRemoveEmpty?: () => void };
 /** An uncontrolled editing surface keeps the caret stable through note autosaves. */
@@ -16,8 +17,18 @@ export default function InlineChecklistText({ as = 'div', html, label, className
     }
   }, [html]);
   const save = () => { if (ref.current) onChange(ref.current.innerHTML); };
+  const removeEmpty = () => {
+    if (!onRemoveEmpty || !ref.current || !isEmptyInlineParagraph(ref.current)) return;
+    removing.current = true;
+    ref.current.blur();
+    removing.current = false;
+    onRemoveEmpty();
+  };
+  const blank = document.createElement(as);
+  blank.append(...checklistRoot(html).childNodes);
+  const showRemove = Boolean(onRemoveEmpty && isEmptyInlineParagraph(blank));
   const Tag = as as ElementType;
-  return <Tag {...{
+  const editor = <Tag {...{
     ref, className: `checklist-inline-text ${className}`, contentEditable: true, suppressContentEditableWarning: true,
     role: 'textbox', 'aria-label': label, 'aria-multiline': true, spellCheck: true,
     onInput: () => { if (!composing.current) save(); },
@@ -39,11 +50,7 @@ export default function InlineChecklistText({ as = 'div', html, label, className
     onKeyDown: (event: KeyboardEvent) => {
       if ((event.key === 'Backspace' || event.key === 'Delete') && !composing.current && onRemoveEmpty && ref.current && isEmptyInlineParagraph(ref.current)) {
         event.preventDefault();
-        // Blur before removing so a stale blur cannot save into the next paragraph.
-        removing.current = true;
-        ref.current.blur();
-        removing.current = false;
-        onRemoveEmpty();
+        removeEmpty();
         return;
       }
       if (event.key === 'Enter' && !composing.current) {
@@ -61,4 +68,9 @@ export default function InlineChecklistText({ as = 'div', html, label, className
     },
     onDrop: (event: DragEvent) => event.preventDefault(),
   }} />;
+  if (!onRemoveEmpty) return editor;
+  return <div className={`checklist-inline-box${showRemove ? ' is-empty' : ''}`}>
+    {editor}
+    {showRemove && <button type="button" className="checklist-remove-empty" aria-label="Remove empty text box" title="Remove empty text box" onMouseDown={event => event.preventDefault()} onClick={removeEmpty}>×</button>}
+  </div>;
 }

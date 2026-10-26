@@ -143,6 +143,13 @@
 .checklist-inline-text { cursor: text; outline: none; min-width: 1ch; min-height: 1em; white-space: pre-wrap; border-radius: 4px; }
 .checklist-inline-text:hover { outline: 1px dashed rgba(150, 220, 204, .35); }
 .checklist-inline-text:focus { outline: 2px solid #91d9c3; outline-offset: 3px; }
+.checklist-inline-box { position: relative; }
+.checklist-inline-box.is-empty { min-height: 36px; margin: 12px 0; }
+.checklist-inline-box.is-empty > .checklist-inline-text { min-height: 36px; box-sizing: border-box; padding-right: 40px; margin: 0; outline: 1px dashed rgba(150, 220, 204, .35); }
+.checklist-inline-box.is-empty > .checklist-inline-text:focus { outline: 2px solid #91d9c3; }
+.checklist-document .checklist-remove-empty { position: absolute; top: 2px; right: 2px; width: 32px; height: 32px; padding: 0; margin: 0; border: 1px solid #617180; border-radius: 6px; background: #222e3c; color: #fff; font-size: 22px; line-height: 1; cursor: pointer; }
+.checklist-document .checklist-remove-empty:hover { background: #62343e; }
+.checklist-document .checklist-remove-empty:focus-visible { outline: 2px solid #91d9c3; outline-offset: 2px; }
 .checklist-inline-text[contenteditable] [contenteditable="false"] { cursor: default; background: rgba(150, 220, 204, .08); }
 .checklist-task-label > .checklist-inline-text { flex: 1; }
 .checklist-inline-hint { color: #b7c7d9; font-size: .85em; }
