@@ -1,10 +1,11 @@
 import { useLayoutEffect, useRef, type ElementType, type MouseEvent, type ClipboardEvent, type DragEvent, type KeyboardEvent } from 'react';
-import { inlineEditorHtml } from './inlineChecklistEditing';
-type Props = { as?: string; html: string; label: string; className?: string; onChange: (html: string) => void };
+import { inlineEditorHtml, isEmptyInlineParagraph } from './inlineChecklistEditing';
+type Props = { as?: string; html: string; label: string; className?: string; onChange: (html: string) => void; onRemoveEmpty?: () => void };
 /** An uncontrolled editing surface keeps the caret stable through note autosaves. */
-export default function InlineChecklistText({ as = 'div', html, label, className = '', onChange }: Props) {
+export default function InlineChecklistText({ as = 'div', html, label, className = '', onChange, onRemoveEmpty }: Props) {
   const ref = useRef<HTMLElement>(null);
   const composing = useRef(false);
+  const removing = useRef(false);
   const latestHtml = useRef(html);
   useLayoutEffect(() => {
     latestHtml.current = html;
@@ -23,6 +24,7 @@ export default function InlineChecklistText({ as = 'div', html, label, className
     onCompositionStart: () => { composing.current = true; },
     onCompositionEnd: () => { composing.current = false; save(); },
     onBlur: () => {
+      if (removing.current) return;
       save();
       // Reconcile protected values after React processes the last input, never while typing.
       window.setTimeout(() => {
@@ -35,6 +37,15 @@ export default function InlineChecklistText({ as = 'div', html, label, className
     },
     onClick: (event: MouseEvent) => { if ((event.target as Element).closest('a') && !event.ctrlKey && !event.metaKey) event.preventDefault(); },
     onKeyDown: (event: KeyboardEvent) => {
+      if ((event.key === 'Backspace' || event.key === 'Delete') && !composing.current && onRemoveEmpty && ref.current && isEmptyInlineParagraph(ref.current)) {
+        event.preventDefault();
+        // Blur before removing so a stale blur cannot save into the next paragraph.
+        removing.current = true;
+        ref.current.blur();
+        removing.current = false;
+        onRemoveEmpty();
+        return;
+      }
       if (event.key === 'Enter' && !composing.current) {
         event.preventDefault(); document.execCommand('insertLineBreak'); save();
       }

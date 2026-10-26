@@ -27,6 +27,26 @@ export function editableInlineBlocks(root: Element): Element[] {
   return [...root.querySelectorAll('h1,h2,h3,h4,h5,h6,p,td,th,li,blockquote,pre')].filter(node =>
     !node.closest('ul.notebook-todo,[data-fitness-values]') && !node.querySelector('h1,h2,h3,h4,h5,h6,p,td,th,li,blockquote,pre,ul,ol,input'));
 }
+/** Only remove blank text paragraphs, never task rows, table cells or generated values. */
+export function isEmptyInlineParagraph(node: Element): boolean {
+  return node.tagName === 'P' && !node.matches(protectedSelector) &&
+    !node.closest('ul.notebook-todo,[data-fitness-values]') &&
+    !(node.textContent ?? '').replace(/[\s\u200B\uFEFF]/g, '') &&
+    [...node.querySelectorAll('*')].every(child =>
+      ['BR', 'SPAN', 'STRONG', 'B', 'EM', 'I', 'U', 'S', 'DEL'].includes(child.tagName) && !child.matches(protectedSelector));
+}
+export function removeEmptyInlineParagraphs(html: string, index?: number): string {
+  const root = checklistRoot(html);
+  const blocks = editableInlineBlocks(root);
+  let changed = false;
+  blocks.forEach((block, position) => {
+    if ((index === undefined || position === index) && isEmptyInlineParagraph(block)) {
+      block.remove();
+      changed = true;
+    }
+  });
+  return changed ? root.innerHTML : html;
+}
 function preservedHtml(original: Element, edited: string): string {
   const root = checklistRoot(cleanInlineHtml(edited));
   const originals = [...original.querySelectorAll(protectedSelector)];

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createRequire } from 'node:module';
 import { checklistRoot } from '../src/pages/admin/notebook/checklistDocument.ts';
-import { cleanInlineHtml, inlineEditorHtml, editableInlineBlocks, saveInlineBlock, saveInlineTask } from '../src/pages/admin/notebook/inlineChecklistEditing.ts';
+import { cleanInlineHtml, inlineEditorHtml, editableInlineBlocks, saveInlineBlock, saveInlineTask, removeEmptyInlineParagraphs } from '../src/pages/admin/notebook/inlineChecklistEditing.ts';
 import { changeWeightLossStart } from '../src/pages/admin/notebook/weightLossPlan.ts';
 const { parseHTML, NodeFilter } = createRequire(import.meta.url)(process.env.DOM_TEST_MODULE || 'linkedom');
 const { window } = parseHTML('<html><body></body></html>');
@@ -48,4 +48,18 @@ test('empty blocks remain editable and sequential typing updates the same block'
   for (const text of ['H', 'He', 'Hello<br>there']) html = saveInlineBlock(html, 1, text);
   assert.equal(editableInlineBlocks(checklistRoot(html)).length, 2);
   assert.equal(checklistRoot(html).querySelector('p').innerHTML, 'Hello<br>there');
+});
+test('empty line cleanup preserves dates, bindings, images, table cells and tasks', () => {
+  const keep = '<p>Friday, 10/30/2026</p><p><span data-weightloss-date="0"></span></p><p data-fitness-links="[]"></p><p><img src="/photo.png"></p><table><tr><td><br></td></tr></table><ul class="notebook-todo"><li><input type="checkbox" checked><p><br></p></li></ul>';
+  const before = '<p><br></p><p>&nbsp;<strong> </strong>\u200B</p>' + keep;
+  const after = removeEmptyInlineParagraphs(before);
+  assert.equal(after, checklistRoot(keep).innerHTML);
+  assert.equal(removeEmptyInlineParagraphs(after), after);
+});
+test('removing one empty paragraph preserves adjacent paragraphs and their edit indices', () => {
+  const before = '<p>Before</p><p><br></p><p>After</p><p></p>';
+  assert.equal(removeEmptyInlineParagraphs(before, 0), before);
+  const after = removeEmptyInlineParagraphs(before, 1);
+  assert.equal(after, '<p>Before</p><p>After</p><p></p>');
+  assert.equal(saveInlineBlock(after, 1, 'Changed'), '<p>Before</p><p>Changed</p><p></p>');
 });

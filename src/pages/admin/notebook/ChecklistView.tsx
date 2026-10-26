@@ -1,6 +1,6 @@
 import { groupFitnessHistory } from './fitnessHistory';
 import InlineChecklistText from './InlineChecklistText';
-import { editableInlineBlocks, saveInlineBlock, saveInlineTask } from './inlineChecklistEditing';
+import { editableInlineBlocks, isEmptyInlineParagraph, removeEmptyInlineParagraphs, saveInlineBlock, saveInlineTask } from './inlineChecklistEditing';
 import { numberText } from './fitnessCalculations';
 import FitnessCalculators from './FitnessCalculators';
 import { refreshFitnessDocument, shoppingTotal } from './fitnessDocument';
@@ -70,6 +70,13 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     if (next === scheduledHtml) return;
     onChange(refreshFitnessDocument(next));
   };
+  const removeEmptyLines = (index?: number) => {
+    const next = refreshFitnessDocument(removeEmptyInlineParagraphs(scheduledHtml, index));
+    if (next === scheduledHtml) return;
+    setUndo({ before: scheduledHtml, after: next, message: 'Empty lines removed.' });
+    onChange(next);
+  };
+  const hasEmptyLines = editableInlineBlocks(root).some(isEmptyInlineParagraph);
   // Render only document content. Scripts, copied event handlers, and editor UI are excluded.
   const renderChildren = (node: Node): ReactNode[] => [...node.childNodes].map((child, index) => renderNode(child, index));
   const renderNode = (node: Node, key: number): ReactNode => {
@@ -78,7 +85,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     if (['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'SVG', 'MATH', 'TEMPLATE', 'INPUT', 'BUTTON'].includes(node.tagName)) return null;
     if (node.hasAttribute('data-fitness-values')) return null;
     if (node.hasAttribute('data-weightloss-week') && node.getAttribute('data-weightloss-week') !== String(planWeek)) return null;
-    if (node.hasAttribute('data-inline-index')) return <InlineChecklistText key={key} as={node.tagName.toLowerCase()} html={node.innerHTML} label={/^H/.test(node.tagName) ? 'Edit heading' : 'Edit note text'} onChange={edited => saveInline(saveInlineBlock(scheduledHtml, Number(node.getAttribute('data-inline-index')), edited))} />;
+    if (node.hasAttribute('data-inline-index')) return <InlineChecklistText key={key} as={node.tagName.toLowerCase()} html={node.innerHTML} label={/^H/.test(node.tagName) ? 'Edit heading' : 'Edit note text'} onRemoveEmpty={node.tagName === 'P' ? () => removeEmptyLines(Number(node.getAttribute('data-inline-index'))) : undefined} onChange={edited => saveInline(saveInlineBlock(scheduledHtml, Number(node.getAttribute('data-inline-index')), edited))} />;
     if (lists.includes(node)) {
       const sectionIndex = lists.indexOf(node);
       const title = checklistTitle(node, root, sectionIndex);
@@ -212,8 +219,9 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     </div>
     <nav className="checklist-jump" aria-label="Jump to checklist">{visibleLists.map((list) => <button key={lists.indexOf(list)} onClick={() => document.getElementById(`${prefix}-section-${lists.indexOf(list)}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{checklistTitle(list, root, lists.indexOf(list))}</button>)}</nav>
     <button type="button" className="checklist-add-section" onClick={() => setContentEdit({ kind: 'add-section' })}>＋ Add section</button>
+    {hasEmptyLines && <button type="button" onClick={() => removeEmptyLines()}>Remove empty lines</button>}
     {undo && undo.after === html && <div className="checklist-undo" role="status">{undo.message}<button onClick={() => { onChange(undo.before); setUndo(null); }}>{undo.message === "Checklist reset." ? "Undo reset" : "Undo"}</button></div>}
-    <p className="checklist-inline-hint">Click any heading, paragraph, task name, or detail to edit it here. Text saves automatically. Use schedule and calculator controls for linked dates and values.</p>
+    <p className="checklist-inline-hint">Click any heading, paragraph, task name, or detail to edit it here. Text saves automatically. Press Backspace on an empty paragraph to remove it. Use schedule and calculator controls for linked dates and values.</p>
     <div className="checklist-note-body">{!root.querySelector('h1') && title && <h1>{title}</h1>}{renderChildren(root)}</div>
   </article>;
 }
