@@ -151,8 +151,16 @@ test('Learn labels actual retries, retains the label on resume, and clears it fo
     await page.getByRole('button', { name: /Retry missed/ }).click();
     await retry.waitFor();
     await page.screenshot({ path: '/tmp/flashbolt-retry-mobile.png', fullPage: true });
-    const bounds = await retry.boundingBox();
-    assert(bounds.x >= 0 && bounds.x + bounds.width <= 391);
+    for (const width of [390, 1800]) {
+      await page.setViewportSize({ width, height: 900 });
+      const bounds = await retry.boundingBox();
+      const question = await page.locator('.learn-current-question').boundingBox();
+      assert(bounds.x >= question.x + question.width, 'Retry belongs to the right of the question number');
+      assert(bounds.y < question.y + question.height && question.y < bounds.y + bounds.height, 'Retry and question share a header row');
+      assert(bounds.x + bounds.width <= width);
+      assert.equal(await page.locator('.question-card .learn-retry-notice').count(), 0);
+    }
+    await page.screenshot({ path: '/tmp/flashbolt-retry-header.png', fullPage: true });
     await page.locator('.answer-grid button').filter({ hasText: 'Code' }).click();
     await page.getByRole('button', { name: /Next round/ }).click();
     assert.equal(await retry.count(), 0, 'Normal adaptive practice is not a missed-question retry');

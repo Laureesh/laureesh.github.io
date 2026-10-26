@@ -1178,9 +1178,12 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px 12px;
-  margin: 12px 0;
+  margin: 0;
+  min-width: 0;
+  flex: 1;
+  max-width: 350px;
   color: var(--ink);
-  font-size: calc(14px * var(--learn-size-other, 1));
+  font-size: calc(14px * var(--learn-size-header, 1));
   line-height: 1.5;
 }
 .flashbolt-shell .learn-retry-notice strong {
@@ -1193,4 +1196,40 @@
   color: #17120a;
   font-weight: 850;
   letter-spacing: .06em;
+}
+
+.flashbolt-shell .learn-question-heading {
+  grid-area: question;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+}
+.flashbolt-shell .learn-question-heading > .learn-current-question {
+  flex-shrink: 0;
+  margin: 0;
+}
+.flashbolt-shell .learn-retry-notice strong { flex-shrink: 0; white-space: nowrap; }
+@media (max-width: 1200px) {
+  .flashbolt-shell .learn-page.session-active .learn-session-header.has-retry {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "exit options" "question question" "answered total" "progress progress";
+    overflow: visible;
+  }
+  .flashbolt-shell .learn-session-header.has-retry :is(.learn-session-progress, .learn-round-track) { display: contents; }
+  .flashbolt-shell .learn-session-header.has-retry .learn-progress-badge:first-child { grid-area: answered; justify-self: start; }
+  .flashbolt-shell .learn-session-header.has-retry .learn-progress-badge:last-child { grid-area: total; justify-self: end; }
+  .flashbolt-shell .learn-session-header.has-retry .learn-segments { grid-area: progress; position: static; }
+  .flashbolt-shell .learn-session-header.has-retry .learn-question-heading { width: 100%; }
+}
+@media (max-width: 380px) {
+  .flashbolt-shell .learn-question-heading > .learn-current-question { gap: 8px; padding-left: 10px; }
+  .flashbolt-shell .learn-question-heading > .learn-current-question > strong { min-width: 36px; padding-inline: 6px; }
+  .flashbolt-shell .learn-page[data-large-header] .learn-question-heading { flex-wrap: wrap; }
+}
+@media (min-width: 1201px) {
+  .flashbolt-shell .learn-retry-notice { flex-wrap: nowrap; max-width: none; }
+  .flashbolt-shell .learn-retry-notice > span { white-space: nowrap; }
 }

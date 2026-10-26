@@ -3932,11 +3932,14 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
 
               {learnPhase === "session" && currentLearnCard && (
                 <>
-                  <header className="learn-session-header">
+                  <header className={`learn-session-header${learnRetryPass ? " has-retry" : ""}`}>
                     <Link className="learn-exit" to={routePathForView("set", selectedSet.id)} aria-label="Exit Learn">×</Link>
-                    <div className="learn-current-question" aria-live="polite" aria-atomic="true">
-                      <span>Question</span>
-                      <strong>{learnSequence + 1}</strong>
+                    <div className="learn-question-heading">
+                      <div className="learn-current-question" aria-live="polite" aria-atomic="true">
+                        <span>Question</span>
+                        <strong>{learnSequence + 1}</strong>
+                      </div>
+                      {learnRetryPass && <div className="learn-retry-notice" role="status"><strong><span aria-hidden="true">↻</span> RETRY</strong><span>Previously missed — try this one again.</span></div>}
                     </div>
                     <div className="learn-session-progress" aria-live="polite">
                       <div className="learn-round-track" aria-label={`${learnQuestionsAnswered} of ${learnQuestionsTotal} total questions answered`}>
@@ -3991,7 +3994,6 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                     </div>
                     <div className={`question-card ${learnAnswer ? "ready-to-continue" : ""}`} onClick={(event) => { if (learnGoal === "understand" || !learnAnswer || event.target instanceof Element && event.target.closest("button, input, textarea, select, a, label, .study-explanation")) return; const retypeRequired = !learnLastCorrect && learnOptions.retypeCorrectAnswers; if (retypeRequired && normalizeAnswer(learnRetypeAnswer) !== normalizeAnswer(currentLearnCorrectAnswer)) return; nextLearnQuestion(); }}>
                       <div className="learn-question-stage"><span className="eyebrow">{currentLearnQuestionKind === "written" ? `Write the ${currentLearnAnswerSide}` : currentLearnQuestionKind === "true-false" ? "True or false" : currentLearnQuestionKind === "select-all" ? "Select all that apply" : currentLearnQuestionKind === "flashcard" ? "Recall, then reveal" : `Choose the ${currentLearnAnswerSide}`}</span><span>{learnConfidenceLabel(learnQuestionConfidence)} · stage {Math.min(3, learnQuestionConfidence + 1)}</span></div>
-                      {learnRetryPass && <div className="learn-retry-notice" role="status"><strong><span aria-hidden="true">↻</span> RETRY</strong><span>Previously missed — try this one again.</span></div>}
                       <h1>{currentLearnPrompt}</h1>
                       {learnOptions.showImagesOnQuestions && currentLearnCard.imageData && <img width={320} height={185} className="learn-question-image" src={currentLearnCard.imageData} alt={currentLearnCard.imageName ?? "Question study aid"} />}
 
