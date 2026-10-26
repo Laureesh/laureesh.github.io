@@ -126,3 +126,17 @@
 .checklist-content-editor textarea:focus-visible { outline: 2px solid #b4f4d8; outline-offset: 3px; }
 .checklist-link-fields { display: grid; gap: 8px; padding: 12px; border: 1px solid #596c83; border-radius: 8px; margin-bottom: 12px; }
 .checklist-content-editor .delete-checklist-task { color: #ffb7c5; }
+
+.fitness-calculators { margin: 1rem 0; padding: 1rem; border: 1px solid var(--border-color, #45535e); border-radius: 16px; background: rgba(122, 218, 192, .04); }
+.fitness-calculators summary { cursor: pointer; font-weight: 700; font-size: 1.1em; }
+.fitness-calculators fieldset, .checklist-content-editor fieldset { min-width: 0; border: 1px solid #45535e; border-radius: 10px; margin: 1rem 0; padding: .9rem; }
+.fitness-calculators legend { font-weight: 700; padding: 0 .4rem; }
+.fitness-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: .8rem; }
+.fitness-fields label { display: flex; flex-direction: column; gap: .4rem; }
+.fitness-fields input, .fitness-calculators input { width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid #617180; border-radius: 6px; padding: .6rem; background: #141b23; color: #fff; }
+.fitness-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+.fitness-calculators button { padding: .55rem .8rem; border: 1px solid #617180; border-radius: 8px; background: #243d3b; color: #fff; cursor: pointer; }
+.fitness-calculators button:disabled { opacity: .5; cursor: default; }
+.fitness-link-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .5rem; }
+.fitness-link-options label { display: flex !important; flex-direction: row !important; align-items: center; gap: .5rem; }
+.fitness-link-options input[type="checkbox"] { width: auto; }

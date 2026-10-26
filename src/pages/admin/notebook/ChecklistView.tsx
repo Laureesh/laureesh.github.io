@@ -1,3 +1,6 @@
+import { numberText } from './fitnessCalculations';
+import FitnessCalculators from './FitnessCalculators';
+import { refreshFitnessDocument, shoppingTotal } from './fitnessDocument';
 import ChecklistContentEditor from "./ChecklistContentEditor";
 import { editableSectionTitle, readTaskContent, removeChecklistTask, saveChecklistContent, type ChecklistEdit } from "./checklistEditing";
 import ChecklistScheduleEditor from "./ChecklistScheduleEditor";
@@ -22,7 +25,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
   const today = easternDateKey(now);
   const scheduledHtml = useMemo(() => {
     const autoEnable = isHygieneRoutine(html, title) && /Schedule: Eastern Time/i.test(html) && !html.includes('data-checklist-repeat');
-    return refreshChecklistSchedule(autoEnable ? enableHygieneSchedule(html, now) : html, now);
+    return refreshFitnessDocument(refreshChecklistSchedule(autoEnable ? enableHygieneSchedule(html, now) : html, now));
   }, [html, title, now]);
   useEffect(() => { if (scheduledHtml !== html) onChange(scheduledHtml); }, [scheduledHtml, html, onChange]);
   const root = useMemo(() => { const document = checklistRoot(scheduledHtml); formatChecklistReference(document); return document; }, [scheduledHtml]);
@@ -66,6 +69,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     if (node.nodeType === Node.TEXT_NODE) return node.textContent;
     if (!(node instanceof Element)) return null;
     if (['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'SVG', 'MATH', 'TEMPLATE', 'INPUT', 'BUTTON'].includes(node.tagName)) return null;
+    if (node.hasAttribute('data-fitness-values')) return null;
     if (node.hasAttribute('data-weightloss-week') && node.getAttribute('data-weightloss-week') !== String(planWeek)) return null;
     if (lists.includes(node)) {
       const sectionIndex = lists.indexOf(node);
@@ -74,6 +78,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
       const indices = sectionBoxes.map(box => boxes.indexOf(box));
       const done = sectionBoxes.filter(box => scheduledCheckState(box, now)).length;
       const isCollapsed = collapsed.has(sectionIndex);
+      const purchases = shoppingTotal(node);
       return <section key={key} id={`${prefix}-section-${sectionIndex}`} className={`checklist-card${sectionBoxes.length > 0 && done === sectionBoxes.length ? ' is-complete' : ''}`} aria-label={title}>
         <header className="checklist-card-header">
           <button type="button" className="checklist-disclosure" aria-expanded={!isCollapsed} aria-controls={`${prefix}-tasks-${sectionIndex}`} onClick={() => toggleSection(sectionIndex)}><span aria-hidden="true">{isCollapsed ? '›' : '⌄'}</span>{title}</button>
@@ -105,6 +110,7 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
               </li>;
             })}
           </ul>
+          {purchases.count > 0 && <p className="checklist-custom-schedule-note" aria-live="polite">Shopping subtotal: ${numberText(purchases.total)} · {purchases.count} calculated items (before tax)</p>}
           {!sectionBoxes.length && <p className="checklist-custom-schedule-note">No tasks yet. Add your first task below.</p>}
           <button type="button" className="checklist-add-task" onClick={() => setContentEdit({ kind: 'add-task', index: sectionIndex })}>＋ Add task</button>
           <button type="button" className="checklist-reset" disabled={!done} onClick={() => reset(indices)}>↺ Reset {title.toLowerCase()}</button>
@@ -149,8 +155,8 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
     }
   };
   return <article className={`checklist-document${compact ? ' is-compact' : ''}`} style={{ fontSize }}>
-    {contentEdit && <ChecklistContentEditor edit={contentEdit} onClose={() => setContentEdit(null)} onSave={content => {
-      const next = saveChecklistContent(scheduledHtml, contentEdit, content);
+    {contentEdit && <ChecklistContentEditor fitness={Boolean(plan || root.querySelector('[data-fitness-values]'))} edit={contentEdit} onClose={() => setContentEdit(null)} onSave={content => {
+      const next = refreshFitnessDocument(saveChecklistContent(scheduledHtml, contentEdit, content));
       setUndo({ before: scheduledHtml, after: next, message: "Checklist updated." });
       onChange(next);
       setContentEdit(null);
@@ -166,6 +172,8 @@ export default function ChecklistView({ title, html, fontSize, onChange }: Props
       onChange(setTaskSchedules(scheduledHtml, scheduleTarget.indices, schedule, now));
       setScheduleTarget(null);
     }} />}
+    {(plan || root.querySelector('[data-fitness-values]')) && <FitnessCalculators html={scheduledHtml} onChange={next => { setUndo({ before: scheduledHtml, after: next, message: 'Linked values updated.' }); onChange(next); }} />}
+    {!plan && !root.querySelector('[data-fitness-values]') && <button type="button" className="checklist-add-section" onClick={() => onChange(refreshFitnessDocument(scheduledHtml, {}))}>＋ Add linked value calculators</button>}
     {planStart && <div className="weightloss-schedule-controls">
       <label>Start date<input type="date" value={planStart} min="1900-01-01" max="9998-12-31" onChange={event => { if (validPlanDate(event.target.value)) { setUndo(null); onChange(changeWeightLossStart(scheduledHtml, event.target.value)); } }} /></label>
       <label>Workout week<select value={planWeek} onChange={event => setPlanWeek(Number(event.target.value))}>{Array.from({ length: weekCount }, (_, index) => <option key={index} value={index}>Week {index + 1} · {planDates[index * 3] ? displayDate(planDates[index * 3]) : ''}</option>)}</select></label>
