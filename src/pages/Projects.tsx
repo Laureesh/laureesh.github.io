@@ -29,6 +29,7 @@ import { useTheme } from "../components/themeContext";
 import { usePublicSiteProjects } from "../hooks/useContentCatalog";
 import "./Projects.css";
 import ProjectInterviewPrep from "../components/ProjectInterviewPrep";
+import ProjectCardNavigation from "../components/ProjectCardNavigation";
 
 type GalleryIndexMap = Record<string, number>;
 type ProjectDetailTab = "source" | "learned" | "gallery" | "architecture";
@@ -410,7 +411,7 @@ function ProjectCard({
   );
 
   return (
-    <article id={`project-card-${project.id}`} className="project-card-shell">
+    <article id={`project-card-${project.id}`} className="project-card-shell" tabIndex={-1} aria-label={project.title}>
       {isFlipped && (
         <button
           type="button"
@@ -573,7 +574,7 @@ function DiscordProjectCard({
   );
 
   return (
-    <article id={`project-discord-${project.id}`} className="discord-project-post">
+    <article id={`project-discord-${project.id}`} className="discord-project-post" tabIndex={-1} aria-label={project.title}>
       <div className={`discord-project-avatar ${project.type.toLowerCase()}`}>
         {getProjectInitials(project.title)}
       </div>
@@ -1212,6 +1213,7 @@ export default function Projects() {
               </div>
 
               {hasMatches && viewMode === "cards" && (
+                <ProjectCardNavigation projects={filteredProjects} idPrefix="project-discord-">
                 <div className="projects-discord-feed">
                   {filteredProjects.map((project) => (
                     <DiscordProjectCard
@@ -1226,6 +1228,7 @@ export default function Projects() {
                     />
                   ))}
                 </div>
+              </ProjectCardNavigation>
               )}
 
               {hasMatches && viewMode === "table" && (
@@ -1433,7 +1436,8 @@ export default function Projects() {
             </div>
 
             {hasMatches && viewMode === "cards" && (
-              <div className="projects-grid">
+              <ProjectCardNavigation projects={filteredProjects} idPrefix="project-card-">
+                <div className="projects-grid">
                 {filteredProjects.map((project) => (
                   <ProjectCard
                     key={project.id}
@@ -1447,6 +1451,7 @@ export default function Projects() {
                   />
                 ))}
               </div>
+              </ProjectCardNavigation>
             )}
 
             {hasMatches && viewMode === "table" && <ComparisonTable projects={filteredProjects} />}

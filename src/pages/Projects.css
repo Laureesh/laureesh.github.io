@@ -49,7 +49,7 @@
   grid-template-columns: 76px 280px minmax(0, 1fr);
   border: 1px solid #111214;
   border-radius: 26px;
-  overflow: hidden;
+  overflow: clip;
   background: #313338;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
 }
@@ -2276,3 +2276,86 @@
 .project-interview-list p, .project-interview-import p { line-height: 1.7; overflow-wrap: anywhere; }
 .project-interview-import { margin-top: 1rem; }
 .project-interview-import input { max-width: 100%; }
+
+/* Named, grouped navigation matching the Flashbolt folder page. */
+.project-navigation-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.project-navigation-panel {
+  position: sticky;
+  top: 96px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-card-solid);
+  color: var(--text-primary);
+  max-height: calc(100dvh - 112px);
+  overflow-y: auto;
+}
+.project-navigation-panel summary { cursor: pointer; font-size: 0.9rem; font-weight: 700; }
+.project-navigation-panel p { margin: 12px 0; color: var(--text-secondary); font-size: 0.75rem; }
+.project-navigation-links { display: grid; gap: 6px; }
+.project-navigation-category-row { position: relative; }
+.project-navigation-category > summary {
+  padding: 8px 36px 8px 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+.project-navigation-category > summary small { margin-left: 4px; font-weight: 400; }
+.project-navigation-category > div { display: grid; gap: 6px; padding-bottom: 4px; }
+.project-navigation-links button {
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: inherit;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-align: left;
+}
+.project-navigation-links .project-navigation-link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  padding: 8px 10px;
+  border-inline-start: 3px solid var(--accent);
+}
+.project-navigation-links .project-navigation-link[data-category="Java"] { border-inline-start-color: #f59e0b; }
+.project-navigation-links .project-navigation-link[data-category="React"] { border-inline-start-color: #38bdf8; }
+.project-navigation-links .project-navigation-link[data-category="JavaScript"] { border-inline-start-color: #a78bfa; }
+.project-navigation-link span { overflow-wrap: anywhere; }
+.project-navigation-link small { color: var(--text-secondary); font-size: 0.7rem; }
+.project-navigation-links .project-navigation-category-jump {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30px;
+  min-height: 32px;
+  text-align: center;
+  font-size: 1.1rem;
+}
+.project-navigation-link[aria-current="location"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 24%, var(--bg-card-solid));
+  font-weight: 700;
+}
+.project-navigation-links button:hover { background: color-mix(in srgb, var(--accent) 16%, var(--bg-card-solid)); }
+.project-navigation-links button:focus-visible,
+.project-navigation-category > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.project-navigation-content { min-width: 0; }
+.project-navigation-content .projects-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
+.project-card-shell:focus-visible, .discord-project-post:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+@media (max-width: 1050px) {
+  .project-navigation-layout { grid-template-columns: minmax(0, 1fr); }
+  .project-navigation-panel { position: static; max-height: 280px; }
+}
