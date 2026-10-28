@@ -212,7 +212,7 @@ if ($query !== '') {
     title: "Escaping The Red Cross",
     tagline: "Horror escape game with combat, puzzles, and persistence",
     desc:
-      "A team-built Java game with OOP design, turn-based combat, puzzle gating, inventory rules, and a browser-playable React shell.",
+      "A team-built Java game with OOP design, turn-based combat, puzzle gating, inventory rules, and a separate React/TypeScript browser adaptation.",
     status: "Completed",
     liveUrl: "/game",
     repoUrl: "https://github.com/Laureesh/TeenTitans-Fall2025-TextBasedGame",
@@ -228,7 +228,7 @@ if ($query !== '') {
     tags: ["Java", "MySQL", "OOP", "Agile", "React"],
     stackGroups: [
       { label: "Gameplay", items: ["Java", "Combat system", "Puzzle logic"] },
-      { label: "UI shell", items: ["React", "Command terminal", "Sidebar HUD"] },
+      { label: "Browser adaptation", items: ["React", "TypeScript engine", "Sidebar HUD"] },
       { label: "Persistence", items: ["MySQL", "State rules", "Inventory data"] },
     ],
     contributions: {
@@ -272,11 +272,11 @@ if ($query !== '') {
       },
     ],
     architecture: {
-      summary: "The React shell renders logs and commands, while the Java engine owns combat, room logic, and data-backed rules.",
+      summary: "The original academic project is Java. This browser demo reimplements commands, combat, and puzzles in React/TypeScript; it does not call a Java engine or MySQL database.",
       lanes: [
         { label: "Presentation", nodes: ["React terminal", "HUD sidebar", "Quick actions"] },
         { label: "Game engine", nodes: ["Command parser", "Combat loop", "Puzzle checks"] },
-        { label: "Persistence", nodes: ["Item data", "Room definitions", "MySQL state"] },
+        { label: "Browser state", nodes: ["TypeScript room data", "React player state", "In-memory inventory"] },
       ],
     },
     relatedIds: ["solo-text-based-adventure", "movie-streaming-app"],
@@ -303,7 +303,7 @@ if ($query !== '') {
     stackGroups: [
       { label: "Engine", items: ["Java", "Room graph", "Turn-based combat"] },
       { label: "Player state", items: ["Inventory", "Equipment", "Healing items"] },
-      { label: "UI shell", items: ["React wrapper", "Terminal interaction", "Quick commands"] },
+      { label: "Browser adaptation", items: ["React", "TypeScript engine", "Quick commands"] },
     ],
     contributions: {
       frontend: 24,
@@ -347,7 +347,7 @@ if ($query !== '') {
       },
     ],
     architecture: {
-      summary: "A simple front-end shell sends commands into a Java engine that controls rooms, combat, and progression state.",
+      summary: "The original adventure is a Java project. The browser demo runs a separate React/TypeScript implementation of rooms, combat, and progression in local component state.",
       lanes: [
         { label: "Presentation", nodes: ["React terminal", "Command input", "Stats panel"] },
         { label: "Core logic", nodes: ["Room map", "Enemy encounters", "Item rules"] },

@@ -2268,3 +2268,11 @@
     transition: none;
   }
 }
+
+.project-interview-prep { margin-block: 1rem; min-width: 0; }
+.project-interview-list { padding-left: 1.4rem; }
+.project-interview-list li { margin-block: 0.85rem; padding-left: 0.25rem; }
+.project-interview-list summary, .project-interview-import summary { cursor: pointer; font-weight: 600; }
+.project-interview-list p, .project-interview-import p { line-height: 1.7; overflow-wrap: anywhere; }
+.project-interview-import { margin-top: 1rem; }
+.project-interview-import input { max-width: 100%; }

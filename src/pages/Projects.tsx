@@ -28,6 +28,7 @@ import {
 import { useTheme } from "../components/themeContext";
 import { usePublicSiteProjects } from "../hooks/useContentCatalog";
 import "./Projects.css";
+import ProjectInterviewPrep from "../components/ProjectInterviewPrep";
 
 type GalleryIndexMap = Record<string, number>;
 type ProjectDetailTab = "source" | "learned" | "gallery" | "architecture";
@@ -470,6 +471,7 @@ function ProjectCard({
                 </a>
               )}
             </div>
+            <ProjectInterviewPrep projectId={project.id} />
             <div className="project-detail-panels" role="group" aria-label={`${project.title} project details`}>
               {detailButtons.map((button) => {
                 const isActive = activeDetailTab === button.id;
@@ -650,6 +652,7 @@ function DiscordProjectCard({
           </div>
         )}
 
+        <ProjectInterviewPrep projectId={project.id} />
         <div className="discord-project-detail-tabs" role="group" aria-label={`${project.title} project details`}>
           {detailButtons.map((button) => {
             const isActive = activeDetailTab === button.id;
