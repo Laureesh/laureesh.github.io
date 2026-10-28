@@ -11,6 +11,7 @@ import { scheduleTextareaResize } from "./textareaResize";
 import { withLibraryLoadTimeout } from "./libraryLoadTimeout";
 import { THEME_OPTIONS, applyThemeToDocument, type ThemeName } from "./themes";
 import { groupFolderSets } from "./folderSetOrder";
+import { SEMESTER_OPTIONS, canonicalSemester, normalizedName, findFolderNameConflict, folderLibraryConflict } from "./folderNames";
 import { manualImportExamples } from "./manualImportExamples";
 
 import "./Flashbolt.css";
@@ -2483,7 +2484,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     setEditingFolderId(folderToEdit.id);
     setFolderName(folderToEdit.name);
     setFolderColor(folderToEdit.color ?? FOLDER_COLORS[0]);
-    setFolderSemester(folderToEdit.semester ?? "");
+    setFolderSemester(canonicalSemester(folderToEdit.semester ?? "") ?? folderToEdit.semester ?? "");
     setFolderSetIds([...folderToEdit.setIds]);
     setFolderModalOpen(true);
   }
@@ -2497,21 +2498,20 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   }
 
   function saveFolder() {
-    if (!folderName.trim()) {
-      notify("Give your folder a name first.");
+    if (!normalizedName(folderName)) {
+      notify("Give your folder a name with at least one letter or number.");
       return;
     }
-    const semester = folderSemester.trim();
-    const semesterMatch = /^(Spring|Summer|Fall) (\d{4})$/.exec(semester);
-    if (semester && (!semesterMatch || Number(semesterMatch[2]) < 2020 || Number(semesterMatch[2]) > 2027)) {
+    const canonical = canonicalSemester(folderSemester);
+    if (canonical === null) {
       notify("Choose Spring, Summer, or Fall for a year from 2020 through 2027.");
       return;
     }
-    const duplicateFolder = data.folders.some((item) => item.id !== editingFolderId
-      && item.name.trim().toLocaleLowerCase() === folderName.trim().toLocaleLowerCase()
-      && (item.semester ?? "") === semester);
+    // Reuse an existing group even if an older backup used different casing.
+    const semester = data.folders.find(item => canonicalSemester(item.semester ?? "") === canonical)?.semester ?? canonical;
+    const duplicateFolder = findFolderNameConflict(data.folders, folderName, semester, editingFolderId);
     if (duplicateFolder) {
-      notify(`A folder named “${folderName.trim()}” already exists${semester ? ` in ${semester}` : " without a semester"}.`);
+      notify(`“${duplicateFolder.name}” already exists${semester ? ` in ${semester}` : " without a semester"}. Choose a more distinct folder name or use the existing folder.`);
       return;
     }
 
@@ -3065,13 +3065,19 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     try {
       const parsed: unknown = JSON.parse(await file.text());
       if (!isValidBackup(parsed)) throw new Error("Invalid backup");
+      const conflict = folderLibraryConflict(parsed.folders);
+      if (conflict) {
+        notify(conflict);
+        return;
+      }
       setData(withDataDefaults(parsed));
       setSelectedSetId(parsed.sets[0]?.id ?? "");
       notify("Library restored from backup.");
     } catch {
       notify("That file is not a valid Flashbolt backup.");
+    } finally {
+      event.target.value = "";
     }
-    event.target.value = "";
   }
 
   function flashcardKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
@@ -4223,7 +4229,8 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
         <Modal className="modal" labelledBy="folder-title" onClose={closeFolderModal}>
             <header><div><span className="modal-icon" style={{ background: folderColor, color: "#18202b" }}><UiIcon symbol="□" /></span><span className="eyebrow">{editingFolderId ? "Edit collection" : "New collection"}</span><h2 id="folder-title">{editingFolderId ? "Edit your folder" : "Name your folder"}</h2></div><button className="icon-button" onClick={closeFolderModal} aria-label="Close modal"><UiIcon symbol="×" /></button></header>
             <label className="modal-field"><span>Folder name</span><input value={folderName} onChange={(event) => setFolderName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") saveFolder(); }} placeholder="e.g. Fall semester" maxLength={50} /></label>
-            <label className="modal-field"><span>Semester <small>optional</small></span><input value={folderSemester} onChange={(event) => setFolderSemester(event.target.value)} placeholder="e.g. Fall 2026" list="flashbolt-semesters" maxLength={11} /><datalist id="flashbolt-semesters">{[2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027].flatMap((year) => ["Spring", "Summer", "Fall"].map((term) => <option value={`${term} ${year}`} key={`${term}-${year}`} />))}</datalist></label>
+            <label className="modal-field"><span>Semester <small>optional</small></span><select value={folderSemester} onChange={(event) => setFolderSemester(event.target.value)}><option value="">No semester</option>{folderSemester && !SEMESTER_OPTIONS.includes(folderSemester) && <option value={folderSemester} disabled>{folderSemester} — choose a semester</option>}{SEMESTER_OPTIONS.map(semester => <option value={semester} key={semester}>{semester}</option>)}</select></label>
+            <p className="modal-privacy">Reuse an existing semester. Folder names in that semester must be distinct, including spelling, spacing, and punctuation variations.</p>
             <fieldset className="folder-color-field"><legend>Folder icon color</legend><div>{FOLDER_COLORS.map((color) => <button type="button" className={folderColor === color ? "selected" : ""} style={{ "--folder-swatch": color } as CSSProperties} onClick={() => setFolderColor(color)} aria-label={`Use folder color ${color}`} aria-pressed={folderColor === color} key={color}><span /></button>)}</div></fieldset>
             <fieldset><legend>Add sets <small>optional</small></legend>{data.sets.map((set) => <label className="set-check" key={set.id}><span className="visually-hidden">Add set to folder</span><input aria-label={`Add ${set.title} to folder`} type="checkbox" checked={folderSetIds.includes(set.id)} onChange={() => setFolderSetIds((ids) => ids.includes(set.id) ? ids.filter((id) => id !== set.id) : [...ids, set.id])} /><span><strong>{set.title}</strong><small>{set.cards.length} terms</small></span></label>)}</fieldset>
             <p className="modal-privacy">⌁ This private folder syncs with your account and keeps a local backup on this device.</p>
