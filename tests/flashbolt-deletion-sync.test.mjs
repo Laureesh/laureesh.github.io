@@ -9,9 +9,9 @@ import { mergeSemesterVisibility, normalizeSemesterVisibility } from '../src/pag
 const source = readFileSync(new URL('../src/pages/admin/flashbolt/Flashbolt.tsx', import.meta.url), 'utf8');
 const functions = source.slice(source.indexOf('function withDataDefaults('), source.indexOf('function AutoResizeTextarea('));
 const compiled = ts.transpileModule(functions, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
-const { mergeLibraries, removeSetFromLibraryData, withDataDefaults } = new Function(
+const { mergeLibraries, removeSetFromLibraryData, removeFolderFromLibraryData, withDataDefaults } = new Function(
   'mergeReviewProgress', 'mergeSemesterVisibility', 'normalizeSemesterVisibility',
-  `${compiled}; return { mergeLibraries, removeSetFromLibraryData, withDataDefaults };`,
+  `${compiled}; return { mergeLibraries, removeSetFromLibraryData, removeFolderFromLibraryData, withDataDefaults };`,
 )(mergeReviewProgress, mergeSemesterVisibility, normalizeSemesterVisibility);
 
 const library = () => ({
@@ -58,4 +58,40 @@ test('legacy libraries without deletion records retain their sets', () => {
   const result = mergeLibraries(library(), library());
   assert.deepEqual(result.sets.map(set => set.id), ['aws', 'keep']);
   assert.deepEqual(result.deletedSetIds, []);
+});
+
+
+test('deleting the no-semester starter folder survives sync, reload and stale devices without deleting sets', () => {
+  const stale = library();
+  stale.folders = [{ id: 'itec-folder', name: 'ITEC 4450', setIds: ['aws'] }];
+  stale.mastered = {};
+  stale.lastCreatedFolderIds = ['itec-folder'];
+  stale.recentSetValues = { title: 'Recent', folderIds: ['itec-folder'] };
+  const before = JSON.stringify(stale);
+  const deleted = removeFolderFromLibraryData(stale, 'itec-folder');
+  const saved = mergeLibraries(stale, deleted);
+  const reloaded = withDataDefaults(JSON.parse(JSON.stringify(saved)));
+  for (const result of [deleted, saved, reloaded, mergeLibraries(reloaded, stale), mergeLibraries(stale, reloaded)]) {
+    assert.deepEqual(result.folders, []);
+    assert.deepEqual(result.deletedFolderIds, ['itec-folder']);
+    assert.deepEqual(result.sets, stale.sets);
+    assert.deepEqual(result.mastered, stale.mastered);
+    assert.deepEqual(result.learnProgress, stale.learnProgress);
+    assert.deepEqual(result.activeLearn, stale.activeLearn);
+    assert.deepEqual(result.lastCreatedFolderIds, []);
+    assert.deepEqual(result.recentSetValues.folderIds, []);
+  }
+  assert.equal(JSON.stringify(stale), before);
+});
+
+test('folder deletion affects only its ID and repeat deletion is stable', () => {
+  const data = library();
+  data.folders.push({ id: 'other', name: 'Other folder', semester: 'Fall 2026', setIds: ['aws'] });
+  const result = removeFolderFromLibraryData(removeFolderFromLibraryData(data, 'cloud'), 'cloud');
+  assert.deepEqual(result.deletedFolderIds, ['cloud']);
+  assert.deepEqual(result.folders, [data.folders[1]]);
+  assert.deepEqual(result.sets, data.sets);
+  const merged = mergeLibraries(data, result);
+  assert.deepEqual(merged.folders, [data.folders[1]]);
+  assert.deepEqual(mergeLibraries(library(), library()).deletedFolderIds, []);
 });

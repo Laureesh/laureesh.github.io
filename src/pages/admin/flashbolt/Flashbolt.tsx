@@ -186,6 +186,7 @@ type Folder = {
 
 type AppData = {
   deletedSetIds?: string[];
+  deletedFolderIds?: string[];
   semesterVisibility?: SemesterVisibility;
   sets: StudySet[];
   folders: Folder[];
@@ -645,6 +646,8 @@ function prepareDraftCard(card: Card): Card | null {
 function withDataDefaults(value: AppData): AppData {
   const deletedSetIds = [...new Set((value.deletedSetIds ?? []).filter((id) => typeof id === "string"))];
   const deleted = new Set(deletedSetIds);
+  const deletedFolderIds = [...new Set((Array.isArray(value.deletedFolderIds) ? value.deletedFolderIds : []).filter((id): id is string => typeof id === "string"))];
+  const deletedFolders = new Set(deletedFolderIds);
   const normalizedSets = value.sets.filter((set) => !deleted.has(set.id)).map((set) => ({
     ...set,
     cards: set.cards.map(card => withCorrectChoiceAnswers(withDetectedAnswerChoices({ ...card, explanation: typeof card.explanation === "string" ? card.explanation : undefined }))),
@@ -655,8 +658,11 @@ function withDataDefaults(value: AppData): AppData {
     ...value,
     sets: normalizedSets,
     deletedSetIds,
+    deletedFolderIds,
+    lastCreatedFolderIds: value.lastCreatedFolderIds?.filter(id => !deletedFolders.has(id)),
+    recentSetValues: value.recentSetValues ? { ...value.recentSetValues, folderIds: value.recentSetValues.folderIds.filter(id => !deletedFolders.has(id)) } : undefined,
     semesterVisibility: normalizeSemesterVisibility(value.semesterVisibility),
-    folders: value.folders.map((folder) => ({
+    folders: value.folders.filter(folder => !deletedFolders.has(folder.id)).map((folder) => ({
       ...folder,
       setIds: [...new Set(folder.setIds)].filter((setId) => setIds.has(setId)),
     })),
@@ -689,6 +695,7 @@ function mergeLibraries(cloud: AppData, local: AppData): AppData {
     ...cloud,
     // Deletions win over stale copies, including edits from another device.
     deletedSetIds: [...new Set([...(cloud.deletedSetIds ?? []), ...(local.deletedSetIds ?? [])])],
+    deletedFolderIds: [...new Set([...(cloud.deletedFolderIds ?? []), ...(local.deletedFolderIds ?? [])])],
     sets: [...sets.values()],
     folders: [...folders.values()],
     mastered: Object.fromEntries(
@@ -715,6 +722,19 @@ function removeSetFromLibraryData(data: AppData, setId: string): AppData {
     mastered,
     learnProgress,
     activeLearn: data.activeLearn?.setId === setId ? undefined : data.activeLearn,
+  };
+}
+
+function removeFolderFromLibraryData(data: AppData, folderId: string): AppData {
+  return {
+    ...data,
+    deletedFolderIds: [...new Set([...(data.deletedFolderIds ?? []), folderId])],
+    folders: data.folders.filter(folder => folder.id !== folderId),
+    lastCreatedFolderIds: data.lastCreatedFolderIds?.filter(id => id !== folderId),
+    recentSetValues: data.recentSetValues ? {
+      ...data.recentSetValues,
+      folderIds: data.recentSetValues.folderIds.filter(id => id !== folderId),
+    } : undefined,
   };
 }
 
@@ -1341,19 +1361,6 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     const timer = window.setTimeout(() => setToast(""), 3200);
     return () => window.clearTimeout(timer);
   }, [toast]);
-
-  useEffect(() => {
-    if (!folderModalOpen) return;
-    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      setFolderModalOpen(false);
-      setEditingFolderId(null);
-      setFolderName("");
-      setFolderSetIds([]);
-    };
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [folderModalOpen]);
 
   useEffect(() => {
     if (!tileFolderPickerId) return;
@@ -2539,10 +2546,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   async function deleteFolder(folderToDelete: Folder) {
     const confirmed = await askConfirmation(`Delete “${folderToDelete.name}”? The sets inside it will stay in your library.`, "Delete folder?", "Delete folder");
     if (!confirmed) return;
-    setData((current) => ({
-      ...current,
-      folders: current.folders.filter((item) => item.id !== folderToDelete.id),
-    }));
+    setData((current) => removeFolderFromLibraryData(current, folderToDelete.id));
     if (selectedFolderId === folderToDelete.id) {
       setSelectedFolderId(null);
       if (view === "library") navigate("library");
