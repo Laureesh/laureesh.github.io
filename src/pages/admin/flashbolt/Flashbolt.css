@@ -4951,6 +4951,12 @@ kbd {
   grid-row: 1;
 }
 
+.term-list article > .study-explanation {
+  grid-column: 2 / -2;
+  min-width: 0;
+  margin: 0;
+}
+
 .term-review-choices li {
   display: flex;
   min-width: 0;

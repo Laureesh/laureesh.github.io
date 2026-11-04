@@ -3959,6 +3959,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                     )}
                     {card.imageData && <img width={50} height={42} src={card.imageData} alt="" />}
                     <button className={data.mastered[selectedSet.id]?.includes(card.id) ? "done" : ""} onClick={() => toggleMastered(selectedSet.id, card.id)} aria-label="Toggle mastered">✓</button>
+                    <StudyExplanation text={card.explanation} />
                   </article>
                   );
                 })}
