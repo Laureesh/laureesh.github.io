@@ -32,3 +32,23 @@ test('links and progress are isolated by share and revision', () => {
   assert.notEqual(sharedProgressKey(id, '1'), sharedProgressKey('OtherShare', '1'));
   assert(!sharedProgressKey(id, '1').startsWith('flashbolt.local'));
 });
+
+test('folder snapshots include every member in folder order and exclude private metadata', async () => {
+  const { encodeSharedFolder, sharedFolderSnapshot } = await import('../src/pages/admin/flashbolt/sharing/sharedSet.ts');
+  const second = { ...set, id: 'second', title: 'Scheduling' };
+  const payload = encodeSharedFolder({ id: 'private-folder', name: 'Operating Systems', setIds: ['second', set.id], semester: 'private-semester' }, [set, second, { ...set, id: 'excluded', title: 'Excluded set' }]);
+  const folder = sharedFolderSnapshot(JSON.parse(payload));
+  assert.deepEqual(folder.sets.map(item => item.title), ['Scheduling', 'Threads']);
+  assert.deepEqual(folder.sets.map(item => item.id), ['shared-set-1', 'shared-set-2']);
+  for (const hidden of ['private-folder', 'private-semester', 'private-id', 'private@example.com', 'Excluded set', 'mastered', 'autoTypePreviousChoices']) assert(!payload.includes(hidden), hidden);
+  assert.deepEqual(sharedFolderSnapshot(JSON.parse(JSON.stringify(folder))), folder);
+});
+
+test('empty, missing, malformed and oversized folder contents cannot be published', async () => {
+  const { encodeSharedFolder } = await import('../src/pages/admin/flashbolt/sharing/sharedSet.ts');
+  const folder = { id: 'folder', name: 'Course', setIds: [set.id] };
+  assert.throws(() => encodeSharedFolder({ ...folder, setIds: [] }, [set]));
+  assert.throws(() => encodeSharedFolder(folder, []));
+  assert.throws(() => encodeSharedFolder(folder, [{ ...set, cards: [] }]));
+  assert.throws(() => encodeSharedFolder(folder, [{ ...set, description: '🦊'.repeat(250000) }]));
+});

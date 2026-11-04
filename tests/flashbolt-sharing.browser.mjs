@@ -12,7 +12,7 @@ const set = { id: 'shared-set', title: 'Chapter 4: Threads', subject: 'Operating
   { id: 'two', term: 'What is per-thread?', definition: 'Stack', answerChoices: ['Stack', 'Code'], correctAnswers: ['Stack'], questionType: 'multiple-choice' },
 ] };
 const privateData = JSON.stringify({ sets: [{ ...set, id: 'private', title: 'PRIVATE SECRET' }], folders: [], mastered: {}, sessions: 6 });
-async function mount({ owner = false, width = 1280, missing = false, signedIn = false, blockedStorage = false, app = false } = {}) {
+async function mount({ owner = false, width = 1280, missing = false, signedIn = false, blockedStorage = false, app = false, folder = false } = {}) {
   const context = await browser.newContext({ viewport: { width, height: 900 } });
   const page = await context.newPage();
   const errors = []; page.on('pageerror', error => errors.push(error.message));
@@ -24,7 +24,7 @@ async function mount({ owner = false, width = 1280, missing = false, signedIn = 
   await page.route('**/src/services/flashboltLibrary.ts', route => route.fulfill({ contentType: 'application/javascript', body: owner ? `export const loadFlashboltLibrary=async()=>(${privateData}); export const mergeAndSaveFlashboltLibrary=async(_,d)=>d; export const saveFlashboltLibrary=async()=>{};` : `const fail=()=>{window.privateCalls=(window.privateCalls||0)+1;throw Error('Private cloud access');};export const loadFlashboltLibrary=fail; export const mergeAndSaveFlashboltLibrary=fail; export const saveFlashboltLibrary=fail;` }));
   await page.route('**/src/services/flashboltSharing.ts', route => route.fulfill({ contentType: 'application/javascript', body: `
     let current=null;
-    export const readSharedSet=async()=>(${missing ? 'null' : JSON.stringify({ id: shareId, revision: 'rev1', set })});
+    export const readSharedSet=async()=>(${missing ? 'null' : JSON.stringify({ id: shareId, revision: 'rev1', set: folder ? { ...set, id: 'shared-set-1' } : set, ...(folder ? { folder: { name: 'OS course', sets: [{ ...set, id: 'shared-set-1' }, { ...set, id: 'shared-set-2', title: 'Scheduling' }] } } : {}) })});
     export const findSetShare=async()=>current;
     export const publishSetShare=async(_,set)=>current={id:'${shareId}',revision:'rev1',set};
     export const revokeSetShare=async()=>{current=null;};
@@ -199,6 +199,27 @@ test('Knowledge panel highlights only the current question level and follows gra
     assert.match(await page.getByRole('dialog').innerText(), /Current question/);
     await page.getByRole('button', { name: 'Close knowledge overview' }).click();
     await expectLevel('mastered');
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
+
+
+test('folder visitors switch sets, keep modes public and resume independent progress', async () => {
+  const { context, page, errors } = await mount({ folder: true, width: 390 });
+  try {
+    await page.getByRole('combobox', { name: 'Choose a set' }).waitFor();
+    await page.getByRole('button', { name: 'Start Learn' }).click();
+    await page.locator('.answer-grid button').first().click();
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('flashbolt.shared.Abcdefghijklmnopqrst.rev1.shared-set-1') ?? '{}').learnProgress?.['shared-set-1']);
+    await page.getByRole('combobox', { name: 'Choose a set' }).selectOption('shared-set-2');
+    await page.getByRole('button', { name: 'Start Learn' }).waitFor();
+    await page.getByRole('navigation', { name: 'Shared study modes' }).getByRole('link', { name: 'Flashcards' }).click();
+    assert.equal(await page.getByRole('combobox', { name: 'Choose a set' }).inputValue(), 'shared-set-2');
+    await page.getByRole('navigation', { name: 'Shared study modes' }).getByRole('link', { name: 'Learn', exact: true }).click();
+    await page.getByRole('combobox', { name: 'Choose a set' }).selectOption('shared-set-1');
+    await page.getByRole('button', { name: 'Resume session' }).waitFor();
+    assert.equal(await page.evaluate(() => window.privateCalls || 0), 0);
+    assert.equal(await page.evaluate(() => localStorage.getItem('flashbolt.local.v1')), privateData);
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });

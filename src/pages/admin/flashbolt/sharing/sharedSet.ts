@@ -8,7 +8,7 @@ export const sharedProgressKey = (id: string, revision: string) => `flashbolt.sh
 const strings = (value: unknown): value is string[] => Array.isArray(value) && value.every(item => typeof item === 'string');
 const record = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 
-// Explicit allowlist: never publish folders, account data, progress or editor metadata.
+// Explicit allowlist: never publish account data, progress or editor metadata.
 export function sharedSnapshot(value: unknown): StudySet {
   if (!record(value) || typeof value.title !== 'string' || !value.title.trim() || !Array.isArray(value.cards) || !value.cards.length) {
     throw new Error('Add a title and at least one card before sharing.');
@@ -37,5 +37,27 @@ export function sharedSnapshot(value: unknown): StudySet {
 export function encodeSharedSet(set: unknown): string {
   const payload = JSON.stringify(sharedSnapshot(set));
   if (new TextEncoder().encode(payload).length > SHARED_SET_MAX_BYTES) throw new Error('This set is too large to share. Reduce image sizes or split it into smaller sets, then try again.');
+  return payload;
+}
+
+export type ShareFolder = { id: string; name: string; setIds: string[] };
+export type SharedFolder = { name: string; sets: StudySet[] };
+export const folderShareKey = (id: string) => `folder:${id}`;
+
+export function sharedFolderSnapshot(value: unknown): SharedFolder {
+  if (!record(value) || typeof value.name !== 'string' || !value.name.trim() || !Array.isArray(value.sets) || !value.sets.length) {
+    throw new Error('Add a folder name and at least one set before sharing.');
+  }
+  return { name: value.name, sets: value.sets.map((set, index) => ({ ...sharedSnapshot(set), id: `shared-set-${index + 1}` })) };
+}
+
+export function encodeSharedFolder(folder: ShareFolder, sets: StudySet[]): string {
+  const selected = [...new Set(folder.setIds)].map(id => {
+    const set = sets.find(item => item.id === id);
+    if (!set) throw new Error('A set in this folder is unavailable. Reopen the folder and try again.');
+    return set;
+  });
+  const payload = JSON.stringify({ kind: 'folder', ...sharedFolderSnapshot({ name: folder.name, sets: selected }) });
+  if (new TextEncoder().encode(payload).length > SHARED_SET_MAX_BYTES) throw new Error('This folder is too large to share. Reduce image sizes or share smaller folders.');
   return payload;
 }

@@ -18,3 +18,5 @@
 @media (max-width: 600px) { .shared-study-header nav { margin-left: 0; width: 100%; } }
 
 .shared-study-identity { display: grid; gap: 3px; min-width: 0; max-width: 420px; overflow-wrap: anywhere; }
+.shared-study-identity label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; }
+.shared-study-identity select { max-width: 100%; min-width: 0; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); }

@@ -1,6 +1,6 @@
 import LearnHistory, { type LearnAttempt } from "./LearnHistory";
 import ShareSetDialog from './sharing/ShareSetDialog';
-import { sharedProgressKey, sharedStudyPath } from './sharing/sharedSet';
+import { folderShareKey, sharedProgressKey, sharedStudyPath } from './sharing/sharedSet';
 import { revokeSetShare } from '../../../services/flashboltSharing';
 import type { SharedPublication } from '../../../services/flashboltSharing';
 import { isPrintedQuizReview } from "./note-parser";
@@ -880,9 +880,10 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   const location = useLocation();
   const routerNavigate = useNavigate();
   const userId = shared ? undefined : user?.uid;
+  const [sharingFolder, setSharingFolder] = useState<Folder | null>(null);
   const [sharingSet, setSharingSet] = useState<StudySet | null>(null);
   const [sharedStorageError, setSharedStorageError] = useState(false);
-  const sharedStorageKey = shared ? sharedProgressKey(shared.id, shared.revision) : '';
+  const sharedStorageKey = shared ? sharedProgressKey(shared.id, shared.folder ? `${shared.revision}.${shared.set.id}` : shared.revision) : '';
 
   const [data, setData] = useState<AppData>(() => {
     if (shared) {
@@ -1760,7 +1761,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   }
 
   function routePathForView(nextView: View, setId = selectedSetId) {
-    if (shared) return sharedStudyPath(shared.id, nextView === 'set' ? 'flashcards' : nextView === 'test' ? 'test' : 'learn');
+    if (shared) return sharedStudyPath(shared.id, nextView === 'set' ? 'flashcards' : nextView === 'test' ? 'test' : 'learn') + (shared.folder ? `?set=${encodeURIComponent(shared.set.id)}` : '');
     if (!["set", "learn", "test", "create", "helper"].includes(nextView) || (["create", "helper"].includes(nextView) && !setId)) {
       return nextView === "home" ? FLASHBOLT_BASE : `${FLASHBOLT_BASE}/${nextView}`;
     }
@@ -1774,8 +1775,8 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
 
   function setRoutePath(nextView: View, setId = selectedSetId) {
     const path = routePathForView(nextView, setId);
-    handledRouteRef.current = path;
-    if (location.pathname !== path) routerNavigate(path);
+    handledRouteRef.current = path.split("?")[0];
+    if (`${location.pathname}${location.search}` !== path) routerNavigate(path);
   }
 
   function folderPath(folderItem: Folder) {
@@ -2546,6 +2547,10 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   async function deleteFolder(folderToDelete: Folder) {
     const confirmed = await askConfirmation(`Delete “${folderToDelete.name}”? The sets inside it will stay in your library.`, "Delete folder?", "Delete folder");
     if (!confirmed) return;
+    if (userId) {
+      try { await revokeSetShare(userId, folderShareKey(folderToDelete.id)); }
+      catch { notify("Could not stop folder sharing. Check your connection and try deleting again."); return; }
+    }
     setData((current) => removeFolderFromLibraryData(current, folderToDelete.id));
     if (selectedFolderId === folderToDelete.id) {
       setSelectedFolderId(null);
@@ -3284,7 +3289,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
 
 
       <div className="main-column">
-        {shared ? <header className="shared-study-header"><div className="shared-study-identity"><span>Flashbolt · Shared set</span><strong>{shared.set.title}</strong></div><span role="status">{sharedStorageError ? 'Progress cannot be saved in this browser; keep this tab open.' : 'No account needed · Progress saved in this browser'}</span><nav aria-label="Shared study modes">{(['set', 'learn', 'test'] as const).map(mode => <Link key={mode} to={routePathForView(mode)} aria-current={view === mode ? 'page' : undefined}>{mode === 'set' ? 'Flashcards' : mode === 'learn' ? 'Learn' : 'Test'}</Link>)}</nav><ThemePicker compact theme={theme} onThemeChange={setTheme} /></header> : <header ref={topbarRef} className={`topbar${showEditorTopbar ? " topbar-editing" : ""}`}>
+        {shared ? <header className="shared-study-header"><div className="shared-study-identity"><span>Flashbolt · Shared {shared.folder ? "folder" : "set"}</span>{shared.folder && <label>{shared.folder.name}<select aria-label="Choose a set" value={shared.set.id} onChange={event => routerNavigate(`${sharedStudyPath(shared.id, location.pathname.split("/").at(-1))}?set=${encodeURIComponent(event.target.value)}`)}>{shared.folder.sets.map(item => <option key={item.id} value={item.id}>{item.title} ({item.cards.length} cards)</option>)}</select></label>}<strong>{shared.set.title}</strong></div><span role="status">{sharedStorageError ? 'Progress cannot be saved in this browser; keep this tab open.' : 'No account needed · Progress saved in this browser'}</span><nav aria-label="Shared study modes">{(['set', 'learn', 'test'] as const).map(mode => <Link key={mode} to={routePathForView(mode)} aria-current={view === mode ? 'page' : undefined}>{mode === 'set' ? 'Flashcards' : mode === 'learn' ? 'Learn' : 'Test'}</Link>)}</nav><ThemePicker compact theme={theme} onThemeChange={setTheme} /></header> : <header ref={topbarRef} className={`topbar${showEditorTopbar ? " topbar-editing" : ""}`}>
           <button className="topbar-navigation-trigger" popoverTarget="flashbolt-navigation" aria-label="Open Flashbolt navigation" title="Navigation"><span aria-hidden="true">☰</span></button>
           <nav className="topbar-quick-navigation" aria-label="Main navigation">
           <Link title="Home" aria-label="Home" className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span className="nav-icon"><House aria-hidden="true" /></span><span className="nav-label">Home</span></Link>
@@ -3471,7 +3476,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                 <div><span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
                 <div className="heading-actions">
                   <button className="button quiet" disabled={!visibleSets.length} onClick={() => setBatchEditSets(visibleSets)}>Batch quick edit</button>
-                  {folder && <button className="button quiet" onClick={() => editFolder(folder)}>Edit folder</button>}
+                  {folder && <><button className="button primary" onClick={() => setSharingFolder(folder)}>Share folder</button><button className="button quiet" onClick={() => editFolder(folder)}>Edit folder</button></>}
                   {!folder && <button className="button quiet" onClick={() => importInputRef.current?.click()}>Restore backup</button>}
                   <button className="button quiet" onClick={openNewFolderModal}>＋ New folder</button>
                   <a className="button primary" href={folder ? `${folderPath(folder)}/create` : `${FLASHBOLT_BASE}/create`} onClick={(event) => followFlashboltLink(event, folder ? () => startCreate(folder.id) : startCreate)}>＋ Create set</a>
@@ -4219,6 +4224,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
         </nav>}
       </div>
 
+      {!shared && sharingFolder && userId && <ShareSetDialog uid={userId} folder={sharingFolder} sets={data.sets} onClose={() => setSharingFolder(null)} />}
       {!shared && sharingSet && userId && <ShareSetDialog uid={userId} set={sharingSet} onClose={() => setSharingSet(null)} />}
       {batchEditSets && <BatchSetDetails sets={batchEditSets} onClose={() => setBatchEditSets(null)} onSave={changes => {
         if (changes.length) {
