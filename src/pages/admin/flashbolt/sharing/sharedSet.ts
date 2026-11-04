@@ -48,7 +48,15 @@ export function sharedFolderSnapshot(value: unknown): SharedFolder {
   if (!record(value) || typeof value.name !== 'string' || !value.name.trim() || !Array.isArray(value.sets) || !value.sets.length) {
     throw new Error('Add a folder name and at least one set before sharing.');
   }
-  return { name: value.name, sets: value.sets.map((set, index) => ({ ...sharedSnapshot(set), id: `shared-set-${index + 1}` })) };
+  return { name: value.name, sets: value.sets.map((set, index) => {
+    const title = record(set) && typeof set.title === 'string' && set.title.trim() ? set.title : `Untitled set ${index + 1}`;
+    try {
+      return { ...sharedSnapshot(record(set) ? { ...set, title } : set), id: `shared-set-${index + 1}` };
+    } catch (error) {
+      throw new Error(`Could not share “${title}”: ${error instanceof Error ? error.message : 'Invalid set content.'}`);
+    }
+  }) };
+
 }
 
 export function encodeSharedFolder(folder: ShareFolder, sets: StudySet[]): string {
@@ -57,7 +65,9 @@ export function encodeSharedFolder(folder: ShareFolder, sets: StudySet[]): strin
     if (!set) throw new Error('A set in this folder is unavailable. Reopen the folder and try again.');
     return set;
   });
-  const payload = JSON.stringify({ kind: 'folder', ...sharedFolderSnapshot({ name: folder.name, sets: selected }) });
+  const nonempty = selected.filter(set => !Array.isArray(set.cards) || set.cards.length > 0);
+  if (!nonempty.length) throw new Error('Add at least one card to a set in this folder before sharing.');
+  const payload = JSON.stringify({ kind: 'folder', ...sharedFolderSnapshot({ name: folder.name, sets: nonempty }) });
   if (new TextEncoder().encode(payload).length > SHARED_SET_MAX_BYTES) throw new Error('This folder is too large to share. Reduce image sizes or share smaller folders.');
   return payload;
 }

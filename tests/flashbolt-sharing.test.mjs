@@ -52,3 +52,20 @@ test('empty, missing, malformed and oversized folder contents cannot be publishe
   assert.throws(() => encodeSharedFolder(folder, [{ ...set, cards: [] }]));
   assert.throws(() => encodeSharedFolder(folder, [{ ...set, description: '🦊'.repeat(250000) }]));
 });
+
+test('a large folder can share its usable sets even with empty and untitled drafts', async () => {
+  const { encodeSharedFolder, sharedFolderSnapshot } = await import('../src/pages/admin/flashbolt/sharing/sharedSet.ts');
+  const sets = Array.from({ length: 46 }, (_, index) => ({ ...set, id: `set-${index}`, title: index === 1 ? '  ' : `Chapter ${index}`, cards: index === 0 ? [] : set.cards }));
+  const folder = { id: 'course', name: 'Cloud Computing', setIds: sets.map(item => item.id) };
+  const snapshot = sharedFolderSnapshot(JSON.parse(encodeSharedFolder(folder, sets)));
+  assert.equal(snapshot.sets.length, 45);
+  assert.equal(snapshot.sets[0].title, 'Untitled set 1');
+  assert(snapshot.sets.every(item => item.cards.length === 1));
+  assert.equal(sets[1].title, '  ', 'Publishing must not rename the original');
+  assert.equal(sets[0].cards.length, 0);
+});
+
+test('folder validation identifies the set with malformed cards', async () => {
+  const { encodeSharedFolder } = await import('../src/pages/admin/flashbolt/sharing/sharedSet.ts');
+  assert.throws(() => encodeSharedFolder({ id: 'folder', name: 'Course', setIds: [set.id] }, [{ ...set, title: 'Broken chapter', cards: [{ id: 'bad' }] }]), /Could not share “Broken chapter”: This set contains an invalid card/);
+});
