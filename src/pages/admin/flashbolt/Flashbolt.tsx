@@ -1,5 +1,6 @@
 import LearnHistory, { type LearnAttempt } from "./LearnHistory";
 import ShareSetDialog from './sharing/ShareSetDialog';
+import SharedByMeDialog from './sharing/SharedByMeDialog';
 import { folderShareKey, sharedProgressKey, sharedStudyPath } from './sharing/sharedSet';
 import { revokeSetShare } from '../../../services/flashboltSharing';
 import type { SharedPublication } from '../../../services/flashboltSharing';
@@ -880,6 +881,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   const location = useLocation();
   const routerNavigate = useNavigate();
   const userId = shared ? undefined : user?.uid;
+  const [sharedLinksOpen, setSharedLinksOpen] = useState(false);
   const [sharingFolder, setSharingFolder] = useState<Folder | null>(null);
   const [sharingSet, setSharingSet] = useState<StudySet | null>(null);
   const [sharedStorageError, setSharedStorageError] = useState(false);
@@ -3475,6 +3477,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
               <div className="page-heading split">
                 <div><span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
                 <div className="heading-actions">
+                  <button className="button quiet" onClick={() => setSharedLinksOpen(true)}>Shared by me</button>
                   <button className="button quiet" disabled={!visibleSets.length} onClick={() => setBatchEditSets(visibleSets)}>Batch quick edit</button>
                   {folder && <><button className="button primary" onClick={() => setSharingFolder(folder)}>Share folder</button><button className="button quiet" onClick={() => editFolder(folder)}>Edit folder</button></>}
                   {!folder && <button className="button quiet" onClick={() => importInputRef.current?.click()}>Restore backup</button>}
@@ -4224,6 +4227,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
         </nav>}
       </div>
 
+      {!shared && sharedLinksOpen && userId && <SharedByMeDialog uid={userId} sets={data.sets} folders={data.folders} onClose={() => setSharedLinksOpen(false)} onManageSet={set => { setSharedLinksOpen(false); setSharingSet(set); }} onManageFolder={id => { setSharedLinksOpen(false); setSharingFolder(data.folders.find(folder => folder.id === id) ?? null); }} />}
       {!shared && sharingFolder && userId && <ShareSetDialog uid={userId} folder={sharingFolder} sets={data.sets} onClose={() => setSharingFolder(null)} />}
       {!shared && sharingSet && userId && <ShareSetDialog uid={userId} set={sharingSet} onClose={() => setSharingSet(null)} />}
       {batchEditSets && <BatchSetDetails sets={batchEditSets} onClose={() => setBatchEditSets(null)} onSave={changes => {

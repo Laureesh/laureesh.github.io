@@ -12,7 +12,7 @@ const set = { id: 'shared-set', title: 'Chapter 4: Threads', subject: 'Operating
   { id: 'two', term: 'What is per-thread?', definition: 'Stack', answerChoices: ['Stack', 'Code'], correctAnswers: ['Stack'], questionType: 'multiple-choice' },
 ] };
 const privateData = JSON.stringify({ sets: [{ ...set, id: 'private', title: 'PRIVATE SECRET' }], folders: [], mastered: {}, sessions: 6 });
-async function mount({ owner = false, width = 1280, missing = false, signedIn = false, blockedStorage = false, app = false, folder = false } = {}) {
+async function mount({ owner = false, width = 1280, missing = false, signedIn = false, blockedStorage = false, app = false, folder = false, sharedList = false, listFailure = false } = {}) {
   const context = await browser.newContext({ viewport: { width, height: 900 } });
   const page = await context.newPage();
   const errors = []; page.on('pageerror', error => errors.push(error.message));
@@ -24,10 +24,12 @@ async function mount({ owner = false, width = 1280, missing = false, signedIn = 
   await page.route('**/src/services/flashboltLibrary.ts', route => route.fulfill({ contentType: 'application/javascript', body: owner ? `export const loadFlashboltLibrary=async()=>(${privateData}); export const mergeAndSaveFlashboltLibrary=async(_,d)=>d; export const saveFlashboltLibrary=async()=>{};` : `const fail=()=>{window.privateCalls=(window.privateCalls||0)+1;throw Error('Private cloud access');};export const loadFlashboltLibrary=fail; export const mergeAndSaveFlashboltLibrary=fail; export const saveFlashboltLibrary=fail;` }));
   await page.route('**/src/services/flashboltSharing.ts', route => route.fulfill({ contentType: 'application/javascript', body: `
     let current=null;
+    let owned=${JSON.stringify([{ sourceId: 'private', shareId, publication: { id: shareId, revision: 'rev1', set }, unavailable: false }, { sourceId: 'folder:removed', shareId: 'Zbcdefghijklmnopqrst', publication: { id: 'Zbcdefghijklmnopqrst', revision: 'rev1', set, folder: { name: 'OS course folder', sets: [set] } }, unavailable: false }])};
+    export const listOwnedShares=async()=>{${listFailure ? "throw Error('Offline');" : 'return owned;'}};
     export const readSharedSet=async()=>(${missing ? 'null' : JSON.stringify({ id: shareId, revision: 'rev1', set: folder ? { ...set, id: 'shared-set-1' } : set, ...(folder ? { folder: { name: 'OS course', sets: [{ ...set, id: 'shared-set-1' }, { ...set, id: 'shared-set-2', title: 'Scheduling' }] } } : {}) })});
     export const findSetShare=async()=>current;
     export const publishSetShare=async(_,set)=>current={id:'${shareId}',revision:'rev1',set};
-    export const revokeSetShare=async()=>{current=null;};
+    export const revokeSetShare=async(_,sourceId)=>{current=null;owned=owned.filter(item=>item.sourceId!==sourceId);};
   ` }));
   const flashboltModule = await (await fetch(`${origin}/src/pages/admin/flashbolt/Flashbolt.tsx`)).text();
   const routerPath = flashboltModule.match(/from "([^\"]*react-router-dom[^\"]*)"/)[1];
@@ -37,7 +39,7 @@ async function mount({ owner = false, width = 1280, missing = false, signedIn = 
     const {createRoot}=(await import('/node_modules/.vite/deps/react-dom_client.js')).default;
     const {MemoryRouter,Routes,Route}=await import('${routerPath}');
     const {default:Page}=await import('${app ? '/src/App.tsx' : owner ? '/src/pages/admin/flashbolt/Flashbolt.tsx' : '/src/pages/admin/flashbolt/sharing/SharedFlashbolt.tsx'}');
-    createRoot(document.getElementById('root')).render(React.createElement(MemoryRouter,{initialEntries:['${owner ? '/admin-dashboard/private-pages/flashbolt/no-semester/unfiled/private-secret/flashcards' : `/flashbolt/shared/${shareId}/learn`}']},${app ? 'React.createElement(Page)' : `React.createElement(Routes,null,React.createElement(Route,{path:'${owner ? '*' : '/flashbolt/shared/:shareId/*'}',element:React.createElement(Page)}))`}));
+    createRoot(document.getElementById('root')).render(React.createElement(MemoryRouter,{initialEntries:['${owner ? (sharedList ? '/admin-dashboard/private-pages/flashbolt/library' : '/admin-dashboard/private-pages/flashbolt/no-semester/unfiled/private-secret/flashcards') : `/flashbolt/shared/${shareId}/learn`}']},${app ? 'React.createElement(Page)' : `React.createElement(Routes,null,React.createElement(Route,{path:'${owner ? '*' : '/flashbolt/shared/:shareId/*'}',element:React.createElement(Page)}))`}));
   </script>` }));
   await page.goto(`${origin}/sharing-test`);
   return { context, page, errors };
@@ -221,5 +223,37 @@ test('folder visitors switch sets, keep modes public and resume independent prog
     assert.equal(await page.evaluate(() => window.privateCalls || 0), 0);
     assert.equal(await page.evaluate(() => localStorage.getItem('flashbolt.local.v1')), privateData);
     assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
+
+
+test('Shared by me lists published titles, filters folders and revokes orphaned links', async () => {
+  const { context, page, errors } = await mount({ owner: true, sharedList: true, width: 390 });
+  try {
+    await page.getByRole('button', { name: 'Shared by me', exact: true }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('heading', { name: 'Chapter 4: Threads' }).waitFor();
+    await dialog.getByRole('heading', { name: 'OS course folder' }).waitFor();
+    await dialog.getByRole('combobox', { name: 'Show' }).selectOption('folders');
+    assert.equal(await dialog.getByRole('article').count(), 1);
+    await dialog.getByText('1 shared sets', { exact: true }).click();
+    await dialog.getByText('Chapter 4: Threads · 2 cards', { exact: true }).waitFor();
+    await dialog.getByRole('button', { name: 'Stop sharing', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Confirm stop sharing' }).click();
+    await dialog.getByText('No shared links match your search or filter.').waitFor();
+    await dialog.getByRole('combobox', { name: 'Show' }).selectOption('all');
+    await dialog.getByRole('button', { name: 'Manage sharing' }).click();
+    await page.getByRole('heading', { name: 'Share this set' }).waitFor();
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
+
+test('Shared by me shows load failures with a retry instead of an empty success', async () => {
+  const { context, page } = await mount({ owner: true, sharedList: true, listFailure: true });
+  try {
+    await page.getByRole('button', { name: 'Shared by me', exact: true }).click();
+    await page.getByRole('alert').filter({ hasText: 'Could not load your shared links' }).waitFor();
+    assert.equal(await page.getByText(/You haven’t shared any/).count(), 0);
+    assert.equal(await page.getByRole('button', { name: 'Refresh links' }).isEnabled(), true);
   } finally { await context.close(); }
 });

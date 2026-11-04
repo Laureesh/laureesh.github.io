@@ -1,4 +1,4 @@
-import { collection, doc, getDocFromServer, runTransaction, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, getDocFromServer, getDocsFromServer, runTransaction, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/app';
 import { encodeSharedSet, encodeSharedFolder, folderShareKey, sharedFolderSnapshot, sharedSnapshot, validShareId, type ShareFolder, type SharedFolder } from '../pages/admin/flashbolt/sharing/sharedSet';
 import type { StudySet } from '../pages/admin/flashbolt/Flashbolt';
@@ -53,4 +53,21 @@ export async function revokeSetShare(uid: string, setId: string): Promise<void> 
     if (existing.exists()) transaction.delete(publicRef(existing.data().shareId));
     transaction.delete(mapping);
   });
+}
+
+export type OwnedShare = { sourceId: string; shareId: string; publication: SharedPublication | null; unavailable: boolean };
+
+export async function listOwnedShares(uid: string): Promise<OwnedShare[]> {
+  // Enumerate only this owner's private mappings; public publications cannot be listed.
+  const mappings = await getDocsFromServer(collection(db, 'users', uid, 'flashboltShares'));
+  return Promise.all(mappings.docs.map(async mapping => {
+    const shareId = mapping.data().shareId as string;
+    try {
+      const publication = await readSharedSet(shareId);
+      return { sourceId: mapping.id, shareId, publication, unavailable: !publication };
+    } catch {
+      // Keep the entry visible and revocable even when its published copy cannot be read.
+      return { sourceId: mapping.id, shareId, publication: null, unavailable: true };
+    }
+  }));
 }

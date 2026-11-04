@@ -20,3 +20,12 @@
 .shared-study-identity { display: grid; gap: 3px; min-width: 0; max-width: 420px; overflow-wrap: anywhere; }
 .shared-study-identity label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; }
 .shared-study-identity select { max-width: 100%; min-width: 0; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); }
+.shared-by-me-dialog { width: min(760px, calc(100vw - 32px)); }
+.shared-links-filters { display: flex; gap: 12px; flex-wrap: wrap; }
+.shared-links-filters label { display: grid; gap: 6px; flex: 1; min-width: 160px; }
+.shared-links-filters input, .shared-links-filters select { min-width: 0; width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); }
+.shared-links-list article { padding: 20px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.shared-links-list h3 { margin: 6px 0; }
+.shared-links-list summary { cursor: pointer; }
+.shared-links-list li { margin: 6px 0; }
+.shared-links-list .button-row { flex-wrap: wrap; }
