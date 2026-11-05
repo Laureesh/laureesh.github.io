@@ -48,7 +48,7 @@ import LearnKnowledgeDetails, { type KnowledgeLevel } from "./LearnKnowledgeDeta
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { House, BookOpen, Plus, Compass, History, ClipboardCheck, Zap, NotebookPen, Download, ArrowLeft, Search } from "lucide-react";
+import { House, BookOpen, Plus, Compass, History, ClipboardCheck, Zap, NotebookPen, Download, ArrowLeft, Search, ChevronDown } from "lucide-react";
 import type { CSSProperties, ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { loadFlashboltLibrary, mergeAndSaveFlashboltLibrary, saveFlashboltLibrary } from "../../../services/flashboltLibrary";
@@ -3291,7 +3291,17 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
 
 
       <div className="main-column">
-        {shared ? <header className="shared-study-header"><div className="shared-study-identity"><span>Flashbolt · Shared {shared.folder ? "folder" : "set"}</span>{shared.folder && <label>{shared.folder.name}<select aria-label="Choose a set" value={shared.set.id} onChange={event => routerNavigate(`${sharedStudyPath(shared.id, location.pathname.split("/").at(-1))}?set=${encodeURIComponent(event.target.value)}`)}>{shared.folder.sets.map(item => <option key={item.id} value={item.id}>{item.title} ({item.cards.length} cards)</option>)}</select></label>}<strong>{shared.set.title}</strong></div><span role="status">{sharedStorageError ? 'Progress cannot be saved in this browser; keep this tab open.' : 'No account needed · Progress saved in this browser'}</span><nav aria-label="Shared study modes">{(['set', 'learn', 'test'] as const).map(mode => <Link key={mode} to={routePathForView(mode)} aria-current={view === mode ? 'page' : undefined}>{mode === 'set' ? 'Flashcards' : mode === 'learn' ? 'Learn' : 'Test'}</Link>)}</nav><ThemePicker compact theme={theme} onThemeChange={setTheme} /></header> : <header ref={topbarRef} className={`topbar${showEditorTopbar ? " topbar-editing" : ""}`}>
+        {shared ? <header className="shared-study-header"><div className="shared-study-identity"><span>Flashbolt · Shared {shared.folder ? "folder" : "set"}</span>{shared.folder && <div className="shared-folder-picker">
+              <span>{shared.folder.name}</span>
+              <label htmlFor="shared-study-set">Choose a study set ({shared.folder.sets.length})</label>
+              <div className="shared-set-select-wrap">
+                <select id="shared-study-set" aria-label="Choose a set" aria-describedby="shared-set-picker-hint" value={shared.set.id} onChange={event => routerNavigate(`${sharedStudyPath(shared.id, location.pathname.split("/").at(-1))}?set=${encodeURIComponent(event.target.value)}`)}>
+                  {shared.folder.sets.map(item => <option key={item.id} value={item.id}>{item.title} ({item.cards.length} cards)</option>)}
+                </select>
+                <ChevronDown aria-hidden="true" size={20} />
+              </div>
+              <span id="shared-set-picker-hint">Click or tap above to see all sets in this folder.</span>
+            </div>}<strong>{shared.set.title}</strong></div><span role="status">{sharedStorageError ? 'Progress cannot be saved in this browser; keep this tab open.' : 'No account needed · Progress saved in this browser'}</span><nav aria-label="Shared study modes">{(['set', 'learn', 'test'] as const).map(mode => <Link key={mode} to={routePathForView(mode)} aria-current={view === mode ? 'page' : undefined}>{mode === 'set' ? 'Flashcards' : mode === 'learn' ? 'Learn' : 'Test'}</Link>)}</nav><ThemePicker compact theme={theme} onThemeChange={setTheme} /></header> : <header ref={topbarRef} className={`topbar${showEditorTopbar ? " topbar-editing" : ""}`}>
           <button className="topbar-navigation-trigger" popoverTarget="flashbolt-navigation" aria-label="Open Flashbolt navigation" title="Navigation"><span aria-hidden="true">☰</span></button>
           <nav className="topbar-quick-navigation" aria-label="Main navigation">
           <Link title="Home" aria-label="Home" className={view === "home" ? "active" : ""} to={FLASHBOLT_BASE}><span className="nav-icon"><House aria-hidden="true" /></span><span className="nav-label">Home</span></Link>
