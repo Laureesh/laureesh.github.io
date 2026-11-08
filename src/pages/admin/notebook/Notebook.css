@@ -172,6 +172,7 @@
 .rich-editor .notebook-steps :is(ol,ul)>li { padding:4px 0 4px 3px; }
 .rich-editor .notebook-steps pre { margin:14px 0 18px; padding:15px 18px; border:1px solid var(--nb-line); border-left:3px solid var(--nb-accent); background:#0b0e17; border-radius:8px; white-space:pre-wrap; overflow-wrap:anywhere; color:#bcebdc; line-height:1.6; }
 .rich-editor .notebook-steps code { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:.88em; }
+.rich-editor .notebook-steps .step-instruction-label { color:#c3baff; font-weight:700; margin-right:.25em; }
 .editor-toolbar button[aria-pressed=true] { background:#38325c; border-color:var(--nb-accent); }
 @media(max-width:600px) { .rich-editor .notebook-steps>li { padding-left:43px; } .rich-editor .notebook-steps pre { padding:12px; } }
 @media print { .rich-editor .notebook-steps>li::before { color:black; background:white; border:1px solid #777; box-shadow:none; } .rich-editor .notebook-steps>li::after { background:#aaa; } .rich-editor .notebook-steps pre,.rich-editor .notebook-steps>li> :is(h1,h2,h3,h4,h5,h6) { color:black; background:white; } }

@@ -229,7 +229,7 @@ export function isFinalCheckTitle(title: string): boolean {
   return stripStepTitleNumber(title).replace(/\s+/g, " ").trim().toLowerCase() === "final check";
 }
 
-/** Remove redundant labels only from timeline headings, preserving inline formatting. */
+/** Normalize timeline headings and emphasize short instruction labels. */
 export function normalizeStepTitles(html: string): string {
   const doc = new DOMParser().parseFromString(html, "text/html");
   let changed = false;
@@ -251,6 +251,30 @@ export function normalizeStepTitles(html: string): string {
       remaining -= count;
       node = walker.nextNode();
     }
+  });
+  doc.querySelectorAll("ol.notebook-steps p, ol.notebook-steps li").forEach(block => {
+    // Only inline instruction rows; never consume nested lists, headings, or code.
+    if (block.querySelector("p, div, ol, ul, h1, h2, h3, h4, h5, h6, pre, br, .step-instruction-label") || block.closest("pre, code")) return;
+    const match = (block.textContent ?? "").match(/^\s*([A-Za-z][A-Za-z -]{0,31}:)(?=\s+\S)/);
+    if (!match) return;
+    const walker = doc.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+    const first = walker.nextNode();
+    if (!first) return;
+    let end: Node | null = first;
+    let remaining = match[0].length;
+    while (end && remaining > (end.textContent?.length ?? 0)) {
+      remaining -= end.textContent?.length ?? 0;
+      end = walker.nextNode();
+    }
+    if (!end || first.parentElement?.closest("code, a") || end.parentElement?.closest("code, a")) return;
+    const range = doc.createRange();
+    range.setStart(first, 0);
+    range.setEnd(end, remaining);
+    const label = doc.createElement("span");
+    label.className = "step-instruction-label";
+    label.append(range.extractContents());
+    range.insertNode(label);
+    changed = true;
   });
   return changed ? doc.body.innerHTML : html;
 }
