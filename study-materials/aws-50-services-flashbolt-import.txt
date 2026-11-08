@@ -1,849 +1,1105 @@
 Question 1
-What is the purpose of AWS Network Firewall?
+What is the purpose of AWS Network Firewall Manager?
 
 answer
 A
-Protects applications against distributed denial-of-service (DDoS) attacks.
+Protect against DDoS attacks.
 B
-Filters HTTP and HTTPS requests to protect web applications.
+Filter harmful web requests.
 C
-Filters network traffic entering, leaving, or moving within Amazon VPC networks.
+Filter traffic in VPC networks.
 Correct Answer:
 D
-Centrally applies security policies across AWS accounts in an organization.
+Manage firewall policies across accounts.
 
 Explanation
-Filters network traffic entering, leaving, or moving within Amazon VPC networks. Example: block connections to known malicious destinations. Memory cue: NETWORK traffic guard. Your list's “Network Firewall Manager” is interpreted as Network Firewall. Comparison: AWS Firewall Manager: Centrally applies security policies across AWS accounts in an organization. AWS Web Application Firewall (AWS WAF): Filters HTTP and HTTPS requests to protect web applications. AWS Shield: Protects applications against distributed denial-of-service (DDoS) attacks.
+Filters network traffic entering, leaving, or moving within Amazon VPC networks.
+Example: block connections to known malicious destinations.
+Memory cue: NETWORK traffic guard.
+Your list's “Network Firewall Manager” is interpreted as Network Firewall.
+**Comparison**: AWS Firewall Manager: Centrally applies security policies across AWS accounts in an organization.
+**AWS Web Application Firewall (AWS WAF)**: Filters HTTP and HTTPS requests to protect web applications.
+**AWS Shield**: Protects applications against distributed denial-of-service (DDoS) attacks.
 
 Question 2
 What is the purpose of AWS Firewall Manager?
 
 answer
 A
-Protects applications against distributed denial-of-service (DDoS) attacks.
+Protect against DDoS attacks.
 B
-Centrally applies security policies across AWS accounts in an organization.
+Manage firewall policies across accounts.
 Correct Answer:
 C
-Filters network traffic entering, leaving, or moving within Amazon VPC networks.
+Filter traffic in VPC networks.
 D
-Filters HTTP and HTTPS requests to protect web applications.
+Filter harmful web requests.
 
 Explanation
-Centrally applies security policies across AWS accounts in an organization. Example: enforce common firewall rules across company accounts. Memory cue: MANAGER of protection policies; Network Firewall performs traffic inspection. Comparison: AWS Network Firewall: Filters network traffic entering, leaving, or moving within Amazon VPC networks. AWS Web Application Firewall (AWS WAF): Filters HTTP and HTTPS requests to protect web applications. AWS Shield: Protects applications against distributed denial-of-service (DDoS) attacks.
+Centrally applies security policies across AWS accounts in an organization.
+Example: enforce common firewall rules across company accounts.
+Memory cue: MANAGER of protection policies; Network Firewall performs traffic inspection.
+**Comparison**: AWS Network Firewall: Filters network traffic entering, leaving, or moving within Amazon VPC networks.
+**AWS Web Application Firewall (AWS WAF)**: Filters HTTP and HTTPS requests to protect web applications.
+**AWS Shield**: Protects applications against distributed denial-of-service (DDoS) attacks.
 
 Question 3
 What is the purpose of AWS Key Management Service (KMS)?
 
 answer
 A
-Securely stores, retrieves, and supports rotation of secrets such as database passwords and API keys.
+Store and rotate passwords and secrets.
 B
-Controls which identities can access AWS resources and what actions they may perform.
+Control who can access AWS resources.
 C
-Creates and controls cryptographic keys used to protect data.
+Create and control encryption keys.
 Correct Answer:
 D
-Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Find sensitive data in S3.
 
 Explanation
-Creates and controls cryptographic keys used to protect data. Example: control the key used to encrypt an S3 object. Memory cue: KMS = KEYS; Secrets Manager = passwords and other secrets. Comparison: AWS Secrets Manager: Securely stores, retrieves, and supports rotation of secrets such as database passwords and API keys. AWS Identity and Access Management (IAM): Controls which identities can access AWS resources and what actions they may perform. Amazon Macie: Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Creates and controls cryptographic keys used to protect data.
+Example: control the key used to encrypt an S3 object.
+Memory cue: KMS = KEYS; Secrets Manager = passwords and other secrets.
+**Comparison**: AWS Secrets Manager: Securely stores, retrieves, and supports rotation of secrets such as database passwords and API keys.
+**AWS Identity and Access Management (IAM)**: Controls which identities can access AWS resources and what actions they may perform.
+**Amazon Macie**: Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
 
 Question 4
 What is the purpose of Amazon GuardDuty?
 
 answer
 A
-Helps investigate security findings by analyzing related activity and relationships.
+Investigate security findings.
 B
-Finds software vulnerabilities and unintended network exposure in supported workloads, including EC2 instances, container images, and Lambda functions.
+Find software vulnerabilities.
 C
-Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Find sensitive data in S3.
 D
-Detects suspicious activity and threats in AWS environments.
+Detect suspicious activity and threats.
 Correct Answer:
 
 Explanation
-Detects suspicious activity and threats in AWS environments. Example: flag activity suggesting compromised credentials. Memory cue: the GUARD sounds an alarm; Inspector finds vulnerabilities and Detective investigates findings. Comparison: Amazon Inspector: Finds software vulnerabilities and unintended network exposure in supported workloads, including EC2 instances, container images, and Lambda functions. Amazon Detective: Helps investigate security findings by analyzing related activity and relationships. Amazon Macie: Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Detects suspicious activity and threats in AWS environments.
+Example: flag activity suggesting compromised credentials.
+Memory cue: the GUARD sounds an alarm; Inspector finds vulnerabilities and Detective investigates findings.
+**Comparison**: Amazon Inspector: Finds software vulnerabilities and unintended network exposure in supported workloads, including EC2 instances, container images, and Lambda functions.
+**Amazon Detective**: Helps investigate security findings by analyzing related activity and relationships.
+**Amazon Macie**: Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
 
 Question 5
 What is the purpose of Amazon Inspector?
 
 answer
 A
-Finds software vulnerabilities and unintended network exposure in supported workloads, including EC2 instances, container images, and Lambda functions.
+Find software vulnerabilities.
 Correct Answer:
 B
-Helps investigate security findings by analyzing related activity and relationships.
+Investigate security findings.
 C
-Detects suspicious activity and threats in AWS environments.
+Detect suspicious activity and threats.
 D
-Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Find sensitive data in S3.
 
 Explanation
-Finds software vulnerabilities and unintended network exposure in supported workloads, including EC2 instances, container images, and Lambda functions. Example: identify a vulnerable software package. Memory cue: INSPECT for weaknesses. Comparison: Amazon GuardDuty: Detects suspicious activity and threats in AWS environments. Amazon Detective: Helps investigate security findings by analyzing related activity and relationships. Amazon Macie: Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Finds software vulnerabilities and unintended network exposure in supported workloads, including EC2 instances, container images, and Lambda functions.
+Example: identify a vulnerable software package.
+Memory cue: INSPECT for weaknesses.
+**Comparison**: Amazon GuardDuty: Detects suspicious activity and threats in AWS environments.
+**Amazon Detective**: Helps investigate security findings by analyzing related activity and relationships.
+**Amazon Macie**: Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
 
 Question 6
 What is the purpose of Amazon Detective?
 
 answer
 A
-Helps investigate security findings by analyzing related activity and relationships.
+Investigate security findings.
 Correct Answer:
 B
-Detects suspicious activity and threats in AWS environments.
+Detect suspicious activity and threats.
 C
-Traces requests through distributed applications to help diagnose failures and latency.
+Trace requests through applications.
 D
-Finds software vulnerabilities and unintended network exposure in supported workloads, including EC2 instances, container images, and Lambda functions.
+Find software vulnerabilities.
 
 Explanation
-Helps investigate security findings by analyzing related activity and relationships. Example: investigate the resources and actions associated with a GuardDuty alert. Memory cue: DETECTIVE investigates what happened. Comparison: Amazon GuardDuty: Detects suspicious activity and threats in AWS environments. Amazon Inspector: Finds software vulnerabilities and unintended network exposure in supported workloads, including EC2 instances, container images, and Lambda functions. AWS X-Ray: Traces requests through distributed applications to help diagnose failures and latency.
+Helps investigate security findings by analyzing related activity and relationships.
+Example: investigate the resources and actions associated with a GuardDuty alert.
+Memory cue: DETECTIVE investigates what happened.
+**Comparison**: Amazon GuardDuty: Detects suspicious activity and threats in AWS environments.
+**Amazon Inspector**: Finds software vulnerabilities and unintended network exposure in supported workloads, including EC2 instances, container images, and Lambda functions.
+**AWS X-Ray**: Traces requests through distributed applications to help diagnose failures and latency.
 
 Question 7
 What is the purpose of AWS Secrets Manager?
 
 answer
 A
-Securely stores, retrieves, and supports rotation of secrets such as database passwords and API keys.
+Store and rotate passwords and secrets.
 Correct Answer:
 B
-Controls which identities can access AWS resources and what actions they may perform.
+Control who can access AWS resources.
 C
-Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Find sensitive data in S3.
 D
-Creates and controls cryptographic keys used to protect data.
+Create and control encryption keys.
 
 Explanation
-Securely stores, retrieves, and supports rotation of secrets such as database passwords and API keys. Example: let an application retrieve its database password instead of hardcoding it. Memory cue: secret vault. Comparison: AWS Key Management Service (KMS): Creates and controls cryptographic keys used to protect data. AWS Identity and Access Management (IAM): Controls which identities can access AWS resources and what actions they may perform. Amazon Macie: Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Securely stores, retrieves, and supports rotation of secrets such as database passwords and API keys.
+Example: let an application retrieve its database password instead of hardcoding it.
+Memory cue: secret vault.
+**Comparison**: AWS Key Management Service (KMS): Creates and controls cryptographic keys used to protect data.
+**AWS Identity and Access Management (IAM)**: Controls which identities can access AWS resources and what actions they may perform.
+**Amazon Macie**: Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
 
 Question 8
 What is the purpose of AWS Web Application Firewall (AWS WAF)?
 
 answer
 A
-Filters network traffic entering, leaving, or moving within Amazon VPC networks.
+Filter traffic in VPC networks.
 B
-Centrally applies security policies across AWS accounts in an organization.
+Manage firewall policies across accounts.
 C
-Filters HTTP and HTTPS requests to protect web applications.
+Filter harmful web requests.
 Correct Answer:
 D
-Protects applications against distributed denial-of-service (DDoS) attacks.
+Protect against DDoS attacks.
 
 Explanation
-Filters HTTP and HTTPS requests to protect web applications. Example: block SQL injection patterns or rate-limit abusive requests. Memory cue: WEB request filter; Shield focuses on DDoS protection. Comparison: AWS Network Firewall: Filters network traffic entering, leaving, or moving within Amazon VPC networks. AWS Shield: Protects applications against distributed denial-of-service (DDoS) attacks. AWS Firewall Manager: Centrally applies security policies across AWS accounts in an organization.
+Filters HTTP and HTTPS requests to protect web applications.
+Example: block SQL injection patterns or rate-limit abusive requests.
+Memory cue: WEB request filter; Shield focuses on DDoS protection.
+**Comparison**: AWS Network Firewall: Filters network traffic entering, leaving, or moving within Amazon VPC networks.
+**AWS Shield**: Protects applications against distributed denial-of-service (DDoS) attacks.
+**AWS Firewall Manager**: Centrally applies security policies across AWS accounts in an organization.
 
 Question 9
 What is the purpose of AWS Global Accelerator?
 
 answer
 A
-Uses static IP addresses and the AWS global network to route users to healthy application endpoints with improved performance and availability.
+Improve global routing to application endpoints.
 Correct Answer:
 B
-Places selected AWS infrastructure near metropolitan areas for low-latency access while extending a parent AWS Region.
+Run AWS resources near cities.
 C
-Acts as a central network hub connecting VPCs and on-premises networks.
+Connect networks through a central hub.
 D
-Provides a dedicated network connection from your premises to AWS.
+Provide a dedicated connection to AWS.
 
 Explanation
-Uses static IP addresses and the AWS global network to route users to healthy application endpoints with improved performance and availability. Example: route international users to a healthy regional application. Memory cue: faster global paths, not a content cache. Comparison: AWS Direct Connect: Provides a dedicated network connection from your premises to AWS. AWS Transit Gateway: Acts as a central network hub connecting VPCs and on-premises networks. AWS Local Zones: Places selected AWS infrastructure near metropolitan areas for low-latency access while extending a parent AWS Region.
+Uses static IP addresses and the AWS global network to route users to healthy application endpoints with improved performance and availability.
+Example: route international users to a healthy regional application.
+Memory cue: faster global paths, not a content cache.
+**Comparison**: AWS Direct Connect: Provides a dedicated network connection from your premises to AWS.
+**AWS Transit Gateway**: Acts as a central network hub connecting VPCs and on-premises networks.
+**AWS Local Zones**: Places selected AWS infrastructure near metropolitan areas for low-latency access while extending a parent AWS Region.
 
 Question 10
 What is the purpose of AWS Direct Connect?
 
 answer
 A
-Provides a dedicated network connection from your premises to AWS.
+Provide a dedicated connection to AWS.
 Correct Answer:
 B
-Acts as a central network hub connecting VPCs and on-premises networks.
+Connect networks through a central hub.
 C
-Connects on-premises applications to AWS cloud storage using familiar file, volume, or tape interfaces.
+Connect local systems to AWS cloud storage.
 D
-Uses static IP addresses and the AWS global network to route users to healthy application endpoints with improved performance and availability.
+Improve global routing to application endpoints.
 
 Explanation
-Provides a dedicated network connection from your premises to AWS. Example: connect a company data center to AWS with more consistent network performance. Memory cue: dedicated connection; encryption is not automatic by default. Comparison: AWS Global Accelerator: Uses static IP addresses and the AWS global network to route users to healthy application endpoints with improved performance and availability. AWS Transit Gateway: Acts as a central network hub connecting VPCs and on-premises networks. AWS Storage Gateway: Connects on-premises applications to AWS cloud storage using familiar file, volume, or tape interfaces.
+Provides a dedicated network connection from your premises to AWS.
+Example: connect a company data center to AWS with more consistent network performance.
+Memory cue: dedicated connection; encryption is not automatic by default.
+**Comparison**: AWS Global Accelerator: Uses static IP addresses and the AWS global network to route users to healthy application endpoints with improved performance and availability.
+**AWS Transit Gateway**: Acts as a central network hub connecting VPCs and on-premises networks.
+**AWS Storage Gateway**: Connects on-premises applications to AWS cloud storage using familiar file, volume, or tape interfaces.
 
 Question 11
 What is the purpose of AWS Application Discovery Service?
 
 answer
 A
-Collects information about on-premises servers, usage, and dependencies to plan migration to AWS.
+Discover on-premises systems for migration planning.
 Correct Answer:
 B
-Provisions and updates infrastructure using templates that describe AWS resources.
+Build infrastructure from templates.
 C
-Lets organizations offer approved IT products for users to provision under defined controls.
+Offer approved IT products for provisioning.
 D
-Helps operate and manage servers and other resources across AWS and hybrid environments.
+Manage and patch servers.
 
 Explanation
-Collects information about on-premises servers, usage, and dependencies to plan migration to AWS. Example: identify which servers an application depends on before moving it. Memory cue: DISCOVER before migrating. Comparison: AWS Systems Manager: Helps operate and manage servers and other resources across AWS and hybrid environments. AWS Service Catalog: Lets organizations offer approved IT products for users to provision under defined controls. AWS CloudFormation: Provisions and updates infrastructure using templates that describe AWS resources.
+Collects information about on-premises servers, usage, and dependencies to plan migration to AWS.
+Example: identify which servers an application depends on before moving it.
+Memory cue: DISCOVER before migrating.
+**Comparison**: AWS Systems Manager: Helps operate and manage servers and other resources across AWS and hybrid environments.
+**AWS Service Catalog**: Lets organizations offer approved IT products for users to provision under defined controls.
+**AWS CloudFormation**: Provisions and updates infrastructure using templates that describe AWS resources.
 
 Question 12
 What is the purpose of AWS Service Catalog?
 
 answer
 A
-Helps operate and manage servers and other resources across AWS and hybrid environments.
+Manage and patch servers.
 B
-Lets organizations offer approved IT products for users to provision under defined controls.
+Offer approved IT products for provisioning.
 Correct Answer:
 C
-Provisions and updates infrastructure using templates that describe AWS resources.
+Build infrastructure from templates.
 D
-Centrally manages multiple AWS accounts, consolidated billing, and organization-level policy controls.
+Manage multiple AWS accounts.
 
 Explanation
-Lets organizations offer approved IT products for users to provision under defined controls. Example: let teams launch approved infrastructure templates. Memory cue: a catalog of approved building blocks. Comparison: AWS CloudFormation: Provisions and updates infrastructure using templates that describe AWS resources. AWS Systems Manager: Helps operate and manage servers and other resources across AWS and hybrid environments. AWS Organizations: Centrally manages multiple AWS accounts, consolidated billing, and organization-level policy controls.
+Lets organizations offer approved IT products for users to provision under defined controls.
+Example: let teams launch approved infrastructure templates.
+Memory cue: a catalog of approved building blocks.
+**Comparison**: AWS CloudFormation: Provisions and updates infrastructure using templates that describe AWS resources.
+**AWS Systems Manager**: Helps operate and manage servers and other resources across AWS and hybrid environments.
+**AWS Organizations**: Centrally manages multiple AWS accounts, consolidated billing, and organization-level policy controls.
 
 Question 13
 What is the purpose of AWS Systems Manager?
 
 answer
 A
-Records AWS account activity and API events for auditing and investigation.
+Record who did what in an AWS account.
 B
-Provisions and updates infrastructure using templates that describe AWS resources.
+Build infrastructure from templates.
 C
-Helps operate and manage servers and other resources across AWS and hybrid environments.
+Manage and patch servers.
 Correct Answer:
 D
-Lets organizations offer approved IT products for users to provision under defined controls.
+Offer approved IT products for provisioning.
 
 Explanation
-Helps operate and manage servers and other resources across AWS and hybrid environments. Example: patch a fleet or run commands remotely. Memory cue: manage SYSTEMS. Your list says “System Manager”; the name is plural. Comparison: AWS Service Catalog: Lets organizations offer approved IT products for users to provision under defined controls. AWS CloudFormation: Provisions and updates infrastructure using templates that describe AWS resources. AWS CloudTrail: Records AWS account activity and API events for auditing and investigation.
+Helps operate and manage servers and other resources across AWS and hybrid environments.
+Example: patch a fleet or run commands remotely.
+Memory cue: manage SYSTEMS.
+Your list says “System Manager”; the name is plural.
+**Comparison**: AWS Service Catalog: Lets organizations offer approved IT products for users to provision under defined controls.
+**AWS CloudFormation**: Provisions and updates infrastructure using templates that describe AWS resources.
+**AWS CloudTrail**: Records AWS account activity and API events for auditing and investigation.
 
 Question 14
 What is the purpose of Amazon Lex?
 
 answer
 A
-Converts written text into spoken audio.
+Turn text into speech.
 B
-Provides a cloud contact center for customer service interactions.
+Run a cloud customer contact center.
 C
-Builds conversational interfaces that understand voice and text input.
+Build voice and text chatbots.
 Correct Answer:
 D
-Analyzes images and videos to detect visual information such as objects, faces, and text.
+Analyze images and videos.
 
 Explanation
-Builds conversational interfaces that understand voice and text input. Example: a chatbot that takes an appointment request. Memory cue: Lex = conversation; Polly = speaking text aloud. Comparison: Amazon Polly: Converts written text into spoken audio. Amazon Rekognition: Analyzes images and videos to detect visual information such as objects, faces, and text. Amazon Connect: Provides a cloud contact center for customer service interactions.
+Builds conversational interfaces that understand voice and text input.
+Example: a chatbot that takes an appointment request.
+Memory cue: Lex = conversation; Polly = speaking text aloud.
+**Comparison**: Amazon Polly: Converts written text into spoken audio.
+**Amazon Rekognition**: Analyzes images and videos to detect visual information such as objects, faces, and text.
+**Amazon Connect**: Provides a cloud contact center for customer service interactions.
 
 Question 15
 What is the purpose of Amazon QuickSight / Amazon Quick Sight?
 
 answer
 A
-Runs SQL queries against data, commonly in S3, without managing query servers.
+Query S3 data using SQL.
 B
-Traces requests through distributed applications to help diagnose failures and latency.
+Trace requests through applications.
 C
-Supports collecting and processing real-time streaming data, with services for data records and video streams.
+Collect and process real-time data streams.
 D
-Creates business intelligence analyses, charts, and interactive dashboards.
+Create charts and business dashboards.
 Correct Answer:
 
 Explanation
-Creates business intelligence analyses, charts, and interactive dashboards. Example: visualize sales trends for managers. Memory cue: SEE the data. “AWS Quicksight S” is interpreted as QuickSight; current documentation uses Quick Sight. Comparison: Amazon Athena: Runs SQL queries against data, commonly in S3, without managing query servers. Amazon Kinesis: Supports collecting and processing real-time streaming data, with services for data records and video streams. AWS X-Ray: Traces requests through distributed applications to help diagnose failures and latency.
+Creates business intelligence analyses, charts, and interactive dashboards.
+Example: visualize sales trends for managers.
+Memory cue: SEE the data.
+“AWS Quicksight S” is interpreted as QuickSight; current documentation uses Quick Sight.
+**Comparison**: Amazon Athena: Runs SQL queries against data, commonly in S3, without managing query servers.
+**Amazon Kinesis**: Supports collecting and processing real-time streaming data, with services for data records and video streams.
+**AWS X-Ray**: Traces requests through distributed applications to help diagnose failures and latency.
 
 Question 16
 What is the purpose of Amazon Connect?
 
 answer
 A
-Streams desktop applications from AWS to users' devices.
+Stream desktop applications to users.
 B
-Builds conversational interfaces that understand voice and text input.
+Build voice and text chatbots.
 C
-Provides a cloud contact center for customer service interactions.
+Run a cloud customer contact center.
 Correct Answer:
 D
-Provides a dedicated network connection from your premises to AWS.
+Provide a dedicated connection to AWS.
 
 Explanation
-Provides a cloud contact center for customer service interactions. Example: route customer calls and chats to agents. Memory cue: CONNECT customers with support; Direct Connect is a network connection. Comparison: Amazon Lex: Builds conversational interfaces that understand voice and text input. AWS Direct Connect: Provides a dedicated network connection from your premises to AWS. Amazon AppStream 2.0 (now Amazon WorkSpaces Applications): Streams desktop applications from AWS to users' devices.
+Provides a cloud contact center for customer service interactions.
+Example: route customer calls and chats to agents.
+Memory cue: CONNECT customers with support; Direct Connect is a network connection.
+**Comparison**: Amazon Lex: Builds conversational interfaces that understand voice and text input.
+**AWS Direct Connect**: Provides a dedicated network connection from your premises to AWS.
+**Amazon AppStream 2.0 (now Amazon WorkSpaces Applications)**: Streams desktop applications from AWS to users' devices.
 
 Question 17
 What is the purpose of AWS CloudShell?
 
 answer
 A
-Provide language-specific libraries for calling AWS services from application code.
+Call AWS services from application code.
 B
-Hosts private Git repositories for storing and versioning source code.
+Store source code in Git repositories.
 C
-Provides a browser-based shell with AWS tools for running commands using your console identity.
+Run AWS commands in a browser shell.
 Correct Answer:
 D
-Helps operate and manage servers and other resources across AWS and hybrid environments.
+Manage and patch servers.
 
 Explanation
-Provides a browser-based shell with AWS tools for running commands using your console identity. Example: use the AWS CLI without installing it on your laptop. Memory cue: command SHELL in the browser. Comparison: AWS Software Development Kits (SDKs): Provide language-specific libraries for calling AWS services from application code. AWS CodeCommit: Hosts private Git repositories for storing and versioning source code. AWS Systems Manager: Helps operate and manage servers and other resources across AWS and hybrid environments.
+Provides a browser-based shell with AWS tools for running commands using your console identity.
+Example: use the AWS CLI without installing it on your laptop.
+Memory cue: command SHELL in the browser.
+**Comparison**: AWS Software Development Kits (SDKs): Provide language-specific libraries for calling AWS services from application code.
+**AWS CodeCommit**: Hosts private Git repositories for storing and versioning source code.
+**AWS Systems Manager**: Helps operate and manage servers and other resources across AWS and hybrid environments.
 
 Question 18
 What is the purpose of AWS CodeCommit?
 
 answer
 A
-Provisions and updates infrastructure using templates that describe AWS resources.
+Build infrastructure from templates.
 B
-Hosts private Git repositories for storing and versioning source code.
+Store source code in Git repositories.
 Correct Answer:
 C
-Automates deployment of application revisions to supported compute targets such as EC2, on-premises servers, Lambda, and ECS.
+Deploy new application versions.
 D
-Provides a browser-based shell with AWS tools for running commands using your console identity.
+Run AWS commands in a browser shell.
 
 Explanation
-Hosts private Git repositories for storing and versioning source code. Example: collaborate on application code and track changes. Memory cue: COMMIT code history; CodeDeploy releases application versions. Comparison: AWS CodeDeploy: Automates deployment of application revisions to supported compute targets such as EC2, on-premises servers, Lambda, and ECS. AWS CloudFormation: Provisions and updates infrastructure using templates that describe AWS resources. AWS CloudShell: Provides a browser-based shell with AWS tools for running commands using your console identity.
+Hosts private Git repositories for storing and versioning source code.
+Example: collaborate on application code and track changes.
+Memory cue: COMMIT code history; CodeDeploy releases application versions.
+**Comparison**: AWS CodeDeploy: Automates deployment of application revisions to supported compute targets such as EC2, on-premises servers, Lambda, and ECS.
+**AWS CloudFormation**: Provisions and updates infrastructure using templates that describe AWS resources.
+**AWS CloudShell**: Provides a browser-based shell with AWS tools for running commands using your console identity.
 
 Question 19
 What is the purpose of AWS Local Zones?
 
 answer
 A
-Brings AWS-managed infrastructure and selected AWS services to your premises.
+Run AWS infrastructure at your own site.
 B
-Places selected AWS infrastructure near metropolitan areas for low-latency access while extending a parent AWS Region.
+Run AWS resources near cities.
 Correct Answer:
 C
-Places AWS compute and storage within telecommunications networks for low-latency applications, especially mobile edge workloads.
+Run AWS resources inside telecom networks.
 D
-Uses static IP addresses and the AWS global network to route users to healthy application endpoints with improved performance and availability.
+Improve global routing to application endpoints.
 
 Explanation
-Places selected AWS infrastructure near metropolitan areas for low-latency access while extending a parent AWS Region. Example: run latency-sensitive workloads closer to city users. Memory cue: AWS near a CITY. Comparison: AWS Outposts: Brings AWS-managed infrastructure and selected AWS services to your premises. AWS Wavelength: Places AWS compute and storage within telecommunications networks for low-latency applications, especially mobile edge workloads. AWS Global Accelerator: Uses static IP addresses and the AWS global network to route users to healthy application endpoints with improved performance and availability.
+Places selected AWS infrastructure near metropolitan areas for low-latency access while extending a parent AWS Region.
+Example: run latency-sensitive workloads closer to city users.
+Memory cue: AWS near a CITY.
+**Comparison**: AWS Outposts: Brings AWS-managed infrastructure and selected AWS services to your premises.
+**AWS Wavelength**: Places AWS compute and storage within telecommunications networks for low-latency applications, especially mobile edge workloads.
+**AWS Global Accelerator**: Uses static IP addresses and the AWS global network to route users to healthy application endpoints with improved performance and availability.
 
 Question 20
 What is the purpose of AWS Outposts?
 
 answer
 A
-Places AWS compute and storage within telecommunications networks for low-latency applications, especially mobile edge workloads.
+Run AWS resources inside telecom networks.
 B
-Places selected AWS infrastructure near metropolitan areas for low-latency access while extending a parent AWS Region.
+Run AWS resources near cities.
 C
-Connects on-premises applications to AWS cloud storage using familiar file, volume, or tape interfaces.
+Connect local systems to AWS cloud storage.
 D
-Brings AWS-managed infrastructure and selected AWS services to your premises.
+Run AWS infrastructure at your own site.
 Correct Answer:
 
 Explanation
-Brings AWS-managed infrastructure and selected AWS services to your premises. Example: run AWS workloads in your own data center to meet local processing needs. Memory cue: AWS at YOUR SITE. Comparison: AWS Local Zones: Places selected AWS infrastructure near metropolitan areas for low-latency access while extending a parent AWS Region. AWS Wavelength: Places AWS compute and storage within telecommunications networks for low-latency applications, especially mobile edge workloads. AWS Storage Gateway: Connects on-premises applications to AWS cloud storage using familiar file, volume, or tape interfaces.
+Brings AWS-managed infrastructure and selected AWS services to your premises.
+Example: run AWS workloads in your own data center to meet local processing needs.
+Memory cue: AWS at YOUR SITE.
+**Comparison**: AWS Local Zones: Places selected AWS infrastructure near metropolitan areas for low-latency access while extending a parent AWS Region.
+**AWS Wavelength**: Places AWS compute and storage within telecommunications networks for low-latency applications, especially mobile edge workloads.
+**AWS Storage Gateway**: Connects on-premises applications to AWS cloud storage using familiar file, volume, or tape interfaces.
 
 Question 21
 What is the purpose of AWS CloudTrail?
 
 answer
 A
-Records AWS account activity and API events for auditing and investigation.
+Record who did what in an AWS account.
 Correct Answer:
 B
-Records resource configurations and changes and evaluates them against rules.
+Track and check resource configurations.
 C
-Traces requests through distributed applications to help diagnose failures and latency.
+Trace requests through applications.
 D
-Detects suspicious activity and threats in AWS environments.
+Detect suspicious activity and threats.
 
 Explanation
-Records AWS account activity and API events for auditing and investigation. Example: find who changed a security group and when. Memory cue: WHO did WHAT, WHEN; Config tracks resource configuration. Comparison: AWS Config: Records resource configurations and changes and evaluates them against rules. AWS X-Ray: Traces requests through distributed applications to help diagnose failures and latency. Amazon GuardDuty: Detects suspicious activity and threats in AWS environments.
+Records AWS account activity and API events for auditing and investigation.
+Example: find who changed a security group and when.
+Memory cue: WHO did WHAT, WHEN; Config tracks resource configuration.
+**Comparison**: AWS Config: Records resource configurations and changes and evaluates them against rules.
+**AWS X-Ray**: Traces requests through distributed applications to help diagnose failures and latency.
+**Amazon GuardDuty**: Detects suspicious activity and threats in AWS environments.
 
 Question 22
 What is the purpose of AWS CloudFormation?
 
 answer
 A
-Automates deployment of application revisions to supported compute targets such as EC2, on-premises servers, Lambda, and ECS.
+Deploy new application versions.
 B
-Helps operate and manage servers and other resources across AWS and hybrid environments.
+Manage and patch servers.
 C
-Lets organizations offer approved IT products for users to provision under defined controls.
+Offer approved IT products for provisioning.
 D
-Provisions and updates infrastructure using templates that describe AWS resources.
+Build infrastructure from templates.
 Correct Answer:
 
 Explanation
-Provisions and updates infrastructure using templates that describe AWS resources. Example: reproduce a network and servers as a stack. Memory cue: infrastructure from a blueprint. Comparison: AWS CodeDeploy: Automates deployment of application revisions to supported compute targets such as EC2, on-premises servers, Lambda, and ECS. AWS Service Catalog: Lets organizations offer approved IT products for users to provision under defined controls. AWS Systems Manager: Helps operate and manage servers and other resources across AWS and hybrid environments.
+Provisions and updates infrastructure using templates that describe AWS resources.
+Example: reproduce a network and servers as a stack.
+Memory cue: infrastructure from a blueprint.
+**Comparison**: AWS CodeDeploy: Automates deployment of application revisions to supported compute targets such as EC2, on-premises servers, Lambda, and ECS.
+**AWS Service Catalog**: Lets organizations offer approved IT products for users to provision under defined controls.
+**AWS Systems Manager**: Helps operate and manage servers and other resources across AWS and hybrid environments.
 
 Question 23
 What is the purpose of AWS Budgets?
 
 answer
 A
-Tracks spending or usage against budgets and sends threshold alerts; configured actions can respond to thresholds.
+Track spending and send budget alerts.
 Correct Answer:
 B
-Centrally manages multiple AWS accounts, consolidated billing, and organization-level policy controls.
+Manage multiple AWS accounts.
 C
-Discounts eligible EC2 usage in exchange for a one- or three-year hourly spending commitment to an instance family in one Region.
+Discount EC2 usage for a spending commitment.
 D
-Helps eligible enterprise support customers with billing and account matters.
+Help with enterprise billing and account questions.
 
 Explanation
-Tracks spending or usage against budgets and sends threshold alerts; configured actions can respond to thresholds. Example: alert when forecast spending exceeds your monthly target. Memory cue: budget warning, not an automatic hard spending cap. Comparison: EC2 Instance Savings Plans: Discounts eligible EC2 usage in exchange for a one- or three-year hourly spending commitment to an instance family in one Region. AWS Organizations: Centrally manages multiple AWS accounts, consolidated billing, and organization-level policy controls. AWS Support Concierge: Helps eligible enterprise support customers with billing and account matters.
+Tracks spending or usage against budgets and sends threshold alerts; configured actions can respond to thresholds.
+Example: alert when forecast spending exceeds your monthly target.
+Memory cue: budget warning, not an automatic hard spending cap.
+**Comparison**: EC2 Instance Savings Plans: Discounts eligible EC2 usage in exchange for a one- or three-year hourly spending commitment to an instance family in one Region.
+**AWS Organizations**: Centrally manages multiple AWS accounts, consolidated billing, and organization-level policy controls.
+**AWS Support Concierge**: Helps eligible enterprise support customers with billing and account matters.
 
 Question 24
 What is the purpose of AWS Identity and Access Management (IAM)?
 
 answer
 A
-Securely stores, retrieves, and supports rotation of secrets such as database passwords and API keys.
+Store and rotate passwords and secrets.
 B
-Controls which identities can access AWS resources and what actions they may perform.
+Control who can access AWS resources.
 Correct Answer:
 C
-Creates and controls cryptographic keys used to protect data.
+Create and control encryption keys.
 D
-Centrally manages multiple AWS accounts, consolidated billing, and organization-level policy controls.
+Manage multiple AWS accounts.
 
 Explanation
-Controls which identities can access AWS resources and what actions they may perform. Example: allow an application role to read one S3 bucket. Memory cue: WHO can do WHAT. “IAM Access Manager” is interpreted as IAM. Comparison: AWS Organizations: Centrally manages multiple AWS accounts, consolidated billing, and organization-level policy controls. AWS Key Management Service (KMS): Creates and controls cryptographic keys used to protect data. AWS Secrets Manager: Securely stores, retrieves, and supports rotation of secrets such as database passwords and API keys.
+Controls which identities can access AWS resources and what actions they may perform.
+Example: allow an application role to read one S3 bucket.
+Memory cue: WHO can do WHAT.
+“IAM Access Manager” is interpreted as IAM.
+**Comparison**: AWS Organizations: Centrally manages multiple AWS accounts, consolidated billing, and organization-level policy controls.
+**AWS Key Management Service (KMS)**: Creates and controls cryptographic keys used to protect data.
+**AWS Secrets Manager**: Securely stores, retrieves, and supports rotation of secrets such as database passwords and API keys.
 
 Question 25
 What is the purpose of Amazon Athena?
 
 answer
 A
-Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Find sensitive data in S3.
 B
-Runs SQL queries against data, commonly in S3, without managing query servers.
+Query S3 data using SQL.
 Correct Answer:
 C
-Supports collecting and processing real-time streaming data, with services for data records and video streams.
+Collect and process real-time data streams.
 D
-Creates business intelligence analyses, charts, and interactive dashboards.
+Create charts and business dashboards.
 
 Explanation
-Runs SQL queries against data, commonly in S3, without managing query servers. Example: query logs stored in S3. Memory cue: SQL on stored data; QuickSight visualizes results. Comparison: Amazon QuickSight / Amazon Quick Sight: Creates business intelligence analyses, charts, and interactive dashboards. Amazon Kinesis: Supports collecting and processing real-time streaming data, with services for data records and video streams. Amazon Macie: Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Runs SQL queries against data, commonly in S3, without managing query servers.
+Example: query logs stored in S3.
+Memory cue: SQL on stored data; QuickSight visualizes results.
+**Comparison**: Amazon QuickSight / Amazon Quick Sight: Creates business intelligence analyses, charts, and interactive dashboards.
+**Amazon Kinesis**: Supports collecting and processing real-time streaming data, with services for data records and video streams.
+**Amazon Macie**: Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
 
 Question 26
 What is the purpose of Amazon AppStream 2.0 (now Amazon WorkSpaces Applications)?
 
 answer
 A
-Brings AWS-managed infrastructure and selected AWS services to your premises.
+Run AWS infrastructure at your own site.
 B
-Runs containers with Amazon ECS or EKS without requiring you to provision and manage the underlying servers.
+Run containers without managing servers.
 C
-Streams desktop applications from AWS to users' devices.
+Stream desktop applications to users.
 Correct Answer:
 D
-Converted media files into formats suited to different playback devices.
+Convert media files into different formats.
 
 Explanation
-Streams desktop applications from AWS to users' devices. Example: use a desktop design application through a browser without installing it locally. Memory cue: stream an interactive APP, not a video file. Comparison: Amazon Elastic Transcoder: Converted media files into formats suited to different playback devices. AWS Outposts: Brings AWS-managed infrastructure and selected AWS services to your premises. AWS Fargate: Runs containers with Amazon ECS or EKS without requiring you to provision and manage the underlying servers.
+Streams desktop applications from AWS to users' devices.
+Example: use a desktop design application through a browser without installing it locally.
+Memory cue: stream an interactive APP, not a video file.
+**Comparison**: Amazon Elastic Transcoder: Converted media files into formats suited to different playback devices.
+**AWS Outposts**: Brings AWS-managed infrastructure and selected AWS services to your premises.
+**AWS Fargate**: Runs containers with Amazon ECS or EKS without requiring you to provision and manage the underlying servers.
 
 Question 27
 What is the purpose of AWS Storage Gateway?
 
 answer
 A
-Uses physical devices to move large datasets and, with supported devices, perform edge computing.
+Move large datasets using shipped devices.
 B
-Brings AWS-managed infrastructure and selected AWS services to your premises.
+Run AWS infrastructure at your own site.
 C
-Provides a dedicated network connection from your premises to AWS.
+Provide a dedicated connection to AWS.
 D
-Connects on-premises applications to AWS cloud storage using familiar file, volume, or tape interfaces.
+Connect local systems to AWS cloud storage.
 Correct Answer:
 
 Explanation
-Connects on-premises applications to AWS cloud storage using familiar file, volume, or tape interfaces. Example: integrate an existing backup system with cloud storage. Memory cue: a hybrid storage bridge. Comparison: AWS Snowball / Snowball Edge: Uses physical devices to move large datasets and, with supported devices, perform edge computing. AWS Direct Connect: Provides a dedicated network connection from your premises to AWS. AWS Outposts: Brings AWS-managed infrastructure and selected AWS services to your premises.
+Connects on-premises applications to AWS cloud storage using familiar file, volume, or tape interfaces.
+Example: integrate an existing backup system with cloud storage.
+Memory cue: a hybrid storage bridge.
+**Comparison**: AWS Snowball / Snowball Edge: Uses physical devices to move large datasets and, with supported devices, perform edge computing.
+**AWS Direct Connect**: Provides a dedicated network connection from your premises to AWS.
+**AWS Outposts**: Brings AWS-managed infrastructure and selected AWS services to your premises.
 
 Question 28
 What is the purpose of Amazon Rekognition?
 
 answer
 A
-Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Find sensitive data in S3.
 B
-Analyzes images and videos to detect visual information such as objects, faces, and text.
+Analyze images and videos.
 Correct Answer:
 C
-Converts written text into spoken audio.
+Turn text into speech.
 D
-Builds conversational interfaces that understand voice and text input.
+Build voice and text chatbots.
 
 Explanation
-Analyzes images and videos to detect visual information such as objects, faces, and text. Example: label objects in uploaded photos. Memory cue: RECOGNIZE visual content. Comparison: Amazon Polly: Converts written text into spoken audio. Amazon Lex: Builds conversational interfaces that understand voice and text input. Amazon Macie: Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Analyzes images and videos to detect visual information such as objects, faces, and text.
+Example: label objects in uploaded photos.
+Memory cue: RECOGNIZE visual content.
+**Comparison**: Amazon Polly: Converts written text into spoken audio.
+**Amazon Lex**: Builds conversational interfaces that understand voice and text input.
+**Amazon Macie**: Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
 
 Question 29
 What is the purpose of Amazon Polly?
 
 answer
 A
-Converts written text into spoken audio.
+Turn text into speech.
 Correct Answer:
 B
-Builds conversational interfaces that understand voice and text input.
+Build voice and text chatbots.
 C
-Analyzes images and videos to detect visual information such as objects, faces, and text.
+Analyze images and videos.
 D
-Streams desktop applications from AWS to users' devices.
+Stream desktop applications to users.
 
 Explanation
-Converts written text into spoken audio. Example: read an article aloud in an application. Memory cue: Polly talks; it is text-to-speech, not speech-to-text. Comparison: Amazon Lex: Builds conversational interfaces that understand voice and text input. Amazon Rekognition: Analyzes images and videos to detect visual information such as objects, faces, and text. Amazon AppStream 2.0 (now Amazon WorkSpaces Applications): Streams desktop applications from AWS to users' devices.
+Converts written text into spoken audio.
+Example: read an article aloud in an application.
+Memory cue: Polly talks; it is text-to-speech, not speech-to-text.
+**Comparison**: Amazon Lex: Builds conversational interfaces that understand voice and text input.
+**Amazon Rekognition**: Analyzes images and videos to detect visual information such as objects, faces, and text.
+**Amazon AppStream 2.0 (now Amazon WorkSpaces Applications)**: Streams desktop applications from AWS to users' devices.
 
 Question 30
 What is the purpose of Amazon Simple Queue Service (SQS)?
 
 answer
 A
-Supports collecting and processing real-time streaming data, with services for data records and video streams.
+Collect and process real-time data streams.
 B
-Holds messages in queues so application components can process work asynchronously.
+Queue messages for background processing.
 Correct Answer:
 C
-Publishes messages to topic subscribers for notifications and fan-out.
+Send messages to topic subscribers.
 D
-Coordinates tasks and AWS services into workflows with steps, branching, retries, and error handling.
+Coordinate tasks in a workflow.
 
 Explanation
-Holds messages in queues so application components can process work asynchronously. Example: queue orders for background workers. Memory cue: work waits in a QUEUE. Standard queues can deliver duplicates, so consumers should tolerate retries. Comparison: Amazon Simple Notification Service (SNS): Publishes messages to topic subscribers for notifications and fan-out. Amazon Kinesis: Supports collecting and processing real-time streaming data, with services for data records and video streams. AWS Step Functions: Coordinates tasks and AWS services into workflows with steps, branching, retries, and error handling.
+Holds messages in queues so application components can process work asynchronously.
+Example: queue orders for background workers.
+Memory cue: work waits in a QUEUE. Standard queues can deliver duplicates, so consumers should tolerate retries.
+**Comparison**: Amazon Simple Notification Service (SNS): Publishes messages to topic subscribers for notifications and fan-out.
+**Amazon Kinesis**: Supports collecting and processing real-time streaming data, with services for data records and video streams.
+**AWS Step Functions**: Coordinates tasks and AWS services into workflows with steps, branching, retries, and error handling.
 
 Question 31
 What is the purpose of Amazon Simple Notification Service (SNS)?
 
 answer
 A
-Coordinates tasks and AWS services into workflows with steps, branching, retries, and error handling.
+Coordinate tasks in a workflow.
 B
-Holds messages in queues so application components can process work asynchronously.
+Queue messages for background processing.
 C
-Supports collecting and processing real-time streaming data, with services for data records and video streams.
+Collect and process real-time data streams.
 D
-Publishes messages to topic subscribers for notifications and fan-out.
+Send messages to topic subscribers.
 Correct Answer:
 
 Explanation
-Publishes messages to topic subscribers for notifications and fan-out. Example: send an order event to several subscriber queues. Memory cue: announce to SUBSCRIBERS; SQS buffers work for consumers. Comparison: Amazon Simple Queue Service (SQS): Holds messages in queues so application components can process work asynchronously. Amazon Kinesis: Supports collecting and processing real-time streaming data, with services for data records and video streams. AWS Step Functions: Coordinates tasks and AWS services into workflows with steps, branching, retries, and error handling.
+Publishes messages to topic subscribers for notifications and fan-out.
+Example: send an order event to several subscriber queues.
+Memory cue: announce to SUBSCRIBERS; SQS buffers work for consumers.
+**Comparison**: Amazon Simple Queue Service (SQS): Holds messages in queues so application components can process work asynchronously.
+**Amazon Kinesis**: Supports collecting and processing real-time streaming data, with services for data records and video streams.
+**AWS Step Functions**: Coordinates tasks and AWS services into workflows with steps, branching, retries, and error handling.
 
 Question 32
 What is the purpose of Amazon Macie?
 
 answer
 A
-Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Find sensitive data in S3.
 Correct Answer:
 B
-Detects suspicious activity and threats in AWS environments.
+Detect suspicious activity and threats.
 C
-Finds software vulnerabilities and unintended network exposure in supported workloads, including EC2 instances, container images, and Lambda functions.
+Find software vulnerabilities.
 D
-Provides access to AWS compliance reports and certain agreements.
+Provide AWS compliance reports and agreements.
 
 Explanation
-Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks. Example: find customer identifiers in uploaded files. Memory cue: sensitive DATA discovery. Comparison: Amazon GuardDuty: Detects suspicious activity and threats in AWS environments. Amazon Inspector: Finds software vulnerabilities and unintended network exposure in supported workloads, including EC2 instances, container images, and Lambda functions. AWS Artifact: Provides access to AWS compliance reports and certain agreements.
+Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Example: find customer identifiers in uploaded files.
+Memory cue: sensitive DATA discovery.
+**Comparison**: Amazon GuardDuty: Detects suspicious activity and threats in AWS environments.
+**Amazon Inspector**: Finds software vulnerabilities and unintended network exposure in supported workloads, including EC2 instances, container images, and Lambda functions.
+**AWS Artifact**: Provides access to AWS compliance reports and certain agreements.
 
 Question 33
 What is the purpose of AWS Snowball / Snowball Edge?
 
 answer
 A
-Brings AWS-managed infrastructure and selected AWS services to your premises.
+Run AWS infrastructure at your own site.
 B
-Connects on-premises applications to AWS cloud storage using familiar file, volume, or tape interfaces.
+Connect local systems to AWS cloud storage.
 C
-Uses physical devices to move large datasets and, with supported devices, perform edge computing.
+Move large datasets using shipped devices.
 Correct Answer:
 D
-Provides a dedicated network connection from your premises to AWS.
+Provide a dedicated connection to AWS.
 
 Explanation
-Uses physical devices to move large datasets and, with supported devices, perform edge computing. Example: ship data when network transfer is impractical. Memory cue: ship the data. Snowball Edge is restricted to existing customers as of November 7, 2025. Comparison: AWS Storage Gateway: Connects on-premises applications to AWS cloud storage using familiar file, volume, or tape interfaces. AWS Direct Connect: Provides a dedicated network connection from your premises to AWS. AWS Outposts: Brings AWS-managed infrastructure and selected AWS services to your premises.
+Uses physical devices to move large datasets and, with supported devices, perform edge computing.
+Example: ship data when network transfer is impractical.
+Memory cue: ship the data.
+Snowball Edge is restricted to existing customers as of November 7, 2025.
+**Comparison**: AWS Storage Gateway: Connects on-premises applications to AWS cloud storage using familiar file, volume, or tape interfaces.
+**AWS Direct Connect**: Provides a dedicated network connection from your premises to AWS.
+**AWS Outposts**: Brings AWS-managed infrastructure and selected AWS services to your premises.
 
 Question 34
 What is the purpose of AWS X-Ray?
 
 answer
 A
-Records AWS account activity and API events for auditing and investigation.
+Record who did what in an AWS account.
 B
-Helps investigate security findings by analyzing related activity and relationships.
+Investigate security findings.
 C
-Traces requests through distributed applications to help diagnose failures and latency.
+Trace requests through applications.
 Correct Answer:
 D
-Records resource configurations and changes and evaluates them against rules.
+Track and check resource configurations.
 
 Explanation
-Traces requests through distributed applications to help diagnose failures and latency. Example: find which service call slowed a checkout request. Memory cue: follow ONE REQUEST through the application. Comparison: AWS CloudTrail: Records AWS account activity and API events for auditing and investigation. AWS Config: Records resource configurations and changes and evaluates them against rules. Amazon Detective: Helps investigate security findings by analyzing related activity and relationships.
+Traces requests through distributed applications to help diagnose failures and latency.
+Example: find which service call slowed a checkout request.
+Memory cue: follow ONE REQUEST through the application.
+**Comparison**: AWS CloudTrail: Records AWS account activity and API events for auditing and investigation.
+**AWS Config**: Records resource configurations and changes and evaluates them against rules.
+**Amazon Detective**: Helps investigate security findings by analyzing related activity and relationships.
 
 Question 35
 What is the purpose of Amazon Kinesis?
 
 answer
 A
-Holds messages in queues so application components can process work asynchronously.
+Queue messages for background processing.
 B
-Supports collecting and processing real-time streaming data, with services for data records and video streams.
+Collect and process real-time data streams.
 Correct Answer:
 C
-Runs SQL queries against data, commonly in S3, without managing query servers.
+Query S3 data using SQL.
 D
-Publishes messages to topic subscribers for notifications and fan-out.
+Send messages to topic subscribers.
 
 Explanation
-Supports collecting and processing real-time streaming data, with services for data records and video streams. Example: ingest continuous sensor readings with Kinesis Data Streams. Memory cue: a continuous STREAM of events. Comparison: Amazon Simple Queue Service (SQS): Holds messages in queues so application components can process work asynchronously. Amazon Simple Notification Service (SNS): Publishes messages to topic subscribers for notifications and fan-out. Amazon Athena: Runs SQL queries against data, commonly in S3, without managing query servers.
+Supports collecting and processing real-time streaming data, with services for data records and video streams.
+Example: ingest continuous sensor readings with Kinesis Data Streams.
+Memory cue: a continuous STREAM of events.
+**Comparison**: Amazon Simple Queue Service (SQS): Holds messages in queues so application components can process work asynchronously.
+**Amazon Simple Notification Service (SNS)**: Publishes messages to topic subscribers for notifications and fan-out.
+**Amazon Athena**: Runs SQL queries against data, commonly in S3, without managing query servers.
 
 Question 36
 What is the purpose of AWS Support Concierge?
 
 answer
 A
-Tracks spending or usage against budgets and sends threshold alerts; configured actions can respond to thresholds.
+Track spending and send budget alerts.
 B
-Provides access to AWS compliance reports and certain agreements.
+Provide AWS compliance reports and agreements.
 C
-Helps eligible enterprise support customers with billing and account matters.
+Help with enterprise billing and account questions.
 Correct Answer:
 D
-A support plan for production workloads offering round-the-clock technical support and access to a pool of Technical Account Managers.
+Provide technical support and access to TAMs.
 
 Explanation
-Helps eligible enterprise support customers with billing and account matters. Example: coordinate help with a complex billing question. Memory cue: account and billing assistance; technical architecture guidance is a TAM role. Comparison: AWS Enterprise On-Ramp Support: A support plan for production workloads offering round-the-clock technical support and access to a pool of Technical Account Managers. AWS Budgets: Tracks spending or usage against budgets and sends threshold alerts; configured actions can respond to thresholds. AWS Artifact: Provides access to AWS compliance reports and certain agreements.
+Helps eligible enterprise support customers with billing and account matters.
+Example: coordinate help with a complex billing question.
+Memory cue: account and billing assistance; technical architecture guidance is a TAM role.
+**Comparison**: AWS Enterprise On-Ramp Support: A support plan for production workloads offering round-the-clock technical support and access to a pool of Technical Account Managers.
+**AWS Budgets**: Tracks spending or usage against budgets and sends threshold alerts; configured actions can respond to thresholds.
+**AWS Artifact**: Provides access to AWS compliance reports and certain agreements.
 
 Question 37
 What is the purpose of AWS Software Development Kits (SDKs)?
 
 answer
 A
-Hosts private Git repositories for storing and versioning source code.
+Store source code in Git repositories.
 B
-Provisions and updates infrastructure using templates that describe AWS resources.
+Build infrastructure from templates.
 C
-Provides a browser-based shell with AWS tools for running commands using your console identity.
+Run AWS commands in a browser shell.
 D
-Provide language-specific libraries for calling AWS services from application code.
+Call AWS services from application code.
 Correct Answer:
 
 Explanation
-Provide language-specific libraries for calling AWS services from application code. Example: use the Python SDK, Boto3, to upload an object to S3. Memory cue: AWS tools INSIDE your programming language. Comparison: AWS CloudShell: Provides a browser-based shell with AWS tools for running commands using your console identity. AWS CodeCommit: Hosts private Git repositories for storing and versioning source code. AWS CloudFormation: Provisions and updates infrastructure using templates that describe AWS resources.
+Provide language-specific libraries for calling AWS services from application code.
+Example: use the Python SDK, Boto3, to upload an object to S3.
+Memory cue: AWS tools INSIDE your programming language.
+**Comparison**: AWS CloudShell: Provides a browser-based shell with AWS tools for running commands using your console identity.
+**AWS CodeCommit**: Hosts private Git repositories for storing and versioning source code.
+**AWS CloudFormation**: Provisions and updates infrastructure using templates that describe AWS resources.
 
 Question 38
 What is the purpose of EC2 Instance Savings Plans?
 
 answer
 A
-Adjusts the number of EC2 instances to meet demand and helps maintain healthy capacity.
+Adjust the number of EC2 instances.
 B
-Tracks spending or usage against budgets and sends threshold alerts; configured actions can respond to thresholds.
+Track spending and send budget alerts.
 C
-Runs containers with Amazon ECS or EKS without requiring you to provision and manage the underlying servers.
+Run containers without managing servers.
 D
-Discounts eligible EC2 usage in exchange for a one- or three-year hourly spending commitment to an instance family in one Region.
+Discount EC2 usage for a spending commitment.
 Correct Answer:
 
 Explanation
-Discounts eligible EC2 usage in exchange for a one- or three-year hourly spending commitment to an instance family in one Region. Example: commit to ongoing usage of one EC2 family. Memory cue: spending commitment discount; it does not reserve capacity. Comparison: AWS Budgets: Tracks spending or usage against budgets and sends threshold alerts; configured actions can respond to thresholds. Amazon EC2 Auto Scaling: Adjusts the number of EC2 instances to meet demand and helps maintain healthy capacity. AWS Fargate: Runs containers with Amazon ECS or EKS without requiring you to provision and manage the underlying servers.
+Discounts eligible EC2 usage in exchange for a one- or three-year hourly spending commitment to an instance family in one Region.
+Example: commit to ongoing usage of one EC2 family.
+Memory cue: spending commitment discount; it does not reserve capacity.
+**Comparison**: AWS Budgets: Tracks spending or usage against budgets and sends threshold alerts; configured actions can respond to thresholds.
+**Amazon EC2 Auto Scaling**: Adjusts the number of EC2 instances to meet demand and helps maintain healthy capacity.
+**AWS Fargate**: Runs containers with Amazon ECS or EKS without requiring you to provision and manage the underlying servers.
 
 Question 39
 What is the purpose of AWS Artifact?
 
 answer
 A
-Records AWS account activity and API events for auditing and investigation.
+Record who did what in an AWS account.
 B
-Records resource configurations and changes and evaluates them against rules.
+Track and check resource configurations.
 C
-Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Find sensitive data in S3.
 D
-Provides access to AWS compliance reports and certain agreements.
+Provide AWS compliance reports and agreements.
 Correct Answer:
 
 Explanation
-Provides access to AWS compliance reports and certain agreements. Example: download an AWS audit report for a compliance review. Memory cue: AWS compliance DOCUMENTS; Config evaluates your resource configurations. Comparison: AWS Config: Records resource configurations and changes and evaluates them against rules. AWS CloudTrail: Records AWS account activity and API events for auditing and investigation. Amazon Macie: Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
+Provides access to AWS compliance reports and certain agreements.
+Example: download an AWS audit report for a compliance review.
+Memory cue: AWS compliance DOCUMENTS; Config evaluates your resource configurations.
+**Comparison**: AWS Config: Records resource configurations and changes and evaluates them against rules.
+**AWS CloudTrail**: Records AWS account activity and API events for auditing and investigation.
+**Amazon Macie**: Discovers sensitive data, such as personal information, in Amazon S3 and helps assess data-security risks.
 
 Question 40
 What is the purpose of AWS Organizations?
 
 answer
 A
-Centrally applies security policies across AWS accounts in an organization.
+Manage firewall policies across accounts.
 B
-Controls which identities can access AWS resources and what actions they may perform.
+Control who can access AWS resources.
 C
-Lets organizations offer approved IT products for users to provision under defined controls.
+Offer approved IT products for provisioning.
 D
-Centrally manages multiple AWS accounts, consolidated billing, and organization-level policy controls.
+Manage multiple AWS accounts.
 Correct Answer:
 
 Explanation
-Centrally manages multiple AWS accounts, consolidated billing, and organization-level policy controls. Example: group department accounts and apply service control policies. Memory cue: govern ACCOUNTS; SCPs limit permissions but do not grant them. Comparison: AWS Identity and Access Management (IAM): Controls which identities can access AWS resources and what actions they may perform. AWS Service Catalog: Lets organizations offer approved IT products for users to provision under defined controls. AWS Firewall Manager: Centrally applies security policies across AWS accounts in an organization.
+Centrally manages multiple AWS accounts, consolidated billing, and organization-level policy controls.
+Example: group department accounts and apply service control policies.
+Memory cue: govern ACCOUNTS; SCPs limit permissions but do not grant them.
+**Comparison**: AWS Identity and Access Management (IAM): Controls which identities can access AWS resources and what actions they may perform.
+**AWS Service Catalog**: Lets organizations offer approved IT products for users to provision under defined controls.
+**AWS Firewall Manager**: Centrally applies security policies across AWS accounts in an organization.
 
 Question 41
 What is the purpose of AWS Config?
 
 answer
 A
-Records resource configurations and changes and evaluates them against rules.
+Track and check resource configurations.
 Correct Answer:
 B
-Records AWS account activity and API events for auditing and investigation.
+Record who did what in an AWS account.
 C
-Helps operate and manage servers and other resources across AWS and hybrid environments.
+Manage and patch servers.
 D
-Provides access to AWS compliance reports and certain agreements.
+Provide AWS compliance reports and agreements.
 
 Explanation
-Records resource configurations and changes and evaluates them against rules. Example: detect a security group configuration that violates policy. Memory cue: WHAT is configured and is it compliant? CloudTrail records the actions that changed it. Comparison: AWS CloudTrail: Records AWS account activity and API events for auditing and investigation. AWS Artifact: Provides access to AWS compliance reports and certain agreements. AWS Systems Manager: Helps operate and manage servers and other resources across AWS and hybrid environments.
+Records resource configurations and changes and evaluates them against rules.
+Example: detect a security group configuration that violates policy.
+Memory cue: WHAT is configured and is it compliant? CloudTrail records the actions that changed it.
+**Comparison**: AWS CloudTrail: Records AWS account activity and API events for auditing and investigation.
+**AWS Artifact**: Provides access to AWS compliance reports and certain agreements.
+**AWS Systems Manager**: Helps operate and manage servers and other resources across AWS and hybrid environments.
 
 Question 42
 What is the purpose of Amazon EC2 Auto Scaling?
 
 answer
 A
-Discounts eligible EC2 usage in exchange for a one- or three-year hourly spending commitment to an instance family in one Region.
+Discount EC2 usage for a spending commitment.
 B
-Adjusts the number of EC2 instances to meet demand and helps maintain healthy capacity.
+Adjust the number of EC2 instances.
 Correct Answer:
 C
-Coordinates tasks and AWS services into workflows with steps, branching, retries, and error handling.
+Coordinate tasks in a workflow.
 D
-Runs containers with Amazon ECS or EKS without requiring you to provision and manage the underlying servers.
+Run containers without managing servers.
 
 Explanation
-Adjusts the number of EC2 instances to meet demand and helps maintain healthy capacity. Example: add instances during a traffic spike and remove them afterward. Memory cue: change the instance COUNT. Comparison: AWS Fargate: Runs containers with Amazon ECS or EKS without requiring you to provision and manage the underlying servers. EC2 Instance Savings Plans: Discounts eligible EC2 usage in exchange for a one- or three-year hourly spending commitment to an instance family in one Region. AWS Step Functions: Coordinates tasks and AWS services into workflows with steps, branching, retries, and error handling.
+Adjusts the number of EC2 instances to meet demand and helps maintain healthy capacity.
+Example: add instances during a traffic spike and remove them afterward.
+Memory cue: change the instance COUNT.
+**Comparison**: AWS Fargate: Runs containers with Amazon ECS or EKS without requiring you to provision and manage the underlying servers.
+**EC2 Instance Savings Plans**: Discounts eligible EC2 usage in exchange for a one- or three-year hourly spending commitment to an instance family in one Region.
+**AWS Step Functions**: Coordinates tasks and AWS services into workflows with steps, branching, retries, and error handling.
 
 Question 43
 What is the purpose of AWS Step Functions?
 
 answer
 A
-Publishes messages to topic subscribers for notifications and fan-out.
+Send messages to topic subscribers.
 B
-Coordinates tasks and AWS services into workflows with steps, branching, retries, and error handling.
+Coordinate tasks in a workflow.
 Correct Answer:
 C
-Holds messages in queues so application components can process work asynchronously.
+Queue messages for background processing.
 D
-Automates deployment of application revisions to supported compute targets such as EC2, on-premises servers, Lambda, and ECS.
+Deploy new application versions.
 
 Explanation
-Coordinates tasks and AWS services into workflows with steps, branching, retries, and error handling. Example: orchestrate order validation, payment, and fulfillment. Memory cue: a workflow of STEPS. Comparison: Amazon Simple Queue Service (SQS): Holds messages in queues so application components can process work asynchronously. Amazon Simple Notification Service (SNS): Publishes messages to topic subscribers for notifications and fan-out. AWS CodeDeploy: Automates deployment of application revisions to supported compute targets such as EC2, on-premises servers, Lambda, and ECS.
+Coordinates tasks and AWS services into workflows with steps, branching, retries, and error handling.
+Example: orchestrate order validation, payment, and fulfillment.
+Memory cue: a workflow of STEPS.
+**Comparison**: Amazon Simple Queue Service (SQS): Holds messages in queues so application components can process work asynchronously.
+**Amazon Simple Notification Service (SNS)**: Publishes messages to topic subscribers for notifications and fan-out.
+**AWS CodeDeploy**: Automates deployment of application revisions to supported compute targets such as EC2, on-premises servers, Lambda, and ECS.
 
 Question 44
 What is the purpose of AWS Enterprise On-Ramp Support?
 
 answer
 A
-Helps eligible enterprise support customers with billing and account matters.
+Help with enterprise billing and account questions.
 B
-Tracks spending or usage against budgets and sends threshold alerts; configured actions can respond to thresholds.
+Track spending and send budget alerts.
 C
-Provides access to AWS compliance reports and certain agreements.
+Provide AWS compliance reports and agreements.
 D
-A support plan for production workloads offering round-the-clock technical support and access to a pool of Technical Account Managers.
+Provide technical support and access to TAMs.
 Correct Answer:
 
 Explanation
-A support plan for production workloads offering round-the-clock technical support and access to a pool of Technical Account Managers. Memory cue: enterprise guidance and support. AWS is transitioning customers during 2026 and ends this plan January 1, 2027. Comparison: AWS Support Concierge: Helps eligible enterprise support customers with billing and account matters. AWS Budgets: Tracks spending or usage against budgets and sends threshold alerts; configured actions can respond to thresholds. AWS Artifact: Provides access to AWS compliance reports and certain agreements.
+A support plan for production workloads offering round-the-clock technical support and access to a pool of Technical Account Managers.
+Memory cue: enterprise guidance and support.
+AWS is transitioning customers during 2026 and ends this plan January 1, 2027.
+**Comparison**: AWS Support Concierge: Helps eligible enterprise support customers with billing and account matters.
+**AWS Budgets**: Tracks spending or usage against budgets and sends threshold alerts; configured actions can respond to thresholds.
+**AWS Artifact**: Provides access to AWS compliance reports and certain agreements.
 
 Question 45
 What is the purpose of AWS Transit Gateway?
 
 answer
 A
-Places selected AWS infrastructure near metropolitan areas for low-latency access while extending a parent AWS Region.
+Run AWS resources near cities.
 B
-Provides a dedicated network connection from your premises to AWS.
+Provide a dedicated connection to AWS.
 C
-Acts as a central network hub connecting VPCs and on-premises networks.
+Connect networks through a central hub.
 Correct Answer:
 D
-Uses static IP addresses and the AWS global network to route users to healthy application endpoints with improved performance and availability.
+Improve global routing to application endpoints.
 
 Explanation
-Acts as a central network hub connecting VPCs and on-premises networks. Example: connect many VPCs without a large mesh of individual peering links. Memory cue: network HUB; Direct Connect provides a dedicated connection into AWS. Comparison: AWS Direct Connect: Provides a dedicated network connection from your premises to AWS. AWS Global Accelerator: Uses static IP addresses and the AWS global network to route users to healthy application endpoints with improved performance and availability. AWS Local Zones: Places selected AWS infrastructure near metropolitan areas for low-latency access while extending a parent AWS Region.
+Acts as a central network hub connecting VPCs and on-premises networks.
+Example: connect many VPCs without a large mesh of individual peering links.
+Memory cue: network HUB; Direct Connect provides a dedicated connection into AWS.
+**Comparison**: AWS Direct Connect: Provides a dedicated network connection from your premises to AWS.
+**AWS Global Accelerator**: Uses static IP addresses and the AWS global network to route users to healthy application endpoints with improved performance and availability.
+**AWS Local Zones**: Places selected AWS infrastructure near metropolitan areas for low-latency access while extending a parent AWS Region.
 
 Question 46
 What is the purpose of AWS Wavelength?
 
 answer
 A
-Places AWS compute and storage within telecommunications networks for low-latency applications, especially mobile edge workloads.
+Run AWS resources inside telecom networks.
 Correct Answer:
 B
-Uses static IP addresses and the AWS global network to route users to healthy application endpoints with improved performance and availability.
+Improve global routing to application endpoints.
 C
-Brings AWS-managed infrastructure and selected AWS services to your premises.
+Run AWS infrastructure at your own site.
 D
-Places selected AWS infrastructure near metropolitan areas for low-latency access while extending a parent AWS Region.
+Run AWS resources near cities.
 
 Explanation
-Places AWS compute and storage within telecommunications networks for low-latency applications, especially mobile edge workloads. Example: process mobile application data close to carrier users. Memory cue: AWS at the TELECOM EDGE. Comparison: AWS Local Zones: Places selected AWS infrastructure near metropolitan areas for low-latency access while extending a parent AWS Region. AWS Outposts: Brings AWS-managed infrastructure and selected AWS services to your premises. AWS Global Accelerator: Uses static IP addresses and the AWS global network to route users to healthy application endpoints with improved performance and availability.
+Places AWS compute and storage within telecommunications networks for low-latency applications, especially mobile edge workloads.
+Example: process mobile application data close to carrier users.
+Memory cue: AWS at the TELECOM EDGE.
+**Comparison**: AWS Local Zones: Places selected AWS infrastructure near metropolitan areas for low-latency access while extending a parent AWS Region.
+**AWS Outposts**: Brings AWS-managed infrastructure and selected AWS services to your premises.
+**AWS Global Accelerator**: Uses static IP addresses and the AWS global network to route users to healthy application endpoints with improved performance and availability.
 
 Question 47
 What is the purpose of AWS Fargate?
 
 answer
 A
-Runs containers with Amazon ECS or EKS without requiring you to provision and manage the underlying servers.
+Run containers without managing servers.
 Correct Answer:
 B
-Adjusts the number of EC2 instances to meet demand and helps maintain healthy capacity.
+Adjust the number of EC2 instances.
 C
-Coordinates tasks and AWS services into workflows with steps, branching, retries, and error handling.
+Coordinate tasks in a workflow.
 D
-Streams desktop applications from AWS to users' devices.
+Stream desktop applications to users.
 
 Explanation
-Runs containers with Amazon ECS or EKS without requiring you to provision and manage the underlying servers. Example: run containerized workers without maintaining EC2 hosts. Memory cue: containers without host management. Comparison: Amazon EC2 Auto Scaling: Adjusts the number of EC2 instances to meet demand and helps maintain healthy capacity. AWS Step Functions: Coordinates tasks and AWS services into workflows with steps, branching, retries, and error handling. Amazon AppStream 2.0 (now Amazon WorkSpaces Applications): Streams desktop applications from AWS to users' devices.
+Runs containers with Amazon ECS or EKS without requiring you to provision and manage the underlying servers.
+Example: run containerized workers without maintaining EC2 hosts.
+Memory cue: containers without host management.
+**Comparison**: Amazon EC2 Auto Scaling: Adjusts the number of EC2 instances to meet demand and helps maintain healthy capacity.
+**AWS Step Functions**: Coordinates tasks and AWS services into workflows with steps, branching, retries, and error handling.
+**Amazon AppStream 2.0 (now Amazon WorkSpaces Applications)**: Streams desktop applications from AWS to users' devices.
 
 Question 48
 What is the purpose of AWS Shield?
 
 answer
 A
-Centrally applies security policies across AWS accounts in an organization.
+Manage firewall policies across accounts.
 B
-Protects applications against distributed denial-of-service (DDoS) attacks.
+Protect against DDoS attacks.
 Correct Answer:
 C
-Filters HTTP and HTTPS requests to protect web applications.
+Filter harmful web requests.
 D
-Filters network traffic entering, leaving, or moving within Amazon VPC networks.
+Filter traffic in VPC networks.
 
 Explanation
-Protects applications against distributed denial-of-service (DDoS) attacks. Example: help defend an internet-facing application against a traffic flood. Memory cue: SHIELD against floods; WAF filters web requests. Comparison: AWS Web Application Firewall (AWS WAF): Filters HTTP and HTTPS requests to protect web applications. AWS Network Firewall: Filters network traffic entering, leaving, or moving within Amazon VPC networks. AWS Firewall Manager: Centrally applies security policies across AWS accounts in an organization.
+Protects applications against distributed denial-of-service (DDoS) attacks.
+Example: help defend an internet-facing application against a traffic flood.
+Memory cue: SHIELD against floods; WAF filters web requests.
+**Comparison**: AWS Web Application Firewall (AWS WAF): Filters HTTP and HTTPS requests to protect web applications.
+**AWS Network Firewall**: Filters network traffic entering, leaving, or moving within Amazon VPC networks.
+**AWS Firewall Manager**: Centrally applies security policies across AWS accounts in an organization.
 
 Question 49
 What is the purpose of AWS CodeDeploy?
 
 answer
 A
-Provisions and updates infrastructure using templates that describe AWS resources.
+Build infrastructure from templates.
 B
-Automates deployment of application revisions to supported compute targets such as EC2, on-premises servers, Lambda, and ECS.
+Deploy new application versions.
 Correct Answer:
 C
-Hosts private Git repositories for storing and versioning source code.
+Store source code in Git repositories.
 D
-Helps operate and manage servers and other resources across AWS and hybrid environments.
+Manage and patch servers.
 
 Explanation
-Automates deployment of application revisions to supported compute targets such as EC2, on-premises servers, Lambda, and ECS. Example: roll out a new application version. Memory cue: DEPLOY a release; CodeCommit stores code. Comparison: AWS CodeCommit: Hosts private Git repositories for storing and versioning source code. AWS CloudFormation: Provisions and updates infrastructure using templates that describe AWS resources. AWS Systems Manager: Helps operate and manage servers and other resources across AWS and hybrid environments.
+Automates deployment of application revisions to supported compute targets such as EC2, on-premises servers, Lambda, and ECS.
+Example: roll out a new application version.
+Memory cue: DEPLOY a release; CodeCommit stores code.
+**Comparison**: AWS CodeCommit: Hosts private Git repositories for storing and versioning source code.
+**AWS CloudFormation**: Provisions and updates infrastructure using templates that describe AWS resources.
+**AWS Systems Manager**: Helps operate and manage servers and other resources across AWS and hybrid environments.
 
 Question 50
 What was the purpose of Amazon Elastic Transcoder?
 
 answer
 A
-Converts written text into spoken audio.
+Turn text into speech.
 B
-Analyzes images and videos to detect visual information such as objects, faces, and text.
+Analyze images and videos.
 C
-Streams desktop applications from AWS to users' devices.
+Stream desktop applications to users.
 D
-Converted media files into formats suited to different playback devices.
+Convert media files into different formats.
 Correct Answer:
 
 Explanation
-Converted media files into formats suited to different playback devices. Example: convert an uploaded video into several output formats. Memory cue: TRANSCODE media. Historical service: AWS shut it down November 13, 2025; study its original purpose for older coursework. Comparison: Amazon AppStream 2.0 (now Amazon WorkSpaces Applications): Streams desktop applications from AWS to users' devices. Amazon Rekognition: Analyzes images and videos to detect visual information such as objects, faces, and text. Amazon Polly: Converts written text into spoken audio.
+Converted media files into formats suited to different playback devices.
+Example: convert an uploaded video into several output formats.
+Memory cue: TRANSCODE media.
+Historical service: AWS shut it down November 13, 2025; study its original purpose for older coursework.
+**Comparison**: Amazon AppStream 2.0 (now Amazon WorkSpaces Applications): Streams desktop applications from AWS to users' devices.
+**Amazon Rekognition**: Analyzes images and videos to detect visual information such as objects, faces, and text.
+**Amazon Polly**: Converts written text into spoken audio.
