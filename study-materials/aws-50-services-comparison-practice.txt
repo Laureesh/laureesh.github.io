@@ -1,0 +1,305 @@
+Question 1
+Which sequence correctly matches threat detection, vulnerability scanning, and security investigation?
+
+answer
+A
+GuardDuty; Inspector; Detective
+Correct Answer:
+B
+Inspector; Detective; GuardDuty
+C
+GuardDuty; Detective; Inspector
+D
+Detective; GuardDuty; Inspector
+
+Explanation
+GuardDuty detects suspicious activity. Inspector identifies software vulnerabilities and network exposure. Detective helps investigate related activity. The other options swap these roles. Remember: alarm, inspection, investigation.
+
+Question 2
+Which pair correctly matches managing encryption keys and storing database passwords?
+
+answer
+A
+KMS; Secrets Manager
+Correct Answer:
+B
+Secrets Manager; KMS
+C
+Macie; Secrets Manager
+D
+IAM; KMS
+
+Explanation
+KMS manages cryptographic keys. Secrets Manager stores and supports rotation of passwords and other secrets. IAM controls permissions, and Macie discovers sensitive data in S3.
+
+Question 3
+Which sequence matches filtering VPC traffic, filtering web requests, DDoS protection, and central firewall policy management?
+
+answer
+A
+Network Firewall; WAF; Shield; Firewall Manager
+Correct Answer:
+B
+Network Firewall; Shield; WAF; Firewall Manager
+C
+WAF; Network Firewall; Firewall Manager; Shield
+D
+Firewall Manager; Shield; WAF; Network Firewall
+
+Explanation
+Network Firewall inspects network traffic; WAF filters HTTP/HTTPS requests; Shield protects against DDoS attacks; Firewall Manager centrally applies protection policies. The other sequences confuse enforcement, web filtering, DDoS defense, and policy management.
+
+Question 4
+Someone changes a security group. Which pair records the action and the resulting configuration, respectively?
+
+answer
+A
+X-Ray; GuardDuty
+B
+Config; CloudTrail
+C
+CloudTrail; Config
+Correct Answer:
+D
+CloudFormation; Systems Manager
+
+Explanation
+CloudTrail records account activity, including who made an API call. Config records resource configuration and changes. X-Ray traces application requests; GuardDuty detects threats. CloudFormation provisions infrastructure, and Systems Manager operates resources.
+
+Question 5
+Which pair controls a role's bucket permissions and governs multiple AWS accounts, respectively?
+
+answer
+A
+Firewall Manager; CloudTrail
+B
+IAM; Organizations
+Correct Answer:
+C
+Organizations; IAM
+D
+KMS; Service Catalog
+
+Explanation
+IAM policies control access by identities such as roles. Organizations manages groups of accounts and organization-level controls. Its SCPs limit available permissions but do not grant access. KMS manages keys, Service Catalog offers approved products, Firewall Manager manages protection policies, and CloudTrail records activity.
+
+Question 6
+Orders must wait until background workers can process them. Which service best fits?
+
+answer
+A
+Amazon SQS
+Correct Answer:
+B
+Amazon QuickSight
+C
+Amazon SNS
+D
+AWS Step Functions
+
+Explanation
+SQS buffers messages in a queue for asynchronous processing. SNS publishes to subscribers. Step Functions orchestrates workflows, and QuickSight presents dashboards. Queue consumers should tolerate retries, especially with standard SQS queues.
+
+Question 7
+One order event must notify billing, shipping, and analytics, each through its own subscriber queue. Which service provides the topic fan-out?
+
+answer
+A
+AWS CloudTrail
+B
+AWS Step Functions
+C
+Amazon SNS
+Correct Answer:
+D
+Amazon SQS
+
+Explanation
+SNS publishes one message to multiple subscribers, including SQS queues. Each queue then buffers work for its subsystem. SQS alone does not broadcast one queue message to all independent subsystems. Step Functions coordinates workflows; CloudTrail records account activity.
+
+Question 8
+Which pair runs SQL over S3 data and presents a business dashboard, respectively?
+
+answer
+A
+Macie; Config
+B
+Athena; QuickSight
+Correct Answer:
+C
+QuickSight; Athena
+D
+Kinesis; CloudTrail
+
+Explanation
+Athena queries data with SQL. QuickSight visualizes data through analyses and dashboards. Kinesis handles streams, CloudTrail records account activity, Macie discovers sensitive S3 data, and Config tracks resource configuration.
+
+Question 9
+Which sequence places AWS infrastructure at your premises, near a metropolitan area, and within a telecom network?
+
+answer
+A
+Local Zones; Wavelength; Outposts
+B
+Outposts; Local Zones; Wavelength
+Correct Answer:
+C
+Outposts; Wavelength; Local Zones
+D
+Wavelength; Outposts; Local Zones
+
+Explanation
+Outposts brings AWS-managed infrastructure to your site. Local Zones extend a Region near cities. Wavelength places resources within telecom networks. Remember: your building, city, telecom edge.
+
+Question 10
+Which sequence provides a dedicated AWS connection, a hub joining networks, and improved global application routing?
+
+answer
+A
+Direct Connect; Transit Gateway; Global Accelerator
+Correct Answer:
+B
+Global Accelerator; Direct Connect; Transit Gateway
+C
+Direct Connect; Global Accelerator; Transit Gateway
+D
+Transit Gateway; Global Accelerator; Direct Connect
+
+Explanation
+Direct Connect provides the dedicated connection. Transit Gateway connects VPCs and on-premises networks through a hub. Global Accelerator routes users over the AWS global network to healthy application endpoints. A dedicated connection is distinct from a routing hub or global traffic accelerator.
+
+Question 11
+Which sequence stores Git history, deploys application revisions, and provisions infrastructure from templates?
+
+answer
+A
+CodeCommit; CloudFormation; CodeDeploy
+B
+CloudFormation; CodeCommit; CodeDeploy
+C
+CodeCommit; CodeDeploy; CloudFormation
+Correct Answer:
+D
+CodeDeploy; CloudFormation; CodeCommit
+
+Explanation
+CodeCommit stores versioned source code. CodeDeploy rolls out application revisions. CloudFormation creates and updates infrastructure stacks. Remember: store code, release code, provision infrastructure.
+
+Question 12
+Which pair patches a server fleet and offers approved infrastructure products for users to provision?
+
+answer
+A
+Service Catalog; Systems Manager
+B
+CloudFormation; CodeCommit
+C
+Systems Manager; Service Catalog
+Correct Answer:
+D
+CloudTrail; Organizations
+
+Explanation
+Systems Manager handles operational tasks such as patching and remote commands. Service Catalog offers approved products. CloudTrail audits actions; Organizations governs accounts; CloudFormation provisions stacks; CodeCommit stores source code.
+
+Question 13
+Which sequence understands conversational input, reads text aloud, and detects objects in a photo?
+
+answer
+A
+Rekognition; Lex; Polly
+B
+Lex; Rekognition; Polly
+C
+Polly; Rekognition; Lex
+D
+Lex; Polly; Rekognition
+Correct Answer:
+
+Explanation
+Lex supports voice and text conversations. Polly converts text to spoken audio. Rekognition analyzes images and videos. Polly does not transcribe speech, and Rekognition is not a conversational interface.
+
+Question 14
+Which pair bridges on-premises storage to AWS and transfers large datasets using shipped devices?
+
+answer
+A
+Direct Connect; Outposts
+B
+Snowball; Storage Gateway
+C
+Outposts; Global Accelerator
+D
+Storage Gateway; Snowball
+Correct Answer:
+
+Explanation
+Storage Gateway supplies familiar storage interfaces backed by AWS storage. Snowball transfers data using physical devices; Snowball Edge is limited to existing customers as of November 7, 2025. Direct Connect is a network link, Outposts provides on-site AWS infrastructure, and Global Accelerator improves application routing.
+
+Question 15
+Which sequence adjusts EC2 instance count, runs containers without host management, and coordinates workflow steps?
+
+answer
+A
+Step Functions; EC2 Auto Scaling; Fargate
+B
+EC2 Auto Scaling; Fargate; Step Functions
+Correct Answer:
+C
+Fargate; Step Functions; EC2 Auto Scaling
+D
+EC2 Auto Scaling; Step Functions; Fargate
+
+Explanation
+EC2 Auto Scaling adds or removes instances and maintains healthy capacity. Fargate runs containers without requiring host provisioning. Step Functions orchestrates tasks, branches, and retries. These are capacity management, container compute, and workflow coordination, respectively.
+
+Question 16
+Which sequence provides AWS compliance documents, evaluates resource configurations, and discovers sensitive S3 data?
+
+answer
+A
+Artifact; Macie; Config
+B
+Macie; Artifact; Config
+C
+Config; Macie; Artifact
+D
+Artifact; Config; Macie
+Correct Answer:
+
+Explanation
+Artifact provides AWS compliance reports and agreements. Config evaluates resource configurations against rules. Macie discovers sensitive data in S3. Accessing an AWS audit report is different from checking your own configurations or examining your data.
+
+Question 17
+Which sequence alerts on spending, discounts committed EC2 usage, and helps with enterprise account and billing matters?
+
+answer
+A
+Budgets; Support Concierge; EC2 Instance Savings Plans
+B
+Support Concierge; Budgets; EC2 Instance Savings Plans
+C
+EC2 Instance Savings Plans; Support Concierge; Budgets
+D
+Budgets; EC2 Instance Savings Plans; Support Concierge
+Correct Answer:
+
+Explanation
+Budgets tracks thresholds and sends alerts; it is not an automatic hard spending cap. EC2 Instance Savings Plans discount eligible usage for a spending commitment to a family in a Region. Support Concierge assists eligible enterprise customers with account and billing questions.
+
+Question 18
+Which sequence provides a browser command line, programming libraries, and distributed request tracing?
+
+answer
+A
+CloudShell; X-Ray; AWS SDKs
+B
+CloudShell; AWS SDKs; X-Ray
+Correct Answer:
+C
+X-Ray; CloudShell; AWS SDKs
+D
+AWS SDKs; X-Ray; CloudShell
+
+Explanation
+CloudShell provides a browser shell with AWS tools. SDKs provide language-specific libraries for application code. X-Ray traces requests through distributed applications to diagnose errors and latency. A shell, code library, and tracing service serve different development needs.
