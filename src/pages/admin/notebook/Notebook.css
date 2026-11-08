@@ -194,6 +194,7 @@
 .step-title-input { width:100%; min-width:0; padding:8px; border:1px solid var(--nb-line); border-radius:6px; background:var(--nb-bg); color:var(--nb-text); }
 .step-row-actions { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:6px; }
 .rich-editor .notebook-steps>li[data-completed=true]::before { content:"✓"; background:#287565; }
+.rich-editor .notebook-steps>li[data-completed=true]::after { background:#287565; }
 .rich-editor .notebook-steps>li[data-completed=true]>:is(h1,h2,h3,h4,h5,h6) { color:var(--nb-mint); }
 @media print { .notebook-step-controls { display:none!important; } }
 .step-formatting-guide { margin:14px 0; padding:12px; border:1px solid var(--nb-line); border-radius:9px; background:var(--nb-bg); }
