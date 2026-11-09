@@ -1,7 +1,7 @@
 import LearnHistory, { type LearnAttempt } from "./LearnHistory";
 import ShareSetDialog from './sharing/ShareSetDialog';
 import SharedByMeDialog from './sharing/SharedByMeDialog';
-import { folderShareKey, sharedProgressKey, sharedStudyPath } from './sharing/sharedSet';
+import { folderShareKey, subjectShareFolder, type ShareFolder, sharedProgressKey, sharedStudyPath } from './sharing/sharedSet';
 import { revokeSetShare } from '../../../services/flashboltSharing';
 import type { SharedPublication } from '../../../services/flashboltSharing';
 import { isPrintedQuizReview } from "./note-parser";
@@ -882,7 +882,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   const routerNavigate = useNavigate();
   const userId = shared ? undefined : user?.uid;
   const [sharedLinksOpen, setSharedLinksOpen] = useState(false);
-  const [sharingFolder, setSharingFolder] = useState<Folder | null>(null);
+  const [sharingFolder, setSharingFolder] = useState<ShareFolder | null>(null);
   const [sharingSet, setSharingSet] = useState<StudySet | null>(null);
   const [sharedStorageError, setSharedStorageError] = useState(false);
   const sharedStorageKey = shared ? sharedProgressKey(shared.id, shared.folder ? `${shared.revision}.${shared.set.id}` : shared.revision) : '';
@@ -3636,7 +3636,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                     <section className="folder-subject-section" key={group.subject.toLocaleLowerCase()}>
                       <div className="folder-subject-heading">
                         <div><span className="eyebrow">Subject</span><h2 id={`folder-subject-${encodeURIComponent(group.subject.toLocaleLowerCase())}`} tabIndex={-1}>{group.subject}</h2></div>
-                        <div className="subject-batch-actions"><small>{group.sets.length} set{group.sets.length === 1 ? "" : "s"}</small><button className="button quiet" aria-label={`Batch quick edit ${group.subject}`} onClick={() => setBatchEditSets(group.sets)}>Batch quick edit</button></div>
+                        <div className="subject-batch-actions"><button className="button quiet" aria-label={`Share subject ${group.subject}`} onClick={() => setSharingFolder(subjectShareFolder(folder, group.subject, data.sets))}>Share subject</button><small>{group.sets.length} set{group.sets.length === 1 ? "" : "s"}</small><button className="button quiet" aria-label={`Batch quick edit ${group.subject}`} onClick={() => setBatchEditSets(group.sets)}>Batch quick edit</button></div>
                       </div>
                       {renderSetGrid(group.sets)}
                     </section>
@@ -4237,7 +4237,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
         </nav>}
       </div>
 
-      {!shared && sharedLinksOpen && userId && <SharedByMeDialog uid={userId} sets={data.sets} folders={data.folders} onClose={() => setSharedLinksOpen(false)} onManageSet={set => { setSharedLinksOpen(false); setSharingSet(set); }} onManageFolder={id => { setSharedLinksOpen(false); setSharingFolder(data.folders.find(folder => folder.id === id) ?? null); }} />}
+      {!shared && sharedLinksOpen && userId && <SharedByMeDialog uid={userId} sets={data.sets} folders={data.folders} onClose={() => setSharedLinksOpen(false)} onManageSet={set => { setSharedLinksOpen(false); setSharingSet(set); }} onManageFolder={folder => { setSharedLinksOpen(false); setSharingFolder(folder); }} />}
       {!shared && sharingFolder && userId && <ShareSetDialog uid={userId} folder={sharingFolder} sets={data.sets} onClose={() => setSharingFolder(null)} />}
       {!shared && sharingSet && userId && <ShareSetDialog uid={userId} set={sharingSet} onClose={() => setSharingSet(null)} />}
       {batchEditSets && <BatchSetDetails sets={batchEditSets} onClose={() => setBatchEditSets(null)} onSave={changes => {

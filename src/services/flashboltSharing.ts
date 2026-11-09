@@ -1,6 +1,6 @@
 import { collection, doc, getDocFromServer, getDocsFromServer, runTransaction, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/app';
-import { encodeSharedSet, encodeSharedFolder, folderShareKey, sharedFolderSnapshot, sharedSnapshot, validShareId, type ShareFolder, type SharedFolder } from '../pages/admin/flashbolt/sharing/sharedSet';
+import { encodeSharedSet, encodeSharedFolder, collectionShareKey, sharedFolderSnapshot, sharedSnapshot, validShareId, type ShareFolder, type SharedFolder } from '../pages/admin/flashbolt/sharing/sharedSet';
 import type { StudySet } from '../pages/admin/flashbolt/Flashbolt';
 
 export type SharedPublication = { id: string; revision: string; set: StudySet; folder?: SharedFolder };
@@ -36,7 +36,7 @@ export async function publishSetShare(uid: string, set: StudySet, folder?: Share
   const candidate = doc(collection(db, 'sharedFlashboltSets'));
   const revision = crypto.randomUUID();
   return runTransaction(db, async transaction => {
-    const mapping = ownerRef(uid, folder ? folderShareKey(folder.id) : set.id);
+    const mapping = ownerRef(uid, folder ? collectionShareKey(folder) : set.id);
     const existing = await transaction.get(mapping);
     const id = existing.exists() ? existing.data().shareId as string : candidate.id;
     if (!validShareId(id)) throw new Error('Invalid sharing record.');

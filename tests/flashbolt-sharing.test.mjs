@@ -69,3 +69,23 @@ test('folder validation identifies the set with malformed cards', async () => {
   const { encodeSharedFolder } = await import('../src/pages/admin/flashbolt/sharing/sharedSet.ts');
   assert.throws(() => encodeSharedFolder({ id: 'folder', name: 'Course', setIds: [set.id] }, [{ ...set, title: 'Broken chapter', cards: [{ id: 'bad' }] }]), /Could not share “Broken chapter”: This set contains an invalid card/);
 });
+
+test('subject links include only matching members of their folder and have independent stable keys', async () => {
+  const { subjectShareFolder, collectionShareKey, folderShareKey, encodeSharedFolder } = await import('../src/pages/admin/flashbolt/sharing/sharedSet.ts');
+  const sets = [set, { ...set, id: 'second', subject: ' os ', title: 'Scheduling' }, { ...set, id: 'other', subject: 'Cloud' }, { ...set, id: 'outside', title: 'Outside folder' }];
+  const folder = { id: 'course', name: 'Course', setIds: ['other', 'second', set.id] };
+  const subject = subjectShareFolder(folder, 'OS', sets);
+  assert.deepEqual(subject.setIds, ['second', set.id]);
+  assert.deepEqual(JSON.parse(encodeSharedFolder(subject, sets)).sets.map(item => item.title), ['Scheduling', 'Threads']);
+  assert.equal(collectionShareKey(subject), collectionShareKey(subjectShareFolder(folder, ' os ', sets)));
+  assert.notEqual(collectionShareKey(subject), folderShareKey(folder.id));
+  assert.notEqual(collectionShareKey(subject), collectionShareKey(subjectShareFolder({ ...folder, id: 'another' }, 'OS', sets)));
+  assert.notEqual(collectionShareKey(subject), collectionShareKey(subjectShareFolder(folder, 'Cloud', sets)));
+  assert(!collectionShareKey(subjectShareFolder(folder, 'AWS / Cloud', sets)).includes('/'));
+});
+
+test('blank subjects share the same General group displayed in the folder', async () => {
+  const { subjectShareFolder } = await import('../src/pages/admin/flashbolt/sharing/sharedSet.ts');
+  const sets = [{ ...set, subject: ' ' }, { ...set, id: 'general', subject: 'General' }];
+  assert.deepEqual(subjectShareFolder({ id: 'course', name: 'Course', setIds: sets.map(item => item.id) }, 'General', sets).setIds, sets.map(item => item.id));
+});

@@ -40,9 +40,20 @@ export function encodeSharedSet(set: unknown): string {
   return payload;
 }
 
-export type ShareFolder = { id: string; name: string; setIds: string[] };
+export type ShareFolder = { id: string; name: string; setIds: string[]; subject?: string };
 export type SharedFolder = { name: string; sets: StudySet[] };
 export const folderShareKey = (id: string) => `folder:${id}`;
+
+export const collectionShareKey = (folder: ShareFolder) => folder.subject === undefined
+  ? folderShareKey(folder.id)
+  : `subject:${encodeURIComponent(folder.id)}:${encodeURIComponent(folder.subject.trim().toLocaleLowerCase() || 'general')}`;
+
+// Select from the full library so search and mastery filters cannot omit subject members.
+export function subjectShareFolder(folder: ShareFolder, subject: string, sets: StudySet[]): ShareFolder {
+  const name = subject.trim() || 'General';
+  const members = new Set(sets.filter(set => (set.subject.trim() || 'General').toLocaleLowerCase() === name.toLocaleLowerCase()).map(set => set.id));
+  return { id: folder.id, name, subject: name, setIds: folder.setIds.filter(id => members.has(id)) };
+}
 
 export function sharedFolderSnapshot(value: unknown): SharedFolder {
   if (!record(value) || typeof value.name !== 'string' || !value.name.trim() || !Array.isArray(value.sets) || !value.sets.length) {
