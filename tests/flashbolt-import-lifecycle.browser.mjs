@@ -7,6 +7,7 @@ const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODUL
 const origin = process.env.TEST_ORIGIN || 'http://127.0.0.1:5173';
 const quiz = readFileSync(new URL('./fixtures/cyberdefense-monitoring-quiz.txt', import.meta.url), 'utf8');
 const expected = parseQuizResults(quiz);
+const clipboardExample = 'Question 1\nWhich tool captures network packets?\n\nanswer\nA\nWireshark\nCorrect Answer:\nB\nA text editor\nC\nA calculator\n\nExplanation\nWireshark captures network traffic so you can inspect individual packets.';
 let browser;
 before(async () => { browser = await chromium.launch({ headless: true }); });
 after(async () => { await browser?.close(); });
@@ -77,5 +78,71 @@ test('manual quiz import preserves question context through autosave, reload, st
     const question = page.locator('.kahoot-helper-card').nth(9);
     await question.waitFor();
     assert.equal(await question.locator('h2').textContent(), expected[9].term);
+  } finally { await page.close(); }
+});
+
+
+test('empty-field import reads the clipboard and saves the complete example', async () => {
+  const page = await mount('create', 1800);
+  try {
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.evaluate(text => navigator.clipboard.writeText(text), clipboardExample);
+    await page.getByRole('button', { name: 'Import pasted cards', exact: true }).click();
+    await page.getByRole('button', { name: /^Go to card 1(?:, current question)?, complete$/ }).waitFor();
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('flashbolt.local.v1')));
+    assert.equal(saved.sets.length, 1);
+    assert.equal(saved.sets[0].cards.length, 1);
+    const expectedCard = parseQuizResults(clipboardExample)[0];
+    for (const field of ['term', 'definition', 'answerChoices', 'correctAnswers', 'explanation']) {
+      assert.deepEqual(saved.sets[0].cards[0][field], expectedCard[field]);
+    }
+  } finally { await page.close(); }
+});
+
+test('denied clipboard access shows a persistent paste fallback that imports successfully', async () => {
+  const page = await mount('create', 1800);
+  try {
+    await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { readText: async () => { throw new DOMException('Denied', 'NotAllowedError'); } },
+    }));
+    await page.getByRole('button', { name: 'Import pasted cards', exact: true }).click();
+    await page.getByRole('alert').filter({ hasText: 'Your browser did not allow clipboard access' }).waitFor();
+    const field = page.getByRole('textbox', { name: 'Cards to import' });
+    assert.equal(await field.evaluate(element => element === document.activeElement), true);
+    await field.fill(clipboardExample);
+    assert.equal(await page.locator('#paste-import-error').count(), 0);
+    await page.getByRole('button', { name: 'Import pasted cards', exact: true }).click();
+    await page.getByRole('button', { name: /^Go to card 1(?:, current question)?, complete$/ }).waitFor();
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('flashbolt.local.v1')));
+    assert.equal(saved.sets[0].cards[0].definition, 'Wireshark');
+  } finally { await page.close(); }
+});
+
+test('folder clipboard imports stay in one saved set across repeated clicks', async () => {
+  const fixture = { sets: [], folders: [{ id: 'cloud', name: 'Cloud Computing', semester: '', setIds: [] }], mastered: {}, sessions: 0 };
+  const page = await mount('no-semester/cloud-computing/create', 1800, fixture);
+  try {
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.evaluate(text => navigator.clipboard.writeText(text), clipboardExample);
+    const importButton = page.getByRole('button', { name: 'Import pasted cards', exact: true });
+    await importButton.click();
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('flashbolt.local.v1') ?? '{}').sets?.length === 1);
+    await page.waitForFunction(() => document.querySelector('#set-title')?.value === 'Imported study set');
+    const first = await page.evaluate(() => JSON.parse(localStorage.getItem('flashbolt.local.v1')));
+    await importButton.click();
+    await page.getByText('These cards are already in this set.', { exact: true }).waitFor();
+    let saved = await page.evaluate(() => JSON.parse(localStorage.getItem('flashbolt.local.v1')));
+    assert.equal(saved.sets.length, 1);
+    assert.equal(saved.sets[0].id, first.sets[0].id);
+    assert.equal(saved.sets[0].cards.length, 1);
+    const second = clipboardExample.replace('Which tool captures network packets?', 'Which tool helps inspect captured packets?');
+    await page.evaluate(text => navigator.clipboard.writeText(text), second);
+    await importButton.click();
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('flashbolt.local.v1')).sets[0].cards.length === 2);
+    saved = await page.evaluate(() => JSON.parse(localStorage.getItem('flashbolt.local.v1')));
+    assert.equal(saved.sets.length, 1);
+    assert.equal(saved.sets[0].id, first.sets[0].id);
+    assert.deepEqual(saved.folders[0].setIds, [first.sets[0].id]);
   } finally { await page.close(); }
 });

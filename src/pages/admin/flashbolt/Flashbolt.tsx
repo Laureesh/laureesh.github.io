@@ -1026,6 +1026,9 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   const [draftFolderSearch, setDraftFolderSearch] = useState("");
   const [pasteImport, setPasteImport] = useState("");
   const [readingClipboard, setReadingClipboard] = useState(false);
+  const [pasteImportError, setPasteImportError] = useState("");
+  const pasteImportRef = useRef<HTMLTextAreaElement>(null);
+  const pasteImportInFlight = useRef(false);
   const [quizletUrl, setQuizletUrl] = useState("");
   const [quizletImporting, setQuizletImporting] = useState(false);
   const [quizletImportMessage, setQuizletImportMessage] = useState("");
@@ -2042,7 +2045,9 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
         const routeFolder = originFolder
           ?? nextData.folders.find((folderItem) => draftFolderIds.includes(folderItem.id));
         const path = `${FLASHBOLT_BASE}/${routeSlug(routeFolder?.semester || "no-semester")}/${routeFolder ? folderRouteSegment(routeFolder) : "unfiled"}/${setRouteSegment(savedSet, routeFolder)}/edit`;
-        handledRouteRef.current = path;
+        // Keep the old route handled until navigation commits. Library updates can
+        // render first; resolving the old folder /create route would reset this draft.
+        handledRouteRef.current = location.pathname;
         routerNavigate(path, { replace: true });
       }
     }
@@ -2429,20 +2434,39 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   }
 
   async function applyPasteImport() {
-    if (readingClipboard) return;
+    if (pasteImportInFlight.current) return;
+    pasteImportInFlight.current = true;
+    try {
+      await importPastedCards();
+    } finally {
+      pasteImportInFlight.current = false;
+    }
+  }
+
+  async function importPastedCards() {
+    setPasteImportError("");
     let importText = pasteImport;
     if (!importText.trim()) {
       setReadingClipboard(true);
+      let clipboardTimeout: ReturnType<typeof setTimeout> | undefined;
       try {
-        importText = await navigator.clipboard.readText();
+        importText = await Promise.race([
+          navigator.clipboard.readText(),
+          new Promise<never>((_, reject) => {
+            clipboardTimeout = setTimeout(() => reject(new Error("Clipboard request timed out")), 10000);
+          }),
+        ]);
       } catch {
-        notify("Clipboard access is unavailable or blocked. Paste your cards into the field, then import again.");
+        setPasteImportError("Your browser did not allow clipboard access. Paste here with Ctrl+V (Windows) or ⌘V (Mac), then click Import pasted cards.");
+        pasteImportRef.current?.focus();
         return;
       } finally {
+        clearTimeout(clipboardTimeout);
         setReadingClipboard(false);
       }
       if (!importText.trim()) {
-        notify("Your clipboard has no text. Copy some cards or paste them into the field first.");
+        setPasteImportError("No text was found on the clipboard. Copy your question again, or paste it into the field below.");
+        pasteImportRef.current?.focus();
         return;
       }
       setPasteImport(importText);
@@ -2462,15 +2486,33 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
       notify("Paste quiz results, Quizlet term-list HTML, or use term :: definition.");
       return;
     }
+    const existingCards = draft.cards.filter(card => card.term || card.definition);
+    const importKey = (card: Card) => JSON.stringify([
+      card.term.trim(), card.definition.trim(), card.answerChoices ?? [],
+      card.correctAnswers ?? [], card.explanation?.trim() ?? "",
+      card.matchingPairs?.map(pair => [pair.left, pair.right]) ?? [],
+    ]);
+    const existingKeys = new Set(existingCards.map(importKey));
+    const newCards = cards.map(card => applyDetectedQuestionType(card)).filter(card => {
+      const key = importKey(card);
+      if (existingKeys.has(key)) return false;
+      existingKeys.add(key);
+      return true;
+    });
+    if (!newCards.length) {
+      setPasteImport("");
+      setPasteImportError("These cards are already in this set.");
+      return;
+    }
     const importedDraft: StudySet = {
       ...draft,
       title: draft.title.trim() || "Imported study set",
-      cards: [...draft.cards.filter((card) => card.term || card.definition), ...cards.map(card => applyDetectedQuestionType(card))],
+      cards: [...existingCards, ...newCards],
     };
     // Save the imported snapshot directly; React has not committed setDraft yet.
     setDraft(importedDraft);
     setPasteImport("");
-    saveDraft(false, importedDraft, `${cards.length} card${cards.length === 1 ? "" : "s"} imported and set saved.`);
+    saveDraft(false, importedDraft, `${newCards.length} card${newCards.length === 1 ? "" : "s"} imported and set saved.`);
   }
 
   function openNewFolderModal() {
@@ -3898,7 +3940,8 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                   <div className={`paste-import-block collapsible-panel-section ${collapsedEditorSections.includes("paste") ? "collapsed" : ""}`}>
                     <button className="side-panel-collapse-button" type="button" onClick={() => toggleEditorSection("paste")} aria-expanded={!collapsedEditorSections.includes("paste")}><span><small>Manual import</small><strong>Paste a list</strong></span><i aria-hidden="true">⌃</i></button>
                     <div className="collapsible-panel-body"><p>Paste quiz results or <code>term :: definition</code> pairs. Leave this field empty to import from your clipboard.</p>
-                      <textarea disabled={readingClipboard} value={pasteImport} onChange={(event) => setPasteImport(event.target.value)} aria-label="Cards to import" placeholder={'Paste here…\n\nFirewall :: Filters network traffic.'} rows={5} />
+                      {pasteImportError && <p id="paste-import-error" className="import-status error" role="alert">{pasteImportError}</p>}
+                      <textarea ref={pasteImportRef} readOnly={readingClipboard} value={pasteImport} onChange={(event) => { setPasteImport(event.target.value); setPasteImportError(""); }} aria-label="Cards to import" aria-describedby={pasteImportError ? "paste-import-error" : undefined} placeholder={'Paste here…\n\nFirewall :: Filters network traffic.'} rows={5} />
                       <button className="button quiet full" onClick={applyPasteImport} disabled={readingClipboard}>{readingClipboard ? "Reading clipboard…" : "Import pasted cards"}</button>
                       <details className="manual-import-examples">
                         <summary className="manual-import-examples-heading">Supported formats &amp; examples</summary>
