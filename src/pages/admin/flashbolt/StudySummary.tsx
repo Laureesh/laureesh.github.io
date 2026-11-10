@@ -1,7 +1,7 @@
 import type { ReviewCard } from "./review-engine";
 
 export function StudyExplanation({ text }: { text?: string }) {
-  return text?.trim() ? <aside className="study-explanation"><strong>Why this answer?</strong><p>{text}</p></aside> : null;
+  return text?.trim() ? <aside className="study-explanation"><strong>Explanation</strong><p>{text}</p></aside> : null;
 }
 
 export default function StudySummary({ missed, onRetry }: { missed: ReviewCard[]; onRetry: () => void }) {

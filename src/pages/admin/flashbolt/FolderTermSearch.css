@@ -1,13 +1,37 @@
-.folder-term-search { margin: 20px 0; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+.folder-term-search { margin: 24px 0; padding: 24px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); }
+.folder-term-search .term-list-heading { align-items: center; gap: 24px; margin-bottom: 16px; }
 .folder-term-search-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; min-width: 0; }
-.folder-term-search-controls > label { display: grid; gap: 6px; }
-.folder-term-search-controls select { max-width: 100%; padding: 10px; }
-.folder-term-search > p, .folder-term-results small { color: var(--muted); }
-.folder-term-results { display: grid; gap: 12px; margin: 16px 0; }
-.folder-term-results article { min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: 12px; overflow-wrap: anywhere; }
-.folder-term-results header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
-.folder-term-results h3, .folder-term-results p, .folder-term-results li { white-space: pre-wrap; }
-@media (max-width: 640px) {
+.folder-term-search-controls > label { display: grid; gap: 7px; color: var(--muted); font-size: 13px; }
+.folder-term-search-controls select { width: 240px; max-width: 100%; min-height: 46px; padding: 10px 14px; }
+.folder-term-search-controls .term-search { min-height: 46px; padding: 8px 12px; }
+.flashbolt-shell .folder-term-search .term-search input { width: 100%; padding: 0; border: 0; border-radius: 0; outline: 0; box-shadow: none; background: transparent; }
+.folder-term-search input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
+.folder-term-search > p { margin: 6px 0; color: var(--muted); font-size: 13px; }
+.folder-term-results { display: grid; gap: 16px; margin: 20px 0; }
+.folder-term-result { min-width: 0; border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--bg) 40%, var(--panel)); overflow-wrap: anywhere; }
+.folder-term-source { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; padding: 14px 22px; border-bottom: 1px solid var(--line-soft); }
+.folder-term-source .text-button { text-align: left; color: var(--muted); }
+.folder-term-source .text-button:hover { color: var(--ink); }
+.folder-term-source > div { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.folder-term-source small { color: var(--faint); }
+.folder-term-disabled { padding: 3px 8px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); font-size: 11px; }
+.folder-term-review { display: grid; grid-template-columns: 36px minmax(0, 0.85fr) minmax(0, 1.15fr); align-items: start; gap: 24px; padding: 24px; }
+.folder-term-number { color: var(--faint); font-size: 18px; font-weight: 800; }
+.folder-term-review h3 { margin: 0; font-size: 18px; line-height: 1.55; white-space: pre-wrap; }
+.folder-term-review .term-review-choices { grid-column: 3; grid-row: auto; }
+.folder-term-review .term-review-choices li > b { font-size: 16px; white-space: pre-wrap; }
+.folder-term-review .term-review-choices li > em { font-size: 12px; }
+.folder-term-review .study-explanation { grid-column: 2 / -1; min-width: 0; margin: 0; }
+.folder-term-answer { padding: 14px 16px; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--panel-2); }
+.folder-term-answer p { margin: 8px 0 0; line-height: 1.6; white-space: pre-wrap; }
+.folder-term-image { grid-column: 2 / -1; max-width: 100%; max-height: 200px; object-fit: contain; justify-self: start; border-radius: 8px; }
+@media (max-width: 760px) {
   .folder-term-search { padding: 14px; }
-  .folder-term-search-controls, .folder-term-search-controls > label, .folder-term-search-controls .term-search { width: 100%; min-width: 0; }
+  .folder-term-search-controls, .folder-term-search-controls > label, .folder-term-search-controls select, .folder-term-search-controls .term-search { width: 100%; min-width: 0; }
+  .folder-term-source { padding: 12px 14px; }
+  .folder-term-review { grid-template-columns: 24px minmax(0, 1fr); gap: 16px 10px; padding: 16px 14px; }
+  .folder-term-review h3 { font-size: 16px; }
+  .folder-term-review .term-review-choices, .folder-term-answer { grid-column: 2; }
+  .folder-term-review .term-review-choices li { flex-wrap: wrap; }
+  .folder-term-review .term-review-choices li > em { margin-left: 30px; }
 }
