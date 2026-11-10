@@ -3000,6 +3000,15 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     return `${window.location.origin}${path}`;
   }
 
+  async function copyImportExample(title: string, text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      notify(`Copied example: ${title}`);
+    } catch {
+      notify("Could not copy the example. Select its text and copy it manually.");
+    }
+  }
+
   async function copySetModeLink(set: StudySet, mode: "flashcards" | "learn" | "test" | "edit") {
     try {
       await navigator.clipboard.writeText(setModeUrl(set, mode));
@@ -3894,11 +3903,15 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                       <details className="manual-import-examples">
                         <summary className="manual-import-examples-heading">Supported formats &amp; examples</summary>
                         <div className="manual-import-examples-body">
-                          <p>Expand any format to see an example. Use one format per import.</p>
+                          <p>Choose a format, copy its example, and replace the sample content. Use one format per import.</p>
                           {manualImportExamples.map(example => (
                             <details key={example.title}>
                               <summary>{example.title}</summary>
                               <p>{example.description}</p>
+                              <div className="manual-import-example-toolbar">
+                                <span>Text to paste</span>
+                                <button type="button" className="button quiet" aria-label={`Copy example: ${example.title}`} onClick={() => void copyImportExample(example.title, example.text)}>Copy example</button>
+                              </div>
                               <pre><code>{example.text}</code></pre>
                             </details>
                           ))}

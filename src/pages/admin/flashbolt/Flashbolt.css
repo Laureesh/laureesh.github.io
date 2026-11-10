@@ -7914,6 +7914,11 @@ kbd {
 .manual-import-examples details p { margin-top:10px; }
 .manual-import-examples pre { margin:10px 0 0; padding:10px; border-radius:6px; background:var(--panel-2); color:var(--ink); white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; line-height:1.6; tab-size:4; }
 
+.manual-import-example-toolbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-top:12px; }
+.manual-import-example-toolbar > span { color:var(--muted); font-size:12px; }
+.manual-import-example-toolbar .button { min-height:32px; padding:6px 10px; font-size:12px; }
+.manual-import-examples pre code { display:block; padding:0; border:0; border-radius:0; background:transparent; color:inherit; font:inherit; white-space:inherit; text-decoration:none; }
+
 /* Searchable helper pickers: a compact, keyboard-accessible quick switch. */
 .search-picker-field { display: grid; gap: 6px; min-width: 0; }
 .search-picker-field > span { color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
