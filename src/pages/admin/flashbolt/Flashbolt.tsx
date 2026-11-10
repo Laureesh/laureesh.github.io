@@ -32,6 +32,8 @@ import InlineSetDetails from "./InlineSetDetails";
 import BatchSetDetails from "./BatchSetDetails";
 import SetColorPicker from "./SetColorPicker";
 import SearchPicker from "./SearchPicker";
+import FolderTermSearch from "./FolderTermSearch";
+import { matchesTermSearch } from "./termSearch";
 import TileFolderPanel from "./TileFolderPanel";
 import ConfirmSetTerms from "./ConfirmSetTerms";
 import Confirmation from "./Confirmation";
@@ -3232,11 +3234,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
 
   const currentFlashcard = selectedSet?.cards[flashIndex];
   const isCurrentMastered = Boolean(selectedSet && currentFlashcard && data.mastered[selectedSet.id]?.includes(currentFlashcard.id));
-  const visibleSetCards = selectedSet?.cards.filter((card) => {
-    const query = termSearch.trim().toLocaleLowerCase();
-    if (!query) return true;
-    return [card.term, card.definition, ...(card.answerChoices ?? []), ...(card.correctAnswers ?? [])].some((value) => value.toLocaleLowerCase().includes(query));
-  }) ?? [];
+  const visibleSetCards = selectedSet?.cards.filter(card => matchesTermSearch(card, termSearch)) ?? [];
 
   return (
     <>
@@ -3630,6 +3628,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                 </label>
                 </div>
               </div>}
+              {folder && <FolderTermSearch key={folder.id} sets={data.sets} folder={folder} onOpenSet={(id, query) => { openSet(id); setTermSearch(query); }} />}
               {folder && visibleSets.length ? (
                 <div className={`folder-subject-sections${folderCardView !== "default" ? " folder-list-view" : ""}${folderCardView === "compact" ? " folder-compact-view" : ""}`}>
                   {folderSubjectGroups.map((group) => (

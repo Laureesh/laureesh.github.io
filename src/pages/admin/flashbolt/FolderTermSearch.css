@@ -1,0 +1,13 @@
+.folder-term-search { margin: 20px 0; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+.folder-term-search-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; min-width: 0; }
+.folder-term-search-controls > label { display: grid; gap: 6px; }
+.folder-term-search-controls select { max-width: 100%; padding: 10px; }
+.folder-term-search > p, .folder-term-results small { color: var(--muted); }
+.folder-term-results { display: grid; gap: 12px; margin: 16px 0; }
+.folder-term-results article { min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: 12px; overflow-wrap: anywhere; }
+.folder-term-results header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.folder-term-results h3, .folder-term-results p, .folder-term-results li { white-space: pre-wrap; }
+@media (max-width: 640px) {
+  .folder-term-search { padding: 14px; }
+  .folder-term-search-controls, .folder-term-search-controls > label, .folder-term-search-controls .term-search { width: 100%; min-width: 0; }
+}
