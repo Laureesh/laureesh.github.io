@@ -1,0 +1,524 @@
+Question 1
+Which pillar of the AWS Well-Architected Framework focuses on using computing resources in ways that meet system requirements?
+
+answer
+A
+Reliability
+B
+Security
+C
+Performance Efficiency
+Correct Answer:
+D
+Operational Excellence
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 2
+Which statement best describes AWS Marketplace?
+
+answer
+A
+A resource that provides guidance, architectural reviews, and ongoing communication with companies as they plan, deploy, and optimize their applications
+B
+An online tool that inspects an AWS environment and provides real-time guidance in accordance with AWS best practices
+C
+A digital catalog that includes thousands of software listings from independent software vendors
+Correct Answer:
+D
+A resource that can answer questions about best practices and assist with troubleshooting issues
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 3
+A cloud engineer is running an Amazon EC2 instance and wants to store data in an attached resource. Their data is temporary and will not be kept long term. Which resource should they use?
+
+answer
+A
+Subnet
+B
+Amazon S3 bucket
+C
+Instance store
+Correct Answer:
+D
+Amazon Elastic Block Store (Amazon EBS) volume
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 4
+A cloud architect wants Amazon S3 to monitor object access patterns. Which storage class should they use?
+
+answer
+A
+Amazon S3 One Zone-IA
+B
+Amazon S3 Glacier Flexible Retrieval
+C
+Amazon S3 Intelligent-Tiering
+Correct Answer:
+D
+Amazon S3 Standard-IA
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 5
+An application developer wants to send and receive messages between distributed application components. Which service should they use?
+
+answer
+A
+Amazon Simple Queue Service (Amazon SQS)
+Correct Answer:
+B
+AWS Snowball
+C
+Amazon ElastiCache
+D
+Amazon Route 53
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 6
+An application developer wants to store data in a key-value database. Which service should they use?
+
+answer
+A
+Amazon DocumentDB
+B
+Amazon DynamoDB
+Correct Answer:
+C
+Amazon RDS
+D
+Amazon Aurora
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 7
+Which component or service establishes a dedicated private connection between an on-premises data center and virtual private cloud (VPC)?
+
+answer
+A
+AWS Direct Connect
+Correct Answer:
+B
+Virtual private gateway
+C
+Internet gateway
+D
+Amazon CloudFront
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 8
+Which virtual private cloud (VPC) component controls inbound and outbound traffic for Amazon EC2 instances?
+
+answer
+A
+Network access control list
+B
+Security group
+Correct Answer:
+C
+Internet gateway
+D
+Subnet
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 9
+A cloud engineer wants to store data in a volume that is attached to an Amazon EC2 instance. Which service should they use?
+
+answer
+A
+Amazon Elastic Block Store (Amazon EBS)
+Correct Answer:
+B
+Amazon Simple Storage Service (Amazon S3)
+C
+Amazon ElastiCache
+D
+AWS Lambda
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 10
+Which tasks are the responsibilities of AWS? (Select TWO.)
+
+answer
+A
+Maintaining virtualization infrastructure
+Correct Answer:
+B
+Training company employees on how to use AWS services
+C
+Creating IAM users and groups
+D
+Configuring AWS infrastructure devices
+Correct Answer:
+E
+Configuring security groups on Amazon EC2 instances
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 11
+Which statement best describes Elastic Load Balancing?
+
+answer
+A
+A service that provides data for monitoring applications, optimize resource utilization, and respond to system-wide performance changes
+B
+A service that provides the capability to create, manage, and scale a distributed in-memory or cache environment in the cloud
+C
+A service that monitors applications and automatically adds or removes capacity from resource groups in response to changing demand
+D
+A service that distributes incoming traffic across multiple targets, such as Amazon EC2 instances
+Correct Answer:
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 12
+Which statement best describes an Availability Zone?
+
+answer
+A
+The server from which Amazon CloudFront gets files
+B
+A site that Amazon CloudFront uses to cache copies of content for faster delivery to users at any location
+C
+A fully isolated portion of the AWS global infrastructure
+Correct Answer:
+D
+A separate geographical location with multiple locations that are isolated from each other
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 13
+Which Perspective of the AWS Cloud Adoption Framework focuses on recovering IT workloads to meet the requirements of business stakeholders?
+
+answer
+A
+People Perspective
+B
+Operations Perspective
+Correct Answer:
+C
+Governance Perspective
+D
+Business Perspective
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 14
+In the S3 Intelligent-Tiering storage class, Amazon S3 moves objects between a frequent access tier and an infrequent access tier. Which storage classes are used for these tiers? (Select TWO.)
+
+answer
+A
+S3 Standard
+Correct Answer:
+B
+S3 Standard-IA
+Correct Answer:
+C
+S3 One Zone-IA
+D
+S3 Glacier Deep Archive
+E
+S3 Glacier Flexible Retrieval
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+Source wording issue: A and B are the likely intended answers, but S3 Intelligent-Tiering uses its own Frequent Access and Infrequent Access tiers; it does not move objects into the separate S3 Standard and S3 Standard-IA storage classes. Treat this as a flawed source question. Reference: https://aws.amazon.com/s3/storage-classes/intelligent-tiering/
+
+Question 15
+Which statement is TRUE for AWS Lambda?
+
+answer
+A
+The first step in using AWS Lambda is provisioning a server.
+B
+Before using AWS Lambda, a business must prepay for their estimated compute time.
+C
+Businesses pay only for compute time while their code is running.
+Correct Answer:
+D
+To use AWS Lambda, businesses must configure the servers that run their code.
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 16
+Which migration strategy involves changing how an application is architected and developed, typically by using cloud-native features?
+
+answer
+A
+Replatforming
+B
+Repurchasing
+C
+Rehosting
+D
+Refactoring
+Correct Answer:
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 17
+Which Amazon EC2 pricing option reduces costs when a business makes an hourly spend commitment to an instance family and Region for a 1-year or 3-year term?
+
+answer
+A
+Spot Instances
+B
+EC2 Instance Savings Plans
+Correct Answer:
+C
+Dedicated Hosts
+D
+Reserved Instances
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 18
+Which tool provides the capability to visualize, understand, and manage AWS costs and usage over time?
+
+answer
+A
+AWS Cost Explorer
+Correct Answer:
+B
+AWS Pricing Calculator
+C
+AWS Artifact
+D
+AWS Budgets
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 19
+Which service runs containerized applications on AWS?
+
+answer
+A
+Amazon SageMaker
+B
+Amazon Elastic Kubernetes Service (Amazon EKS)
+Correct Answer:
+C
+Amazon Redshift
+D
+Amazon Aurora
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 20
+Which service consolidates and manages multiple AWS accounts from a central location?
+
+answer
+A
+AWS Organizations
+Correct Answer:
+B
+AWS Key Management Service (AWS KMS)
+C
+AWS Identity and Access Management (IAM)
+D
+AWS Artifact
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 21
+Which AWS Trusted Advisor category includes checks for high-utilization EC2 instances?
+
+answer
+A
+Security
+B
+Performance
+Correct Answer:
+C
+Fault Tolerance
+D
+Cost Optimization
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 22
+Which service provides review details for user activities and API calls that have occurred within an AWS environment?
+
+answer
+A
+Amazon Inspector
+B
+Amazon CloudWatch
+C
+AWS Trusted Advisor
+D
+AWS CloudTrail
+Correct Answer:
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 23
+Which tool provides automation actions for AWS services and applications through scripts?
+
+answer
+A
+AWS Snowball
+B
+Amazon QLDB
+C
+AWS Command Line Interface
+Correct Answer:
+D
+Amazon Redshift
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 24
+Which service provides the capability to quickly deploy and scale applications on AWS?
+
+answer
+A
+AWS Snowball
+B
+AWS Elastic Beanstalk
+Correct Answer:
+C
+AWS Outposts
+D
+Amazon CloudFront
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 25
+Which action can a person perform in Amazon CloudFront?
+
+answer
+A
+Provision resources by using programming languages or a text file.
+B
+Provision an isolated section of the AWS Cloud to launch resources in a virtual network that a person defines.
+C
+Deliver content to customers through a global network of edge locations.
+Correct Answer:
+D
+Run infrastructure in a hybrid cloud approach.
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 26
+Which Support plans include access to all AWS Trusted Advisor checks? (Select TWO.)
+
+answer
+A
+Developer
+B
+Basic
+C
+Business
+Correct Answer:
+D
+AWS Free Tier
+E
+Enterprise
+Correct Answer:
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+C and E match the legacy support-plan names in the source choices. Current AWS documentation lists Business Support+, Enterprise Support, and Unified Operations for all Trusted Advisor checks. Reference: https://docs.aws.amazon.com/awssupport/latest/user/trusted-advisor.html
+
+Question 27
+Which service builds the workflows that are required for human review of machine learning predictions?
+
+answer
+A
+Amazon Aurora
+B
+Amazon Textract
+C
+Amazon Augmented AI
+Correct Answer:
+D
+Amazon Lex
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 28
+Which statement best describes Amazon GuardDuty?
+
+answer
+A
+A service that checks applications for security vulnerabilities and deviations from security best practices
+B
+A service that helps protect applications against distributed denial-of-service (DDoS) attacks
+C
+A service that provides intelligent threat detection for AWS infrastructure and resources
+Correct Answer:
+D
+A service that monitors network requests for web applications
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+
+Question 29
+Which service is used to transfer up to 100 PB of data to AWS?
+
+answer
+A
+AWS DeepRacer
+B
+Amazon Neptune
+C
+Amazon CloudFront
+D
+AWS Snowmobile
+Correct Answer:
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
+D is the historical answer expected by these choices: Snowmobile was designed for transfers of up to 100 PB. This is a legacy service question; do not use it as guidance on current service availability.
+
+Question 30
+Which actions can a person perform in Amazon Route 53? (Select TWO.)
+
+answer
+A
+Connect user requests to infrastructure in AWS and outside of AWS.
+Correct Answer:
+B
+Automate the deployment of workloads into an AWS environment.
+C
+Manage DNS records for domain names.
+Correct Answer:
+D
+Monitor applications and respond to system-wide performance changes.
+E
+Access AWS security and compliance reports and select online agreements.
+
+Explanation
+Answer key added during conversion; the source PDF does not provide answers.
