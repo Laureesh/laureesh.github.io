@@ -13,7 +13,7 @@ D
 Operational Excellence
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+Performance Efficiency means choosing and using computing resources efficiently to meet workload requirements as demand and technology change. Reliability focuses on recovery and consistent operation; Security focuses on protection; Operational Excellence focuses on running and improving workloads.
 
 Question 2
 Which statement best describes AWS Marketplace?
@@ -30,7 +30,7 @@ D
 A resource that can answer questions about best practices and assist with troubleshooting issues
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+AWS Marketplace is a digital catalog for finding, buying, and deploying software from independent vendors. The environment-inspection description refers to Trusted Advisor, while architectural guidance and troubleshooting are support functions.
 
 Question 3
 A cloud engineer is running an Amazon EC2 instance and wants to store data in an attached resource. Their data is temporary and will not be kept long term. Which resource should they use?
@@ -47,7 +47,7 @@ D
 Amazon Elastic Block Store (Amazon EBS) volume
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+An instance store provides temporary block storage on disks attached to the physical host running an EC2 instance. It suits caches and scratch data that can be recreated: data is lost when the instance stops, hibernates, or terminates. EBS is the better match when persistent attached storage is needed.
 
 Question 4
 A cloud architect wants Amazon S3 to monitor object access patterns. Which storage class should they use?
@@ -64,7 +64,7 @@ D
 Amazon S3 Standard-IA
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+S3 Intelligent-Tiering monitors access patterns and automatically moves eligible objects between access tiers to optimize storage costs. It is useful when access patterns are unknown or change over time; the other listed classes do not provide this same automatic access-based tiering.
 
 Question 5
 An application developer wants to send and receive messages between distributed application components. Which service should they use?
@@ -81,7 +81,7 @@ D
 Amazon Route 53
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+Amazon SQS is a managed message queue that lets one application component send messages for another to process later. This decouples the components, so they do not need to run or respond at the same time. ElastiCache caches data, Route 53 handles DNS, and Snowball transfers data.
 
 Question 6
 An application developer wants to store data in a key-value database. Which service should they use?
@@ -98,7 +98,7 @@ D
 Amazon Aurora
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+Amazon DynamoDB is a managed NoSQL database that supports key-value and document data. Amazon DocumentDB focuses on document workloads, while Amazon RDS and Aurora are relational database services.
 
 Question 7
 Which component or service establishes a dedicated private connection between an on-premises data center and virtual private cloud (VPC)?
@@ -115,7 +115,7 @@ D
 Amazon CloudFront
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+AWS Direct Connect provides a dedicated network connection from your premises to AWS. A virtual private gateway can be part of a connectivity setup, but it does not itself supply the dedicated physical connection. An internet gateway enables internet connectivity, and CloudFront delivers content.
 
 Question 8
 Which virtual private cloud (VPC) component controls inbound and outbound traffic for Amazon EC2 instances?
@@ -132,7 +132,7 @@ D
 Subnet
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+A security group acts as a stateful virtual firewall for an EC2 instance through its network interfaces, controlling allowed inbound and outbound traffic. Network ACLs apply at the subnet level. A subnet groups network addresses, and an internet gateway provides internet connectivity.
 
 Question 9
 A cloud engineer wants to store data in a volume that is attached to an Amazon EC2 instance. Which service should they use?
@@ -149,7 +149,7 @@ D
 AWS Lambda
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+Amazon EBS provides block storage volumes that attach to EC2 instances and can be used like disks for an operating system, application, or database. S3 stores objects, ElastiCache provides caching, and Lambda runs code.
 
 Question 10
 Which tasks are the responsibilities of AWS? (Select TWO.)
@@ -169,7 +169,7 @@ E
 Configuring security groups on Amazon EC2 instances
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+AWS is responsible for security of the cloud, including the underlying virtualization layer and AWS infrastructure devices. Customers are responsible for their employee training, IAM users and groups, and EC2 security-group rules.
 
 Question 11
 Which statement best describes Elastic Load Balancing?
@@ -186,7 +186,7 @@ A service that distributes incoming traffic across multiple targets, such as Ama
 Correct Answer:
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+Elastic Load Balancing distributes incoming traffic across multiple targets, such as EC2 instances, helping applications handle requests and maintain availability. Auto Scaling changes the amount of capacity; CloudWatch provides monitoring; ElastiCache provides an in-memory cache.
 
 Question 12
 Which statement best describes an Availability Zone?
@@ -203,7 +203,7 @@ D
 A separate geographical location with multiple locations that are isolated from each other
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+An Availability Zone is an isolated location within an AWS Region, consisting of one or more data centers with independent power, networking, and connectivity. A Region is the separate geographic area containing multiple Availability Zones. CloudFront origins and edge locations serve different content-delivery roles.
 
 Question 13
 Which Perspective of the AWS Cloud Adoption Framework focuses on recovering IT workloads to meet the requirements of business stakeholders?
@@ -220,7 +220,7 @@ D
 Business Perspective
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+The Operations Perspective covers keeping workloads healthy and available, including backup, recovery, and business continuity. Recovery plans should meet business requirements for downtime and data loss. Reference: https://docs.aws.amazon.com/whitepapers/latest/overview-aws-cloud-adoption-framework/operations-perspective.html
 
 Question 14
 In the S3 Intelligent-Tiering storage class, Amazon S3 moves objects between a frequent access tier and an infrequent access tier. Which storage classes are used for these tiers? (Select TWO.)
@@ -240,7 +240,8 @@ E
 S3 Glacier Flexible Retrieval
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+The question appears to associate frequent access with S3 Standard and infrequent access with S3 Standard-IA, which explains its intended A and B key. However, these are separate storage classes, not the names of the internal Intelligent-Tiering tiers. Learn the distinction rather than memorizing the wording as a technical fact.
+
 Source wording issue: A and B are the likely intended answers, but S3 Intelligent-Tiering uses its own Frequent Access and Infrequent Access tiers; it does not move objects into the separate S3 Standard and S3 Standard-IA storage classes. Treat this as a flawed source question. Reference: https://aws.amazon.com/s3/storage-classes/intelligent-tiering/
 
 Question 15
@@ -258,7 +259,7 @@ D
 To use AWS Lambda, businesses must configure the servers that run their code.
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+With standard on-demand Lambda execution, AWS manages the servers and compute duration is billed while a function runs, with no need to prepay estimated compute time. C is the best listed answer, but it simplifies pricing: requests and optional features can also incur charges.
 
 Question 16
 Which migration strategy involves changing how an application is architected and developed, typically by using cloud-native features?
@@ -275,7 +276,7 @@ Refactoring
 Correct Answer:
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+Refactoring, also called re-architecting, changes an application design to take advantage of cloud-native capabilities. Rehosting moves an application with minimal change, replatforming makes limited platform adjustments, and repurchasing replaces the application with another product.
 
 Question 17
 Which Amazon EC2 pricing option reduces costs when a business makes an hourly spend commitment to an instance family and Region for a 1-year or 3-year term?
@@ -292,7 +293,7 @@ D
 Reserved Instances
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+EC2 Instance Savings Plans exchange a commitment to spend a specified amount per hour for discounted usage within an EC2 instance family and Region over one or three years. Spot Instances use spare capacity with interruption risk; Dedicated Hosts provide dedicated physical servers; Reserved Instances use a different reservation-based discount model.
 
 Question 18
 Which tool provides the capability to visualize, understand, and manage AWS costs and usage over time?
@@ -309,7 +310,7 @@ D
 AWS Budgets
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+AWS Cost Explorer provides charts and filters to analyze costs and usage over time. AWS Pricing Calculator estimates the cost of a planned configuration, AWS Budgets tracks spending against targets, and AWS Artifact provides compliance reports and agreements.
 
 Question 19
 Which service runs containerized applications on AWS?
@@ -326,7 +327,7 @@ D
 Amazon Aurora
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+Amazon EKS is a managed Kubernetes service for deploying and operating containerized applications. SageMaker is for machine learning, Redshift is a data warehouse, and Aurora is a relational database.
 
 Question 20
 Which service consolidates and manages multiple AWS accounts from a central location?
@@ -343,7 +344,7 @@ D
 AWS Artifact
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+AWS Organizations centrally groups and manages multiple AWS accounts, including consolidated billing and organization-wide policies. IAM manages identities and permissions, KMS manages encryption keys, and Artifact provides compliance documents.
 
 Question 21
 Which AWS Trusted Advisor category includes checks for high-utilization EC2 instances?
@@ -360,7 +361,7 @@ D
 Cost Optimization
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+High EC2 utilization belongs to Performance because sustained resource pressure may indicate that an instance needs more capacity to meet demand. Low utilization is commonly a cost-optimization concern because it can indicate wasted capacity. Reference: https://docs.aws.amazon.com/awssupport/latest/user/performance-checks.html
 
 Question 22
 Which service provides review details for user activities and API calls that have occurred within an AWS environment?
@@ -377,7 +378,7 @@ AWS CloudTrail
 Correct Answer:
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+AWS CloudTrail records account activity, including API calls, so you can investigate who performed an action, what they did, and when. CloudWatch focuses on operational monitoring, Inspector on vulnerabilities, and Trusted Advisor on best-practice recommendations.
 
 Question 23
 Which tool provides automation actions for AWS services and applications through scripts?
@@ -394,7 +395,7 @@ D
 Amazon Redshift
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+The AWS Command Line Interface lets you call AWS services from terminal commands and combine those commands into scripts. It supports repeatable administration and automation. The other options are specialized services rather than a general command-line tool.
 
 Question 24
 Which service provides the capability to quickly deploy and scale applications on AWS?
@@ -411,7 +412,7 @@ D
 Amazon CloudFront
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+AWS Elastic Beanstalk deploys application code and manages supporting tasks such as provisioning, load balancing, scaling, and health monitoring. Snowball transfers data, Outposts brings AWS infrastructure on premises, and CloudFront delivers content.
 
 Question 25
 Which action can a person perform in Amazon CloudFront?
@@ -428,7 +429,7 @@ D
 Run infrastructure in a hybrid cloud approach.
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+Amazon CloudFront is a content delivery network that serves content through edge locations closer to users, reducing delivery latency. Infrastructure templates describe CloudFormation, isolated virtual networks describe VPC, and on-premises AWS infrastructure describes Outposts.
 
 Question 26
 Which Support plans include access to all AWS Trusted Advisor checks? (Select TWO.)
@@ -448,7 +449,8 @@ Enterprise
 Correct Answer:
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+Business and Enterprise are the intended answers under the support-plan names used in this question. Those plans provided the full Trusted Advisor check set, while Basic and Developer had limited access. AWS Free Tier is a usage offer, not a support plan.
+
 C and E match the legacy support-plan names in the source choices. Current AWS documentation lists Business Support+, Enterprise Support, and Unified Operations for all Trusted Advisor checks. Reference: https://docs.aws.amazon.com/awssupport/latest/user/trusted-advisor.html
 
 Question 27
@@ -466,7 +468,7 @@ D
 Amazon Lex
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+Amazon Augmented AI, or A2I, adds human-review workflows to machine-learning predictions, such as routing low-confidence results to reviewers. Textract extracts information from documents, Lex builds conversational interfaces, and Aurora is a relational database. Reference: https://docs.aws.amazon.com/rekognition/latest/dg/a2i-rekognition.html
 
 Question 28
 Which statement best describes Amazon GuardDuty?
@@ -483,7 +485,7 @@ D
 A service that monitors network requests for web applications
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+Amazon GuardDuty analyzes supported AWS activity and data sources to detect suspicious behavior and potential threats. Inspector focuses on vulnerabilities, Shield on DDoS protection, and WAF on filtering web requests.
 
 Question 29
 Which service is used to transfer up to 100 PB of data to AWS?
@@ -500,7 +502,8 @@ AWS Snowmobile
 Correct Answer:
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+AWS Snowmobile was a physical data-transfer service using a shipping container transported by truck, designed to move up to 100 petabytes per Snowmobile. That capacity is the clue to the historical answer. Neptune is a graph database, CloudFront delivers content, and DeepRacer was an autonomous racing learning platform.
+
 D is the historical answer expected by these choices: Snowmobile was designed for transfers of up to 100 PB. This is a legacy service question; do not use it as guidance on current service availability.
 
 Question 30
@@ -521,4 +524,4 @@ E
 Access AWS security and compliance reports and select online agreements.
 
 Explanation
-Answer key added during conversion; the source PDF does not provide answers.
+Amazon Route 53 manages DNS records and routes requests to endpoints both inside and outside AWS. For example, it can resolve a domain name to an AWS load balancer or an external web server. Deployment automation, application monitoring, and compliance reports are handled by other services.
