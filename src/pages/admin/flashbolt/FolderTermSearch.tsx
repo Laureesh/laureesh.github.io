@@ -28,12 +28,12 @@ export default function FolderTermSearch({ sets, folder, onOpenSet }: {
           {groups.map(group => <option key={group.subject} value={group.subject}>{group.subject}</option>)}
         </select></label>
         <div className="term-search"><Search size={18} aria-hidden="true" />
-          <input type="search" aria-label="Search terms, definitions, and answer choices in this folder" placeholder="Search terms and answers" value={query} onChange={event => { setQuery(event.target.value); setLimit(50); }} />
+          <input type="search" aria-label="Search questions and correct answers in this folder" placeholder="Search questions and correct answers" value={query} onChange={event => { setQuery(event.target.value); setLimit(50); }} />
           {query && <button type="button" aria-label="Clear folder term search" onClick={() => setQuery('')}>×</button>}
         </div>
       </div>
     </div>
-    <p>Search all questions, including those disabled in Learn mode.</p>
+    <p>Search questions and correct answers, including questions disabled in Learn mode.</p>
     {query.trim() && <>
       <p role="status">{results.length} matching {results.length === 1 ? 'term' : 'terms'}{activeSubject ? ` in ${activeSubject}` : ' across all subjects'}.</p>
       <div className="folder-term-results">
