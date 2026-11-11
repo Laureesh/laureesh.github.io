@@ -1,3 +1,4 @@
+import EliminatableChoice from "./EliminatableChoice";
 import LearnHistory, { type LearnAttempt } from "./LearnHistory";
 import ShareSetDialog from './sharing/ShareSetDialog';
 import SharedByMeDialog from './sharing/SharedByMeDialog';
@@ -1069,6 +1070,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   const learnReferenceLines = learnReferencesDraft.split("\n").map(line => line.trim()).filter(Boolean);
   const invalidLearnReference = learnReferenceLines.some(line => !referenceUrl(line));
   const [learnSelectedAnswers, setLearnSelectedAnswers] = useState<string[]>([]);
+  const [eliminatedLearnChoices, setEliminatedLearnChoices] = useState<string[]>([]);
   const [learnFlashRevealed, setLearnFlashRevealed] = useState(false);
   const [testAnswers, setTestAnswers] = useState<Record<string, string>>({});
   const [testSubmitted, setTestSubmitted] = useState(false);
@@ -2669,6 +2671,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     setLearnQuestionConfidence(0);
     setLearnLastConfidence(0);
     setLearnAnswer(null);
+    setEliminatedLearnChoices([]);
     setUnderstandReviewed(false);
     setLearnLastCorrect(null);
     setLearnWrittenAnswer("");
@@ -2705,6 +2708,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     setLearnQuestionConfidence(cardProgress[firstRoundIds[0]]?.confidence ?? 0);
     setLearnLastConfidence(0);
     setLearnAnswer(null);
+    setEliminatedLearnChoices([]);
     setUnderstandReviewed(false);
     setLearnLastCorrect(null);
     setLearnWrittenAnswer("");
@@ -2764,6 +2768,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     setLearnQuestionConfidence(selectedLearnProgress[currentId]?.confidence ?? 0);
     setLearnLastConfidence(0);
     setLearnAnswer(null);
+    setEliminatedLearnChoices([]);
     setUnderstandReviewed(false);
     setLearnLastCorrect(null);
     setLearnWrittenAnswer("");
@@ -2853,7 +2858,15 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     });
   }
 
+  function toggleEliminatedLearnChoice(choice: string) {
+    if (learnAnswer) return;
+    setEliminatedLearnChoices(choices => choices.includes(choice)
+      ? choices.filter(item => item !== choice) : [...choices, choice]);
+    setLearnSelectedAnswers(answers => answers.filter(answer => answer !== choice));
+  }
+
   function chooseLearnAnswer(answer: string) {
+    if (eliminatedLearnChoices.includes(answer)) return;
     recordLearnResult(normalizeAnswer(answer) === normalizeAnswer(currentLearnCorrectAnswer), answer);
   }
 
@@ -2922,6 +2935,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     setLearnQuestionConfidence(selectedLearnProgress[nextCardId]?.confidence ?? 0);
     setLearnLastConfidence(0);
     setLearnAnswer(null);
+    setEliminatedLearnChoices([]);
     setUnderstandReviewed(false);
     setLearnLastCorrect(null);
     setLearnWrittenAnswer("");
@@ -4131,14 +4145,14 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                         const resultClass = learnAnswer ? (isCorrect ? "correct" : isChosen ? "incorrect" : "muted") : "";
                         const explanation = currentLearnCard.choiceExplanations?.[option]?.trim();
                         const showExplanation = Boolean(learnAnswer && (isChosen || isCorrect) && explanation);
-                        return <button key={option} className={`${resultClass}${showExplanation ? " has-explanation" : ""}`} onClick={() => chooseLearnAnswer(option)} disabled={Boolean(learnAnswer)}><span>{String.fromCharCode(65 + index)}</span><span className="answer-choice-copy"><strong className="answer-choice-title">{option}</strong>{showExplanation && <span className="answer-choice-explanation"><span className="answer-explanation-label">Explanation</span><span>{explanation}</span></span>}</span></button>;
+                        return <EliminatableChoice key={option} choice={option} eliminated={eliminatedLearnChoices.includes(option)} answered={Boolean(learnAnswer)} onToggle={() => toggleEliminatedLearnChoice(option)}><button className={`answer-choice-button ${resultClass}${showExplanation ? " has-explanation" : ""}`} onClick={() => chooseLearnAnswer(option)} disabled={Boolean(learnAnswer) || eliminatedLearnChoices.includes(option)}><span>{String.fromCharCode(65 + index)}</span><span className="answer-choice-copy"><strong className="answer-choice-title">{option}</strong>{showExplanation && <span className="answer-choice-explanation"><span className="answer-explanation-label">Explanation</span><span>{explanation}</span></span>}</span></button></EliminatableChoice>;
                       })}</div>}
 
                       {currentLearnQuestionKind === "true-false" && <div className="true-false-question"><p>The matching {currentLearnAnswerSide} is <strong>{currentTrueFalse.statement}</strong>.</p><div><button className={learnAnswer ? (currentTrueFalse.answer ? "correct" : learnAnswer === "True" ? "incorrect" : "muted") : ""} onClick={() => submitTrueFalseLearnAnswer(true)} disabled={Boolean(learnAnswer)}><span><UiIcon symbol="✓" /></span>True</button><button className={learnAnswer ? (!currentTrueFalse.answer ? "correct" : learnAnswer === "False" ? "incorrect" : "muted") : ""} onClick={() => submitTrueFalseLearnAnswer(false)} disabled={Boolean(learnAnswer)}><span><UiIcon symbol="×" /></span>False</button></div></div>}
 
                       {currentLearnQuestionKind === "written" && <form className="written-answer" onSubmit={(event) => { event.preventDefault(); submitWrittenLearnAnswer(); }}><label><span>Your answer</span><input value={learnWrittenAnswer} onChange={(event) => setLearnWrittenAnswer(event.target.value)} disabled={Boolean(learnAnswer)} placeholder={`Type the ${currentLearnAnswerSide}`} /></label><button className="button primary" disabled={!learnWrittenAnswer.trim() || Boolean(learnAnswer)}>Check answer</button></form>}
 
-                      {currentLearnQuestionKind === "select-all" && <div className="select-all-question"><div className="select-all-grid">{currentSelectAll.choices.map((option) => { const selected = learnSelectedAnswers.includes(option); const correct = currentSelectAll.correctParts.includes(option); const resultClass = learnAnswer ? (correct ? "correct" : selected ? "incorrect" : "muted") : selected ? "selected" : ""; return <label key={option} className={resultClass}><input type="checkbox" checked={selected} onChange={() => setLearnSelectedAnswers((answers) => answers.includes(option) ? answers.filter((answer) => answer !== option) : [...answers, option])} disabled={Boolean(learnAnswer)} /><span><UiIcon symbol="✓" /></span><p>{option}</p></label>; })}</div><button className="button primary" onClick={submitSelectAllLearnAnswer} disabled={!learnSelectedAnswers.length || Boolean(learnAnswer)}>Check selections</button></div>}
+                      {currentLearnQuestionKind === "select-all" && <div className="select-all-question"><div className="select-all-grid">{currentSelectAll.choices.map((option) => { const selected = learnSelectedAnswers.includes(option); const correct = currentSelectAll.correctParts.includes(option); const resultClass = learnAnswer ? (correct ? "correct" : selected ? "incorrect" : "muted") : selected ? "selected" : ""; return <EliminatableChoice key={option} choice={option} eliminated={eliminatedLearnChoices.includes(option)} answered={Boolean(learnAnswer)} onToggle={() => toggleEliminatedLearnChoice(option)}><label className={resultClass}><input type="checkbox" checked={selected} onChange={() => setLearnSelectedAnswers((answers) => answers.includes(option) ? answers.filter((answer) => answer !== option) : [...answers, option])} disabled={Boolean(learnAnswer) || eliminatedLearnChoices.includes(option)} /><span><UiIcon symbol="✓" /></span><p>{option}</p></label></EliminatableChoice>; })}</div><button className="button primary" onClick={submitSelectAllLearnAnswer} disabled={!learnSelectedAnswers.length || Boolean(learnAnswer)}>Check selections</button></div>}
 
                       {currentLearnQuestionKind === "flashcard" && <div className="learn-flashcard-mode"><button className={`learn-reveal-card ${learnFlashRevealed ? "revealed" : ""}`} onClick={() => setLearnFlashRevealed(true)}><span>{learnFlashRevealed ? currentLearnCorrectAnswer : "Think of the answer before revealing it"}</span><small>{learnFlashRevealed ? "How did you do?" : "Reveal answer"}</small></button>{learnFlashRevealed && !learnAnswer && <div className="recall-buttons"><button className="button quiet" onClick={() => recordLearnResult(false, "Still learning")}>Still learning</button><button className="button primary" onClick={() => recordLearnResult(true, "Got it")}>Got it</button></div>}</div>}
 

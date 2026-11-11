@@ -1139,8 +1139,8 @@
 .learn-text-size-row input[type="range"] { grid-column: 1 / -1; width: 100%; min-width: 0; padding: 0; accent-color: var(--primary-strong); cursor: pointer; }
 /* Large type can wrap without hiding controls or overflowing narrow screens. */
 .flashbolt-shell .learn-page :is(.learn-round-focus-title, .learn-round-pass, .learn-round-list-heading) { flex-wrap: wrap; }
-.flashbolt-shell .learn-page :is(.answer-grid > button, .learn-round-list > li) { overflow-wrap: anywhere; }
-.flashbolt-shell .learn-page :is(.answer-grid > button > span:first-child, .learn-round-step) { flex-shrink: 0; min-width: 1.5em; min-height: 1.5em; }
+.flashbolt-shell .learn-page :is(.answer-grid .answer-choice-button, .learn-round-list > li) { overflow-wrap: anywhere; }
+.flashbolt-shell .learn-page :is(.answer-grid .answer-choice-button > span:first-child, .learn-round-step) { flex-shrink: 0; min-width: 1.5em; min-height: 1.5em; }
 .flashbolt-shell .learn-page .written-answer input { min-height: 2.5em; }
 :where(.learn-page :is(.answer-grid, .true-false-question, .written-answer, .select-all-question, .learn-flashcard-mode, .answer-feedback, .study-explanation, .understand-answer, .learn-session-header, .learn-knowledge-panel, .learn-rounds-panel)) {
   font-size: calc(14px * var(--learn-font-scale, 1));

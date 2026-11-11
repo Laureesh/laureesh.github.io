@@ -5516,8 +5516,8 @@ kbd {
 
 .true-false-question button.correct:disabled,
 .true-false-question button.incorrect:disabled,
-.answer-grid > button.correct:disabled,
-.answer-grid > button.incorrect:disabled {
+.answer-grid .answer-choice-button.correct:disabled,
+.answer-grid .answer-choice-button.incorrect:disabled {
   opacity: 1;
 }
 
@@ -5997,7 +5997,7 @@ kbd {
   gap: 7px;
 }
 
-.answer-grid > button {
+.answer-grid .answer-choice-button {
   display: flex;
   min-height: 58px;
   align-items: center;
@@ -6010,12 +6010,12 @@ kbd {
   text-align: left;
 }
 
-.answer-grid > button:hover:not(:disabled) {
+.answer-grid .answer-choice-button:hover:not(:disabled) {
   border-color: var(--primary-strong);
   transform: translateY(-1px);
 }
 
-.answer-grid > button > span:first-child {
+.answer-grid .answer-choice-button > span:first-child {
   display: grid;
   width: 34px;
   height: 34px;
@@ -6028,32 +6028,32 @@ kbd {
   font-weight: 900;
 }
 
-.answer-grid > button.correct {
+.answer-grid .answer-choice-button.correct {
   border-color: #b9ffe9;
   background: #70e6c3;
   color: #062d25;
   box-shadow: 0 0 0 2px rgba(185, 255, 233, 0.22), 0 10px 28px rgba(85, 214, 190, 0.24);
 }
 
-.answer-grid > button.incorrect {
+.answer-grid .answer-choice-button.incorrect {
   border-color: #713744;
   background: #18131c;
   color: #8b7d84;
   box-shadow: inset 0 0 0 1px rgba(255, 123, 138, 0.08);
 }
 
-.answer-grid > button.correct > span:first-child {
+.answer-grid .answer-choice-button.correct > span:first-child {
   border-color: #155d4d;
   background: #d9fff3;
   color: #0a4c3e;
 }
 
-.answer-grid > button.incorrect > span:first-child {
+.answer-grid .answer-choice-button.incorrect > span:first-child {
   border-color: var(--danger);
   color: var(--danger);
 }
 
-.answer-grid > button.muted {
+.answer-grid .answer-choice-button.muted {
   background: #14161e;
   opacity: 0.28;
 }
@@ -6096,17 +6096,17 @@ kbd {
   text-transform: uppercase;
 }
 
-.answer-grid > button.correct .answer-choice-explanation {
+.answer-grid .answer-choice-button.correct .answer-choice-explanation {
   background: rgba(255, 255, 255, 0.3);
 }
 
-.answer-grid > button.has-explanation {
+.answer-grid .answer-choice-button.has-explanation {
   align-items: flex-start;
   opacity: 1;
 }
 
-.answer-grid > button.has-explanation.muted,
-.answer-grid > button.has-explanation.incorrect {
+.answer-grid .answer-choice-button.has-explanation.muted,
+.answer-grid .answer-choice-button.has-explanation.incorrect {
   color: var(--ink);
   background: var(--panel);
 }
@@ -6165,7 +6165,7 @@ kbd {
     margin-bottom: 7px;
   }
 
-  .learn-page.session-active .answer-grid > button {
+  .learn-page.session-active .answer-grid .answer-choice-button {
     min-height: 50px;
     padding-block: 7px;
   }
@@ -8568,3 +8568,23 @@ kbd {
 .explanation-text-editor small { color: var(--muted); }
 .explanation-preview { margin-bottom: 16px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
 .explanation-preview p { margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* The elimination control is a separate, attached end cap, never an answer. */
+.eliminatable-choice { display:flex; align-items:stretch; min-width:0; }
+.answer-grid .eliminatable-choice > .answer-choice-button,
+.select-all-grid .eliminatable-choice > label {
+  flex:1; min-width:0; margin:0; border-top-right-radius:0; border-bottom-right-radius:0;
+}
+.eliminatable-choice .choice-eliminate-button {
+  display:grid; place-items:center; flex:0 0 44px; padding:0;
+  border:1px solid var(--line); border-left:0; border-radius:0 11px 11px 0;
+  background:var(--panel); color:var(--muted); font-size:22px; cursor:pointer;
+}
+.eliminatable-choice .choice-eliminate-button:hover:not(:disabled) { background:var(--primary-soft); color:var(--ink); }
+.eliminatable-choice .choice-eliminate-button:focus-visible,
+.select-all-grid .eliminatable-choice > label:focus-within { outline:2px solid var(--primary-strong); outline-offset:2px; }
+.eliminatable-choice.is-eliminated > :first-child { opacity:.35; cursor:default; }
+.eliminatable-choice.is-eliminated :is(.answer-choice-title, label p) { text-decoration:line-through; }
+.eliminatable-choice .choice-eliminate-button[aria-pressed="true"] { color:var(--ink); background:var(--primary-soft); }
+.answer-grid .eliminatable-choice > .answer-choice-button:hover:not(:disabled) { transform:none; }
+.select-all-grid .eliminatable-choice p { overflow-wrap:anywhere; }
