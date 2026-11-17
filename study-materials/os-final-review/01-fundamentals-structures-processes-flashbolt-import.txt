@@ -1,0 +1,1475 @@
+Question 1
+[Fundamentals] What is the main role of an operating system?
+
+answer
+A
+Translate every program into source code
+B
+Manage resources and provide an interface between applications/users and hardware
+Correct Answer:
+C
+Store only user documents
+D
+Replace the CPU during execution
+
+Explanation
+The OS coordinates hardware use and provides services on which programs rely.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 2
+[Fundamentals] Which pair describes the main OS goals in this course?
+
+answer
+A
+Convenience and efficient resource use
+Correct Answer:
+B
+Running only one application forever
+C
+Maximum file size and minimum user accounts
+D
+Eliminating all interrupts and all threads
+
+Explanation
+Goals describe desired outcomes; process and memory management are functions used to achieve them.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 3
+[Fundamentals] Which ordering shows the four computer-system components from bottom to top?
+
+answer
+A
+Users, hardware, applications, operating system
+B
+Applications, hardware, users, operating system
+C
+Hardware, operating system, applications, users
+Correct Answer:
+D
+Hardware, users, operating system, applications
+
+Explanation
+The OS manages hardware for applications used by users.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 4
+[Fundamentals] What is the kernel?
+
+answer
+A
+A user document folder
+B
+A compiler's output file
+C
+A physical memory chip
+D
+The core OS component that manages privileged operations and resources
+Correct Answer:
+
+Explanation
+The kernel mediates access to protected resources.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 5
+[Fundamentals] What is a system call?
+
+answer
+A
+A controlled request for a kernel service
+Correct Answer:
+B
+A hardware storage unit
+C
+A file extension for applications
+D
+Any ordinary arithmetic operation
+
+Explanation
+A system call crosses the user/kernel interface to request a service.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 6
+[Fundamentals] What does a device controller do?
+
+answer
+A
+Controls a particular device type and interfaces it with the system
+Correct Answer:
+B
+Schedules every process in the OS
+C
+Replaces all device-driver software
+D
+Stores the complete kernel source code
+
+Explanation
+A controller is hardware; a driver is software used to operate the device/controller.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 7
+[Fundamentals] Why does a device controller use a local buffer?
+
+answer
+A
+To temporarily hold data during transfer
+Correct Answer:
+B
+To store the user's entire virtual address space
+C
+To keep every terminated process permanently
+D
+To eliminate the need for main memory
+
+Explanation
+Buffering helps accommodate differences in transfer speeds and timing.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 8
+[Fundamentals] How does a device controller commonly notify the CPU of completed I/O?
+
+answer
+A
+By generating an interrupt
+Correct Answer:
+B
+By changing every process ID
+C
+By creating a new user account
+D
+By deleting the ready queue
+
+Explanation
+The interrupt prompts the OS to handle the completion event.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 9
+[Fundamentals] What CPU information must be preserved during interrupt handling?
+
+answer
+A
+Only the file name of the application
+B
+Only the disk capacity
+C
+Registers and the program counter
+Correct Answer:
+D
+Only the screen resolution
+
+Explanation
+Saving execution state allows interrupted execution to resume correctly.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 10
+[Fundamentals] Can the CPU and I/O devices work concurrently?
+
+answer
+A
+Only when there is no operating system
+B
+No, the CPU must remain idle for all I/O
+C
+Yes, they can overlap computation and I/O
+Correct Answer:
+D
+Only when main memory is empty
+
+Explanation
+Controllers can perform device work while the CPU executes instructions.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 11
+[Fundamentals] Which order generally goes from fastest/smallest storage to slower/larger storage?
+
+answer
+A
+Secondary storage, RAM, cache, registers
+B
+Registers, cache, RAM, secondary storage
+Correct Answer:
+C
+RAM, secondary storage, registers, cache
+D
+Cache, secondary storage, registers, RAM
+
+Explanation
+The hierarchy balances speed, capacity, and cost per bit.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 12
+[Fundamentals] What does volatile memory mean?
+
+answer
+A
+Its contents are lost when power is removed
+Correct Answer:
+B
+It is always slower than magnetic tape
+C
+It stores only operating-system files
+D
+It can never be written
+
+Explanation
+RAM and ordinary CPU caches are volatile; persistent storage retains data without power.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 13
+[Fundamentals] How many bits are in one byte?
+
+answer
+A
+8
+Correct Answer:
+B
+16
+C
+1024
+D
+2
+
+Explanation
+A bit stores one binary value; a byte contains eight bits.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 14
+[Fundamentals] Using the course's binary convention, how many bytes are in 4 KB?
+
+answer
+A
+32768
+B
+1024
+C
+4096
+Correct Answer:
+D
+4000
+
+Explanation
+The slides use 1 KB = 1024 bytes; the precise binary unit name is KiB.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 15
+[Fundamentals] What is a program compared with a process?
+
+answer
+A
+They differ only in file extension
+B
+A program always has more threads than a process
+C
+A program is passive code; a process is an executing instance
+Correct Answer:
+D
+A process is only a file stored on disk
+
+Explanation
+The same program can have multiple executing process instances.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 16
+[Fundamentals] Which task belongs to process management?
+
+answer
+A
+Creating, suspending, resuming, and terminating processes
+Correct Answer:
+B
+Manufacturing memory chips
+C
+Choosing the monitor's physical size
+D
+Assigning file extensions to every byte
+
+Explanation
+The OS also provides process communication, synchronization, and deadlock-handling mechanisms.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 17
+[Fundamentals] Which task belongs to memory management?
+
+answer
+A
+Tracking, allocating, and freeing memory
+Correct Answer:
+B
+Writing application source code automatically
+C
+Defining the physical shape of a keyboard
+D
+Preventing all programs from using RAM
+
+Explanation
+The OS tracks ownership and decides what should reside in memory.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 18
+[Fundamentals] What logical abstraction does the OS provide for stored information?
+
+answer
+A
+CPU cycles
+B
+Files
+Correct Answer:
+C
+Interrupt vectors
+D
+Registers
+
+Explanation
+Files hide many details of the underlying storage device.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 19
+[Fundamentals] How does caching differ from buffering?
+
+answer
+A
+Caching keeps reusable copies for faster access; buffering temporarily holds data in transit
+Correct Answer:
+B
+They both mean deleting unused files
+C
+Caching always writes to tape; buffering always writes to ROM
+D
+Caching is only for printers; buffering is only for CPUs
+
+Explanation
+Caching targets repeated access; buffering manages transfer timing or rate differences.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 20
+[Fundamentals] Which example best illustrates spooling?
+
+answer
+A
+Saving a CPU register during an interrupt
+B
+Queuing print jobs on storage for a printer to process
+Correct Answer:
+C
+Adding two numbers in a register
+D
+Dividing a logical address into page and offset
+
+Explanation
+Spooling queues work for a device that serves jobs in sequence.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 21
+[Fundamentals] How does protection differ from security?
+
+answer
+A
+Protection controls resource access; security defends against threats and attacks
+Correct Answer:
+B
+The two terms both mean CPU utilization
+C
+Protection means backup; security means scheduling
+D
+Protection applies only to hardware; security only to files
+
+Explanation
+Access controls are one part of the larger task of securing a system.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 22
+[Fundamentals] What does a real-time system require?
+
+answer
+A
+All software must run without an OS
+B
+Only one user may own files
+C
+Every task must execute in zero time
+D
+Results must meet specified timing deadlines
+Correct Answer:
+
+Explanation
+Correctness depends on both the result and when it is produced.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 23
+[Fundamentals] What does open-source OS software provide?
+
+answer
+A
+A promise that no license conditions apply
+B
+Automatic access to every user's private files
+C
+Guaranteed absence of bugs
+D
+Source code under a license permitting specified use and modification
+Correct Answer:
+
+Explanation
+Source availability and license rights distinguish it from binary-only distribution.
+Source: ch1.pptx, slides 9-25; Ch_1(0S).pdf, pp. 1-23; Fundamentals textbook, pp. 2-7.
+
+Question 24
+[OS structures] Which group contains user-facing OS services?
+
+answer
+A
+Only RAM manufacture and CPU design
+B
+User interface, program execution, I/O, files, communication, error detection
+Correct Answer:
+C
+Only compilation and web browsing
+D
+Only encryption and screen brightness
+
+Explanation
+These services support the execution and use of programs.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 25
+[OS structures] What is a shell or command interpreter?
+
+answer
+A
+A CPU register holding a process ID
+B
+A hardware interrupt line
+C
+A program that reads and executes user commands
+Correct Answer:
+D
+A page-table entry
+
+Explanation
+Commands may be implemented inside the shell or executed as separate programs.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 26
+[OS structures] What is the advantage of implementing a shell command as an external program?
+
+answer
+A
+New commands can be added without rewriting the shell
+Correct Answer:
+B
+No executable file is required
+C
+The program automatically runs in kernel mode
+D
+The program never needs memory
+
+Explanation
+The shell launches the external executable by name.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 27
+[OS structures] How does a batch interface differ from interactive command entry?
+
+answer
+A
+It requires a mouse for every command
+B
+It disallows program execution
+C
+It executes commands collected in a file or job
+Correct Answer:
+D
+It runs only inside a page table
+
+Explanation
+Batch processing supplies a prepared sequence of commands.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 28
+[OS structures] In the course's simplified mode-bit convention, which mapping is correct?
+
+answer
+A
+User mode = 0; kernel mode = 1
+B
+Both modes = 1
+C
+Both modes = 0
+D
+User mode = 1; kernel mode = 0
+Correct Answer:
+
+Explanation
+This is the convention used in the slides, not a universal encoding for every processor.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 29
+[OS structures] Why distinguish user mode from kernel mode?
+
+answer
+A
+To restrict application access to privileged operations
+Correct Answer:
+B
+To force every program to use a GUI
+C
+To remove the need for system calls
+D
+To prevent files from having names
+
+Explanation
+Hardware privilege checks help protect the OS and other processes.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 30
+[OS structures] What typically happens when a user program requests a protected OS service?
+
+answer
+A
+The executable is erased from disk
+B
+Controlled entry into kernel mode, service handling, then return to user mode
+Correct Answer:
+C
+The application permanently becomes the kernel
+D
+All other processes are terminated
+
+Explanation
+The kernel handles the request with the appropriate privilege.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 31
+[OS structures] Which system-call category includes process creation and termination?
+
+answer
+A
+Directory naming
+B
+Process control
+Correct Answer:
+C
+Information maintenance only
+D
+File management
+
+Explanation
+Process control covers operations such as creating, executing, waiting for, and ending processes.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 32
+[OS structures] Which category includes open, read, write, close, and seek operations on files?
+
+answer
+A
+Thread cancellation only
+B
+File management
+Correct Answer:
+C
+CPU arithmetic
+D
+Process admission only
+
+Explanation
+These operations manipulate files and file positions.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 33
+[OS structures] Which category includes getting the time or a process ID?
+
+answer
+A
+File truncation
+B
+Device manufacture
+C
+Information maintenance
+Correct Answer:
+D
+Cloud provisioning
+
+Explanation
+These calls retrieve or update system and object information.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 34
+[OS structures] Which category includes sending messages or creating shared-memory regions?
+
+answer
+A
+Communications
+Correct Answer:
+B
+File naming
+C
+Boot loading
+D
+Memory chip production
+
+Explanation
+Communication calls support information exchange between processes.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 35
+[OS structures] Which category includes changing access permissions?
+
+answer
+A
+Device buffering only
+B
+Process accounting only
+C
+Protection
+Correct Answer:
+D
+Program compilation
+
+Explanation
+Protection calls determine who can perform operations on resources.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 36
+[OS structures] How does a library call such as printf relate to system calls?
+
+answer
+A
+It bypasses the OS for every device operation
+B
+Every library call is itself a privileged CPU instruction
+C
+It always creates a new process
+D
+It may use an underlying system call such as write
+Correct Answer:
+
+Explanation
+Libraries provide convenient APIs that may invoke kernel services.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 37
+[OS structures] What are system programs?
+
+answer
+A
+Only the physical CPU and RAM
+B
+A replacement for all system calls
+C
+Only application source-code comments
+D
+Utilities that provide a convenient environment for development and execution
+Correct Answer:
+
+Explanation
+Examples include file tools, editors, loaders, and status utilities.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 38
+[OS structures] What is the distinction between policy and mechanism?
+
+answer
+A
+They are synonyms for one implementation detail
+B
+Policy decides what to do; mechanism supplies how to do it
+Correct Answer:
+C
+Policy is a memory address; mechanism is a file name
+D
+Policy is hardware; mechanism is always a user account
+
+Explanation
+Separating them allows policies to change without rebuilding every mechanism.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 39
+[OS structures] Which is a user goal rather than a system-development goal?
+
+answer
+A
+Ease of learning and convenient use
+Correct Answer:
+B
+Modularity of internal implementation
+C
+Ease of porting source code
+D
+Ease of kernel maintenance
+
+Explanation
+Users focus on usability, speed, reliability, and safety; developers also consider maintainability and flexibility.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 40
+[OS structures] What characterizes a layered OS design?
+
+answer
+A
+All layers must call every higher layer
+B
+Only the highest layer contains hardware
+C
+Each layer uses services of lower layers
+Correct Answer:
+D
+Every application is a separate physical CPU
+
+Explanation
+Layering organizes responsibilities, although choosing clean boundaries can be difficult.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 41
+[OS structures] What is the main idea of a microkernel?
+
+answer
+A
+Move every application into kernel mode
+B
+Store all OS code in each file's data section
+C
+Keep a small privileged core and move more services to user space
+Correct Answer:
+D
+Eliminate communication between services
+
+Explanation
+Smaller privileged components can improve isolation and extensibility.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 42
+[OS structures] What is a common microkernel tradeoff?
+
+answer
+A
+No possible support for user processes
+B
+A requirement that all memory be contiguous
+C
+Extra communication and mode-switching overhead
+Correct Answer:
+D
+No ability to run on more than one architecture
+
+Explanation
+Services often communicate through message passing across protection boundaries.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 43
+[OS structures] What do loadable kernel modules provide?
+
+answer
+A
+A ban on device drivers
+B
+A separate physical computer for each driver
+C
+Kernel functionality that can be added through defined interfaces as needed
+Correct Answer:
+D
+A guarantee that kernel code runs without privilege
+
+Explanation
+Modules permit flexible extension while still running as part of the kernel.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 44
+[OS structures] What is a hybrid OS structure?
+
+answer
+A
+A computer without memory
+B
+A combination of design approaches
+Correct Answer:
+C
+An OS containing only one application
+D
+An OS that never uses a kernel
+
+Explanation
+Real systems often combine monolithic, modular, layered, or microkernel ideas.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 45
+[OS structures] How does a core dump differ from a kernel crash dump?
+
+answer
+A
+A kernel crash dump is an ordinary print job
+B
+A core dump contains only file names
+C
+A core dump records process state; a kernel crash dump records kernel state
+Correct Answer:
+D
+Both are always complete disk backups
+
+Explanation
+The captured memory and state help diagnose different kinds of failures.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 46
+[OS structures] What is the purpose of performance tuning?
+
+answer
+A
+Replace all system calls with GUI clicks
+B
+Make the source code as short as possible
+C
+Find and reduce bottlenecks using measurements
+Correct Answer:
+D
+Delete every inactive process without analysis
+
+Explanation
+Tools such as task monitors expose CPU, memory, and other usage measurements.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 47
+[OS structures] What does SYSGEN address in the course material?
+
+answer
+A
+Creating a socket port number
+B
+Configuring an OS for a specific hardware installation
+Correct Answer:
+C
+Changing a file's owner
+D
+Selecting a page replacement victim
+
+Explanation
+System generation tailors configuration to the target machine.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 48
+[OS structures] What is the bootstrap loader's role?
+
+answer
+A
+Choose the correct answer to every system call
+B
+Replace all application programs
+C
+Allocate a directory entry for each CPU cycle
+D
+Locate and load the kernel, then start it
+Correct Answer:
+
+Explanation
+Initial firmware or boot code starts the sequence that brings the OS into memory.
+Source: ch2.pptx, slides 3-43; Operating Systems 2.pdf; Fundamentals textbook, pp. 8-16.
+
+Question 49
+[Processes and IPC] Which process-memory section holds executable instructions?
+
+answer
+A
+Heap
+B
+Open-file table
+C
+Text section
+Correct Answer:
+D
+Stack
+
+Explanation
+Text contains program code; the other sections serve different purposes.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 50
+[Processes and IPC] Which section normally holds dynamically allocated process memory?
+
+answer
+A
+Interrupt vector
+B
+Program counter
+C
+Heap
+Correct Answer:
+D
+Text section
+
+Explanation
+The heap supports allocations requested during execution.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 51
+[Processes and IPC] Which section holds function parameters, return addresses, and ordinary local variables?
+
+answer
+A
+Device queue
+B
+Stack
+Correct Answer:
+C
+Text section
+D
+Global data section
+
+Explanation
+Each execution thread needs its own stack state.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 52
+[Processes and IPC] Where are ordinary global variables stored in the process layout?
+
+answer
+A
+Ready queue
+B
+Data section
+Correct Answer:
+C
+Program counter
+D
+Device-controller buffer
+
+Explanation
+The data section differs from the stack and dynamically allocated heap.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 53
+[Processes and IPC] What does a program counter identify?
+
+answer
+A
+The instruction address at which execution continues
+Correct Answer:
+B
+The total number of users
+C
+The number of files on the disk
+D
+The process's maximum resource claim
+
+Explanation
+It is part of the execution state saved during interruptions and context switches.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 54
+[Processes and IPC] How does a ready process differ from a waiting process?
+
+answer
+A
+Both are necessarily deadlocked
+B
+Ready has terminated; waiting has not been created
+C
+Ready needs CPU time; waiting needs an event or resource before it can proceed
+Correct Answer:
+D
+Ready is always running; waiting is always on the CPU
+
+Explanation
+A waiting process cannot run merely because a CPU becomes available.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 55
+[Processes and IPC] What state transition usually follows an I/O request that blocks?
+
+answer
+A
+Ready to terminated
+B
+New to terminated
+C
+Waiting to new
+D
+Running to waiting
+Correct Answer:
+
+Explanation
+The process relinquishes the CPU while waiting for I/O.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 56
+[Processes and IPC] What state transition usually follows completion of the awaited I/O?
+
+answer
+A
+Waiting to ready
+Correct Answer:
+B
+Ready to new
+C
+Running to new
+D
+Waiting directly to terminated
+
+Explanation
+I/O completion makes the process eligible for scheduling; it does not guarantee immediate CPU execution.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 57
+[Processes and IPC] What does dispatching a ready process do?
+
+answer
+A
+Copies all its files to another user
+B
+Deletes its PCB
+C
+Moves it from ready to running
+Correct Answer:
+D
+Moves it from running to waiting
+
+Explanation
+The dispatcher gives the selected process the CPU.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 58
+[Processes and IPC] What usually happens when a running process is preempted but remains runnable?
+
+answer
+A
+It must terminate
+B
+It returns to the ready state
+Correct Answer:
+C
+It becomes permanently blocked
+D
+It becomes a new program on disk
+
+Explanation
+Preemption takes away the CPU without necessarily making the process unable to run.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 59
+[Processes and IPC] What is stored in a process control block (PCB)?
+
+answer
+A
+Only its largest file
+B
+Only its source code
+C
+Only the program's name
+D
+Process state, execution context, scheduling, memory, accounting, and I/O information
+Correct Answer:
+
+Explanation
+The PCB is the OS record needed to manage and resume a process.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 60
+[Processes and IPC] Which queue holds processes ready to receive CPU time?
+
+answer
+A
+Device wait queue
+B
+Ready queue
+Correct Answer:
+C
+Printer output only
+D
+Terminated-process queue
+
+Explanation
+Processes in the ready queue are runnable.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 61
+[Processes and IPC] What does the short-term scheduler select?
+
+answer
+A
+Which cloud vendor to use
+B
+A file name for the next program
+C
+The next hard drive to manufacture
+D
+The next ready process to run on the CPU
+Correct Answer:
+
+Explanation
+It runs frequently and must make decisions quickly.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 62
+[Processes and IPC] What does the long-term scheduler primarily control?
+
+answer
+A
+Admission of jobs and the degree of multiprogramming
+Correct Answer:
+B
+Every individual network packet
+C
+Only the order of disk sectors
+D
+The next instruction inside a CPU register
+
+Explanation
+Admission decisions influence how many processes compete for resources.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 63
+[Processes and IPC] What is the medium-term scheduler associated with?
+
+answer
+A
+Renaming files
+B
+Changing the CPU instruction set
+C
+Swapping processes out and later back in
+Correct Answer:
+D
+Replacing the kernel on every interrupt
+
+Explanation
+Swapping can reduce memory pressure and the active multiprogramming level.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 64
+[Processes and IPC] Which description identifies an I/O-bound process?
+
+answer
+A
+No use of any input or output
+B
+Almost all time spent in long computations
+C
+A process that has already terminated
+D
+Many short CPU bursts with substantial I/O waiting
+Correct Answer:
+
+Explanation
+A balanced workload can overlap I/O waits with computation from other processes.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 65
+[Processes and IPC] Why is context-switch time overhead?
+
+answer
+A
+The CPU executes both processes' instructions simultaneously
+B
+Every context switch must reboot the machine
+C
+The OS permanently loses the process state
+D
+The CPU saves and restores execution state instead of advancing the switched processes' work
+Correct Answer:
+
+Explanation
+Switching is necessary management work but does not directly advance application computation.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 66
+[Processes and IPC] What does fork do in the process-creation model?
+
+answer
+A
+Closes every file in the system
+B
+Creates a child process
+Correct Answer:
+C
+Replaces the current process image without creating a child
+D
+Allocates a physical CPU
+
+Explanation
+The child has its own process identity; exec is a different operation.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 67
+[Processes and IPC] What does a successful exec operation do?
+
+answer
+A
+Replaces the current process image with another program
+Correct Answer:
+B
+Always creates an additional process ID
+C
+Only changes a thread's priority
+D
+Duplicates all running processes
+
+Explanation
+The existing process runs the new image rather than retaining its old program.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 68
+[Processes and IPC] What does wait allow a parent to do?
+
+answer
+A
+Wait for a child and collect its termination status
+Correct Answer:
+B
+Force a file to become executable
+C
+Create a new CPU core
+D
+Convert a physical address into a port
+
+Explanation
+It coordinates parent/child completion and collects child status.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 69
+[Processes and IPC] What is a cooperating process?
+
+answer
+A
+A process that can affect or be affected by another process
+Correct Answer:
+B
+Any program stored on a USB drive
+C
+Only a process in the terminated state
+D
+A process that can never share information
+
+Explanation
+Cooperation motivates IPC for sharing data, speedup, modularity, or convenience.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 70
+[Processes and IPC] What are the two main IPC models covered in the course?
+
+answer
+A
+Public cloud and private cloud
+B
+Shared memory and message passing
+Correct Answer:
+C
+Paging and segmentation
+D
+First-fit and worst-fit
+
+Explanation
+They differ in whether processes access a shared region or exchange messages.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 71
+[Processes and IPC] What is a key responsibility when using shared-memory IPC?
+
+answer
+A
+Synchronizing access to shared data
+Correct Answer:
+B
+Assigning every byte its own process ID
+C
+Making every read a remote procedure call
+D
+Avoiding all memory mappings
+
+Explanation
+Shared access alone does not prevent conflicting concurrent updates.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 72
+[Processes and IPC] In a bounded producer-consumer buffer, when must the producer wait?
+
+answer
+A
+When the buffer is full
+Correct Answer:
+B
+Whenever the CPU has more than one core
+C
+Only after the consumer terminates
+D
+Whenever the buffer is empty
+
+Explanation
+The producer needs an empty slot; the consumer needs available data.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 73
+[Processes and IPC] How does direct message passing identify the recipient?
+
+answer
+A
+By a CPU clock tick count
+B
+By naming the destination process
+Correct Answer:
+C
+Only by a file's extension
+D
+Only by a page-table index
+
+Explanation
+Indirect communication instead uses a mailbox or port abstraction.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 74
+[Processes and IPC] What enables indirect communication through a mailbox?
+
+answer
+A
+The mailbox is always the CPU cache
+B
+The sender must own the receiver's stack
+C
+All processes have the same PID
+D
+Processes share access to the mailbox
+Correct Answer:
+
+Explanation
+A mailbox can decouple senders and receivers and may be shared by multiple processes.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 75
+[Processes and IPC] What does a blocking receive do when no message is available?
+
+answer
+A
+Changes the process to kernel source code
+B
+Waits until a message is available
+Correct Answer:
+C
+Terminates the sender
+D
+Always returns a valid message immediately
+
+Explanation
+A nonblocking receive returns without waiting, possibly reporting that no message is available.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 76
+[Processes and IPC] In the course's message-passing model, what is a rendezvous?
+
+answer
+A
+A kernel-module installation
+B
+A page-table lookup
+C
+A permanent file-system mount
+D
+Sender and receiver synchronize through blocking communication
+Correct Answer:
+
+Explanation
+With zero-capacity buffering, the sender must wait for a receiver.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 77
+[Processes and IPC] What happens when a bounded message queue is full under blocking-send semantics?
+
+answer
+A
+The OS converts messages into CPU registers
+B
+The sender waits for queue space
+Correct Answer:
+C
+The receiver is automatically terminated
+D
+The queue becomes infinitely large
+
+Explanation
+Bounded buffering imposes a finite number of queued messages.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 78
+[Processes and IPC] What identifies a network socket endpoint in the course examples?
+
+answer
+A
+A file name and extension
+B
+An IP address and port number
+Correct Answer:
+C
+A frame number and page offset
+D
+A process state and stack size
+
+Explanation
+The address identifies the host/interface and the port distinguishes the service endpoint.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 79
+[Processes and IPC] What does the loopback address 127.0.0.1 refer to?
+
+answer
+A
+Every machine on the Internet
+B
+The highest-numbered process
+C
+The local host
+Correct Answer:
+D
+Only the default printer
+
+Explanation
+Loopback permits network-style communication within the same host.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 80
+[Processes and IPC] What is the client stub's role in an RPC?
+
+answer
+A
+Delete the server's address space
+B
+Physically move the server CPU
+C
+Execute all remote code directly in the client's registers
+D
+Package parameters and forward the request for remote execution
+Correct Answer:
+
+Explanation
+Marshalling prepares arguments for transmission; the server side unmarshals them.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 81
+[Processes and IPC] Why do RPC implementations need agreed data representations?
+
+answer
+A
+Machines may encode values differently, including byte order
+Correct Answer:
+B
+Remote calls never carry parameters
+C
+IP addresses eliminate the need for encoding
+D
+All computers use identical internal formats
+
+Explanation
+A shared wire representation avoids interpreting the same bytes differently.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.
+
+Question 82
+[Processes and IPC] How do ordinary and named pipes differ in the course model?
+
+answer
+A
+Named pipes cannot transfer data
+B
+Named pipes are always CPU pipelines
+C
+Ordinary pipes commonly use inherited handles; named pipes allow unrelated processes to connect
+Correct Answer:
+D
+Ordinary pipes require public Internet access
+
+Explanation
+Do not confuse IPC pipes with instruction pipelining; directionality details depend on the platform.
+Source: ch3.pptx, slides 4-47; Operating Systems 3.pdf; Fundamentals textbook, pp. 16-26.

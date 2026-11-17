@@ -1,0 +1,1439 @@
+Question 146
+[Memory] What tradeoff motivates a memory hierarchy?
+
+answer
+A
+Only process names and file extensions
+B
+Only the number of users
+C
+Speed, capacity, and cost per unit of storage
+Correct Answer:
+D
+Only screen resolution and keyboard size
+
+Explanation
+Small fast storage is combined with larger slower storage.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 147
+[Memory] What is locality of reference?
+
+answer
+A
+All processes must use identical addresses
+B
+Only disk directories can share a location
+C
+Programs tend to reuse recent data/instructions and access nearby locations
+Correct Answer:
+D
+Every program accesses every address equally often
+
+Explanation
+Temporal and spatial locality make caching and prefetching useful.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 148
+[Memory] With a 90% hit rate, a 10 ms first-level lookup, and an additional 100 ms on a miss, what is average access time?
+
+answer
+A
+20 ms
+Correct Answer:
+B
+19 ms
+C
+100 ms
+D
+110 ms
+
+Explanation
+EAT = 0.9(10) + 0.1(10+100) = 20 ms. These are the textbook's illustrative timings.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 149
+[Memory] What is contiguous allocation?
+
+answer
+A
+All processes share one identical address
+B
+Each process occupies one continuous physical-memory region
+Correct Answer:
+C
+Every byte of a process goes to a different disk
+D
+No address translation is used anywhere
+
+Explanation
+A single base plus offset can locate addresses within that region.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 150
+[Memory] What is external fragmentation?
+
+answer
+A
+Unused bytes inside an allocated block
+B
+A thread with its own stack
+C
+Free memory exists but is split into holes too small for a required contiguous allocation
+Correct Answer:
+D
+A missing file extension
+
+Explanation
+The total free space can be sufficient even when no single hole is large enough.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 151
+[Memory] A process needs 5 KB contiguously, but the only holes are 4 KB and 4 KB. Why can allocation fail?
+
+answer
+A
+A process cannot use more than one byte
+B
+External fragmentation
+Correct Answer:
+C
+There are fewer than 5 KB free in total
+D
+Internal fragmentation inside the new process
+
+Explanation
+The 8 KB total is split into regions that individually cannot hold 5 KB.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 152
+[Memory] What is internal fragmentation?
+
+answer
+A
+A circular resource dependency
+B
+An invalid file name
+C
+Free holes between allocated regions
+D
+Unused space inside an allocated partition or page frame
+Correct Answer:
+
+Explanation
+Rounding an allocation up to a fixed unit can leave unused bytes inside it.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 153
+[Memory] A fixed 5 KB partition holds a 4 KB process. What is its internal fragmentation?
+
+answer
+A
+1 KB
+Correct Answer:
+B
+9 KB
+C
+4 KB
+D
+5 KB
+
+Explanation
+The whole partition is assigned, leaving 5-4 = 1 KB unused internally.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 154
+[Memory] How does variable partitioning differ from fixed partitioning in the course's idealized model?
+
+answer
+A
+Variable partitioning eliminates every kind of allocation problem
+B
+Variable partitions must all have identical sizes
+C
+Fixed partitions can hold an unlimited number of processes simultaneously
+D
+Variable partitions are sized for requests; fixed partitions are predetermined
+Correct Answer:
+
+Explanation
+Ideal exact-sized variable partitions avoid internal waste but can leave external holes.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 155
+[Memory] Which hole does first-fit choose?
+
+answer
+A
+The largest hole in memory
+B
+The smallest hole regardless of size
+C
+The last hole even if too small
+D
+The first sufficiently large hole in scan order
+Correct Answer:
+
+Explanation
+First-fit can stop searching once a usable hole is found.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 156
+[Memory] Which hole does best-fit choose?
+
+answer
+A
+The smallest hole large enough for the request
+Correct Answer:
+B
+The first hole regardless of size
+C
+The hole with the largest address only
+D
+The largest hole in memory
+
+Explanation
+Best-fit minimizes the immediate leftover, not necessarily fragmentation over all future requests.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 157
+[Memory] Which hole does worst-fit choose?
+
+answer
+A
+The smallest hole that fits
+B
+The largest available hole
+Correct Answer:
+C
+The first occupied partition
+D
+The smallest hole even when too small
+
+Explanation
+Worst-fit leaves the largest possible remainder from the selected hole.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 158
+[Memory] Holes in order are 100 KB, 150 KB, 75 KB. A 70 KB request arrives. Which holes do first-fit, best-fit, and worst-fit choose respectively?
+
+answer
+A
+150 KB, 75 KB, 100 KB
+B
+100 KB, 75 KB, 150 KB
+Correct Answer:
+C
+100 KB, 150 KB, 75 KB
+D
+75 KB, 100 KB, 150 KB
+
+Explanation
+Each algorithm applies its own selection rule to the same initial holes.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 159
+[Memory] With variable holes 100 KB, 150 KB, 75 KB, first-fit allocates 70 KB. What remains at the chosen hole?
+
+answer
+A
+No reusable space because every partition is fixed
+B
+100 KB of internal fragmentation
+C
+30 KB available for later allocation
+Correct Answer:
+D
+70 KB available and 30 KB occupied
+
+Explanation
+In variable allocation, the chosen hole is split into a 70 KB allocation and 30 KB remainder.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 160
+[Memory] In fixed partitions [200,400,600,500,300,250] KB, requests [357,210,468,491] KB arrive in order. With first-fit and one process per partition, which request fails?
+
+answer
+A
+357 KB
+B
+210 KB
+C
+491 KB
+Correct Answer:
+D
+468 KB
+
+Explanation
+First-fit uses 400, 600, then 500 KB; no remaining partition can hold 491 KB.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 161
+[Memory] For fixed partitions [200,400,600,500,300,250] KB and requests [357,210,468,491] KB, how much internal waste does best-fit produce if all fit?
+
+answer
+A
+224 KB
+Correct Answer:
+B
+0 KB
+C
+465 KB
+D
+533 KB
+
+Explanation
+Assignments 400,250,500,600 leave 43+40+32+109 = 224 KB.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 162
+[Memory] What does the memory management unit (MMU) do?
+
+answer
+A
+Compile every source-code statement
+B
+Translate logical addresses into physical addresses
+Correct Answer:
+C
+Create all process IDs
+D
+Choose the owner's file permissions
+
+Explanation
+The MMU performs the hardware part of runtime address translation and protection.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 163
+[Memory] What is a logical address?
+
+answer
+A
+Necessarily a physical disk sector
+B
+An address generated in a process's address space
+Correct Answer:
+C
+A network port number
+D
+Always the same value as a physical address
+
+Explanation
+Translation maps the process-visible address to a physical-memory location.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 164
+[Memory] With base=500 and limit=100 interpreted as a length, what physical address corresponds to logical address 21?
+
+answer
+A
+621
+B
+521
+Correct Answer:
+C
+479
+D
+100
+
+Explanation
+21 is within 0 <= address < 100, so physical address = 500+21.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 165
+[Memory] With base=500 and limit=100 interpreted as a length, is logical address 100 valid?
+
+answer
+A
+No; valid offsets are 0 through 99
+Correct Answer:
+B
+Yes; every logical address is valid
+C
+No; only logical address 0 is ever valid
+D
+Yes; the upper bound is always inclusive
+
+Explanation
+The slides use address < limit. Treating a length as an inclusive upper bound creates an off-by-one error.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 166
+[Memory] What is a segment in segmentation?
+
+answer
+A
+A file-system user ID
+B
+A logical variable-sized unit such as code, a stack, or an array
+Correct Answer:
+C
+Always a fixed-size page frame
+D
+A resource-request edge
+
+Explanation
+Segmentation reflects logical program organization.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 167
+[Memory] What information is in a segment-table entry?
+
+answer
+A
+A base address and segment limit, with protection information
+Correct Answer:
+B
+Only a process name
+C
+Only a CPU clock frequency
+D
+Only the total number of files
+
+Explanation
+The offset is checked against the segment limit and then added to its base.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 168
+[Memory] A segment has base=4000 and limit=600. What physical address corresponds to offset 250?
+
+answer
+A
+250
+B
+4250
+Correct Answer:
+C
+4600
+D
+3750
+
+Explanation
+250 is less than 600, so the address is base+offset = 4250.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 169
+[Memory] What is the distinction between a page and a frame?
+
+answer
+A
+A page is always hardware and a frame is always software code
+B
+They are both process IDs
+C
+A page is a fixed-size logical-memory block; a frame is an equal-size physical-memory block
+Correct Answer:
+D
+A frame must be smaller than its page
+
+Explanation
+Page tables map logical pages to physical frames; pages are not defined only as disk blocks.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 170
+[Memory] What fragmentation does ordinary fixed-size paging avoid?
+
+answer
+A
+All internal fragmentation
+B
+All page-table overhead
+C
+Every source of memory waste
+D
+External fragmentation in allocation of page frames
+Correct Answer:
+
+Explanation
+Any free frame can hold a page, but the last page of an allocation may be partly unused.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 171
+[Memory] How do you split logical address L with page size S into page number and offset?
+
+answer
+A
+Page = L*S, offset = 0
+B
+Page = L mod S, offset = floor(L/S)
+C
+Page = floor(L/S), offset = L mod S
+Correct Answer:
+D
+Page = L+S, offset = L-S
+
+Explanation
+The page selects a mapping; the offset is the position within the page.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 172
+[Memory] With page size 1024 bytes, what are the page number and offset of logical address 2500?
+
+answer
+A
+Page 2, offset 452
+Correct Answer:
+B
+Page 3, offset 452
+C
+Page 452, offset 2
+D
+Page 1, offset 1476
+
+Explanation
+2500 = 2*1024 + 452, using zero-based page numbers.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 173
+[Memory] Logical address 2500 uses 1024-byte pages, and page 2 maps to frame 5. What is the physical address?
+
+answer
+A
+4552
+B
+2500
+C
+5120
+D
+5572
+Correct Answer:
+
+Explanation
+The offset is 452; physical address = 5*1024+452 = 5572.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 174
+[Memory] For a byte-addressed space of 2^m bytes and page size 2^n bytes, how many address bits specify the offset?
+
+answer
+A
+2^n bits
+B
+m+n bits
+C
+m bits
+D
+n bits
+Correct Answer:
+
+Explanation
+The remaining m-n bits specify the page number.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 175
+[Memory] How many offset bits are needed for a 4096-byte page?
+
+answer
+A
+10
+B
+4096
+C
+12
+Correct Answer:
+D
+16
+
+Explanation
+4096 = 2^12, so 12 bits select a byte within the page.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 176
+[Memory] A process occupies 72,766 bytes and pages are 2,048 bytes. How many pages are needed and how many bytes are unused in its last page?
+
+answer
+A
+36 pages and 962 bytes
+Correct Answer:
+B
+35 pages and 1086 bytes
+C
+36 pages and 1086 bytes
+D
+37 pages and 962 bytes
+
+Explanation
+35 full pages contain 71,680 bytes; the last holds 1086 bytes, leaving 2048-1086 = 962.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 177
+[Memory] What is the worst-case unused space in the last page of a byte-granular allocation?
+
+answer
+A
+Page size minus 1 byte
+Correct Answer:
+B
+Exactly zero bytes always
+C
+The entire logical address space
+D
+Two full pages
+
+Explanation
+A final page containing only one byte wastes the remaining bytes.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 178
+[Memory] What does a page table map?
+
+answer
+A
+File extensions to user names
+B
+Logical page numbers to physical frame numbers and related attributes
+Correct Answer:
+C
+Resource requests to maximum cloud prices
+D
+CPU cores to keyboard keys
+
+Explanation
+The page number indexes the translation information.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 179
+[Memory] In the simple one-level paging model without a TLB, how many memory accesses are needed for one data access?
+
+answer
+A
+One regardless of where the page table resides
+B
+Two: one for the page-table entry and one for the data
+Correct Answer:
+C
+Four in every architecture
+D
+Zero
+
+Explanation
+This count assumes the page table is in memory and ignores caches and other page-table levels.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 180
+[Memory] What does a translation lookaside buffer (TLB) cache?
+
+answer
+A
+Only file names
+B
+Recent address translations
+Correct Answer:
+C
+Entire hard-drive backups
+D
+Only source-code comments
+
+Explanation
+A TLB hit can avoid a memory lookup of the page-table entry.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 181
+[Memory] Does a TLB miss necessarily mean the page is absent from RAM?
+
+answer
+A
+Yes; the process must terminate
+B
+Yes; every TLB miss is a page fault
+C
+No; the page-table lookup may find a resident page
+Correct Answer:
+D
+No; a miss means the TLB has no hardware
+
+Explanation
+A translation-cache miss and a missing resident page are different events.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 182
+[Memory] Why can address-space identifiers (ASIDs) help a TLB?
+
+answer
+A
+They distinguish translations belonging to different address spaces
+Correct Answer:
+B
+They make every process share one page table
+C
+They replace the need for physical frames
+D
+They identify only file owners
+
+Explanation
+Tagging translations helps prevent confusing identical virtual page numbers from different processes.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 183
+[Memory] Why use a multilevel page table?
+
+answer
+A
+To turn frames into variable-sized segments
+B
+To organize large address spaces without allocating every lower-level table for unused regions
+Correct Answer:
+C
+To eliminate every page-table memory access
+D
+To make page offsets change during translation
+
+Explanation
+The page number is split across levels; lower-level tables can be omitted for unused regions.
+Source: ch8.ppt; Fundamentals textbook, pp. 40-50.
+
+Question 184
+[File systems] What is a file?
+
+answer
+A
+A named collection of related information represented as a logical storage object
+Correct Answer:
+B
+A physical CPU core
+C
+Always one contiguous physical disk region
+D
+Only an executable program
+
+Explanation
+Files can contain data or programs; logical organization need not imply contiguous physical allocation.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 185
+[File systems] Which group contains file attributes?
+
+answer
+A
+Only CPU register values
+B
+Name, identifier, type, location, size, protection, timestamps, owner information
+Correct Answer:
+C
+Only page offsets
+D
+Only thread cancellation points
+
+Explanation
+Attributes describe the file and how it can be located and accessed.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 186
+[File systems] How does truncating a file differ from deleting it?
+
+answer
+A
+Truncation removes file content while retaining the file; deletion removes its directory association and ultimately storage when no longer referenced
+Correct Answer:
+B
+They both merely change permissions
+C
+Deletion only moves the file cursor
+D
+Truncation always renames the file
+
+Explanation
+Truncation commonly reduces length to zero without removing the file itself.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 187
+[File systems] What does seeking within a file do?
+
+answer
+A
+Creates a child process
+B
+Changes the CPU scheduler
+C
+Always deletes the file
+D
+Changes the current read/write position
+Correct Answer:
+
+Explanation
+Seeking repositions access without necessarily transferring file data.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 188
+[File systems] What characterizes sequential file access?
+
+answer
+A
+Jumping directly to any record by number on every operation
+B
+Processing data in order with operations such as read next
+Correct Answer:
+C
+Loading every file into kernel code
+D
+Accessing only file permissions
+
+Explanation
+Sequential access naturally suits streams of records or bytes.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 189
+[File systems] What characterizes direct file access?
+
+answer
+A
+Requiring all users to have the same name
+B
+Reading only from the start every time
+C
+Accessing a specified relative block or record without reading all earlier ones
+Correct Answer:
+D
+Using no addresses or offsets
+
+Explanation
+Direct access supports repositioning to a chosen location.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 190
+[File systems] What is the purpose of an indexed access method?
+
+answer
+A
+Use a key/index to locate records efficiently
+Correct Answer:
+B
+Make every file read-only
+C
+Force every lookup to scan the entire file
+D
+Remove all file attributes
+
+Explanation
+An index maps keys or ranges to locations and may itself have multiple levels.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 191
+[File systems] Which operations are typical directory operations?
+
+answer
+A
+Only add and multiply
+B
+Only page and frame translation
+C
+Only fork and exec
+D
+Search, create, delete, list, rename, traverse
+Correct Answer:
+
+Explanation
+Directories organize names and references to files and subdirectories.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 192
+[File systems] What is a main weakness of a single-level directory?
+
+answer
+A
+It permits too many levels of subdirectories
+B
+It automatically creates shared graphs
+C
+Naming conflicts and poor grouping when everyone shares one directory
+Correct Answer:
+D
+It requires a separate CPU for each file
+
+Explanation
+All names compete in one namespace.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 193
+[File systems] What does a two-level directory add?
+
+answer
+A
+No file names at all
+B
+A separate directory for each user
+Correct Answer:
+C
+Automatic graph-based sharing
+D
+Unlimited nested subdirectories within every user's directory
+
+Explanation
+Users can reuse names across their separate directories, but grouping remains limited in the basic model.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 194
+[File systems] What does a tree-structured directory support?
+
+answer
+A
+Exactly two files total
+B
+Only one shared directory for every user
+C
+Only unnamed storage blocks
+D
+Nested subdirectories and hierarchical grouping
+Correct Answer:
+
+Explanation
+Paths locate files through the directory hierarchy.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 195
+[File systems] What is the difference between an absolute and a relative path?
+
+answer
+A
+They differ only in file extension
+B
+Absolute is always shorter
+C
+Absolute starts at the root; relative starts from a specified current directory
+Correct Answer:
+D
+Relative must always refer to another computer
+
+Explanation
+The interpretation of a relative path depends on the current directory.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 196
+[File systems] What feature distinguishes an acyclic-graph directory from a strict tree?
+
+answer
+A
+Every node must have exactly one parent
+B
+All directory names must be numbers
+C
+Shared files or subdirectories can have multiple paths without cycles
+Correct Answer:
+D
+Files cannot be shared
+
+Explanation
+Links allow sharing; the structure must still avoid cycles.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 197
+[File systems] What is a dangling link?
+
+answer
+A
+A file with two valid names
+B
+A currently executing process
+C
+A full message queue
+D
+A reference whose target no longer exists
+Correct Answer:
+
+Explanation
+Deleting a target can leave a reference that no longer resolves.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 198
+[File systems] How can reference counting help manage shared files?
+
+answer
+A
+Make all links disappear after one read
+B
+Count CPU cores instead of links
+C
+Delete the object whenever any one alias is removed
+D
+Reclaim the object after the last counted reference is removed
+Correct Answer:
+
+Explanation
+The lifetime of a shared object must account for remaining references.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 199
+[File systems] What does mounting a file system mean?
+
+answer
+A
+Granting everyone full file permissions
+B
+Copying every file into CPU registers
+C
+Making a file system accessible at a mount point in the existing namespace
+Correct Answer:
+D
+Installing any application program
+
+Explanation
+Mounting attaches a file system to the directory namespace; it is not the same as installing software.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 200
+[File systems] What is NFS used for in the course material?
+
+answer
+A
+Cancelling user threads
+B
+Network access to files on another system
+Correct Answer:
+C
+Mapping pages to frames
+D
+Choosing CPU time slices
+
+Explanation
+The client uses file operations while the system communicates with a file server.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 201
+[File systems] What do file-sharing consistency semantics specify?
+
+answer
+A
+Only the maximum file-name length
+B
+Only the physical disk diameter
+C
+Only the number of CPUs
+D
+When and how users observe changes made to shared files
+Correct Answer:
+
+Explanation
+The slides contrast immediate visibility with session-based visibility.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 202
+[File systems] Under the AFS session semantics described in the slides, when do changes become visible to later sessions?
+
+answer
+A
+Only after every computer is rebooted
+B
+Never
+C
+Before any write occurs
+D
+After the writing session closes the file
+Correct Answer:
+
+Explanation
+The model contrasts with immediate visibility for users of an open shared file in the UNIX example.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 203
+[File systems] Which access modes are commonly controlled for files?
+
+answer
+A
+Only request, use, and release
+B
+Read, write, execute, append, delete, and list
+Correct Answer:
+C
+Only new, ready, and running
+D
+Only first-fit and best-fit
+
+Explanation
+Protection specifies both who may access a resource and which operations are allowed.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 204
+[File systems] What are the three basic UNIX permission classes?
+
+answer
+A
+Administrator, compiler, kernel
+B
+Owner, group, others
+Correct Answer:
+C
+Reader, writer, scheduler
+D
+Process, page, frame
+
+Explanation
+Owner does not mean that the owner must be an administrator.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 205
+[File systems] What numeric values correspond to read, write, and execute permissions?
+
+answer
+A
+4, 2, 1
+Correct Answer:
+B
+1, 2, 4
+C
+8, 4, 2
+D
+7, 6, 5
+
+Explanation
+Add the values for permissions granted to each user class.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 206
+[File systems] What does mode 754 mean for an ordinary file?
+
+answer
+A
+Owner r--, group rwx, others r-x
+B
+Everyone rwx
+C
+Owner rwx, group r-x, others r--
+Correct Answer:
+D
+Owner rw-, group r--, others --x
+
+Explanation
+7=4+2+1; 5=4+1; 4=read only.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 207
+[File systems] Which numeric mode grants read, write, and execute to all three basic permission classes?
+
+answer
+A
+111
+B
+000
+C
+444
+D
+777
+Correct Answer:
+
+Explanation
+111 grants only execute; 777 grants all three rights to each class.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 208
+[File systems] What do user IDs and group IDs enable in file sharing?
+
+answer
+A
+Conversion of files into process stacks
+B
+Permissions tied to individual users and groups
+Correct Answer:
+C
+Automatic elimination of every network failure
+D
+Identical access for every account
+
+Explanation
+Identity and group membership are used to evaluate access rights.
+Source: ch11.ppt; Fundamentals textbook, pp. 50-54.
+
+Question 209
+[Cloud and virtualization] What characterizes a distributed computing environment?
+
+answer
+A
+Every component must be on the same chip
+B
+Separate networked systems cooperate or provide services
+Correct Answer:
+C
+No communication is possible
+D
+Only one CPU register stores all programs
+
+Explanation
+The machines may differ in hardware or operating system.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 210
+[Cloud and virtualization] How does peer-to-peer differ from client-server organization?
+
+answer
+A
+P2P requires all nodes to share a PID
+B
+Client-server forbids network communication
+C
+Peers can only request and never provide services
+D
+Peers may act as both clients and servers
+Correct Answer:
+
+Explanation
+Client-server distinguishes service providers from requesters; P2P gives nodes peer roles.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 211
+[Cloud and virtualization] What is cloud computing in the course material?
+
+answer
+A
+Providing computing, storage, or applications as services over a network
+Correct Answer:
+B
+Using only a single unnetworked computer
+C
+Running without any physical hardware
+D
+Only saving files to a local USB drive
+
+Explanation
+Remote infrastructure supplies capabilities to connected users and organizations.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 212
+[Cloud and virtualization] What distinguishes a private cloud?
+
+answer
+A
+It can never be remotely accessed
+B
+It is always free of operating costs
+C
+It is dedicated to one organization
+Correct Answer:
+D
+It must be shared by every Internet user
+
+Explanation
+Dedication and control define the model; location and access arrangements can vary.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 213
+[Cloud and virtualization] What distinguishes a public cloud?
+
+answer
+A
+Every customer's data must be publicly readable
+B
+It cannot use virtualization
+C
+A provider offers services to multiple customers over shared infrastructure
+Correct Answer:
+D
+Only one organization may ever use it
+
+Explanation
+Multitenancy does not mean tenants are authorized to read each other's data.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 214
+[Cloud and virtualization] What is a hybrid cloud?
+
+answer
+A
+An arrangement combining private and public cloud resources
+Correct Answer:
+B
+Only a public cloud with a new name
+C
+A virtual machine without a kernel
+D
+Any computer with two hard drives
+
+Explanation
+It permits workloads to use different environments while introducing integration complexity.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 215
+[Cloud and virtualization] What is a community cloud?
+
+answer
+A
+A public folder on any laptop
+B
+Infrastructure shared by organizations with common requirements
+Correct Answer:
+C
+A single process shared by CPU registers
+D
+A private cloud with no authorized users
+
+Explanation
+Common security, governance, or industry needs can motivate shared management and costs.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 216
+[Cloud and virtualization] Which cloud service model supplies compute/storage infrastructure while the customer manages the guest OS and applications?
+
+answer
+A
+IaaS
+Correct Answer:
+B
+PaaS
+C
+SaaS
+D
+A local shell
+
+Explanation
+IaaS offers infrastructure resources; customer responsibilities remain above that layer.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 217
+[Cloud and virtualization] Which cloud service model supplies a managed platform for building and running applications?
+
+answer
+A
+A physical device controller
+B
+IaaS
+C
+SaaS
+D
+PaaS
+Correct Answer:
+
+Explanation
+PaaS reduces the need to manage the underlying OS/runtime infrastructure directly.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 218
+[Cloud and virtualization] Which cloud service model delivers a ready-to-use hosted application?
+
+answer
+A
+SaaS
+Correct Answer:
+B
+IaaS
+C
+A bare-metal hypervisor
+D
+A kernel module
+
+Explanation
+The user consumes the application instead of building the whole hosting environment.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 219
+[Cloud and virtualization] What is a useful shorthand for IaaS, PaaS, and SaaS respectively?
+
+answer
+A
+Request, use, release
+B
+Host, build, consume
+Correct Answer:
+C
+New, ready, running
+D
+Read, write, execute
+
+Explanation
+The textbook uses these verbs to distinguish the service models.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 220
+[Cloud and virtualization] What is multitenancy?
+
+answer
+A
+Every application has a separate physical data center
+B
+Only one VM may run on a host
+C
+Multiple customers share underlying infrastructure with logical separation
+Correct Answer:
+D
+All customers must share passwords
+
+Explanation
+Shared infrastructure can be partitioned and isolated among tenants.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 221
+[Cloud and virtualization] What is a hypervisor or virtual machine monitor?
+
+answer
+A
+A file-access permission bit
+B
+An application thread's stack
+C
+A network port number
+D
+Software that provides and manages virtual machines
+Correct Answer:
+
+Explanation
+It mediates virtual machines' access to physical resources.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 222
+[Cloud and virtualization] How does a Type I hypervisor differ from a Type II hypervisor?
+
+answer
+A
+Type I runs directly on hardware; Type II runs as software on a host OS
+Correct Answer:
+B
+They differ only in VM file size
+C
+Type I requires a host application; Type II is always bare metal
+D
+Both are ordinary user documents
+
+Explanation
+These are the textbook's bare-metal and hosted categories.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 223
+[Cloud and virtualization] What is the key architectural difference between a container and a VM?
+
+answer
+A
+Every container needs a separate physical CPU
+B
+VMs cannot run an operating system
+C
+Containers contain no application dependencies
+D
+Containers share a host kernel; VMs normally run separate guest kernels
+Correct Answer:
+
+Explanation
+Sharing the kernel usually makes containers lighter, while requiring compatible host-kernel support.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 224
+[Cloud and virtualization] Why can virtualization improve hardware utilization?
+
+answer
+A
+It guarantees applications never fail
+B
+It creates unlimited physical RAM
+C
+It removes every scheduling cost
+D
+Multiple isolated workloads can share one physical host
+Correct Answer:
+
+Explanation
+Consolidation can use idle capacity, but physical resources and overhead still matter.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.
+
+Question 225
+[Cloud and virtualization] What is vendor lock-in in cloud computing?
+
+answer
+A
+A requirement that all clouds use identical APIs
+B
+A process waiting for a CPU lock
+C
+Difficulty moving workloads because of dependence on a provider's services or interfaces
+Correct Answer:
+D
+A guaranteed total loss of every file
+
+Explanation
+Migration can require changes to data, integrations, or application architecture.
+Source: ch1.pptx, slides 26-34; Ch_1(0S).pdf, pp. 24-27; Fundamentals textbook, pp. 55-61.

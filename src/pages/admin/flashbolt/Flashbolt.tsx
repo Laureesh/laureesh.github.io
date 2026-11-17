@@ -1,3 +1,4 @@
+import { combineStudySets } from "./combineSets";
 import EliminatableChoice from "./EliminatableChoice";
 import LearnHistory, { type LearnAttempt } from "./LearnHistory";
 import ShareSetDialog from './sharing/ShareSetDialog';
@@ -1041,6 +1042,11 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   const [requestedFlashIndex, setFlashIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [learnPhase, setLearnPhase] = useState<LearnPhase>("goal");
+  const [nextLearnSetId, setNextLearnSetId] = useState("");
+  const [combineOpen, setCombineOpen] = useState(false);
+  const [combineIds, setCombineIds] = useState<string[]>([]);
+  const [combineTitle, setCombineTitle] = useState("");
+  const [combineSearch, setCombineSearch] = useState("");
   const [understandReviewed, setUnderstandReviewed] = useState(false);
   const [learnGoal, setLearnGoal] = useState<LearnGoal>("memorize");
   const [learnOptions, setLearnOptions] = useState<LearnOptions>(DEFAULT_LEARN_OPTIONS);
@@ -1657,6 +1663,10 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   const testCards = testCardIds ? (selectedSet?.cards.filter(card => testCardIds.includes(card.id)) ?? []) : (selectedSet?.cards.slice(0, 8) ?? []);
   const testMissedCards = testCards.filter(card => normalizeAnswer(testAnswers[card.id] ?? "") !== normalizeAnswer(testCorrectAnswer(card)));
   const enabledLearnCards = selectedSet?.cards.filter(card => card.learnEnabled !== false) ?? [];
+  const nextLearnSets = data.sets
+    .filter(set => set.id !== selectedSet?.id && set.cards.some(card => card.learnEnabled !== false))
+    .sort((a, b) => Number(Boolean(folder?.setIds.includes(b.id))) - Number(Boolean(folder?.setIds.includes(a.id))) || LIBRARY_COLLATOR.compare(a.title, b.title));
+  const chosenNextLearnSet = nextLearnSets.find(set => set.id === nextLearnSetId);
   const learnMissedCards = selectedSet?.cards.filter(card => learnMissedIds.includes(card.id)) ?? [];
   const testScore = testCards.filter((card) => normalizeAnswer(testAnswers[card.id] ?? "") === normalizeAnswer(testCorrectAnswer(card))).length;
   const guideTitleSuggestions = useMemo(() => suggestNoteTitles(guideNotes), [guideNotes]);
@@ -2652,6 +2662,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     setSelectedSetId(setId);
     const questionFirstOptions = { ...learnOptions, multipleChoice: true, trueFalse: false, selectAll: false, written: false, flashcards: false, answerTerms: false, answerDefinitions: true };
     setLearnPhase("goal");
+    setNextLearnSetId("");
     setLearnMissedIds([]);
     setLearnRetryPass(false);
     setLearnGoal("memorize");
@@ -3170,6 +3181,21 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     }
   }
 
+  function saveCombinedSet() {
+    const sources = combineIds.flatMap(id => data.sets.filter(set => set.id === id));
+    if (sources.length < 2 || !combineTitle.trim()) return;
+    const combined = combineStudySets(sources, combineTitle, makeId);
+    setData(current => ({
+      ...current,
+      sets: [combined, ...current.sets],
+      folders: current.folders.map(item => item.id === folder?.id ? { ...item, setIds: [...item.setIds, combined.id] } : item),
+    }));
+    setCombineOpen(false);
+    setSearch("");
+    notify(`Combined ${sources.length} sets into “${combined.title}”.`);
+    routerNavigate(`${FLASHBOLT_BASE}/${routeSlug(folder?.semester || "no-semester")}/${folder ? folderRouteSegment(folder) : "unfiled"}/${setRouteSegment(combined, folder)}/learn`);
+  }
+
   function renderSetGrid(sets: StudySet[]) {
     if (!sets.length) {
       return (
@@ -3550,6 +3576,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
               <div className="page-heading split">
                 <div><span className="eyebrow">{folder?.semester ?? (folder ? "Folder" : "Your library")}</span><h1>{folder ? folder.name : "Every set, in one place."}</h1><p>{folder ? `${folder.setIds.length} set${folder.setIds.length === 1 ? "" : "s"} dedicated to this folder.` : `${data.sets.length} sets and ${cardCount} cards, synced with your account.`}</p></div>
                 <div className="heading-actions">
+                  <button className="button quiet" disabled={data.sets.length < 2} onClick={() => { setCombineIds([]); setCombineTitle(""); setCombineSearch(""); setCombineOpen(true); }}>Combine sets</button>
                   <button className="button quiet" onClick={() => setSharedLinksOpen(true)}>Shared by me</button>
                   <button className="button quiet" disabled={!visibleSets.length} onClick={() => setBatchEditSets(visibleSets)}>Batch quick edit</button>
                   {folder && <><button className="button primary" onClick={() => setSharingFolder(folder)}>Share folder</button><button className="button quiet" onClick={() => editFolder(folder)}>Edit folder</button></>}
@@ -4060,7 +4087,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
               {learnPhase === "goal" && (
                 <div className="learn-goal-screen">
                   <Link className="back-link" to={routePathForView("set", selectedSet.id)}>← Back to set</Link>
-                  <div className="learn-goal-heading"><div><span className="eyebrow">{selectedSet.subject}</span><h1>Choose a goal for this session</h1><p>Learn adapts to every answer. Recognition comes first, then verification, then written recall. Difficult cards return sooner and strong cards return in harder formats.</p></div><div className="learn-orbit" aria-hidden="true"><i /><i /><i /></div></div>
+                  <div className="learn-goal-heading"><div><span className="eyebrow">{selectedSet.subject}</span><h1>{selectedSet.title}</h1><h2>Choose a goal for this session</h2><p>Learn adapts to every answer. Recognition comes first, then verification, then written recall. Difficult cards return sooner and strong cards return in harder formats.</p></div><div className="learn-orbit" aria-hidden="true"><i /><i /><i /></div></div>
                   <div className="goal-options" role="radiogroup" aria-label="Learn session goal">
                     <button role="radio" aria-checked={learnGoal === "cram"} className={learnGoal === "cram" ? "selected" : ""} onClick={() => setLearnGoal("cram")}><span className="goal-copy"><strong>Cram for a test</strong><small>Move quickly with mixed question types</small></span><span className="goal-icon cram"><UiIcon symbol="◴" /></span></button>
                     <button role="radio" aria-checked={learnGoal === "memorize"} className={learnGoal === "memorize" ? "selected" : ""} onClick={() => setLearnGoal("memorize")}><span className="goal-copy"><strong>Memorize it all</strong><small>Keep practicing until every card is mastered</small></span><span className="goal-icon memorize"><UiIcon symbol="✦" /></span></button>
@@ -4165,7 +4192,20 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
               )}
 
               {learnPhase === "complete" && !reviewedAttempt && (
-                <><div className="results-card learn-complete"><span className="result-burst"><UiIcon symbol="✓" /></span><span className="eyebrow">100% goal reached</span><h1>You completed the adaptive path.</h1><p className="learn-complete-count"><strong>{learnQuestionsAnswered}</strong> questions answered across <strong>{learnRound}</strong> adaptive round{learnRound === 1 ? "" : "s"}.</p><p>Every card reached the {learnGoal === "cram" ? "familiar" : "mastered"} level. {learnGoal === "understand" ? "You practiced answers and reviewed their reasoning. Your written reflections were not graded." : "Weak cards repeated and stronger cards advanced to harder recall."} {shared ? "Your progress stays in this browser." : "Your progress was queued for account sync."}</p><div className="button-row center"><button className="button quiet" disabled={!learnHistory.length} onClick={() => setLearnReviewIndex(learnHistory.length - 1)}>Review answers</button><button className="button primary" onClick={() => beginLearnSession(learnGoal)}>Practice again</button><button className="button quiet" onClick={() => navigate("set")}>Back to set</button></div></div><StudySummary missed={learnMissedCards} onRetry={() => beginLearnSession(learnGoal, learnOptions, learnMissedIds)} /></>
+                <><div className="results-card learn-complete"><span className="result-burst"><UiIcon symbol="✓" /></span><span className="eyebrow">100% goal reached</span><h1>You completed the adaptive path.</h1><p className="learn-complete-count"><strong>{learnQuestionsAnswered}</strong> questions answered across <strong>{learnRound}</strong> adaptive round{learnRound === 1 ? "" : "s"}.</p><p>Every card reached the {learnGoal === "cram" ? "familiar" : "mastered"} level. {learnGoal === "understand" ? "You practiced answers and reviewed their reasoning. Your written reflections were not graded." : "Weak cards repeated and stronger cards advanced to harder recall."} {shared ? "Your progress stays in this browser." : "Your progress was queued for account sync."}</p><div className="button-row center"><button className="button quiet" disabled={!learnHistory.length} onClick={() => setLearnReviewIndex(learnHistory.length - 1)}>Review answers</button><button className="button primary" onClick={() => beginLearnSession(learnGoal)}>Practice again</button><button className="button quiet" onClick={() => navigate("set")}>Back to set</button></div>
+                  {nextLearnSets.length > 0 && (
+                    <div className="learn-next-set">
+                      <label htmlFor="learn-next-set">What would you like to learn next?</label>
+                      <div className="learn-next-set-controls">
+                        <select id="learn-next-set" value={chosenNextLearnSet?.id ?? ""} onChange={event => setNextLearnSetId(event.target.value)}>
+                          <option value="" disabled>Choose a study set</option>
+                          {nextLearnSets.map(set => <option key={set.id} value={set.id}>{set.title}{set.subject ? ` · ${set.subject}` : ""}</option>)}
+                        </select>
+                        <button className="button primary" disabled={!chosenNextLearnSet} onClick={() => { if (chosenNextLearnSet) startLearn(chosenNextLearnSet.id); }}>Learn this set →</button>
+                      </div>
+                    </div>
+                  )}
+                </div><StudySummary missed={learnMissedCards} onRetry={() => beginLearnSession(learnGoal, learnOptions, learnMissedIds)} /></>
               )}
 
               {knowledgeLevel && learnPhase === "session" && <LearnKnowledgeDetails
@@ -4318,6 +4358,22 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
         }
         setBatchEditSets(null);
       }} />}
+
+      {combineOpen && (
+        <Modal className="modal combine-sets-modal" labelledBy="combine-sets-title" onClose={() => setCombineOpen(false)}>
+          <header><h2 id="combine-sets-title">Combine sets</h2><button className="icon-button" onClick={() => setCombineOpen(false)} aria-label="Close combine sets">×</button></header>
+          <p>Create a new set with copies of all selected cards. Originals stay intact; the new set starts with fresh progress.</p>
+          <label className="modal-field"><span>New set title</span><input value={combineTitle} onChange={event => setCombineTitle(event.target.value)} placeholder="e.g. Chapter 8 — All parts" /></label>
+          <label className="modal-field"><span>Find sets</span><input value={combineSearch} onChange={event => setCombineSearch(event.target.value)} placeholder="Search titles or subjects" /></label>
+          <div className="combine-set-options" role="group" aria-label="Sets to combine">
+            {[...data.sets].sort((a, b) => Number(Boolean(folder?.setIds.includes(b.id))) - Number(Boolean(folder?.setIds.includes(a.id))) || LIBRARY_COLLATOR.compare(a.title, b.title)).filter(set => `${set.title} ${set.subject}`.toLocaleLowerCase().includes(combineSearch.toLocaleLowerCase())).map(set => (
+              <label key={set.id}><input type="checkbox" checked={combineIds.includes(set.id)} onChange={event => setCombineIds(ids => event.target.checked ? [...ids, set.id] : ids.filter(id => id !== set.id))} /><span><strong>{set.title}</strong><small>{set.subject} · {set.cards.length} terms</small></span></label>
+            ))}
+          </div>
+          <p role="status">{combineIds.filter(id => data.sets.some(set => set.id === id)).length} sets selected · {data.sets.filter(set => combineIds.includes(set.id)).reduce((total, set) => total + set.cards.length, 0)} terms{folder ? ` · Saved in ${folder.name}` : ""}</p>
+          <footer><button className="button quiet" onClick={() => setCombineOpen(false)}>Cancel</button><button className="button primary" disabled={combineIds.filter(id => data.sets.some(set => set.id === id)).length < 2 || !combineTitle.trim()} onClick={saveCombinedSet}>Combine and learn</button></footer>
+        </Modal>
+      )}
 
       {folderModalOpen && (
         <Modal className="modal" labelledBy="folder-title" onClose={closeFolderModal}>

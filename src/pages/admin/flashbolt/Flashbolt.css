@@ -5687,6 +5687,44 @@ kbd {
   margin-top: 70px;
 }
 
+.combine-sets-modal { max-height: 90dvh; overflow-y: auto; }
+.combine-set-options { max-height: 280px; overflow-y: auto; display: grid; gap: 8px; margin-top: 16px; }
+.combine-set-options > label { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+.combine-set-options input { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--primary); }
+.combine-set-options span { min-width: 0; overflow-wrap: anywhere; }
+.combine-set-options small { display: block; color: var(--muted); margin-top: 4px; }
+
+.learn-next-set {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  text-align: left;
+}
+
+.learn-next-set label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.learn-next-set-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.learn-next-set-controls select {
+  flex: 1 1 240px;
+  min-width: 0;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--ink);
+  font: inherit;
+}
+
 .learn-complete .learn-complete-count {
   margin: 10px auto 14px;
   color: var(--primary-strong);

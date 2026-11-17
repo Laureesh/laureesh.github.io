@@ -152,7 +152,9 @@
 .flashbolt-shell:not([data-view="helper"]) .mode-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .flashbolt-shell:not([data-view="helper"]) .mode-tabs a { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 12px 8px; font-size: 13px; white-space: nowrap; }
 .flashbolt-shell .mode-tabs svg { width: 17px; height: 17px; flex-shrink: 0; }
-.flashbolt-shell .learn-goal-heading h1 { font-size: calc((clamp(27px, 3.2vw, 44px)) * var(--learn-font-scale, 1)); letter-spacing: -.04em; line-height: 1.15; }
+.flashbolt-shell .learn-goal-heading > div:first-child { min-width: 0; }
+.flashbolt-shell .learn-goal-heading h1 { font-size: calc((clamp(27px, 3.2vw, 44px)) * var(--learn-font-scale, 1)); letter-spacing: -.04em; line-height: 1.15; overflow-wrap: anywhere; }
+.flashbolt-shell .learn-goal-heading h2 { margin: 20px 0 0; font-size: calc((20px) * var(--learn-font-scale, 1)); line-height: 1.4; }
 .flashbolt-shell .learn-goal-heading p { font-size: calc((15px) * var(--learn-font-scale, 1)); line-height: 1.7; }
 .flashbolt-shell .goal-options p { font-size: calc((14px) * var(--learn-font-scale, 1)); line-height: 1.6; }
 .flashbolt-shell :is(.card-editor-list, .card-editor-wrap, .card-editor-fields, .card-question-type, .card-editor-footer) { min-width: 0; }

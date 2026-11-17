@@ -1,0 +1,1133 @@
+Question 83
+[Threads] What is a thread?
+
+answer
+A
+A separate physical CPU
+B
+A file-system partition
+C
+An execution path within a process
+Correct Answer:
+D
+A complete copy of every OS service
+
+Explanation
+A process provides resources; its threads carry execution state.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 84
+[Threads] Which items are private to each thread?
+
+answer
+A
+Thread ID, program counter, registers, and stack
+Correct Answer:
+B
+The process heap and all global variables
+C
+The entire kernel and device list
+D
+All process code and every open file
+
+Explanation
+Threads share many process resources but must maintain separate execution contexts.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 85
+[Threads] Which resources do threads in the same process normally share?
+
+answer
+A
+A separate address space per thread
+B
+One identical stack for every thread
+C
+One shared program counter for every thread
+D
+Code, ordinary process data, and open files
+Correct Answer:
+
+Explanation
+Shared resources make thread communication inexpensive but require coordination.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 86
+[Threads] Which multithreading benefit keeps a UI usable while other work proceeds?
+
+answer
+A
+Responsiveness
+Correct Answer:
+B
+External fragmentation
+C
+Circular wait
+D
+File mounting
+
+Explanation
+A separate execution path can continue handling interaction while another waits or computes.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 87
+[Threads] Why is thread creation generally cheaper than process creation?
+
+answer
+A
+Threads reuse much of their process's resources
+Correct Answer:
+B
+Threads never need scheduling
+C
+Threads are physical wires
+D
+Threads require no execution state
+
+Explanation
+Creating a new process typically involves more resource and address-space setup.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 88
+[Threads] What does scalability mean as a threading benefit?
+
+answer
+A
+The OS needs no memory
+B
+The application can exploit additional processors or cores
+Correct Answer:
+C
+A process can never block
+D
+Every thread automatically runs infinitely fast
+
+Explanation
+Useful parallel work can be distributed across processing resources.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 89
+[Threads] What is the difference between concurrency and parallelism?
+
+answer
+A
+Both require exactly one thread
+B
+Concurrency allows overlapping progress; parallelism means simultaneous execution
+Correct Answer:
+C
+Concurrency requires simultaneous execution; parallelism forbids it
+D
+Both mean a process has terminated
+
+Explanation
+A single core can interleave work, while multiple execution resources can run tasks at once.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 90
+[Threads] Which is a multicore-programming challenge?
+
+answer
+A
+Assigning one operating system to each variable
+B
+Eliminating the application's data entirely
+C
+Dividing work, balancing it, handling dependencies, and testing interleavings
+Correct Answer:
+D
+Guaranteeing every task is independent by default
+
+Explanation
+Extra cores help only when the work and data can be coordinated effectively.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 91
+[Threads] Who manages user-level threads in a user-thread implementation?
+
+answer
+A
+The network router
+B
+A file-system directory
+C
+Only a disk controller
+D
+A user-space thread library
+Correct Answer:
+
+Explanation
+Kernel awareness depends on the threading model and mapping.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 92
+[Threads] What distinguishes kernel-level thread support?
+
+answer
+A
+The application has no address space
+B
+Every thread runs privileged instructions at all times
+C
+Threads cannot run application code
+D
+The kernel can manage and schedule thread execution entities
+Correct Answer:
+
+Explanation
+A kernel-scheduled thread can execute user code in user mode.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 93
+[Threads] What does the many-to-one model map?
+
+answer
+A
+Many pages onto one file name
+B
+One user thread onto many independent kernels
+C
+Every process onto a separate physical machine
+D
+Many user threads onto one kernel thread
+Correct Answer:
+
+Explanation
+The single kernel execution entity limits parallel execution of those user threads.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 94
+[Threads] Why can a blocking call be a problem in many-to-one threading?
+
+answer
+A
+It gives every user thread a separate kernel thread
+B
+It permanently adds more CPU cores
+C
+It deletes all user-thread stacks
+D
+Blocking the one kernel thread can stop all mapped user threads
+Correct Answer:
+
+Explanation
+The kernel lacks separate schedulable entities for the other user threads in that mapping.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 95
+[Threads] What is a main advantage of one-to-one threading?
+
+answer
+A
+A blocked thread need not prevent other threads from running
+Correct Answer:
+B
+It guarantees no shared-data bugs
+C
+It works only on single-core processors
+D
+No kernel resources are needed for any thread
+
+Explanation
+Each user thread has a corresponding kernel-scheduled thread.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 96
+[Threads] What is a cost of one-to-one threading?
+
+answer
+A
+It makes every process single-threaded
+B
+It forbids all parallel execution
+C
+It shares one program counter among all threads
+D
+Kernel-thread management consumes resources
+Correct Answer:
+
+Explanation
+Creating and managing many kernel threads has memory and scheduling costs.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 97
+[Threads] What does many-to-many threading allow?
+
+answer
+A
+Only one user thread per entire computer
+B
+Only one process in memory
+C
+No kernel support at all
+D
+Many user threads multiplexed over multiple kernel threads
+Correct Answer:
+
+Explanation
+The runtime can schedule user work while the OS schedules the kernel execution entities.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 98
+[Threads] Can an application thread request a system call?
+
+answer
+A
+No thread can ever invoke any system call
+B
+Yes, it can request a kernel service on behalf of its process
+Correct Answer:
+C
+Only a process with zero threads can invoke one
+D
+Only threads in terminated processes can invoke one
+
+Explanation
+The blanket claim that threads cannot make system calls is misleading; blocking effects depend on the thread model.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 99
+[Threads] What happens to the old threads when exec successfully replaces a multithreaded process image?
+
+answer
+A
+Every old thread becomes a separate process
+B
+Only one stack byte changes
+C
+All old threads continue running the old image forever
+D
+The old program and its threads are replaced
+Correct Answer:
+
+Explanation
+Exec replaces the process image, rather than replacing only one thread's instructions.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 100
+[Threads] What issue must be considered when discussing fork in a multithreaded system?
+
+answer
+A
+Which threads are duplicated in the child
+Correct Answer:
+B
+Whether fork changes the physical CPU count
+C
+Whether every file must be renamed
+D
+Whether all memory becomes nonvolatile
+
+Explanation
+Thread duplication semantics must be tied to the API; the slides discuss differing historical variants.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 101
+[Threads] What is a signal used for?
+
+answer
+A
+Notifying a process or thread of an event
+Correct Answer:
+B
+Translating a page number
+C
+Allocating a disk partition
+D
+Selecting a cloud billing plan
+
+Explanation
+Signal handling may use a default action or an allowed user-defined handler.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 102
+[Threads] How does a synchronous signal differ from an asynchronous one?
+
+answer
+A
+A synchronous signal relates to the executing thread's action; an asynchronous signal originates independently of that execution
+Correct Answer:
+B
+Synchronous always means every thread terminates
+C
+Synchronous signals are file permissions
+D
+Asynchronous signals cannot be handled
+
+Explanation
+For example, a fault caused by an instruction is synchronous; externally generated notification is asynchronous.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 103
+[Threads] What is thread cancellation?
+
+answer
+A
+Creating a second process
+B
+Saving a thread's stack to a file only
+C
+Replacing a page-table entry
+D
+Ending a thread before it completes normally
+Correct Answer:
+
+Explanation
+The thread selected for cancellation is the target thread.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 104
+[Threads] Why can asynchronous cancellation be risky?
+
+answer
+A
+It always waits for a safe cancellation point
+B
+It prevents all use of shared memory
+C
+It guarantees automatic repair of every invariant
+D
+It can interrupt shared-data updates or leave resources locked
+Correct Answer:
+
+Explanation
+Abrupt termination can leave inconsistent state or unreleased resources.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 105
+[Threads] How does deferred cancellation work?
+
+answer
+A
+The target responds at designated cancellation points
+Correct Answer:
+B
+It permanently disables all signals
+C
+The kernel must cancel every thread immediately
+D
+It replaces the process with a new executable
+
+Explanation
+Safe cancellation points allow cleanup and controlled termination.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 106
+[Threads] How does thread-local storage differ from an ordinary shared global variable?
+
+answer
+A
+TLS is always destroyed after one function call
+B
+TLS belongs only to the file system
+C
+Each thread gets its own instance
+Correct Answer:
+D
+All threads must use exactly the same instance
+
+Explanation
+TLS can persist across function calls while remaining specific to a thread.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 107
+[Threads] In the Windows structures shown in the slides, which one is in user space?
+
+answer
+A
+The CPU scheduler itself
+B
+ETHREAD
+C
+KTHREAD
+D
+TEB (thread environment block)
+Correct Answer:
+
+Explanation
+The slides place ETHREAD and KTHREAD in kernel space and the TEB in user space.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 108
+[Threads] What role does clone play in the Linux threading example?
+
+answer
+A
+Mounts a network directory
+B
+Changes a page size to one byte
+C
+Creates a task with flags controlling which resources are shared
+Correct Answer:
+D
+Copies every disk file automatically
+
+Explanation
+The example uses sharing choices to support process-like or thread-like tasks.
+Source: ch4 (1).ppt; Operating Systems 1 (1).pdf; Fundamentals textbook, pp. 27-33.
+
+Question 109
+[Deadlocks] What is a deadlock?
+
+answer
+A
+A process finishing successfully
+B
+A set of processes waits indefinitely for resources or events that only other members of the set can provide
+Correct Answer:
+C
+Any short wait for disk I/O
+D
+A file with no extension
+
+Explanation
+Ordinary waiting can end through progress elsewhere; deadlocked participants cannot make the needed progress.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 110
+[Deadlocks] What is the normal resource-use sequence?
+
+answer
+A
+Request, use, release
+Correct Answer:
+B
+Use, delete all users, request
+C
+Create a directory, compile, reboot
+D
+Release, terminate, request
+
+Explanation
+Resources should be released when their use is complete.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 111
+[Deadlocks] Which four conditions are necessary for resource deadlock?
+
+answer
+A
+Mutual exclusion, hold and wait, no preemption, circular wait
+Correct Answer:
+B
+Caching, paging, buffering, spooling
+C
+Read, write, execute, append
+D
+Ready, new, running, terminated
+
+Explanation
+Deadlock prevention makes at least one necessary condition impossible.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 112
+[Deadlocks] What does mutual exclusion mean in deadlock analysis?
+
+answer
+A
+Every process is already deadlocked
+B
+Every process must own the whole computer
+C
+At least one resource cannot be shared simultaneously
+Correct Answer:
+D
+All resource types must have exactly one instance
+
+Explanation
+Multiple instances of a type can each still be exclusively held; instance count is not the same as shareability.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 113
+[Deadlocks] What is hold and wait?
+
+answer
+A
+Releasing all resources before making a request
+B
+Terminating after all resources are released
+C
+Waiting without holding any resource
+D
+Holding a resource while waiting for another
+Correct Answer:
+
+Explanation
+Holding resources while requesting more can contribute to circular dependency.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 114
+[Deadlocks] What does no preemption mean for a resource?
+
+answer
+A
+The resource is always freely shareable
+B
+It cannot be forcibly taken away; its holder releases it voluntarily
+Correct Answer:
+C
+The resource has zero instances
+D
+The CPU never switches processes
+
+Explanation
+Resource preemption and CPU scheduling preemption are different ideas.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 115
+[Deadlocks] What is circular wait?
+
+answer
+A
+A cycle of processes each waiting for a resource held by the next
+Correct Answer:
+B
+Any loop in application source code
+C
+Any repeated disk access
+D
+A ready queue that is implemented as a circular array
+
+Explanation
+The dependency eventually leads back to the first waiting process.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 116
+[Deadlocks] In a resource-allocation graph, what does P1 -> R1 mean?
+
+answer
+A
+R1 has no instances
+B
+P1 requests an instance of R1
+Correct Answer:
+C
+R1 is already assigned to P1
+D
+P1 has terminated
+
+Explanation
+A process-to-resource edge represents a request.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 117
+[Deadlocks] In a resource-allocation graph, what does R1 -> P1 mean?
+
+answer
+A
+R1 is a ready process
+B
+P1 is the parent of R1
+C
+P1 is requesting R1 but holds nothing
+D
+An instance of R1 is allocated to P1
+Correct Answer:
+
+Explanation
+A resource-to-process edge is an assignment edge.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 118
+[Deadlocks] If a resource-allocation graph has no cycle, what follows?
+
+answer
+A
+All resources are unallocated
+B
+The system must be unsafe
+C
+There is no resource deadlock represented by that graph
+Correct Answer:
+D
+Every process is terminated
+
+Explanation
+A cycle is necessary for resource deadlock in this model.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 119
+[Deadlocks] When does a cycle in a resource-allocation graph prove deadlock?
+
+answer
+A
+Only when every process is running
+B
+Whenever any resource type has any number of instances
+C
+Only when no process holds a resource
+D
+When each involved resource type has a single instance
+Correct Answer:
+
+Explanation
+With multiple instances, a cycle can exist while another instance eventually permits progress.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 120
+[Deadlocks] How does prevention differ from avoidance?
+
+answer
+A
+They both mean killing all processes immediately
+B
+Avoidance ignores maximum resource demands
+C
+Prevention breaks a necessary condition; avoidance checks whether allocations preserve safety
+Correct Answer:
+D
+Prevention always waits for deadlock first
+
+Explanation
+Both aim to prevent deadlock, but use different restrictions and information.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 121
+[Deadlocks] Which approach prevents hold and wait?
+
+answer
+A
+Let a process hold every resource while waiting indefinitely
+B
+Give every resource the same number
+C
+Permit only more threads
+D
+Require all needed resources together, or release held resources before requesting more
+Correct Answer:
+
+Explanation
+Requesting everything at once can waste resources or cause long waits.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 122
+[Deadlocks] How does a global resource ordering prevent deadlock?
+
+answer
+A
+It ensures every resource is always available
+B
+It makes every resource type single-instance
+C
+It removes all system calls
+D
+All processes request resources in the same increasing order, preventing a circular wait
+Correct Answer:
+
+Explanation
+A cycle would require the ordering to increase and return to its start, which is impossible.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 123
+[Deadlocks] What practical limitation affects resource-preemption strategies?
+
+answer
+A
+Resource ownership never matters
+B
+Preemption automatically preserves all data invariants
+C
+Some resources cannot be safely taken away mid-operation
+Correct Answer:
+D
+Every resource is trivially restartable
+
+Explanation
+Saved/restored CPU or memory state is easier to preempt than an irreversible device operation.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 124
+[Deadlocks] What is a safe state?
+
+answer
+A
+Every process can receive its full maximum immediately
+B
+There exists an order in which every process can finish within its declared maximum demand
+Correct Answer:
+C
+All processes have already terminated
+D
+No resources are allocated
+
+Explanation
+A safe sequence can reuse resources released by earlier completions.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 125
+[Deadlocks] Does an unsafe state necessarily mean deadlock already exists?
+
+answer
+A
+No; unsafe states guarantee faster completion
+B
+Yes; every process must already be blocked
+C
+Yes; unsafe and deadlocked are identical
+D
+No; it means completion cannot be guaranteed under the maximum claims
+Correct Answer:
+
+Explanation
+Deadlock is possible in an unsafe state, but not inevitable at that moment.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 126
+[Deadlocks] What information does Banker's algorithm require?
+
+answer
+A
+Only the current CPU frequency
+B
+Only process names
+C
+Only the number of open windows
+D
+Available resources, allocations, and maximum claims
+Correct Answer:
+
+Explanation
+Need is derived from maximum claim minus current allocation.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 127
+[Deadlocks] How is Need calculated in Banker's algorithm?
+
+answer
+A
+Available minus Total
+B
+Allocation minus Available
+C
+Max plus Allocation
+D
+Max minus Allocation
+Correct Answer:
+
+Explanation
+The subtraction is componentwise for each resource type.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 128
+[Deadlocks] How is initial Available calculated from total resources?
+
+answer
+A
+Total plus every maximum claim
+B
+Maximum claim minus process count
+C
+Total minus the sum of current allocations
+Correct Answer:
+D
+The sum of all remaining needs
+
+Explanation
+Currently allocated instances are not initially available.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 129
+[Deadlocks] What condition allows an unfinished process to be selected in the safety simulation?
+
+answer
+A
+Its PID is numerically smallest
+B
+Its Max vector is all zero
+C
+Every component of its Need is at most the corresponding Work component
+Correct Answer:
+D
+Its total Need sum is smaller even if one resource type is insufficient
+
+Explanation
+Resource types are not interchangeable, so the comparison is componentwise.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 130
+[Deadlocks] After a process finishes in the safety simulation, how is Work updated?
+
+answer
+A
+Work is set to zero
+B
+Work = Work + that process's Max
+C
+Work = Work - that process's Allocation
+D
+Work = Work + that process's Allocation
+Correct Answer:
+
+Explanation
+The additional Need is conceptually borrowed and returned; the net gain is the process's previous allocation.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 131
+[Deadlocks] Before tentatively granting a request, what must Banker's algorithm check?
+
+answer
+A
+Only that one resource type is available
+B
+Only that the process has the smallest ID
+C
+Request <= Need and Request <= Available
+Correct Answer:
+D
+Only that Request <= Max + Available
+
+Explanation
+After these checks, the tentative allocation must also pass the safety test.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 132
+[Deadlocks] What should happen if a tentative request leaves no safe sequence?
+
+answer
+A
+Grant it because the resources were physically available
+B
+Roll back the tentative allocation and make the process wait
+Correct Answer:
+C
+Erase all maximum claims
+D
+Assume an unsafe state is automatically safe
+
+Explanation
+Availability alone does not establish that a grant preserves safety.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 133
+[Deadlocks] How can an OS recover after detecting a deadlock?
+
+answer
+A
+Only move the mouse pointer
+B
+Only increase the length of file names
+C
+Terminate selected processes or preempt recoverable resources
+Correct Answer:
+D
+Only rename the processes
+
+Explanation
+Recovery must break the dependency and may require rollback.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 134
+[Deadlocks] Why should victim-selection history matter in deadlock recovery?
+
+answer
+A
+It guarantees no data is ever lost
+B
+Repeatedly choosing the same process can cause starvation
+Correct Answer:
+C
+It eliminates all need to release resources
+D
+It makes every unsafe state safe automatically
+
+Explanation
+Victim cost can include how often a process has already been rolled back.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 135
+[Deadlocks] Two threads acquire locks in opposite orders. What change addresses their circular-wait risk?
+
+answer
+A
+Rename both locks to the same string
+B
+Add more global variables
+C
+Make both acquire the locks in the same global order
+Correct Answer:
+D
+Make both wait longer while holding the first lock
+
+Explanation
+A consistent lock ordering removes the cycle-producing acquisition pattern.
+Source: ch7.ppt; Operating Systems.pdf; Fundamentals textbook, pp. 33-39.
+
+Question 136
+[Banker calculation practice] In the recording, total resources are (11,7,10) and summed allocations are (8,5,2). What is initial Available?
+
+answer
+A
+(3,2,8)
+Correct Answer:
+B
+(8,5,2)
+C
+(19,12,12)
+D
+(3,5,8)
+
+Explanation
+Subtract componentwise: (11-8,7-5,10-2) = (3,2,8).
+Source: RPReplay_Final1793736619.MP4, visible worksheet at 00:00, 01:30, 03:00, 04:30, 06:00, and 07:00; ch7.ppt, Banker's Algorithm.
+
+Question 137
+[Banker calculation practice] For recording process P1, Max=(5,7,3) and Allocation=(3,1,1). What is Need?
+
+answer
+A
+(8,8,4)
+B
+(3,2,8)
+C
+(2,7,3)
+D
+(2,6,2)
+Correct Answer:
+
+Explanation
+Need = Max - Allocation = (2,6,2).
+Source: RPReplay_Final1793736619.MP4, visible worksheet at 00:00, 01:30, 03:00, 04:30, 06:00, and 07:00; ch7.ppt, Banker's Algorithm.
+
+Question 138
+[Banker calculation practice] For recording process P2, Max=(4,2,6) and Allocation=(0,2,0). What is Need?
+
+answer
+A
+(0,2,0)
+B
+(4,0,6)
+Correct Answer:
+C
+(4,4,6)
+D
+(4,2,6)
+
+Explanation
+The two allocated R2 instances already satisfy P2's entire R2 maximum.
+Source: RPReplay_Final1793736619.MP4, visible worksheet at 00:00, 01:30, 03:00, 04:30, 06:00, and 07:00; ch7.ppt, Banker's Algorithm.
+
+Question 139
+[Banker calculation practice] For recording process P3, Max=(3,1,4) and Allocation=(1,1,1). What is Need?
+
+answer
+A
+(2,1,3)
+B
+(2,0,3)
+Correct Answer:
+C
+(3,1,4)
+D
+(4,2,5)
+
+Explanation
+Subtract the allocation separately for each of the three resource types.
+Source: RPReplay_Final1793736619.MP4, visible worksheet at 00:00, 01:30, 03:00, 04:30, 06:00, and 07:00; ch7.ppt, Banker's Algorithm.
+
+Question 140
+[Banker calculation practice] With Available=(3,2,8), which pair is initially eligible when Needs are P1=(2,6,2), P2=(4,0,6), P3=(2,0,3), P4=(0,1,2), P5=(2,3,4)?
+
+answer
+A
+P2 and P5
+B
+P3 and P4
+Correct Answer:
+C
+P1 and P2
+D
+P1 and P5
+
+Explanation
+Only P3 and P4 have every Need component <= Available. P1 and P5 lack R2; P2 lacks R1.
+Source: RPReplay_Final1793736619.MP4, visible worksheet at 00:00, 01:30, 03:00, 04:30, 06:00, and 07:00; ch7.ppt, Banker's Algorithm.
+
+Question 141
+[Banker calculation practice] Starting with Work=(3,2,8), P3 finishes and releases Allocation=(1,1,1). What is the new Work?
+
+answer
+A
+(5,2,11)
+B
+(6,3,12)
+C
+(2,1,7)
+D
+(4,3,9)
+Correct Answer:
+
+Explanation
+Add only the previously held Allocation: (3,2,8)+(1,1,1).
+Source: RPReplay_Final1793736619.MP4, visible worksheet at 00:00, 01:30, 03:00, 04:30, 06:00, and 07:00; ch7.ppt, Banker's Algorithm.
+
+Question 142
+[Banker calculation practice] After P3, Work=(4,3,9). P2 finishes and releases (0,2,0). What is the new Work?
+
+answer
+A
+(4,5,9)
+Correct Answer:
+B
+(0,2,0)
+C
+(4,1,9)
+D
+(8,5,15)
+
+Explanation
+The net change is P2's allocation, not its maximum claim or remaining need.
+Source: RPReplay_Final1793736619.MP4, visible worksheet at 00:00, 01:30, 03:00, 04:30, 06:00, and 07:00; ch7.ppt, Banker's Algorithm.
+
+Question 143
+[Banker calculation practice] In the recording, Needs are P1=(2,6,2), P2=(4,0,6), P3=(2,0,3), P4=(0,1,2), P5=(2,3,4); allocations are respectively (3,1,1),(0,2,0),(1,1,1),(4,0,0),(0,1,0); initial Work=(3,2,8). Which sequence is safe?
+
+answer
+A
+P1, P2, P3, P4, P5
+B
+P2, P1, P3, P4, P5
+C
+P3, P2, P4, P5, P1
+Correct Answer:
+D
+P5, P3, P2, P4, P1
+
+Explanation
+The valid Work progression is (3,2,8), (4,3,9), (4,5,9), (8,5,9), (8,6,9), (11,7,10). Each other option starts with an ineligible process.
+Source: RPReplay_Final1793736619.MP4, visible worksheet at 00:00, 01:30, 03:00, 04:30, 06:00, and 07:00; ch7.ppt, Banker's Algorithm.
+
+Question 144
+[Banker calculation practice] Can a Banker's safety problem have more than one valid safe sequence?
+
+answer
+A
+Only if the system is already deadlocked
+B
+Only if all allocations are zero
+C
+Yes; any order satisfying each step's Need <= Work check is valid
+Correct Answer:
+D
+No; the first handwritten sequence is the only possible answer
+
+Explanation
+The recording can begin with P3 or P4; the illustrated sequence is one valid solution.
+Source: RPReplay_Final1793736619.MP4, visible worksheet at 00:00, 01:30, 03:00, 04:30, 06:00, and 07:00; ch7.ppt, Banker's Algorithm.
+
+Question 145
+[Banker calculation practice] With Work=(3,2,8), can a process with Need=(4,0,6) finish in the safety test merely because its total need is less than total Work?
+
+answer
+A
+No, it still lacks one unit of the first resource type
+Correct Answer:
+B
+Yes, because the middle Need component is zero
+C
+Yes, all resource types can be exchanged freely
+D
+No, because every Need component must be strictly smaller
+
+Explanation
+Componentwise <= is required; total sums cannot replace per-resource checks.
+Source: RPReplay_Final1793736619.MP4, visible worksheet at 00:00, 01:30, 03:00, 04:30, 06:00, and 07:00; ch7.ppt, Banker's Algorithm.
