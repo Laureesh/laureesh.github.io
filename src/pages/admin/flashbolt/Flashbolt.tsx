@@ -24,7 +24,7 @@ import { initialFlashboltView } from "./initialView";
 import ReviewToday from "./ReviewToday";
 import StudySummary, { StudyExplanation } from "./StudySummary";
 import { mergeReviewProgress } from "./review-engine";
-import { applyDetectedQuestionType, detectQuestionType, withCorrectChoiceAnswers } from "./questionTypeDetection";
+import { applyDetectedQuestionType, detectQuestionType, editedChoiceType, withCorrectChoiceAnswers } from "./questionTypeDetection";
 import { parseQuestionPaste } from "./questionPaste";
 import SemesterVisibilityControls from "./SemesterVisibilityControls";
 import { mergeSemesterVisibility, normalizeSemesterVisibility, type SemesterVisibility } from "./semesterVisibility";
@@ -2103,8 +2103,15 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     const oldChoice = card.answerChoices?.[choiceIndex] ?? "";
     const choices = (card.answerChoices ?? []).map((choice, index) => index === choiceIndex ? value : choice);
     const correctAnswers = correctAnswersForCard(card).map((answer) => normalizeAnswer(answer) === normalizeAnswer(oldChoice) ? value : answer);
-    const updates: Partial<Card> = { answerChoices: choices, correctAnswers };
-    if (cardQuestionType(card) !== "select-all" && correctAnswers.some((answer) => normalizeAnswer(answer) === normalizeAnswer(value))) updates.definition = value;
+    const updates: Partial<Card> = { ...editedChoiceType(card, choices), answerChoices: choices, correctAnswers, definition: correctAnswers.join("; ") };
+    if (card.choiceExplanations && oldChoice !== value) {
+      const choiceExplanations = { ...card.choiceExplanations };
+      if (Object.prototype.hasOwnProperty.call(choiceExplanations, oldChoice)) {
+        choiceExplanations[value] = choiceExplanations[oldChoice];
+        delete choiceExplanations[oldChoice];
+      }
+      updates.choiceExplanations = choiceExplanations;
+    }
     updateDraftCardExtras(card.id, updates);
   }
 
@@ -2159,6 +2166,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     pastedChoices.forEach((choice, offset) => { choices[startIndex + offset] = choice; });
     const correctAnswers = correctIndexes.map((index) => choices[index]).filter(Boolean);
     updateDraftCardExtras(card.id, {
+      ...editedChoiceType(card, choices),
       answerChoices: choices,
       correctAnswers,
       definition: cardQuestionType(card) === "select-all" ? correctAnswers.join("; ") : correctAnswers[0] ?? card.definition,
@@ -3917,7 +3925,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                                     return (
                                       <label className={isCorrect ? "correct" : ""} key={`${card.id}-choice-${choiceIndex}`}>
                                         <button type="button" className="choice-correct-toggle" onClick={() => toggleDraftCorrectAnswer(card, choice)} aria-label={`${isCorrect ? "Unmark" : "Mark"} choice ${String.fromCharCode(65 + choiceIndex)} as correct`} aria-pressed={isCorrect}>{String.fromCharCode(65 + choiceIndex)}</button>
-                                        <AutoResizeTextarea rows={1} value={choice} onChange={(event) => updateDraftChoice(card, choiceIndex, event.target.value)} onPaste={(event) => { if (pasteDraftChoices(card, choiceIndex, event.clipboardData.getData("text/plain"))) event.preventDefault(); }} aria-label={`Choice ${String.fromCharCode(65 + choiceIndex)} for card ${index + 1}`} placeholder={`Choice ${String.fromCharCode(65 + choiceIndex)}`} readOnly={cardQuestionType(card) === "true-false"} />
+                                        <AutoResizeTextarea rows={1} value={choice} onChange={(event) => updateDraftChoice(card, choiceIndex, event.target.value)} onPaste={(event) => { if (pasteDraftChoices(card, choiceIndex, event.clipboardData.getData("text/plain"))) event.preventDefault(); }} aria-label={`Choice ${String.fromCharCode(65 + choiceIndex)} for card ${index + 1}`} placeholder={`Choice ${String.fromCharCode(65 + choiceIndex)}`} />
                                         {isCorrect && <small>Correct</small>}
                                         {cardQuestionType(card) !== "true-false" && card.answerChoices && card.answerChoices.length > 2 && <button type="button" className="choice-remove" onClick={() => updateDraftCardExtras(card.id, { answerChoices: card.answerChoices?.filter((_, itemIndex) => itemIndex !== choiceIndex), correctAnswers: correctAnswersForCard(card).filter((answer) => normalizeAnswer(answer) !== normalizeAnswer(choice)) })} aria-label={`Remove choice ${String.fromCharCode(65 + choiceIndex)}`}><UiIcon symbol="×" /></button>}
                                       </label>

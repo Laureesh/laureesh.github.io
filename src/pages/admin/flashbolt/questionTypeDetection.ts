@@ -60,3 +60,12 @@ export function applyDetectedQuestionType<T extends AutoTypeCard>(card: T): T {
   }
   return next;
 }
+
+export function editedChoiceType(card: AutoTypeCard, choices: string[]): Pick<AutoTypeCard, 'questionType' | 'questionTypeMode' | 'autoTypePreviousChoices'> {
+  const isTrueFalse = choices.length === 2 && choices.some(choice => /^true$/i.test(choice.trim())) && choices.some(choice => /^false$/i.test(choice.trim()));
+  return {
+    questionType: card.questionType === 'true-false' && !isTrueFalse ? 'multiple-choice' : card.questionType,
+    questionTypeMode: 'manual',
+    autoTypePreviousChoices: undefined,
+  };
+}
