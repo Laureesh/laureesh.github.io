@@ -1,5 +1,6 @@
 import { combineStudySets } from "./combineSets";
 import { formatQuestionsForCopy } from "./copyQuestions";
+import { importQuestionCorrections } from "./importCorrections";
 import EliminatableChoice from "./EliminatableChoice";
 import LearnHistory, { type LearnAttempt } from "./LearnHistory";
 import ShareSetDialog from './sharing/ShareSetDialog';
@@ -1045,6 +1046,9 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   const [learnPhase, setLearnPhase] = useState<LearnPhase>("goal");
   const [nextLearnSetId, setNextLearnSetId] = useState("");
   const [combineOpen, setCombineOpen] = useState(false);
+  const [correctionsOpen, setCorrectionsOpen] = useState(false);
+  const [correctionsText, setCorrectionsText] = useState("");
+  const [correctionsError, setCorrectionsError] = useState("");
   const [combineIds, setCombineIds] = useState<string[]>([]);
   const [combineTitle, setCombineTitle] = useState("");
   const [combineSearch, setCombineSearch] = useState("");
@@ -3819,6 +3823,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                       <Link className="back-link" to={editorFolder ? folderPath(editorFolder) : `${FLASHBOLT_BASE}/library`}>← {editorFolder ? editorFolder.name : "Library"}</Link>
                       <div><span className="eyebrow">{editingSetId ? "Edit set" : "New flashcard set"}</span><h1>{editingSetId ? "Make it better." : "Build a set that sticks."}</h1></div>
                       <button type="button" className="button quiet" onClick={copyAllDraftQuestions} disabled={!draft.cards.length} title="Copy all questions, answer choices, correct answers, and explanations, including unsaved edits">Copy all questions</button>
+                      <button type="button" className="button quiet" onClick={() => { setCorrectionsText(""); setCorrectionsError(""); setCorrectionsOpen(true); }}>Import corrected set</button>
                     </header>
                     <div className="set-metadata-field"><span className="set-field-label"><label htmlFor="set-title">Title</label><span className="set-field-history">{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, title: recentSetValues.title }))} title={recentSetValues.title}>Use recent: {recentSetValues.title || "Empty"}</button>}<PreviousValueSelect label="title" values={previousTitles} onSelect={(title) => setDraft((current) => ({ ...current, title }))} /></span></span><input id="set-title" value={draft.title} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} onKeyDown={(event) => acceptPreviousValueOnTab(event, previousTitles, (title) => setDraft((current) => ({ ...current, title })))} placeholder="e.g. [ITEC 3600] Chapter 1 - Part 1" maxLength={100} /></div>
                     <div className="field-row">
@@ -4381,6 +4386,29 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
         }
         setBatchEditSets(null);
       }} />}
+
+      {correctionsOpen && (
+        <Modal className="modal combine-sets-modal" labelledBy="corrections-title" onClose={() => setCorrectionsOpen(false)}>
+          <header><h2 id="corrections-title">Import corrected set</h2><button className="icon-button" aria-label="Close corrections" onClick={() => setCorrectionsOpen(false)}>×</button></header>
+          <p>Paste your edited “Copy all questions” text. Include all {draft.cards.length} questions in the same numbered order. This updates the current draft without adding duplicate cards. Review the changes, then save the set.</p>
+          <label className="modal-field"><span>Load a text file</span><input type="file" accept=".txt,text/plain" onChange={async event => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            try { setCorrectionsText(await file.text()); setCorrectionsError(""); }
+            catch { setCorrectionsError("Could not read this file. Paste the text below instead."); }
+          }} /></label>
+          <label className="modal-field"><span>Corrected questions</span><textarea rows={12} value={correctionsText} onChange={event => { setCorrectionsText(event.target.value); setCorrectionsError(""); }} placeholder="Question 1: …" /></label>
+          {correctionsError && <p role="alert" className="import-status error">{correctionsError}</p>}
+          <footer><button className="button quiet" onClick={() => setCorrectionsOpen(false)}>Cancel</button><button className="button primary" disabled={!correctionsText.trim()} onClick={() => {
+            try {
+              const cards = importQuestionCorrections(correctionsText, draft.cards);
+              setDraft(current => ({ ...current, cards }));
+              setCorrectionsOpen(false);
+              notify(`Updated ${cards.length} questions in this draft. Review and save your changes.`);
+            } catch (error) { setCorrectionsError(error instanceof Error ? error.message : "Could not import corrections."); }
+          }}>Apply corrections to draft</button></footer>
+        </Modal>
+      )}
 
       {combineOpen && (
         <Modal className="modal combine-sets-modal" labelledBy="combine-sets-title" onClose={() => setCombineOpen(false)}>

@@ -1,0 +1,294 @@
+Chapter 8 - Combined Parts - Reviewed
+
+Question 1: Which two components execute instructions and hold the programs and data currently in use?
+Answer choices:
+A. CPU and Hard Drive
+B. CPU and Memory
+C. CPU and Disk Drivers
+D. CPU and I/O Devices
+Correct answer: CPU and Memory
+Explanation: CPU: Processes instructions and controls how quickly the computer performs tasks.
+Memory (RAM): Holds programs and data currently being used.
+Together: They help determine how much work the computer can handle and how efficiently it performs.
+
+Question 2: Which three memory characteristics are desirable for optimal efficiency?
+Answer choices:
+A. Fast Context Switching, Low Cost, and Large Capacity
+B. Fast Threading, Low Cost, and Large Capacity
+C. Low Access Time, Low Cost, and Large Capacity
+D. High Access Time, High Cost, and Small Capacity
+Correct answer: Low Access Time, Low Cost, and Large Capacity
+Explanation: Size: Larger memory allows more programs and data to be stored.
+Access Time: Lower access time means the CPU can retrieve data faster.
+Cost: Lower cost per unit makes memory more affordable.
+
+Question 3: Moving down the memory hierarchy from cache toward RAM and secondary storage, what generally happens to access time?
+Answer choices:
+A. It Also Increases
+B. It Decreases
+C. It Remains the Same
+D. None of the Above
+Correct answer: It Also Increases
+Explanation: In the traditional memory hierarchy, larger-capacity memory is generally slower to access than smaller, faster memory. However, increasing RAM capacity does not automatically increase access time.
+
+Question 4: A single practical memory technology simultaneously offers the highest capacity, fastest access, and lowest cost per bit.
+Answer choices:
+A. True
+B. False
+Correct answer: False
+Explanation: Memory has trade-offs. Faster memory usually costs more, while larger and cheaper memory is generally slower. Computers use different types of memory to balance these needs.
+
+Question 5: Which memory architecture balances large capacity, fast access time, and low cost?
+Answer choices:
+A. Memory Hierarchy
+B. Memory Threading
+C. Memory Bank
+D. RAID System
+Correct answer: Memory Hierarchy
+Explanation: Memory hierarchy combines different types of memory, such as cache, RAM, and storage, to balance speed, capacity, and cost.
+
+Fast memory handles frequently used data, while cheaper memory provides more space.
+
+Question 6: Memory hierarchy is based on which principle?
+Answer choices:
+A. Context Switching
+B. Context Handling
+C. Locality of Reference
+D. Indexing
+Correct answer: Locality of Reference
+Explanation: Locality of reference means a computer tends to use the same data or nearby data repeatedly.
+
+Memory hierarchy uses this principle to keep frequently accessed data in faster memory, such as cache.
+
+Question 7: Which memory allocation methods can be used to place data from secondary storage into main memory?
+Answer choices:
+A. Contiguous or Non-Contiguous Allocation
+B. Serial or Parallel Allocation
+C. Discrete or Continuous Allocation
+D. None of the Above
+Correct answer: Contiguous or Non-Contiguous Allocation
+Explanation: Contiguous allocation places a process in one continuous block of RAM.
+
+Non-contiguous allocation divides a process into smaller parts that can be stored in different locations in RAM.
+
+Question 8: Main memory has a lower access time than secondary memory.
+Answer choices:
+A. True
+B. False
+Correct answer: True
+Explanation: Main memory (RAM) is much faster than secondary storage, such as SSDs and hard drives.
+
+Lower access time means the CPU can retrieve data more quickly.
+
+Question 9: In a virtual-memory system, which type of memory address does the CPU generate for an instruction access?
+Answer choices:
+A. Logical Address
+B. Physical Address
+C. Abstract Address
+D. None of the Above
+Correct answer: Logical Address
+Explanation: The CPU generates a logical address when accessing instructions or data.
+
+The Memory Management Unit (MMU) translates the logical address into a physical address in RAM.
+
+Question 10: Which type of address does a running program use to refer to instructions or data that may need to be loaded from secondary storage?
+Answer choices:
+A. Logical Address
+B. Physical Address
+C. Abstract Address
+D. None of the Above
+Correct answer: Logical Address
+Explanation: A running program uses logical addresses to refer to its instructions and data.
+
+If the required data is not in RAM, the operating system can load it from secondary storage. The storage device itself uses storage addresses, not logical memory addresses.
+
+Question 11: Which memory allocation policy requires a process to occupy one continuous block of main memory?
+Answer choices:
+A. Contiguous Allocation
+B. Non-Contiguous Allocation
+Correct answer: Contiguous Allocation
+Explanation: Contiguous allocation stores a process in one continuous section of RAM.
+
+The process is not split across separate memory locations.
+
+Question 12: An array stores its elements consecutively in its address space. Which layout does this illustrate?
+Answer choices:
+A. Contiguous Allocation
+B. Non-Contiguous Allocation
+Correct answer: Contiguous Allocation
+Explanation: An array stores its elements in consecutive memory locations.
+
+This allows the computer to access any element directly using its index.
+
+This is contiguous layout in the program's address space; paging may place those addresses in non-contiguous physical frames.
+
+Question 13: Which data structure best represents non-contiguous allocation, where each node contains the address of the next node?
+Answer choices:
+A. Array
+B. Linked List
+C. Data Cells
+D. Localization
+Correct answer: Linked List
+Explanation: A linked list stores nodes in different memory locations.
+
+Each node contains a pointer to the next node, allowing them to stay connected without being next to each other.
+
+Question 14: A process requires 10 KB of contiguous memory, but the available memory consists of three separate 4 KB blocks. What problem does this cause?
+Answer choices:
+A. Internal Fragmentation
+B. External Fragmentation
+C. Critical Fragmentation
+D. Asynchronous Fragmentation
+Correct answer: External Fragmentation
+Explanation: The computer has 12 KB of free memory in total, but it is split into three separate 4 KB blocks.
+
+The process cannot fit because it needs one continuous 10 KB block. This is external fragmentation.
+
+Question 15: Variable-size contiguous memory allocation can suffer from external fragmentation.
+Answer choices:
+A. True
+B. False
+Correct answer: True
+Explanation: Contiguous allocation can leave small, separated gaps of unused memory.
+
+Even if enough free memory exists overall, a process may not fit into one continuous block.
+
+Question 16: Paging eliminates external fragmentation by allowing processes to occupy non-contiguous memory frames.
+Answer choices:
+A. True
+B. False
+Correct answer: True
+Explanation: Paging divides memory into equal-sized frames, so a process does not need one continuous block.
+
+This prevents external fragmentation, although internal fragmentation can still occur.
+
+Question 17: In basic fixed-partition allocation, unused space inside an assigned partition is internal fragmentation.
+Answer choices:
+A. True
+B. False
+Correct answer: True
+Explanation: A process smaller than its assigned partition leaves allocated space unused. That is internal fragmentation. This should be distinguished from the separated free holes associated with variable-partition external fragmentation.
+
+Question 18: Variable-size partitioning in contiguous memory allocation can avoid internal fragmentation.
+Answer choices:
+A. True
+B. False
+Correct answer: True
+Explanation: Variable-size partitions are created based on the memory a process needs.
+
+This reduces wasted space inside partitions, but external fragmentation can still occur.
+
+Question 19: Which contiguous memory allocation algorithm selects the largest available free memory block?
+Answer choices:
+A. First Fit
+B. Best Fit
+C. Worst Fit
+Correct answer: Worst Fit
+Explanation: Worst Fit selects the largest available free memory block for a process.
+
+It leaves the biggest possible remaining free block after allocation.
+
+Question 20: Which variable-size allocation algorithm chooses the smallest suitable free block, potentially leaving a tiny leftover hole?
+Answer choices:
+A. First Fit
+B. Best Fit
+C. Worst Fit
+Correct answer: Best Fit
+Explanation: Best Fit chooses the smallest available memory block that can hold the process.
+
+This can leave tiny unused gaps that are too small for future processes, causing external fragmentation.
+
+First Fit and Worst Fit can also cause external fragmentation; Best Fit is not uniquely affected.
+
+Question 21: What are the two main techniques used to implement non-contiguous memory allocation?
+Answer choices:
+A. First Fit and Best Fit
+B. Paging and Segmentation
+C. Truncation and Blocking
+D. Best Fit and Worst Fit
+Correct answer: Paging and Segmentation
+Explanation: Paging divides a process into equal-sized pages that are placed into memory frames.
+
+Segmentation divides a process into logical sections, such as code, data, and stack.
+
+Both allow a process to be stored in separate memory locations.
+
+Question 22: What is a fixed-size block of main memory called in paging?
+Answer choices:
+A. Page
+B. Frame
+C. Index
+D. Chunk
+Correct answer: Frame
+Explanation: A frame is a fixed-size block of main memory (RAM).
+
+A page is a fixed-size block of a process's virtual memory. Pages are loaded into available frames.
+
+Question 23: For a given page size in basic paging, how does a page compare in size to its corresponding frame?
+Answer choices:
+A. Different
+B. Same
+Correct answer: Same
+Explanation: A page and its corresponding frame have the same size. Systems supporting multiple page sizes must use appropriately sized mappings.
+
+Question 24: Non-contiguous memory allocation always eliminates both internal and external fragmentation.
+Answer choices:
+A. True
+B. False
+Correct answer: False
+Explanation: Paging avoids external fragmentation for individual frame allocation, but the final page of an allocation may contain unused space, causing internal fragmentation. Segmentation can still suffer from external fragmentation.
+
+Question 25: If a process occupies three pages, it must use six frames in main memory.
+Answer choices:
+A. True
+B. False
+Correct answer: False
+Explanation: Each page requires one frame when loaded into RAM.
+
+A three-page process needs three frames if all its pages are loaded, not six.
+
+Question 26: In paging, the offset identifies the location of an instruction or data item within a specific page.
+Answer choices:
+A. True
+B. False
+Correct answer: True
+Explanation: The page number identifies which page contains the data.
+
+The offset identifies the exact location inside that page.
+
+When a page is loaded into a frame, its offset stays the same.
+
+Question 27: Which data structure provides efficient address translation by mapping process pages to memory frames?
+Answer choices:
+A. Indexed Tables (Page Tables)
+B. Context Switching
+C. Local Reference Indexing
+Correct answer: Indexed Tables (Page Tables)
+Explanation: A page table maps virtual pages to physical frames and includes status and protection information. The operating system maintains the tables; on typical hardware-managed systems, the MMU performs routine address translation, often using a TLB cache.
+
+Question 28: In a traditional paging system, each process has its own page table.
+Answer choices:
+A. True
+B. False
+Correct answer: True
+Explanation: Each process has its own virtual address space and page-table mappings.
+
+These mappings tell the computer where that process's pages are located in physical memory.
+
+Question 29: A page table is a data structure that stores mappings between virtual pages and physical memory frames.
+Answer choices:
+A. True
+B. False
+Correct answer: True
+Explanation: A page table maps each virtual page to a physical memory frame when that page is present in RAM.
+
+It helps the computer locate the correct data during address translation.
+
+Question 30: The entire page table is stored inside the Process Control Block (PCB).
+Answer choices:
+A. True
+B. False
+Correct answer: False
+Explanation: The page table is normally stored separately in memory, not inside the PCB.
+
+The PCB may store information or pointers that help the operating system locate the process's page table.
