@@ -1,4 +1,5 @@
 import { combineStudySets } from "./combineSets";
+import { formatQuestionsForCopy } from "./copyQuestions";
 import EliminatableChoice from "./EliminatableChoice";
 import LearnHistory, { type LearnAttempt } from "./LearnHistory";
 import ShareSetDialog from './sharing/ShareSetDialog';
@@ -2065,6 +2066,19 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
     }
   }
 
+  async function copyAllDraftQuestions() {
+    const cards = draft.cards.map(card => {
+      const embedded = parseEmbeddedQuestion(card.term, card.definition, card.answerChoices);
+      return { ...card, term: embedded.prompt || card.term, answerChoices: card.answerChoices?.length ? card.answerChoices : embedded.choices, correctAnswers: correctAnswersForCard(card) };
+    });
+    try {
+      await navigator.clipboard.writeText(formatQuestionsForCopy(draft.title, cards));
+      notify(`Copied ${cards.length} questions with choices, answers, and explanations.`);
+    } catch {
+      notify("Clipboard access was blocked. Allow clipboard access in your browser and try again.");
+    }
+  }
+
   function updateDraftCard(cardId: string, field: "term" | "definition", value: string) {
     setDraft((current) => ({
       ...current,
@@ -3804,6 +3818,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                     <header className="set-details-heading">
                       <Link className="back-link" to={editorFolder ? folderPath(editorFolder) : `${FLASHBOLT_BASE}/library`}>← {editorFolder ? editorFolder.name : "Library"}</Link>
                       <div><span className="eyebrow">{editingSetId ? "Edit set" : "New flashcard set"}</span><h1>{editingSetId ? "Make it better." : "Build a set that sticks."}</h1></div>
+                      <button type="button" className="button quiet" onClick={copyAllDraftQuestions} disabled={!draft.cards.length} title="Copy all questions, answer choices, correct answers, and explanations, including unsaved edits">Copy all questions</button>
                     </header>
                     <div className="set-metadata-field"><span className="set-field-label"><label htmlFor="set-title">Title</label><span className="set-field-history">{!editingSetId && recentSetValues && <button type="button" onClick={() => setDraft((current) => ({ ...current, title: recentSetValues.title }))} title={recentSetValues.title}>Use recent: {recentSetValues.title || "Empty"}</button>}<PreviousValueSelect label="title" values={previousTitles} onSelect={(title) => setDraft((current) => ({ ...current, title }))} /></span></span><input id="set-title" value={draft.title} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} onKeyDown={(event) => acceptPreviousValueOnTab(event, previousTitles, (title) => setDraft((current) => ({ ...current, title })))} placeholder="e.g. [ITEC 3600] Chapter 1 - Part 1" maxLength={100} /></div>
                     <div className="field-row">
