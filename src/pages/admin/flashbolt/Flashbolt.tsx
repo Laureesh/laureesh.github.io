@@ -598,6 +598,7 @@ function describeSyncError(error: unknown) {
   }
   if (code === "deadline-exceeded") return "Cloud loading timed out";
   if (code === "unavailable") return "Firestore is temporarily unavailable";
+  if (code === "flashbolt/integrity-check-failed") return candidate.message ?? "Cloud library integrity check failed";
   return candidate?.message ? `Cloud error (${code}): ${candidate.message}` : `Cloud error: ${code}`;
 }
 
@@ -1094,6 +1095,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   const [theme, setTheme] = useState<ThemeName>("dark");
   const [storageStatus, setStorageStatus] = useState<StorageStatus>("loading");
   const [syncError, setSyncError] = useState("");
+  const [syncRetry, setSyncRetry] = useState(0);
   const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
   const [dictationTarget, setDictationTarget] = useState<{ cardId: string; field: "term" | "definition" } | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -1219,7 +1221,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
 
     void saveLibrary();
     return () => { cancelled = true; };
-  }, [data, ready, userId]);
+  }, [data, ready, userId, syncRetry]);
 
   useEffect(() => {
     applyThemeToDocument(theme);
@@ -3479,7 +3481,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
           <span className={`local-pill ${storageStatus === "error" ? "error" : ""}`} role="status" aria-live="polite" title={storageStatus === "error" ? syncError : "Your private library is saved to your signed-in account."}>
             <i />{storageStatus === "loading" ? "Loading library" : storageStatus === "saved" ? "Synced to your account" : syncError || "Sync unavailable"}
           </span>
-          {storageStatus === "error" && <button className="button quiet" onClick={exportLibrary}>Download backup</button>}
+          {storageStatus === "error" && <><button className="button quiet" onClick={exportLibrary}>Download backup</button><button className="button quiet" onClick={() => { setStorageStatus("loading"); setSyncRetry(value => value + 1); }}>Retry sync</button></>}
           <ThemePicker compact theme={theme} onThemeChange={setTheme} />
           <div className="new-menu-wrap">
             <button className="new-button" onClick={() => setNewMenuOpen((open) => !open)} aria-expanded={newMenuOpen} aria-label="Create new">＋<span>New</span></button>
@@ -4129,6 +4131,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
 
               {(learnPhase === "session" || reviewedAttempt) && currentLearnCard && (
                 <>
+                  <h1 className="learn-session-set-title">{selectedSet.title}</h1>
                   <header className={`learn-session-header${(reviewedAttempt?.retryPass ?? learnRetryPass) ? " has-retry" : ""}`}>
                     <Link className="learn-exit" to={routePathForView("set", selectedSet.id)} aria-label="Exit Learn">×</Link>
                     <div className="learn-question-heading">

@@ -2,6 +2,10 @@
 export const FLASHBOLT_CHUNK_BYTES = 700 * 1024;
 export const FLASHBOLT_STORAGE_FORMAT = "chunked-v1";
 
+export class FlashboltIntegrityError extends Error {
+  readonly code = "flashbolt/integrity-check-failed";
+}
+
 export type FlashboltRecord = {
   data?: unknown;
   format?: string;
@@ -39,7 +43,7 @@ export function flashboltChunkCount(record: FlashboltRecord): number {
     throw new Error("This Flashbolt library uses a newer storage format. Refresh or update the app before syncing.");
   }
   if (!Number.isSafeInteger(record.chunkCount) || record.chunkCount! < 1 || !Number.isSafeInteger(record.byteLength) || record.byteLength! < 1) {
-    throw new Error("The cloud Flashbolt library manifest is incomplete. Keep your backup and retry; cloud data has not been overwritten.");
+    throw new FlashboltIntegrityError("The cloud Flashbolt library manifest is incomplete. Keep your backup and retry; cloud data has not been overwritten.");
   }
   return record.chunkCount!;
 }
@@ -48,11 +52,12 @@ export function decodeFlashbolt(record: FlashboltRecord, chunks: unknown[]): unk
   const count = flashboltChunkCount(record);
   if (!count) return record.data ?? null;
   if (chunks.length !== count || chunks.some((chunk) => typeof chunk !== "string")) {
-    throw new Error("Part of the cloud Flashbolt library is missing. Keep your backup and retry; cloud data has not been overwritten.");
+    throw new FlashboltIntegrityError("Part of the cloud Flashbolt library is missing. Keep your backup and retry; cloud data has not been overwritten.");
   }
   const json = chunks.join("");
   if (new TextEncoder().encode(json).byteLength !== record.byteLength) {
-    throw new Error("The cloud Flashbolt library is incomplete. Keep your backup and retry; cloud data has not been overwritten.");
+    throw new FlashboltIntegrityError("The cloud Flashbolt library is incomplete. Keep your backup and retry; cloud data has not been overwritten.");
   }
-  return JSON.parse(json) as unknown;
+  try { return JSON.parse(json) as unknown; }
+  catch { throw new FlashboltIntegrityError("The cloud Flashbolt library could not be decoded. Keep your backup and retry; cloud data has not been overwritten."); }
 }

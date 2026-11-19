@@ -1,0 +1,445 @@
+Question 1
+Which two components execute instructions and hold the programs and data currently in use?
+
+answer
+A
+CPU and hard drive
+B
+CPU and main memory
+Correct Answer:
+C
+CPU and disk controller
+D
+CPU and I/O devices
+
+Explanation
+The CPU executes instructions; main memory holds active code and data. Other components also affect overall capability.
+
+Question 2
+For an efficient memory system, low access time, low cost per bit, and large ______ are desirable.
+
+answer
+A
+Context switching
+B
+Threading
+C
+Capacity
+Correct Answer:
+D
+None of these
+
+Explanation
+Capacity measures how much data memory can hold. Designers balance capacity, latency, and cost.
+
+Question 3
+Moving down the memory hierarchy from cache toward RAM and secondary storage, what generally happens to access time?
+
+answer
+A
+It increases
+Correct Answer:
+B
+It decreases
+C
+It always stays the same
+D
+It becomes zero
+
+Explanation
+Larger, cheaper hierarchy levels are generally slower. Increasing RAM capacity alone does not necessarily increase access time.
+
+Question 4
+A single practical memory technology provides the highest capacity, fastest access, and lowest cost per bit simultaneously.
+
+answer
+A
+True
+B
+False
+Correct Answer:
+
+Explanation
+Memory technologies involve trade-offs; no single technology optimizes all three properties.
+
+Question 5
+Which architecture balances capacity, access speed, and cost by combining multiple storage levels?
+
+answer
+A
+Memory hierarchy
+Correct Answer:
+B
+Memory threading
+C
+A single memory bank
+D
+RAID alone
+
+Explanation
+Registers, caches, RAM, and secondary storage provide different combinations of speed, capacity, and cost.
+
+Question 6
+Memory hierarchy exploits the principle of ______.
+
+answer
+A
+Context switching
+B
+Context handling
+C
+Locality of reference
+Correct Answer:
+D
+Random allocation
+
+Explanation
+Temporal locality means reusing recently accessed data; spatial locality means accessing nearby locations.
+
+Question 7
+Which are the two broad approaches to placing a process in physical main memory?
+
+answer
+A
+Contiguous and non-contiguous allocation
+Correct Answer:
+B
+Serial and parallel execution
+C
+Discrete and continuous execution
+D
+None of these
+
+Explanation
+These describe memory placement, not how data is transferred from storage to RAM.
+
+Question 8
+Main memory usually has a shorter access time than secondary storage.
+
+answer
+A
+True
+Correct Answer:
+B
+False
+
+Explanation
+RAM access is normally much faster than SSD or hard-drive access.
+
+Question 9
+In a virtual-memory system, what kind of address does the CPU generate for an instruction or data access?
+
+answer
+A
+Logical (virtual)
+Correct Answer:
+B
+Physical disk block
+C
+Abstract only
+D
+None of these
+
+Explanation
+The MMU translates the virtual address into a physical memory address.
+
+Question 10
+For ordinary file or swap I/O, how does the operating system identify data blocks on secondary storage?
+
+answer
+A
+Using a process virtual address alone
+B
+Using a storage block address, such as a logical block address (LBA)
+Correct Answer:
+C
+Using a CPU register number
+D
+Using a page offset alone
+
+Explanation
+Storage block addresses identify device blocks. They are distinct from process virtual addresses and RAM physical addresses.
+
+Question 11
+Which allocation approach places the memory allocated to a process in one continuous physical region?
+
+answer
+A
+Contiguous allocation
+Correct Answer:
+B
+Non-contiguous allocation
+
+Explanation
+Contiguous allocation requires one uninterrupted region; this definition alone does not specify when code is loaded.
+
+Question 12
+An array stores its elements consecutively in its address space. Which layout does this illustrate?
+
+answer
+A
+Contiguous layout
+Correct Answer:
+B
+Linked non-contiguous layout
+
+Explanation
+Array indexing uses consecutive element positions. Contiguous virtual addresses need not occupy consecutive physical frames.
+
+Question 13
+Which data structure can store nodes at separate locations, with each node containing a reference to the next?
+
+answer
+A
+Array
+B
+Linked list
+Correct Answer:
+C
+Single scalar variable
+D
+Locality of reference
+
+Explanation
+A linked list connects separately placed nodes using references or pointers.
+
+Question 14
+A process needs 10 KB of contiguous memory, but the available space consists of three separated 4 KB holes. What prevents allocation?
+
+answer
+A
+Internal fragmentation
+B
+External fragmentation
+Correct Answer:
+C
+Critical fragmentation
+D
+Asynchronous fragmentation
+
+Explanation
+There is 12 KB free overall, but no single 10 KB hole.
+
+Question 15
+Variable-size contiguous allocation can suffer from external fragmentation.
+
+answer
+A
+True
+Correct Answer:
+B
+False
+
+Explanation
+Allocations and deallocations can leave separated free holes between occupied regions.
+
+Question 16
+Every non-contiguous allocation method eliminates external fragmentation.
+
+answer
+A
+True
+B
+False
+Correct Answer:
+
+Explanation
+Paging avoids external fragmentation at the frame level; pure segmentation can still suffer from it.
+
+Question 17
+In basic fixed-partition contiguous allocation, unused space inside an assigned partition is internal fragmentation.
+
+answer
+A
+True
+Correct Answer:
+B
+False
+
+Explanation
+A process smaller than its partition leaves allocated space unused. This is different from holes between allocations.
+
+Question 18
+In the ideal variable-partition model, allocating exactly the requested size avoids internal fragmentation but can cause external fragmentation.
+
+answer
+A
+True
+Correct Answer:
+B
+False
+
+Explanation
+Exact-size allocation avoids internal leftovers. Real implementations may still add alignment or allocation overhead.
+
+Question 19
+Which variable-partition placement algorithm selects the largest available hole that can hold the process?
+
+answer
+A
+First fit
+B
+Best fit
+C
+Worst fit
+Correct Answer:
+
+Explanation
+Worst fit uses the largest suitable hole; best fit uses the smallest suitable hole.
+
+Question 20
+Which variable-partition placement algorithms can suffer from external fragmentation?
+
+answer
+A
+Only first fit
+B
+Only best fit
+C
+Only worst fit
+D
+First fit, best fit, and worst fit
+Correct Answer:
+
+Explanation
+All three can leave separated holes. No algorithm is universally most fragmented for every workload.
+
+Question 21
+Which two techniques can place parts of a process in separate physical memory regions?
+
+answer
+A
+First fit and best fit
+B
+Paging and segmentation
+Correct Answer:
+C
+Truncation and blocking
+D
+Best fit and worst fit
+
+Explanation
+Paging uses fixed-size pages; segmentation uses variable-size logical units.
+
+Question 22
+In paging, what is a fixed-size block of physical main memory called?
+
+answer
+A
+Page
+B
+Frame
+Correct Answer:
+C
+Index
+D
+Segment
+
+Explanation
+Physical memory is divided into frames; virtual address spaces are divided into pages.
+
+Question 23
+For a given page size in basic paging, how do a page and its corresponding frame compare in size?
+
+answer
+A
+They have different sizes
+B
+They have the same size
+Correct Answer:
+
+Explanation
+One page fits into one frame of the corresponding size.
+
+Question 24
+Basic paging eliminates both internal and external fragmentation.
+
+answer
+A
+True
+B
+False
+Correct Answer:
+
+Explanation
+Paging avoids external fragmentation for frame allocation, but a partially used page can waste space internally.
+
+Question 25
+If all three pages of a process are resident, basic paging with equally sized pages and frames requires six frames for those pages.
+
+answer
+A
+True
+B
+False
+Correct Answer:
+
+Explanation
+Three resident pages require three frames. Page-table storage is a separate overhead.
+
+Question 26
+In a byte-addressable paging system, the page offset is the instruction number within a page.
+
+answer
+A
+True
+B
+False
+Correct Answer:
+
+Explanation
+The offset identifies a byte position within the page, not an instruction number.
+
+Question 27
+In basic paging, which structure is indexed by a virtual page number to find its physical frame?
+
+answer
+A
+Page table
+Correct Answer:
+B
+Context-switch queue
+C
+Local-reference index
+
+Explanation
+A page-table entry provides the mapping. A TLB can cache translations to speed access.
+
+Question 28
+In the usual per-process virtual-memory model, each process has its own page-table structure.
+
+answer
+A
+True
+Correct Answer:
+B
+False
+
+Explanation
+Separate page-table structures support separate address spaces; some mappings or structures may be shared.
+
+Question 29
+For a resident page, its page-table entry identifies the physical frame and may include protection and status bits.
+
+answer
+A
+True
+Correct Answer:
+B
+False
+
+Explanation
+Entries can also indicate that a page is not currently resident.
+
+Question 30
+The complete page table is normally stored inside the process control block (PCB).
+
+answer
+A
+True
+B
+False
+Correct Answer:
+
+Explanation
+Page tables normally occupy memory separately. Process state records information needed to locate the page-table structure.

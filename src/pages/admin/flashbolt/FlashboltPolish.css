@@ -485,6 +485,15 @@
   .learn-progress-badge > small, .learn-answered-review > span > small { font-size: calc((9px) * var(--learn-font-scale, 1)); }
 }
 
+.flashbolt-shell .learn-session-set-title {
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-size: calc(18px * var(--learn-size-header, 1));
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
 /* Let active study sessions use the available desktop canvas. */
 @media (min-width: 901px) {
   .flashbolt-shell .workspace:has(.learn-page.session-active) {

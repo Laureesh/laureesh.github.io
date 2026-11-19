@@ -1,7 +1,7 @@
 import { runTransaction, serverTimestamp, type Transaction } from "firebase/firestore";
 import { documentRef } from "../firebase/firestore";
 import { createSaveQueue } from "./saveQueue";
-import { decodeFlashbolt, encodeFlashbolt, flashboltChunkCount, FLASHBOLT_STORAGE_FORMAT, type FlashboltRecord } from "./flashboltStorage";
+import { decodeFlashbolt, encodeFlashbolt, flashboltChunkCount, FlashboltIntegrityError, FLASHBOLT_STORAGE_FORMAT, type FlashboltRecord } from "./flashboltStorage";
 
 type FlashboltUserRecord = { flashboltLibrary?: FlashboltRecord };
 const enqueueSave = createSaveQueue();
@@ -23,8 +23,20 @@ async function readLibrary(transaction: Transaction, uid: string) {
   return { data: decodeFlashbolt(record, chunks), chunks };
 }
 
+async function retryConsistentRead<T>(operation: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try { return await operation(); }
+    catch (error) {
+      // A decoder exception exits before Firestore can validate read versions at
+      // commit. Start a fresh transaction if a concurrent save mixed generations.
+      if (!(error instanceof FlashboltIntegrityError) || attempt >= 2) throw error;
+      await new Promise(resolve => setTimeout(resolve, 150 * (attempt + 1)));
+    }
+  }
+}
+
 export async function loadFlashboltLibrary(uid: string) {
-  return runTransaction(libraryDocument(uid).firestore, async transaction => (await readLibrary(transaction, uid)).data);
+  return retryConsistentRead(() => runTransaction(libraryDocument(uid).firestore, async transaction => (await readLibrary(transaction, uid)).data));
 }
 
 export async function saveFlashboltLibrary(uid: string, data: unknown) {
@@ -33,7 +45,7 @@ export async function saveFlashboltLibrary(uid: string, data: unknown) {
 
 export async function mergeAndSaveFlashboltLibrary<T>(uid: string, localData: T, merge: (cloudData: T, localData: T) => T) {
   const reference = libraryDocument(uid);
-  return enqueueSave(uid, () => runTransaction(reference.firestore, async transaction => {
+  return enqueueSave(uid, () => retryConsistentRead(() => runTransaction(reference.firestore, async transaction => {
     const remote = await readLibrary(transaction, uid);
     const merged = remote.data == null ? localData : merge(remote.data as T, localData);
     const chunks = encodeFlashbolt(merged);
@@ -50,5 +62,5 @@ export async function mergeAndSaveFlashboltLibrary<T>(uid: string, localData: T,
       updatedAt: serverTimestamp(),
     } }, { mergeFields: ["flashboltLibrary"] });
     return JSON.parse(chunks.join("")) as T;
-  }, { maxAttempts: 10 }));
+  }, { maxAttempts: 10 })));
 }

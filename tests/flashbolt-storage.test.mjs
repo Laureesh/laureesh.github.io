@@ -6,6 +6,7 @@ import { registerHooks } from 'node:module';
 let documents = new Map();
 let failCommit = false;
 let beforeRetry;
+let afterRead;
 globalThis.__flashboltFirestore = {
   documentRef: (path, id) => ({ path: `${path}/${id}`, firestore: {} }),
   serverTimestamp: () => 'server timestamp',
@@ -17,7 +18,9 @@ globalThis.__flashboltFirestore = {
         async get(ref) {
           assert.equal(writing, false, 'all reads must precede writes');
           const data = documents.get(ref.path);
-          return { exists: () => data !== undefined, data: () => structuredClone(data) };
+          const copied = structuredClone(data);
+          if (afterRead) afterRead(ref.path);
+          return { exists: () => copied !== undefined, data: () => copied };
         },
         set(ref, data, options) {
           writing = true;
@@ -82,4 +85,32 @@ test('missing chunks block writes instead of overwriting the cloud backup', asyn
   await mergeAndSaveFlashboltLibrary('test', { sets: [] }, merge);
   documents.delete('users/test/flashbolt/library-chunk-0');
   await assert.rejects(mergeAndSaveFlashboltLibrary('test', { sets: [] }, merge), /missing/);
+});
+
+test('a concurrent save between manifest and chunk reads recovers without losing cloud sets', async () => {
+  const old = JSON.stringify({ sets: [{ id: 'old' }] });
+  const latest = JSON.stringify({ sets: [{ id: 'new-cloud-content' }] });
+  const record = text => ({ format: 'chunked-v1', chunkCount: 1, byteLength: Buffer.byteLength(text) });
+  const chunkPath = `${root}/flashbolt/library-chunk-0`;
+  const setup = () => {
+    documents = new Map([[root, { flashboltLibrary: record(old) }], [chunkPath, { text: old }]]);
+    afterRead = path => {
+      if (path !== root) return;
+      afterRead = undefined;
+      documents.set(root, { flashboltLibrary: record(latest) });
+      documents.set(chunkPath, { text: latest });
+    };
+  };
+  setup();
+  assert.deepEqual(await loadFlashboltLibrary('test'), JSON.parse(latest));
+  setup();
+  const saved = await mergeAndSaveFlashboltLibrary('test', { sets: [{ id: 'local' }] }, merge);
+  assert.deepEqual(saved.sets, [{ id: 'new-cloud-content' }, { id: 'local' }]);
+});
+
+test('persistent byte mismatch never overwrites remote documents', async () => {
+  documents = new Map([[root, { flashboltLibrary: { format: 'chunked-v1', chunkCount: 1, byteLength: 999 } }], [`${root}/flashbolt/library-chunk-0`, { text: '{"sets":[]}' }]]);
+  const before = structuredClone(documents);
+  await assert.rejects(mergeAndSaveFlashboltLibrary('test', { sets: [{ id: 'local' }] }, merge), /incomplete/);
+  assert.deepEqual(documents, before);
 });
