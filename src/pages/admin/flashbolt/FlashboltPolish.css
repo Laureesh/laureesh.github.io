@@ -1303,3 +1303,138 @@
 .flashbolt-shell .learn-answered-review .button { min-height: 36px; padding: 6px 10px; font-size: 13px; }
 .learn-history-selection { display: block; margin-top: 4px; font-size: .7em; }
 .learn-history-question h1 { white-space: pre-line; }
+
+/* Give navigation, the current question, and session stats distinct visual weight. */
+.flashbolt-shell .learn-page .learn-session-header.has-set-navigation {
+  padding: 16px 18px 22px;
+  gap: 16px;
+  border-color: var(--line-soft);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--panel) 88%, var(--bg));
+  box-shadow: 0 8px 24px rgb(0 0 0 / 8%);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+.flashbolt-shell .has-set-navigation .learn-question-heading {
+  max-width: 760px;
+  gap: 10px 16px;
+  align-items: stretch;
+}
+.flashbolt-shell .has-set-navigation .learn-next-set {
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel-2) 45%, transparent);
+  box-shadow: none;
+  font-family: inherit;
+  text-align: left;
+  line-height: 1.35;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+.flashbolt-shell .has-set-navigation .learn-next-set > span {
+  color: var(--ink);
+  font-size: calc(12px * var(--learn-size-header, 1));
+  font-weight: 650;
+}
+.flashbolt-shell .has-set-navigation .learn-next-set > small {
+  font-size: calc(11px * var(--learn-size-header, 1));
+  line-height: 1.45;
+}
+.flashbolt-shell .has-set-navigation .learn-current-question + .learn-next-set {
+  align-items: flex-end;
+  text-align: right;
+}
+.flashbolt-shell .has-set-navigation .learn-next-set:hover {
+  border-color: var(--primary-strong);
+  background: var(--primary-soft);
+  transform: none;
+}
+.flashbolt-shell .has-set-navigation :is(.learn-next-set, .learn-exit):focus-visible {
+  outline: 2px solid var(--primary-strong);
+  outline-offset: 3px;
+}
+.flashbolt-shell .has-set-navigation .learn-current-question {
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 86px;
+  padding: 8px 14px;
+  border: 1px solid color-mix(in srgb, var(--primary-strong) 35%, var(--line-soft));
+  border-radius: 12px;
+  background: var(--primary-soft);
+  box-shadow: none;
+}
+.flashbolt-shell .has-set-navigation .learn-current-question > span {
+  font-size: calc(11px * var(--learn-size-header, 1));
+  font-weight: 600;
+}
+.flashbolt-shell .has-set-navigation .learn-current-question > strong {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  font-size: calc(28px * var(--learn-size-header, 1));
+  line-height: 1.1;
+}
+.flashbolt-shell .has-set-navigation .learn-session-set-title {
+  padding-top: 3px;
+  font-family: inherit;
+  font-size: calc(14px * var(--learn-size-header, 1));
+  font-weight: 600;
+  line-height: 1.5;
+  text-wrap: balance;
+}
+.flashbolt-shell .has-set-navigation .learn-next-set-end {
+  align-self: center;
+  text-align: center;
+  font-size: calc(12px * var(--learn-size-header, 1));
+}
+.flashbolt-shell .has-set-navigation .learn-round-track > .learn-progress-badge {
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  box-shadow: none;
+}
+.flashbolt-shell .has-set-navigation .learn-progress-badge small {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: calc(10px * var(--learn-size-header, 1));
+  text-transform: none;
+  letter-spacing: 0;
+}
+.flashbolt-shell .has-set-navigation .learn-answered-review > span {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.flashbolt-shell .has-set-navigation :is(.learn-answered-review .button, .learn-options-button, .learn-exit) {
+  border: 1px solid var(--line-soft);
+  background: transparent;
+  border-radius: 10px;
+  color: var(--muted);
+  box-shadow: none;
+  font-family: inherit;
+  font-weight: 600;
+}
+.flashbolt-shell .has-set-navigation .learn-options-button { font-size: calc(12px * var(--learn-size-header, 1)); }
+.flashbolt-shell .has-set-navigation .learn-exit { display: grid; place-items: center; }
+.flashbolt-shell .has-set-navigation :is(.learn-answered-review .button, .learn-options-button, .learn-exit):hover {
+  color: var(--ink);
+  background: var(--panel-2);
+  transform: none;
+}
+.flashbolt-shell .has-set-navigation .learn-segments { inset-inline: 18px; bottom: 8px; gap: 4px; }
+.flashbolt-shell .has-set-navigation .learn-segments > i {
+  height: 3px;
+  background: color-mix(in srgb, var(--muted) 22%, transparent);
+}
+@media (max-width: 520px) {
+  .flashbolt-shell .learn-page .learn-session-header.has-set-navigation { padding: 12px; gap: 12px; }
+  .flashbolt-shell .has-set-navigation .learn-question-heading { gap: 10px 8px; }
+  .flashbolt-shell .has-set-navigation .learn-next-set { padding: 8px; }
+  .flashbolt-shell .has-set-navigation .learn-current-question { min-width: 0; padding: 8px; }
+}
