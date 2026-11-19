@@ -485,14 +485,38 @@
   .learn-progress-badge > small, .learn-answered-review > span > small { font-size: calc((9px) * var(--learn-font-scale, 1)); }
 }
 
+.flashbolt-shell .learn-session-set-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
 .flashbolt-shell .learn-session-set-title {
-  margin: 0 0 12px;
+  flex: 1 1 240px;
+  min-width: 0;
+  margin: 0;
   color: var(--ink);
   font-size: calc(18px * var(--learn-size-header, 1));
   font-weight: 700;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
+.flashbolt-shell .learn-next-set {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.flashbolt-shell .learn-next-set small {
+  color: var(--muted);
+  font-weight: 400;
+}
+.flashbolt-shell .learn-next-set-end { color: var(--muted); }
 
 /* Let active study sessions use the available desktop canvas. */
 @media (min-width: 901px) {

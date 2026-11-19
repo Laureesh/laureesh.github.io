@@ -1630,6 +1630,20 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
   const nextFolderSet = folderSetIndex >= 0 && folderSetIndex < folderSets.length - 1
     ? folderSets[folderSetIndex + 1]
     : undefined;
+  const learnNavigationSets = shared ? shared.folder?.sets ?? [shared.set] : folder ? folderSets : visibleSets;
+  const learnNavigationIndex = learnNavigationSets.findIndex(set => set.id === selectedSet?.id);
+  const previousLearnNavigationSet = learnNavigationIndex > 0 ? learnNavigationSets[learnNavigationIndex - 1] : undefined;
+  const previousLearnNavigationPath = previousLearnNavigationSet
+    ? shared
+      ? `${sharedStudyPath(shared.id, "learn")}?set=${encodeURIComponent(previousLearnNavigationSet.id)}`
+      : routePathForView("learn", previousLearnNavigationSet.id)
+    : undefined;
+  const nextLearnNavigationSet = learnNavigationIndex >= 0 ? learnNavigationSets[learnNavigationIndex + 1] : undefined;
+  const nextLearnNavigationPath = nextLearnNavigationSet
+    ? shared
+      ? `${sharedStudyPath(shared.id, "learn")}?set=${encodeURIComponent(nextLearnNavigationSet.id)}`
+      : routePathForView("learn", nextLearnNavigationSet.id)
+    : undefined;
   const editorFolderSets = editorFolder
     ? groupFolderSets(visibleSets.filter(set => editorFolder.setIds.includes(set.id))).flatMap(group => group.sets)
     : [];
@@ -4131,7 +4145,21 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
 
               {(learnPhase === "session" || reviewedAttempt) && currentLearnCard && (
                 <>
-                  <h1 className="learn-session-set-title">{selectedSet.title}</h1>
+                  <div className="learn-session-set-heading">
+                    <h1 className="learn-session-set-title">{selectedSet.title}</h1>
+                    {previousLearnNavigationPath && previousLearnNavigationSet ? (
+                      <Link className="button quiet learn-next-set" to={previousLearnNavigationPath} aria-label={`Learn previous set: ${previousLearnNavigationSet.title}`}>
+                        <span>← Previous set</span>
+                        <small>{previousLearnNavigationSet.title}</small>
+                      </Link>
+                    ) : learnNavigationSets.length > 1 && <span className="learn-next-set-end">First set{folder || shared?.folder ? " in folder" : ""}</span>}
+                    {nextLearnNavigationPath && nextLearnNavigationSet ? (
+                      <Link className="button quiet learn-next-set" to={nextLearnNavigationPath} aria-label={`Learn next set: ${nextLearnNavigationSet.title}`}>
+                        <span>Next set →</span>
+                        <small>{nextLearnNavigationSet.title}</small>
+                      </Link>
+                    ) : learnNavigationSets.length > 1 && <span className="learn-next-set-end">Last set{folder || shared?.folder ? " in folder" : ""}</span>}
+                  </div>
                   <header className={`learn-session-header${(reviewedAttempt?.retryPass ?? learnRetryPass) ? " has-retry" : ""}`}>
                     <Link className="learn-exit" to={routePathForView("set", selectedSet.id)} aria-label="Exit Learn">×</Link>
                     <div className="learn-question-heading">
