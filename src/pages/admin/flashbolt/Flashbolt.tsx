@@ -4147,26 +4147,26 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                 <>
                   <div className="learn-session-set-heading">
                     <h1 className="learn-session-set-title">{selectedSet.title}</h1>
-                    {previousLearnNavigationPath && previousLearnNavigationSet ? (
-                      <Link className="button quiet learn-next-set" to={previousLearnNavigationPath} aria-label={`Learn previous set: ${previousLearnNavigationSet.title}`}>
-                        <span>← Previous set</span>
-                        <small>{previousLearnNavigationSet.title}</small>
-                      </Link>
-                    ) : learnNavigationSets.length > 1 && <span className="learn-next-set-end">First set{folder || shared?.folder ? " in folder" : ""}</span>}
-                    {nextLearnNavigationPath && nextLearnNavigationSet ? (
-                      <Link className="button quiet learn-next-set" to={nextLearnNavigationPath} aria-label={`Learn next set: ${nextLearnNavigationSet.title}`}>
-                        <span>Next set →</span>
-                        <small>{nextLearnNavigationSet.title}</small>
-                      </Link>
-                    ) : learnNavigationSets.length > 1 && <span className="learn-next-set-end">Last set{folder || shared?.folder ? " in folder" : ""}</span>}
                   </div>
-                  <header className={`learn-session-header${(reviewedAttempt?.retryPass ?? learnRetryPass) ? " has-retry" : ""}`}>
+                  <header className={`learn-session-header has-set-navigation${(reviewedAttempt?.retryPass ?? learnRetryPass) ? " has-retry" : ""}`}>
                     <Link className="learn-exit" to={routePathForView("set", selectedSet.id)} aria-label="Exit Learn">×</Link>
                     <div className="learn-question-heading">
+                      {previousLearnNavigationPath && previousLearnNavigationSet ? (
+                        <Link className="button quiet learn-next-set" to={previousLearnNavigationPath} aria-label={`Learn previous set: ${previousLearnNavigationSet.title}`}>
+                          <span>← Previous set</span>
+                          <small>{previousLearnNavigationSet.title}</small>
+                        </Link>
+                      ) : learnNavigationSets.length > 1 && <span className="learn-next-set-end">First set{folder || shared?.folder ? " in folder" : ""}</span>}
                       <div className="learn-current-question" aria-live="polite" aria-atomic="true">
                         <span>Question</span>
                         <strong>{(reviewedAttempt?.sequence ?? learnSequence) + 1}</strong>
                       </div>
+                      {nextLearnNavigationPath && nextLearnNavigationSet ? (
+                        <Link className="button quiet learn-next-set" to={nextLearnNavigationPath} aria-label={`Learn next set: ${nextLearnNavigationSet.title}`}>
+                          <span>Next set →</span>
+                          <small>{nextLearnNavigationSet.title}</small>
+                        </Link>
+                      ) : learnNavigationSets.length > 1 && <span className="learn-next-set-end">Last set{folder || shared?.folder ? " in folder" : ""}</span>}
                       {(reviewedAttempt?.retryPass ?? learnRetryPass) && <div className="learn-retry-notice" role="status"><strong><span aria-hidden="true">↻</span> RETRY</strong><span>Previously missed — try this one again.</span></div>}
                     </div>
                     <div className="learn-session-progress" aria-live="polite">

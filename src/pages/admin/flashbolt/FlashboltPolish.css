@@ -1246,6 +1246,32 @@
   flex-shrink: 0;
   margin: 0;
 }
+.flashbolt-shell .has-set-navigation .learn-question-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  width: 100%;
+}
+.flashbolt-shell .has-set-navigation .learn-current-question { grid-column: 2; grid-row: 1; }
+.flashbolt-shell .has-set-navigation .learn-question-heading > :first-child:not(.learn-current-question) { grid-column: 1; grid-row: 1; }
+.flashbolt-shell .has-set-navigation .learn-current-question + :not(.learn-retry-notice) { grid-column: 3; grid-row: 1; }
+.flashbolt-shell .has-set-navigation .learn-next-set { min-width: 0; padding-inline: 10px; }
+.flashbolt-shell .has-set-navigation .learn-retry-notice { grid-column: 1 / -1; max-width: none; justify-content: center; }
+@media (min-width: 1201px) {
+  .flashbolt-shell .learn-page.session-active .learn-session-header.has-set-navigation {
+    grid-template-columns: 40px minmax(150px, 1fr) minmax(0, 3fr) minmax(90px, 1fr) max-content;
+  }
+}
+@media (max-width: 1200px) {
+  .flashbolt-shell .learn-page.session-active .learn-session-header.has-set-navigation {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "exit options" "question question" "answered total" "progress progress";
+    overflow: visible;
+  }
+  .flashbolt-shell .has-set-navigation :is(.learn-session-progress, .learn-round-track) { display: contents; }
+  .flashbolt-shell .has-set-navigation .learn-progress-badge:first-child { grid-area: answered; }
+  .flashbolt-shell .has-set-navigation .learn-progress-badge:last-child { grid-area: total; }
+  .flashbolt-shell .has-set-navigation .learn-segments { grid-area: progress; position: static; }
+}
 .flashbolt-shell .learn-retry-notice strong { flex-shrink: 0; white-space: nowrap; }
 @media (max-width: 1200px) {
   .flashbolt-shell .learn-page.session-active .learn-session-header.has-retry {
