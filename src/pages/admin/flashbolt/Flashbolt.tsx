@@ -4145,9 +4145,6 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
 
               {(learnPhase === "session" || reviewedAttempt) && currentLearnCard && (
                 <>
-                  <div className="learn-session-set-heading">
-                    <h1 className="learn-session-set-title">{selectedSet.title}</h1>
-                  </div>
                   <header className={`learn-session-header has-set-navigation${(reviewedAttempt?.retryPass ?? learnRetryPass) ? " has-retry" : ""}`}>
                     <Link className="learn-exit" to={routePathForView("set", selectedSet.id)} aria-label="Exit Learn">×</Link>
                     <div className="learn-question-heading">
@@ -4167,6 +4164,7 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                           <small>{nextLearnNavigationSet.title}</small>
                         </Link>
                       ) : learnNavigationSets.length > 1 && <span className="learn-next-set-end">Last set{folder || shared?.folder ? " in folder" : ""}</span>}
+                      <h1 className="learn-session-set-title">{selectedSet.title}</h1>
                       {(reviewedAttempt?.retryPass ?? learnRetryPass) && <div className="learn-retry-notice" role="status"><strong><span aria-hidden="true">↻</span> RETRY</strong><span>Previously missed — try this one again.</span></div>}
                     </div>
                     <div className="learn-session-progress" aria-live="polite">
