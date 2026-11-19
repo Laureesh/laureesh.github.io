@@ -53,7 +53,7 @@ export default function LearnHistory({ attempt, onNext, onReturn, explanation, r
           const correct = correctAnswers.includes(option);
           const selected = selectedAnswers.includes(option);
           const reason = attempt.reasons.find(reason => reason.answer === option)?.explanation;
-          return <button key={option} disabled className={`${correct ? "correct" : selected ? "incorrect" : "muted"}${reason ? " has-explanation" : ""}`} aria-label={`${option}${selected ? ", your answer" : ""}${correct ? ", correct answer" : ""}`}>
+          return <button key={option} disabled className={`answer-choice-button ${correct ? "correct" : selected ? "incorrect" : "muted"}${reason ? " has-explanation" : ""}`} aria-label={`${option}${selected ? ", your answer" : ""}${correct ? ", correct answer" : ""}`}>
             <span>{String.fromCharCode(65 + index)}</span><span className="answer-choice-copy"><strong className="answer-choice-title">{option}</strong>{selected && <small className="learn-history-selection">Your answer</small>}{reason && <span className="answer-choice-explanation"><span className="answer-explanation-label">Explanation</span><ExplanationLinks text={reason} /></span>}</span>
           </button>;
         })}</div>}

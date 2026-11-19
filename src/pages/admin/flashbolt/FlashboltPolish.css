@@ -1303,6 +1303,20 @@
 .flashbolt-shell .learn-answered-review .button { min-height: 36px; padding: 6px 10px; font-size: 13px; }
 .learn-history-selection { display: block; margin-top: 4px; font-size: .7em; }
 .learn-history-question h1 { white-space: pre-line; }
+.flashbolt-shell .learn-history-question .answer-grid .answer-choice-button:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.flashbolt-shell .learn-history-question .answer-grid .answer-choice-button:is(.muted, .incorrect) {
+  background: var(--panel);
+  color: var(--ink);
+}
+.flashbolt-shell .learn-history-question .answer-grid .answer-choice-button.incorrect { border-color: var(--danger); }
+.flashbolt-shell .learn-history-question .written-answer input:disabled {
+  opacity: 1;
+  color: var(--ink);
+  -webkit-text-fill-color: var(--ink);
+}
 
 /* Give navigation, the current question, and session stats distinct visual weight. */
 .flashbolt-shell .learn-page .learn-session-header.has-set-navigation {

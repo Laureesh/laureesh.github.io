@@ -65,9 +65,9 @@ test('previous question renders inline with the full disabled answer grid and sa
   assert.doesNotMatch(html, /<dialog/);
   assert.match(html, /question-card ready-to-continue/);
   assert.match(html, /class="answer-grid"/);
-  assert.match(html, /disabled="" class="incorrect has-explanation"/);
-  assert.match(html, /disabled="" class="correct has-explanation"/);
-  assert.match(html, /disabled="" class="muted"/);
+  assert.match(html, /disabled="" class="answer-choice-button incorrect has-explanation"/);
+  assert.match(html, /disabled="" class="answer-choice-button correct has-explanation"/);
+  assert.match(html, /disabled="" class="answer-choice-button muted"/);
   assert.match(html, /Latest explanation/);
   assert.match(html, /Why it is wrong/);
   assert.match(html, /https:\/\/example.com\/reference/);
