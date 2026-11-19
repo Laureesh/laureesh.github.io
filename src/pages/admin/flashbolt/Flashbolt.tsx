@@ -4169,14 +4169,13 @@ export default function Flashbolt({ shared }: { shared?: SharedPublication } = {
                     </div>
                     <div className="learn-session-progress" aria-live="polite">
                       <div className="learn-round-track" aria-label={`${learnQuestionsAnswered} of ${learnQuestionsTotal} total questions answered`}>
-                        <span className="learn-progress-badge learn-answered-review"><span><strong>{learnQuestionsAnswered}</strong><small>Answered</small></span><button type="button" className="button quiet" disabled={previousLearnIndex < 0} onClick={() => setLearnReviewIndex(previousLearnIndex)}>Previous</button></span>
+                        <span className="learn-progress-badge learn-answered-review"><span aria-label={`${learnQuestionsAnswered} of ${learnQuestionsTotal} questions answered`}><strong>{learnQuestionsAnswered}<span className="learn-progress-total"> / {learnQuestionsTotal}</span></strong><small>Answered</small></span><button type="button" className="button quiet" disabled={previousLearnIndex < 0} onClick={() => setLearnReviewIndex(previousLearnIndex)}>Previous</button></span>
                         <div className="learn-segments">{Array.from({ length: learnQuestionSegmentCount }, (_, groupIndex) => {
                           const segmentStart = groupIndex * 7;
                           const segmentSize = Math.min(7, Math.max(1, learnQuestionsTotal - segmentStart));
                           const answeredInSegment = Math.min(segmentSize, Math.max(0, learnQuestionsAnswered - segmentStart));
                           return <i key={groupIndex}><b style={{ width: `${(answeredInSegment / segmentSize) * 100}%` }} /></i>;
                         })}</div>
-                        <span className="learn-progress-badge"><strong>{learnQuestionsTotal}</strong><small>Total questions</small></span>
                       </div>
                     </div>
                     <button className="learn-options-button" onClick={() => { setLearnOptionsDraft(learnOptions); setLearnOptionsOpen(true); }}>⚙ Options</button>

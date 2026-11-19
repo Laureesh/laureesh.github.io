@@ -1411,6 +1411,18 @@
   align-items: flex-start;
   gap: 4px;
 }
+.flashbolt-shell .has-set-navigation .learn-answered-review > span > strong { white-space: nowrap; }
+.flashbolt-shell .has-set-navigation .learn-progress-total {
+  color: var(--muted);
+  font-size: .75em;
+  font-weight: 500;
+}
+@media (max-width: 1200px) {
+  .flashbolt-shell .learn-page .learn-session-header.has-set-navigation .learn-answered-review {
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+}
 .flashbolt-shell .has-set-navigation :is(.learn-answered-review .button, .learn-options-button, .learn-exit) {
   border: 1px solid var(--line-soft);
   background: transparent;
