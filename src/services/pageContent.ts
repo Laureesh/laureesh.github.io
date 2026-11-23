@@ -90,7 +90,7 @@ const fallbackPageContent: Record<EditablePageKey, { title: string; sections: Pa
         eyebrow: "Available for opportunities",
         title: "Laureesh Volmar",
         body:
-          "Dual-degree IT student at Georgia Gwinnett College pursuing Software Development and Cybersecurity. Passionate about back-end development, cloud computing, and building data-driven applications.",
+          "Entry-level software developer finishing a B.S. in Software Development & Cybersecurity at Georgia Gwinnett College (May 2027). Former Software Developer Intern at GGC, AWS Certified Cloud Practitioner, and certified in Cybersecurity and Networking.",
       },
       {
         id: "overview",
@@ -133,11 +133,19 @@ const fallbackPageContent: Record<EditablePageKey, { title: string; sections: Pa
         type: "rich_text",
         title: "Intro",
         body:
-          "I'm a software development student at Georgia Gwinnett College focused on building full-stack projects that feel intentional in both structure and user experience. My background is not a straight line into tech, and that is part of what shapes how I work.",
+          "Hi, I'm Laureesh Volmar, but most people call me Lo. I'm in my final year at Georgia Gwinnett College studying Software Development and Cybersecurity, graduating in May 2027. I recently completed a paid Software Developer Internship at GGC, building full-stack software for a nonprofit partner.",
         items: [
           {
             text:
-              "Coming from healthcare and operations pushed precision, responsibility, and clarity to the front of my thinking. In software, that now shows up as an interest in backend logic, navigation quality, clean UI systems, and products that feel reliable instead of rushed.",
+              "What I enjoy most about technology is figuring out how things work. Whether it's building something from scratch, troubleshooting a problem, or finding a better way to do something, I like the challenge of working through it and seeing the results.",
+          },
+          {
+            text:
+              "My internship has taught me that programming isn't just about writing code. It's also about understanding the problem, communicating with others, and making sure what you're building actually works for the people using it. Having a background in both software development and cybersecurity helps me understand not only how to build applications, but why keeping them secure matters.",
+          },
+          {
+            text:
+              "My goal is to become a software engineer and work on applications that make people's lives easier, solve problems, and have a positive impact. I'm always happy to connect with other students, developers, recruiters, and anyone working in technology.",
           },
         ],
       },
@@ -146,7 +154,7 @@ const fallbackPageContent: Record<EditablePageKey, { title: string; sections: Pa
         type: "rich_text",
         title: "Education + Experience Timeline",
         body:
-          "The short version of how healthcare, coursework, certifications, and shipped projects started turning into a clearer software path.",
+          "The short version of how work experience, coursework, certifications, and my internship turned into a clear software path.",
       },
       {
         id: "credentials",
@@ -193,7 +201,7 @@ const fallbackPageContent: Record<EditablePageKey, { title: string; sections: Pa
         id: "hire",
         type: "rich_text",
         eyebrow: "Hire me",
-        title: "Front-end focused developer with working demos, clear communication, and real build context.",
+        title: "Full-stack developer with internship experience at GGC, working demos, clear communication, and real team experience.",
         body:
           "Best fit for teams that want someone who can ship UI, explain tradeoffs, and keep improving quickly across the stack.",
       },

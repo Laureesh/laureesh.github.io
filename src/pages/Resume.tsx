@@ -3,27 +3,44 @@ import "./Resume.css";
 
 const timeline = [
   {
-    type: "education" as const,
-    title: "B.S. Software Development & B.S. Systems & Cybersecurity",
-    org: "Georgia Gwinnett College, Lawrenceville, GA",
-    date: "Aug 2023 — May 2027 (Expected)",
-    details: ["GPA: 3.93 / 4.00", "Dual degree in Software Development and Systems & Cybersecurity"],
-  },
-  {
     type: "work" as const,
-    title: "Certified Medication Aide",
-    org: "Northridge Health & Rehabilitation",
-    date: "July 2023 — March 2025",
+    title: "Software Developer Intern",
+    org: "Georgia Gwinnett College, Paid Internship — Lawrenceville, GA",
+    date: "August 2026 — November 2026",
     details: [
-      "Administered 100+ daily medication doses with zero documentation errors",
-      "Maintained 100% compliance with HIPAA and healthcare safety standards",
-      "Collaborated with 5+ healthcare professionals to improve workflow efficiency",
+      "Developed and maintained a nonprofit dashboard using React, Next.js, TypeScript, and Firebase",
+      "Collaborated with faculty and nonprofit partners to gather requirements and plan features",
+      "Improved interactive maps, dashboard navigation, and data visualizations",
+      "Built admin-role features and improved API validation and error handling",
+      "Debugged application issues, wrote unit tests, and checked functionality and access",
+      "Configured Docker-based development environments and HTTPS support",
+      "Used Git and GitHub to merge team contributions and resolve merge conflicts",
+      "Organized tasks in Jira and documented progress, technical decisions, and setup instructions",
     ],
   },
   {
     type: "work" as const,
-    title: "Fulfillment Center Warehouse Associate",
-    org: "Amazon",
+    title: "Student Software Developer for SHPE Georgia Professional Chapter",
+    org: "Georgia Gwinnett College, Academic Client Project — Lawrenceville, GA",
+    date: "January 2026 — May 2026",
+    details: [
+      "Architected scalable database models and entity relationships across 4 core modules: users, events, resumes, and sponsors",
+      "Collaborated with teammates and nonprofit stakeholders to translate client requirements into functional features throughout a 5-month Agile development project",
+      "Developed responsive React interfaces and integrated backend APIs supporting user authentication, role-based access control, and content management",
+      "Implemented navigation, dashboards, event calendars, and sponsor components using GitHub workflows, Postman API testing, debugging, and Agile sprint planning",
+    ],
+  },
+  {
+    type: "education" as const,
+    title: "B.S. Software Development & B.S. Systems & Cybersecurity",
+    org: "Georgia Gwinnett College, Lawrenceville, GA",
+    date: "Aug 2021 — May 2027 (Expected)",
+    details: ["GPA: 3.94 / 4.00", "Dual degree in Software Development and Systems & Cybersecurity"],
+  },
+  {
+    type: "work" as const,
+    title: "FC Associate",
+    org: "Amazon — Georgia",
     date: "June 2021 — August 2022",
     details: [
       "Achieved high productivity targets while maintaining accuracy",
@@ -41,8 +58,15 @@ const timeline = [
     type: "cert" as const,
     title: "IT Specialist in Cybersecurity",
     org: "Certiport",
-    date: "Expected April 2026",
+    date: "April 2026",
     details: ["Security fundamentals, threat analysis, network defense"],
+  },
+  {
+    type: "cert" as const,
+    title: "AWS Certified Cloud Practitioner",
+    org: "Amazon Web Services",
+    date: "November 2026",
+    details: ["Cloud concepts, AWS core services, security, and cloud economics"],
   },
 ];
 

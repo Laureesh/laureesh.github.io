@@ -47,19 +47,19 @@ const highlights: {
     title: "Education",
     desc: "Georgia Gwinnett College",
     sub: "B.S. Software Development + B.S. Systems & Cybersecurity",
-    detail: "Expected May 2027 | GPA 3.93",
+    detail: "Expected May 2027 | GPA 3.94",
   },
   {
     icon: <Trophy size={24} />,
     title: "Recognition",
     desc: "Dean's List",
-    sub: "Consistent academic performance while balancing coursework, projects, and a career transition.",
+    sub: "AWS Certified Cloud Practitioner, plus Certiport IT Specialist certifications in Networking and Cybersecurity.",
   },
   {
     icon: <Target size={24} />,
-    title: "Focus",
-    desc: "Full-stack product building",
-    sub: "Backend logic, polished front-end UX, data flow, accessibility, and deployment-minded thinking.",
+    title: "Experience",
+    desc: "Software Developer Intern @ GGC (Aug - Nov 2026)",
+    sub: "Built, tested, and deployed full-stack software for a nonprofit partner with React, Next.js, TypeScript, and Firebase.",
   },
   {
     icon: <MapPin size={24} />,
@@ -106,8 +106,8 @@ const timelineItems: {
     id: "amazon",
     marker: "2021",
     type: "Work",
-    title: "Warehouse Associate",
-    org: "Amazon Fulfillment Center",
+    title: "FC Associate",
+    org: "Amazon",
     range: "Jun 2021 - Aug 2022",
     summary:
       "Fast-paced process work taught me consistency, pace, and respect for systems that need to hold up under pressure.",
@@ -115,22 +115,6 @@ const timelineItems: {
       "Worked inside a repeatable, high-volume workflow",
       "Learned how strong process design reduces mistakes",
       "Carried that systems mindset into technical problem solving",
-    ],
-    icon: <Briefcase size={20} />,
-  },
-  {
-    id: "healthcare",
-    marker: "2023",
-    type: "Work",
-    title: "Certified Medication Aide",
-    org: "Northridge Health & Rehabilitation",
-    range: "Jul 2023 - Mar 2025",
-    summary:
-      "Healthcare reinforced the importance of precision, accountability, and communication when the details actually matter.",
-    bullets: [
-      "Developed calm, detail-oriented habits under responsibility",
-      "Built trust through consistency and clear communication",
-      "That reliability lens now shows up in how I build software",
     ],
     icon: <Briefcase size={20} />,
   },
@@ -156,7 +140,7 @@ const timelineItems: {
     type: "Education",
     title: "Georgia Gwinnett College",
     org: "Software Development + Systems & Cybersecurity",
-    range: "Expected May 2027 | GPA 3.93",
+    range: "Expected May 2027 | GPA 3.94",
     summary:
       "College is where software engineering, cybersecurity, cloud topics, and full-stack application work started connecting into one direction.",
     bullets: [
@@ -183,20 +167,68 @@ const timelineItems: {
     icon: <Code2 size={20} />,
   },
   {
+    id: "shpe-project",
+    marker: "Jan 2026",
+    type: "Build",
+    title: "Student Software Developer",
+    org: "SHPE Georgia Professional Chapter · GGC Academic Client Project",
+    range: "Jan 2026 - May 2026",
+    summary:
+      "A 5-month Agile client project building a platform for SHPE Georgia, from data modeling through React interfaces and backend APIs.",
+    bullets: [
+      "Designed database models across users, events, resumes, and sponsors",
+      "Built React interfaces with authentication, role-based access, and content management",
+      "Tested APIs with Postman and planned work in Agile sprints",
+    ],
+    icon: <Code2 size={20} />,
+  },
+  {
     id: "cyber-cert",
     marker: "2026",
     type: "Certification",
     title: "IT Specialist in Cybersecurity",
     org: "Certiport",
-    range: "Expected Apr 2026",
+    range: "Earned Apr 2026",
     summary:
-      "This is the next formal milestone in the security track that complements the software side of my degree work.",
+      "This certification formalized the security track that complements the software side of my degree work.",
     bullets: [
-      "Building on current systems and security coursework",
+      "Validated security fundamentals alongside systems coursework",
       "Strengthening security language alongside development skills",
       "Keeping the engineering path grounded in risk-aware thinking",
     ],
     icon: <Shield size={20} />,
+  },
+  {
+    id: "ggc-internship",
+    marker: "Aug 2026",
+    type: "Work",
+    title: "Software Developer Intern",
+    org: "Georgia Gwinnett College · Paid Internship",
+    range: "Aug 2026 - Nov 2026",
+    summary:
+      "Paid internship with GGC's School of Science and Technology building full-stack software for a nonprofit partner during a 3-month engagement.",
+    bullets: [
+      "Developed a nonprofit dashboard with React, Next.js, TypeScript, and Firebase",
+      "Improved interactive maps, navigation, data visualizations, and admin-role features",
+      "Wrote unit tests, hardened API validation, configured Docker and HTTPS, and tracked work in Jira",
+    ],
+    icon: <Briefcase size={20} />,
+  },
+  {
+    id: "aws-ccp",
+    marker: "Nov 2026",
+    type: "Certification",
+    title: "AWS Certified Cloud Practitioner",
+    org: "Amazon Web Services",
+    range: "Earned Nov 2026",
+    summary:
+      "A formal cloud baseline that connects the networking and security certifications to how modern applications are actually deployed.",
+    bullets: [
+      "Validated AWS core services, security, and cloud concepts",
+      "Strengthened the cloud computing and cloud security side of my skill set",
+      "Made deployment and infrastructure decisions easier to reason through",
+    ],
+    icon: <Cloud size={20} />,
   },
   {
     id: "graduation",
@@ -239,8 +271,17 @@ const certifications: {
     date: "April 2026",
     status: "Verified",
     note:
-      "Next checkpoint in the security track that complements software development and systems coursework.",
+      "Security fundamentals that complement software development and systems coursework.",
     url: "https://www.credly.com/badges/48f9aeca-e8f0-4731-9320-7df4d9bf98c7",
+  },
+  {
+    title: "AWS Certified Cloud Practitioner",
+    org: "Amazon Web Services",
+    date: "November 2026",
+    status: "Verified",
+    note:
+      "Cloud concepts, AWS core services, security, and pricing that support cloud computing and cloud security work.",
+    url: "https://www.credly.com/badges/dd99eb37-4306-444e-b72b-5e9f5aa659c9",
   },
 ];
 
@@ -324,9 +365,9 @@ const interests: {
 
 const funFacts = [
   {
-    title: "Healthcare still shapes how I build",
+    title: "I like figuring out how things work",
     desc:
-      "Reliability, clarity, and trust matter to me because I spent time in work where small mistakes had real consequences.",
+      "Building from scratch, troubleshooting, or finding a better way to do something is the part of technology I enjoy most.",
   },
   {
     title: "Navigation is one of my favorite problems",
@@ -506,7 +547,7 @@ const journeyStages = [
     phase: "Foundation",
     title: "Precision before programming",
     copy:
-      "Healthcare and operations work built the habits around reliability, trust, and clear process.",
+      "Fast-paced operations work at Amazon built habits around reliability, consistency, and clear process.",
   },
   {
     phase: "Coursework",
@@ -521,16 +562,16 @@ const journeyStages = [
       "Games, tools, and team builds made data flow, backend logic, and user experience feel practical.",
   },
   {
-    phase: "Polish",
-    title: "Interfaces started feeling like products",
+    phase: "Internship",
+    title: "Building software for real users",
     copy:
-      "Navigation, accessibility, interaction design, and content structure became a bigger part of how I work.",
+      "At GGC, I built a nonprofit dashboard with a team: gathering requirements, testing, and shipping features people rely on.",
   },
   {
     phase: "Next",
-    title: "Full-stack depth with better product instincts",
+    title: "Software engineer after graduation",
     copy:
-      "The goal is simple: keep shipping stronger work and make each project feel more intentional end to end.",
+      "The goal is to build applications that make people's lives easier, solve problems, and have a positive impact.",
   },
 ];
 
@@ -735,13 +776,13 @@ export default function About() {
             <div className="about-intro">
               <p>
                 {introSection?.body ??
-                  "I'm a software development student at Georgia Gwinnett College focused on building full-stack projects that feel intentional in both structure and user experience. My background is not a straight line into tech, and that is part of what shapes how I work."}
+                  "Hi, I'm Laureesh Volmar, but most people call me Lo. I'm in my final year at Georgia Gwinnett College studying Software Development and Cybersecurity, graduating in May 2027. I recently completed a paid Software Developer Internship at GGC, building full-stack software for a nonprofit partner."}
               </p>
               {introLines.map((line) => (
                 <p key={line}>{line}</p>
               ))}
               <div className="about-signal-row">
-                <span className="about-signal">3.93 GPA</span>
+                <span className="about-signal">3.94 GPA</span>
                 <span className="about-signal">Expected May 2027</span>
                 <span className="about-signal">Lawrenceville, GA</span>
                 <span className="about-signal">Remote + Hybrid Ready</span>
@@ -780,7 +821,7 @@ export default function About() {
           <div id="about-timeline" className="section-anchor">
             <div className="about-section-heading">
               <h3>{timelineSection?.title ?? "Education + Experience Timeline"}</h3>
-              <p>{timelineSection?.body ?? "The short version of how healthcare, coursework, certifications, and shipped projects started turning into a clearer software path."}</p>
+              <p>{timelineSection?.body ?? "The short version of how work experience, coursework, certifications, and my internship turned into a clear software path."}</p>
             </div>
 
             <div className="about-timeline-shell">

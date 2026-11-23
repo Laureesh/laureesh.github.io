@@ -250,14 +250,14 @@ export default function Home() {
             {heroSection?.title ?? "Laureesh Volmar"}
           </h1>
           <p className="hero-role">
-            Student Intern{" "}
+            Entry-Level Software Developer{" "}
             <span className="highlight">
-              Software Developer/Cybersecurity
+              Full-Stack Dev | Cybersecurity
             </span>
           </p>
           <p className="hero-desc">
             {heroSection?.body ??
-              "Dual-degree IT student at Georgia Gwinnett College pursuing Software Development and Cybersecurity. Passionate about back-end development, cloud computing, and building data-driven applications."}
+              "Entry-level software developer finishing a B.S. in Software Development & Cybersecurity at Georgia Gwinnett College (May 2027). Former Software Developer Intern at GGC, AWS Certified Cloud Practitioner, and certified in Cybersecurity and Networking."}
           </p>
           <div className="hero-actions">
             {showStartHere && (

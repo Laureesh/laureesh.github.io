@@ -93,7 +93,7 @@ const chatTopics = [
     id: "availability",
     question: "Are you open to opportunities?",
     answer:
-      "Yes. I am open to internships, junior developer roles, and freelance work where I can contribute on front-end, full-stack class-style builds, or portfolio-style product work.",
+      "Yes. I recently completed a Software Developer Internship at GGC and graduate in May 2027, so I'm open to software engineering roles, internships, and freelance work across front-end and full-stack development.",
   },
   {
     id: "best-way",
@@ -122,19 +122,13 @@ const socialProofItems = [
     href: "/blog/why-i-chose-firebase-for-my-portfolio",
     internal: true,
   },
-  {
-    label: "Career story",
-    title: "Documented the move from healthcare into software development and what that shift changed.",
-    href: "/blog/my-journey-into-software-development",
-    internal: true,
-  },
 ];
 
 const faqItems = [
   {
     question: "What kind of roles are you looking for?",
     answer:
-      "Internships, junior software roles, and freelance work where I can keep sharpening front-end and full-stack skills while contributing to real product work.",
+      "Software engineering roles after my May 2027 graduation, plus internships and freelance work where I can build applications that make people's lives easier and keep growing across the stack.",
   },
   {
     question: "Do you only do front-end work?",
@@ -256,7 +250,7 @@ export default function Contact() {
                 <BriefcaseBusiness size={14} />
                 {hireSection?.eyebrow ?? "Hire me"}
               </p>
-              <h3>{hireSection?.title ?? "Front-end focused developer with working demos, clear communication, and real build context."}</h3>
+              <h3>{hireSection?.title ?? "Full-stack developer with internship experience at GGC, working demos, clear communication, and real team experience."}</h3>
               <p>{hireSection?.body ?? "Best fit for teams that want someone who can ship UI, explain tradeoffs, and keep improving quickly across the stack."}</p>
             </div>
           </div>

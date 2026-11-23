@@ -227,64 +227,6 @@ npm run dev`,
       "For this portfolio, Firebase wins because it lets me move from idea to implementation quickly. If the project grows into something with heavier backend needs later, that would be the right time to reevaluate the stack.",
   },
   {
-    slug: "my-journey-into-software-development",
-    title: "My Journey into Software Development",
-    excerpt:
-      "From healthcare to tech - how I transitioned into software development and what I've learned along the way as a student at Georgia Gwinnett College.",
-    date: "2025-09-18",
-    readTime: "5 min read",
-    tags: ["Career", "Personal"],
-    popularity: 91,
-    reactionSeeds: { heart: 24, insightful: 18, useful: 11 },
-    series: { slug: "developer-journey", order: 1 },
-    intro: [
-      "I did not start in software. My background in healthcare shaped how I think about responsibility, communication, and staying calm when the work is high stakes. Those habits carried over more than I expected when I began moving toward technology.",
-      "The transition into software development has been less about one dramatic pivot and more about building confidence through repeated problem-solving. Each class, project, and bug fix has made the path feel more real.",
-    ],
-    sections: [
-      {
-        heading: "What healthcare taught me before I wrote serious code",
-        paragraphs: [
-          "Healthcare taught me discipline and attention to detail. It also taught me how important it is to be reliable when other people are depending on your work. Those lessons translate well to software, especially when you are writing code that other people need to understand and trust.",
-        ],
-      },
-      {
-        heading: "Why software pulled me in",
-        paragraphs: [
-          "What kept me interested in software was the mix of creativity and structure. You can take an idea, break it into pieces, and build something that did not exist before. I liked that progress was visible. Every project gave me a concrete way to measure what I had learned.",
-          "That feedback loop was addictive in a good way. The more I built, the clearer it became that this was not just curiosity. It was the direction I wanted to keep pursuing.",
-        ],
-      },
-      {
-        heading: "Learning at Georgia Gwinnett College",
-        paragraphs: [
-          "My time at Georgia Gwinnett College has helped turn that interest into a real foundation. Coursework gave me structure around programming concepts, databases, software engineering habits, and project execution. Personal projects gave me the space to test those skills outside the classroom.",
-          "That mix matters. Classes help me understand the fundamentals. Independent work helps me see what I can actually build when there is no step-by-step prompt in front of me.",
-        ],
-      },
-      {
-        heading: "What changed in how I work",
-        paragraphs: [
-          "One of the biggest shifts has been learning how to stay patient with complex problems. Early on, a bug could feel like evidence that I was not ready. Now I see debugging as part of the work, not a detour from it.",
-        ],
-        bullets: [
-          "Break large problems into checkpoints I can verify one by one.",
-          "Write code I can explain instead of code that only barely works.",
-          "Use feedback from mistakes to sharpen the next version faster.",
-        ],
-      },
-      {
-        heading: "What I would tell other career changers",
-        paragraphs: [
-          "You do not need a perfect origin story to move into software. What matters is whether you can keep learning, keep building, and keep closing the gap between what you know today and what you want to do professionally.",
-          "For me, the transition has been about stacking proof: finished projects, stronger fundamentals, and a portfolio that shows the direction I am heading.",
-        ],
-      },
-    ],
-    closing:
-      "Switching paths has taught me that momentum matters more than image. The goal is not to look like I have always belonged in software. The goal is to keep earning the next level of responsibility through the work.",
-  },
-  {
     slug: "itec-3150-advanced-programming",
     title: "ITEC 3150 - Advanced Programming",
     excerpt:
